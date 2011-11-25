@@ -50,7 +50,7 @@ static int iminarg1,iminarg2;
 #define IMIN(a,b) (iminarg1=(a),iminarg2=(b),(iminarg1) < (iminarg2) ?\
         (iminarg1) : (iminarg2))
 
-#define SIGN(a,b) ((b) >= 0.0 ? fabsl(a) : -fabsl(a))
+#define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 void nrerror(char error_text[]);
 REAL *vector(long nl, long nh);

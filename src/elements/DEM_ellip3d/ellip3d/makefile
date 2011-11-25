@@ -1,4 +1,5 @@
-# 1. You can turn on/off openmp
+# 1. You can toggle on/off OpenMP by uncomment/commenting the line
+# 2. You can toggle on/off quadmath by uncomment/commenting the line
 
 # C++ compiler
 CXX = g++
@@ -9,13 +10,15 @@ OPTIMIZE = -O3
 # debugging options (macro DEBUG is defined in source code)
 DEBUG = -Wall -g -DDEBUG
 
-# OPENMP (macro OPENMP is defined in source code)
+# OpenMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -fopenmp
-#OPENMP = 
+
+# quadmath
+#QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
 # CXXFLAGS
- CXXFLAGS = $(OPTIMIZE) $(OPENMP)
-#CXXFLAGS = $(DEBUG) $(OPENMP)
+ CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
+#CXXFLAGS = $(DEBUG) $(OPENMP) $(QUADMATH)
 
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)

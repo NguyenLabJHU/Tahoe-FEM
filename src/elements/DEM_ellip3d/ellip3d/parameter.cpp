@@ -7,7 +7,7 @@ namespace dem {
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // PI value
-const REAL PI         = 3.141592653589793;
+const REAL PI         = 3.14159265358979323846264338327950;
 
 // gravitational acceleration
 const REAL G          = 9.8;

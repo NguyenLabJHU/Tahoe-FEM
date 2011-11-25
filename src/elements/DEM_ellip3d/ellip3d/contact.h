@@ -12,7 +12,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
 
 //#define MINDLIN_ASSUMED
 //#define MINDLIN_KNOWN
@@ -59,11 +58,11 @@ public:
     
     bool isOverlapped();
     void contactForce();         // calculate normal and tangential force of contact
-    REAL getNormalForce() const {return vfabsl(NormalForce);}
-    REAL getTgtForce()  const {return vfabsl(TgtForce);}
+    REAL getNormalForce() const {return vfabs(NormalForce);}
+    REAL getTgtForce()  const {return vfabs(TgtForce);}
     REAL getPenetration() const {return penetration;}
     REAL getContactRadius() const {return contact_radius;}
-    REAL getTgtDisp() const {return vfabsl(TgtDisp);} // total value during a process of contact
+    REAL getTgtDisp() const {return vfabs(TgtDisp);} // total value during a process of contact
     void checkoutTgt(std::vector<cnttgt>& CntTgtVec);
     void checkinPreTgt(std::vector<cnttgt>& CntTgtVec);
     void print() const;
@@ -173,8 +172,8 @@ bool contact<T>::isOverlapped(){
     point2 = v[0];
     radius1=p1->getRadius(point1);
     radius2=p2->getRadius(point2);
-    penetration=vfabsl(point1-point2);
-    REAL minRelOverlap = penetration/(2.0*std::max(radius1,radius2));
+    penetration=vfabs(point1-point2);
+    REAL minRelOverlap = penetration/(2.0*fmax(radius1,radius2));
 
     if (b1 && b2 && minRelOverlap > MINOVERLAP) { // a strict detection method
         isInContact = true;
@@ -227,9 +226,9 @@ void contact<T>::contactForce(){
 	p1->cntnum++;
 	p2->cntnum++;
 	R0=radius1*radius2/(radius1+radius2);
-	contact_radius=sqrtl(penetration*R0);
+	contact_radius=sqrt(penetration*R0);
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
-	REAL allowedOverlap = 2.0 * std::min(radius1,radius2) * MAXOVERLAP;
+	REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
 	  g_debuginf << "contact.h: g_iteration=" << g_iteration 
 		     << " particle1=" << getP1()->getID()
@@ -240,8 +239,8 @@ void contact<T>::contactForce(){
 	  penetration = allowedOverlap;
 	}
 	NormDirc=normalize(point1-point2);         // NormDirc points out of particle 1
-	NormalForce= -sqrtl(penetration*penetration*penetration)*sqrtl(R0)*4*E0/3* NormDirc; // NormalForce pointing to particle 1
-	// powl(penetration, 1.5)
+	NormalForce= -sqrt(penetration*penetration*penetration)*sqrt(R0)*4*E0/3* NormDirc; // NormalForce pointing to particle 1
+	// pow(penetration, 1.5)
 
         // apply cohesion force
 	CohesionForce=PI*(penetration*R0)*COHESION*NormDirc;
@@ -257,8 +256,8 @@ void contact<T>::contactForce(){
 	/*
 	g_debuginf<<"contact.h: g_iteration="<<g_iteration
 		  <<" penetration="<<penetration
-		  <<" CohesionForce="<<vfabsl(CohesionForce)
-		  <<" NormalForce="<<vfabsl(NormalForce)
+		  <<" CohesionForce="<<vfabs(CohesionForce)
+		  <<" NormalForce="<<vfabs(NormalForce)
 		  <<" accumulated time="<<g_iteration*TIMESTEP
 		  <<std::endl;
 	*/
@@ -269,11 +268,11 @@ void contact<T>::contactForce(){
 	vec veloc2 = p2->getCurrVelocity() + p2->getCurrOmga()*(cp-p2->getCurrPosition());
 	REAL m1 = getP1()->getMass();
 	REAL m2 = getP2()->getMass();
-	REAL kn = powl(6*vfabsl(NormalForce)*R0*powl(E0,2),1.0/3.0);
-	REAL DMP_CRTC = 2*sqrtl(m1*m2/(m1+m2)*kn); // critical damping
+	REAL kn = pow(6*vfabs(NormalForce)*R0*pow(E0,2),1.0/3.0);
+	REAL DMP_CRTC = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
 	vec CntDampingForce  = DMP_CNT * DMP_CRTC * ((veloc1-veloc2)%NormDirc)*NormDirc;
-	vibraTimeStep = 2.0*sqrtl( m1*m2 / (m1+m2) /kn );
-	impactTimeStep = allowedOverlap / fabsl((veloc1-veloc2) % NormDirc);
+	vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
+	impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) % NormDirc);
 
 	// apply normal damping force
 	p1->addForce(-CntDampingForce);
@@ -287,7 +286,7 @@ void contact<T>::contactForce(){
 	    vec RelaDispInc  = (veloc1-veloc2)*TIMESTEP;
 	    vec TgtDispInc = RelaDispInc-(RelaDispInc%NormDirc)*NormDirc;
 	    TgtDisp        = PreTgtDisp + TgtDispInc; // PreTgtDisp read by checkinPreTgt()
-	    if (vfabsl(TgtDisp) == 0)
+	    if (vfabs(TgtDisp) == 0)
 		TgtDirc = 0;
 	    else
 		TgtDirc = normalize(-TgtDisp); // TgtDirc points along Tgtential forces exerted on particle 1
@@ -297,10 +296,10 @@ void contact<T>::contactForce(){
 
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 	    // linear friction model
-	    fP = FRICTION*vfabsl(NormalForce);
+	    fP = FRICTION*vfabs(NormalForce);
 	    ks = 4*G0*contact_radius/(2-POISSON);
 	    TgtForce = PreTgtForce + ks*(-TgtDispInc); // PreTgtForce read by CheckinPreTgt()
-	    if (vfabsl(TgtForce) > fP)
+	    if (vfabs(TgtForce) > fP)
 		TgtForce = fP*TgtDirc;
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////
 	    
@@ -310,45 +309,45 @@ void contact<T>::contactForce(){
             // unless load is known (the case of pure moment rotation).
 #ifdef MINDLIN_ASSUMED
 	    REAL val = 0;
-	    fP = FRICTION*vfabsl(NormalForce);
+	    fP = FRICTION*vfabs(NormalForce);
 	    TgtLoading = (PreTgtDisp%TgtDispInc >= 0); 
 	    
 	    if (TgtLoading) {              // loading
 		if (!PreTgtLoading) {      // pre-step is unloading
-		    val = 8*G0*contact_radius*vfabsl(TgtDispInc)/(3*(2-POISSON)*fP);
+		    val = 8*G0*contact_radius*vfabs(TgtDispInc)/(3*(2-POISSON)*fP);
 		    TgtDispStart = PreTgtDisp;
 		}
 		else                       // pre-step is loading
-		    val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		    val = 8*G0*contact_radius*vfabs(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
 		
 		if (val > 1.0)              
 		    TgtForce = fP*TgtDirc;
 		else {
-		    ks = 4*G0*contact_radius/(2-POISSON)*sqrtl(1-val);
+		    ks = 4*G0*contact_radius/(2-POISSON)*sqrt(1-val);
 		    //incremental method
 		    TgtForce = PreTgtForce + ks*(-TgtDispInc); // TgtDispInc determines signs
-		    //total value method: TgtForce = fP*(1-powl(1-val, 1.5))*TgtDirc;
+		    //total value method: TgtForce = fP*(1-pow(1-val, 1.5))*TgtDirc;
 		}
 	    }
 	    else {                         // unloading
 		if (PreTgtLoading) {       // pre-step is loading
-		    val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
-		    TgtPeak = vfabsl(PreTgtForce);
+		    val = 8*G0*contact_radius*vfabs(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		    TgtPeak = vfabs(PreTgtForce);
 		}
 		else                       // pre-step is unloading
-		    val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		    val = 8*G0*contact_radius*vfabs(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
 		
 		if (val > 1.0 || TgtPeak > fP)  
 		    TgtForce = fP*TgtDirc;
 		else {
-		    ks = 2*sqrtl(2)*G0*contact_radius/(2-POISSON) * sqrtl(1+powl(1-TgtPeak/fP,2.0/3.0)+val);
+		    ks = 2*sqrt(2)*G0*contact_radius/(2-POISSON) * sqrt(1+pow(1-TgtPeak/fP,2.0/3.0)+val);
 		    //incremental method
 		    TgtForce = PreTgtForce + ks*(-TgtDispInc); // TgtDispInc determines signs
-		    //total value method: TgtForce = (TgtPeak-2*fP*(1-sqrtl(2)/4*powl(1+ powl(1-TgtPeak/fP,2.0/3.0) + val,1.5)))*TgtDirc;
+		    //total value method: TgtForce = (TgtPeak-2*fP*(1-sqrt(2)/4*pow(1+ pow(1-TgtPeak/fP,2.0/3.0) + val,1.5)))*TgtDirc;
 		}
 	    }
 	    
-	    if (vfabsl(TgtForce) > fP)
+	    if (vfabs(TgtForce) > fP)
 		TgtForce = fP*TgtDirc;
 #endif
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -359,11 +358,11 @@ void contact<T>::contactForce(){
             // Herein sliding history is incorporated.
 #ifdef MINDLIN_KNOWN
 	    REAL val = 0;
-	    fP = FRICTION*vfabsl(NormalForce);
+	    fP = FRICTION*vfabs(NormalForce);
 	    if (PreTgtSlide)
-		val = 8*G0*contact_radius*vfabsl(TgtDispInc)/(3*(2-POISSON)*fP);
+		val = 8*G0*contact_radius*vfabs(TgtDispInc)/(3*(2-POISSON)*fP);
 	    else
-		val = 8*G0*contact_radius*vfabsl(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
+		val = 8*G0*contact_radius*vfabs(TgtDisp-TgtDispStart)/(3*(2-POISSON)*fP);
 
 	    if (g_iteration > 10000 && g_iteration < 11000) { // loading (and possible sliding)
 		if (val > 1.0) {
@@ -372,18 +371,18 @@ void contact<T>::contactForce(){
 		}
 		else {
 		    if (!PreTgtSlide) {
-			ks = 4*G0*contact_radius/(2-POISSON)*sqrtl(1-val);
+			ks = 4*G0*contact_radius/(2-POISSON)*sqrt(1-val);
 			TgtForce = PreTgtForce + ks*(-TgtDispInc); // TgtDispInc determines signs
 			TgtSlide = false;
 		    }
 		    else {
-			if (vfabsl(TgtForce)>vfabsl(PreTgtForce))
+			if (vfabs(TgtForce)>vfabs(PreTgtForce))
 			    TgtSlide = true;
 			else
 			    TgtSlide = false;
 		    }
 		}
-		TgtPeak = vfabsl(TgtForce);
+		TgtPeak = vfabs(TgtForce);
 	    }
 	    else { // (possible sliding and) unloading
 		if (val > 1.0 || TgtPeak > fP) {  
@@ -392,12 +391,12 @@ void contact<T>::contactForce(){
 		}
 		else {
 		    if (!PreTgtSlide) {
-			ks = 2*sqrtl(2)*G0*contact_radius/(2-POISSON) * sqrtl(1+powl(1-TgtPeak/fP,2.0/3.0)+val);
+			ks = 2*sqrt(2)*G0*contact_radius/(2-POISSON) * sqrt(1+pow(1-TgtPeak/fP,2.0/3.0)+val);
 			TgtForce = PreTgtForce + ks*(-TgtDispInc); // TgtDispInc determines signs
 			TgtSlide = false;
 		    }
 		    else {
-			if (vfabsl(TgtForce)>vfabsl(PreTgtForce))
+			if (vfabs(TgtForce)>vfabs(PreTgtForce))
 			    TgtSlide = true;
 			else {
 			    TgtSlide = false;
@@ -414,12 +413,12 @@ void contact<T>::contactForce(){
 		      <<" val="<<val
 		      <<" ks="<<ks
 		      <<" TgtDispInc.x="<<TgtDispInc.getx()
-		      <<" PreTgtForce="<<vfabsl(PreTgtForce)
-		      <<" TgtForce"<<vfabsl(TgtForce)
+		      <<" PreTgtForce="<<vfabs(PreTgtForce)
+		      <<" TgtForce"<<vfabs(TgtForce)
 		      <<std::endl;
 	    */
 
-	    if (vfabsl(TgtForce) > fP)
+	    if (vfabs(TgtForce) > fP)
 		TgtForce = fP*TgtDirc;
 #endif	    
 	    /////////////////////////////////////////////////////////////////////////////////////////////////////////

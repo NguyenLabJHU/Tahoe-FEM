@@ -2,9 +2,6 @@
 #include "parameter.h"
 #include <iostream>
 #include <iomanip>
-#include <cmath>
-
-using namespace std;
 
 namespace dem {
 
@@ -113,7 +110,7 @@ REAL vec::operator%(vec p) const{
 
 
 void vec::print() const{
-	cout<<'('<<x<<' '<<y<<' '<<z<<')'<<endl;
+  std::cout<<'('<<x<<' '<<y<<' '<<z<<')'<<std::endl;
 }
 
 
@@ -127,18 +124,18 @@ vec operator/(vec v, REAL d){
 }
 
 
-REAL vfabsl(vec v){
-    return sqrtl(v.getx()*v.getx()+v.gety()*v.gety()+v.getz()*v.getz());
+REAL vfabs(vec v){
+    return sqrt(v.getx()*v.getx()+v.gety()*v.gety()+v.getz()*v.getz());
 }
 
 
-vec vcosl(vec v){
-    return vec(cosl(v.getx()), cosl(v.gety()), cosl(v.getz()));
+vec vcos(vec v){
+    return vec(cos(v.getx()), cos(v.gety()), cos(v.getz()));
 }
 
 
-vec vacosl(vec v){
-    return vec(acosl(v.getx()), acosl(v.gety()), acosl(v.getz()));
+vec vacos(vec v){
+    return vec(acos(v.getx()), acos(v.gety()), acos(v.getz()));
 }
 
 
@@ -148,12 +145,12 @@ vec operator-(vec v){
 
 
 vec normalize(vec v){
-    return v/(vfabsl(v));
+    return v/(vfabs(v));
 }
 
 
 vec rotateVec(vec v, vec ang){
-    REAL alf=vfabsl(ang);
+    REAL alf=vfabs(ang);
     if (alf<NUMZERO) // important, otherwise my cause numerical instability
 	return v;
 
@@ -161,7 +158,7 @@ vec rotateVec(vec v, vec ang){
     vec vp=(v%nx)*nx;
     vec vv=v-vp;
 
-    REAL theta=atanl(vfabsl(vv)/vfabsl(vp));
+    REAL theta=atan(vfabs(vv)/vfabs(vp));
 #ifdef DEBUG
     g_debuginf<<"vec.cpp: g_iteration="<<g_iteration 
 	      <<" alf="<<alf
@@ -172,8 +169,8 @@ vec rotateVec(vec v, vec ang){
 
     vec ny=normalize(vv);
     vec nz=normalize(nx*ny); // normalize, for higher precision
-    REAL l=vfabsl(vv);
-    return l*sinl(alf)*nz + l*cosl(alf)*ny + vp;
+    REAL l=vfabs(vv);
+    return l*sin(alf)*nz + l*cos(alf)*ny + vp;
 }
 
 
@@ -184,7 +181,7 @@ REAL angle(vec v1, vec v2, vec norm){
     //even if the 180<alf<360
     REAL alf;
     vec crs=v1*v2;
-    alf=asinl(vfabsl(crs)/vfabsl(v1)/vfabsl(v2));//0<alf<90;
+    alf=asin(vfabs(crs)/vfabs(v1)/vfabs(v2));//0<alf<90;
     if(crs%norm>0){//0<=alf<=180
 	if(v1%v2<0)//90<alf<180
 	    alf=PI-alf;

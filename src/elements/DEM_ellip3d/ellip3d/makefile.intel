@@ -10,7 +10,7 @@ OPTIMIZE = -O3 -fp-model source
 # debugging options (macro DEBUG is defined in source code)
 DEBUG = -Wall -g -DDEBUG
 
-# OPENMP (macro OPENMP is defined in source code)
+# OpenMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -openmp
 
 # CXXFLAGS

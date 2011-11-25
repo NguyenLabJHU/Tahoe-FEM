@@ -1,7 +1,4 @@
-#include <cmath>
 #include "realtypes.h"
-
-using namespace std;
 
 namespace dem {
 
@@ -20,8 +17,8 @@ void balanc(REAL **a, int n)
 			r=c=0.0;
 			for (j=1;j<=n;j++)
 				if (j != i) {
-					c += fabsl(a[j][i]);
-					r += fabsl(a[i][j]);
+					c += fabs(a[j][i]);
+					r += fabs(a[i][j]);
 				}
 			if (c && r) {
 				g=r/RADIX;

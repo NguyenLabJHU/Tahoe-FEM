@@ -2,9 +2,7 @@
 #include "parameter.h"
 #include "ran.h"
 #include <iostream>
-#include <cmath>
 #include <cstdio>
-using namespace std;
 
 namespace dem {
 

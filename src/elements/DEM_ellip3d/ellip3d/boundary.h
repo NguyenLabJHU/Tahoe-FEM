@@ -26,7 +26,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
 #include <cstdlib>
 
 namespace dem {
@@ -203,11 +202,11 @@ template<class T>
 vec flb_bdry<T>::triangleDstr(REAL pressure, vec norm, vec p[], T* e[]){
         //norm indicates the pressure dirction
 	vec cent=(p[0]+p[1]+p[2])/3;
-	REAL l1=vfabsl(p[1]-p[0]);
-	REAL l2=vfabsl(p[2]-p[1]);
-	REAL l3=vfabsl(p[0]-p[2]);
+	REAL l1=vfabs(p[1]-p[0]);
+	REAL l2=vfabs(p[2]-p[1]);
+	REAL l3=vfabs(p[0]-p[2]);
 	REAL hp=(l1+l2+l3)/2;
-	REAL area=sqrtl(hp)*sqrtl(hp-l1)*sqrtl(hp-l2)*sqrtl(hp-l3);
+	REAL area=sqrt(hp)*sqrt(hp-l1)*sqrt(hp-l2)*sqrt(hp-l3);
 	vec nm=normalize((p[0]-p[1])*(p[2]-p[1]));
 	if(nm%norm<0)
 		nm*=-1;
@@ -310,7 +309,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	if ( (*it)->getType() == 0 ) { // only process free particles, excluding type 5
 	    posi=(*it)->getCurrPosition();
 	    dist=distToBdry(posi);
-	    if(dist>=0 || fabsl(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
+	    if(dist>=0 || fabs(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
 		continue;
 	    next=true;
 	    /*
@@ -320,7 +319,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 	    */
 	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
 		ndirc=normalize((*bt).dirc);
-		r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
+		r=vfabs((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
 		if( ( (*bt).order==1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ) ||
 		    ( (*bt).order==2 && (r-(*bt).rad)*(*bt).side<0 ) ){
 		    next=false; // the particle is out of boundary, process next particle
@@ -344,8 +343,8 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
  	for (it=ptcls.begin();it!=ptcls.end();++it){
 		vec posi=(*it)->getCurrPosition();
 		REAL dist=distToBdry(posi);
-		//if (fabsl(dist)>ROOM*(*it)->getA()&&dist<0)
-		if(fabsl(dist)>ROOM*(*it)->getA()||dist>0)
+		//if (fabs(dist)>ROOM*(*it)->getA()&&dist<0)
+		if(fabs(dist)>ROOM*(*it)->getA()||dist>0)
 			continue;
 		next=false;
 		for (bt=++CoefOfLimits.begin();bt!=CoefOfLimits.end();++bt){
@@ -430,7 +429,7 @@ REAL cylrgd_bdry<T>::distToBdry(vec posi) const{
 	vec napt=(*this->CoefOfLimits.begin()).apt;
 	REAL r=(*this->CoefOfLimits.begin()).rad;
 	vec norm=normalize(ndc);
-	return fabsl(r-vfabsl((posi-napt)-(posi-napt)%norm*norm));
+	return fabs(r-vfabs((posi-napt)-(posi-napt)%norm*norm));
 };
 
 template<class T>
@@ -449,7 +448,7 @@ void cylrgd_bdry<T>::findParticleOnBoundary(std::list<T*> &ptcls){
 		next=false;
 		for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){
 			ndirc=normalize((*bt).dirc);
-			r=vfabsl((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
+			r=vfabs((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
 			if( ( (*bt).order==1&&(posi-(*bt).apt)%(*bt).dirc>(*it)->getA() )||
 				( (*bt).order==2&&(r-(*bt).rad)*(*bt).side<0 ) ){
 				next=true;//the particle is outof boundary, process next particle
@@ -599,7 +598,7 @@ void plnflb_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 		vec posi=(*it)->getCurrPosition();
 		vec vdt=(posi-pt1)%normalize(norm)*normalize(norm);
 		vec proj=posi-vdt;
-		REAL dist=vfabsl(vdt);
+		REAL dist=vfabs(vdt);
 		if (dist>(*it)->getA()&&vdt%norm<0)
 			continue;
 		vec v1=pt1-proj;
@@ -649,7 +648,7 @@ void plnflb_bdry<T>::findParticleOnLine(){
 			vec thept=ip_bot+(ip_top-ip_bot)/(nz-1)*iz;
 			for (it=PBList.begin();it!=PBList.end();++it){
 				vec v0=(*it)->getCurrPosition();
-				REAL dist=vfabsl((v0-thept)-(v0-thept)%normalize(norm)*normalize(norm));
+				REAL dist=vfabs((v0-thept)-(v0-thept)%normalize(norm)*normalize(norm));
 				if(dist<(*it)->getA())
 					PCFB[iz][ip].push_back(*it);
 			}
@@ -890,12 +889,12 @@ void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 	vec pt4=(++framelist.begin())->pt2;
 	int turn=framelist.begin()->turn;
 	
-	if (vfabsl(ml1*ml2)>1.0e-5*vfabsl(ml1)||fabsl(r1-r2)>1.0e-5*r1){
+	if (vfabs(ml1*ml2)>1.0e-5*vfabs(ml1)||fabs(r1-r2)>1.0e-5*r1){
 		perror("in cylflb_bdry::findParticleOnBoundary: the two CIRC do not build a cylinder");
 		exit(-1);
 	}
-	if (vfabsl((pt1-pt3)*ml1)>1.0e-8||
-		vfabsl((pt2-pt4)*ml1)>1.0e-8){
+	if (vfabs((pt1-pt3)*ml1)>1.0e-8||
+		vfabs((pt2-pt4)*ml1)>1.0e-8){
 		perror("in cylflb_bdry::findParticleOnBoundary: the end points are not good");
 		exit(-1);
 	}
@@ -909,10 +908,10 @@ void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 	for (it=ptcls.begin();it!=ptcls.end();++it){
 		vec posi=(*it)->getCurrPosition();
 		vec proj=posi-ct-(posi-ct)%normalize(norm)*normalize(norm);
-		REAL dist=vfabsl(proj);
+		REAL dist=vfabs(proj);
 		if ((dist<0.8*rad&&side==-1)||(dist>1.2*rad&&side==1))
 			continue;
-		if(vfabsl(pt1-pt2)>1.0e-8){// a uncomplete circle
+		if(vfabs(pt1-pt2)>1.0e-8){// a uncomplete circle
 			REAL bta=angle(pt1-ct1,proj,turn*ml1);
 			if (bta>alf)
 				continue;
@@ -942,7 +941,7 @@ void cylflb_bdry<T>::findParticleOnLine(){
 			vec thept=ip_bot+iz*(ip_top-ip_bot)/(nz-1);
 			for (it=PBList.begin();it!=PBList.end();++it){
 				vec v0=(*it)->getCurrPosition();
-				REAL dist=vfabsl((v0-thept)-(v0-thept)%normalize(ll)*normalize(ll));
+				REAL dist=vfabs((v0-thept)-(v0-thept)%normalize(ll)*normalize(ll));
 				if(dist<(*it)->getA())
 					PCFB[iz][ip].push_back(*it);
 			}

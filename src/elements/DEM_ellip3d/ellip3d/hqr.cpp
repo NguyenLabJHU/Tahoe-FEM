@@ -1,8 +1,5 @@
 #include "nrutil.h"
-#include <cmath>
 #define NRANSI
-
-using namespace std;
 
 namespace dem {
 
@@ -14,16 +11,16 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 	anorm=0.0;
 	for (i=1;i<=n;i++)
 		for (j=IMAX(i-1,1);j<=n;j++)
-			anorm += fabsl(a[i][j]);
+			anorm += fabs(a[i][j]);
 	nn=n;
 	t=0.0;
 	while (nn >= 1) {
 		its=0;
 		do {
 			for (l=nn;l>=2;l--) {
-				s=fabsl(a[l-1][l-1])+fabsl(a[l][l]);
+				s=fabs(a[l-1][l-1])+fabs(a[l][l]);
 				if (s == 0.0) s=anorm;
-				if ((REAL)(fabsl(a[l][l-1]) + s) == s) {
+				if ((REAL)(fabs(a[l][l-1]) + s) == s) {
 					a[l][l-1]=0.0;
 					break;
 				}
@@ -38,7 +35,7 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 				if (l == (nn-1)) {
 					p=0.5*(y-x);
 					q=p*p+w;
-					z=sqrtl(fabsl(q));
+					z=sqrt(fabs(q));
 					x += t;
 					if (q >= 0.0) {
 						z=p+SIGN(z,p);
@@ -56,7 +53,7 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 					if (its == 10 || its == 20) {
 						t += x;
 						for (i=1;i<=nn;i++) a[i][i] -= x;
-						s=fabsl(a[nn][nn-1])+fabsl(a[nn-1][nn-2]);
+						s=fabs(a[nn][nn-1])+fabs(a[nn-1][nn-2]);
 						y=x=0.75*s;
 						w = -0.4375*s*s;
 					}
@@ -68,13 +65,13 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 						p=(r*s-w)/a[m+1][m]+a[m][m+1];
 						q=a[m+1][m+1]-z-r-s;
 						r=a[m+2][m+1];
-						s=fabsl(p)+fabsl(q)+fabsl(r);
+						s=fabs(p)+fabs(q)+fabs(r);
 						p /= s;
 						q /= s;
 						r /= s;
 						if (m == l) break;
-						u=fabsl(a[m][m-1])*(fabsl(q)+fabsl(r));
-						v=fabsl(p)*(fabsl(a[m-1][m-1])+fabsl(z)+fabsl(a[m+1][m+1]));
+						u=fabs(a[m][m-1])*(fabs(q)+fabs(r));
+						v=fabs(p)*(fabs(a[m-1][m-1])+fabs(z)+fabs(a[m+1][m+1]));
 						if ((REAL)(u+v) == v) break;
 					}
 					for (i=m+2;i<=nn;i++) {
@@ -87,13 +84,13 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 							q=a[k+1][k-1];
 							r=0.0;
 							if (k != (nn-1)) r=a[k+2][k-1];
-							if ((x=fabsl(p)+fabsl(q)+fabsl(r)) != 0.0) {
+							if ((x=fabs(p)+fabs(q)+fabs(r)) != 0.0) {
 								p /= x;
 								q /= x;
 								r /= x;
 							}
 						}
-						if ((s=SIGN(sqrtl(p*p+q*q+r*r),p)) != 0.0) {
+						if ((s=SIGN(sqrt(p*p+q*q+r*r),p)) != 0.0) {
 							if (k == m) {
 								if (l != m)
 								a[k][k-1] = -a[k][k-1];

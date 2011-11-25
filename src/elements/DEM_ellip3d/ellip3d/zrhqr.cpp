@@ -2,8 +2,6 @@
 #define NRANSI
 #define MAXM 50
 
-using namespace std;
-
 namespace dem {
 
 bool zrhqr(REAL a[], int m, REAL rtr[], REAL rti[])

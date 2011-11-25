@@ -40,7 +40,7 @@ class vec{
     vec operator*(REAL d) const;
     REAL operator%(vec p) const;// find the dot product of this and p
     void print() const;
-    
+
  private:
     REAL x;
     REAL y;
@@ -51,9 +51,9 @@ class vec{
 vec operator*(REAL d, vec v);
 vec operator/(vec v, REAL d);
 vec operator-(vec v);
-REAL vfabsl(vec v);
-vec vcosl(vec v);
-vec vacosl(vec v);
+REAL vfabs(vec v);
+vec vcos(vec v);
+vec vacos(vec v);
 vec rotateVec(vec v, vec alf);    // find the exact vector after v is rotated alf in space
 vec normalize(vec v);
 /*calculate the angle between v1 and v2 if rotating v1 in the plane

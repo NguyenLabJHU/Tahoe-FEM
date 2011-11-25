@@ -10,7 +10,6 @@
 
 #include "realtypes.h"
 #include <cstdio>
-using namespace std;
 
 namespace dem {
 

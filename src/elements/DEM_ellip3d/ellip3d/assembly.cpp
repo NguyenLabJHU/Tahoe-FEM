@@ -34,7 +34,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
 #include <cstring>
 #include <ctime>
 
@@ -44,7 +43,9 @@
 
 //#define TIME_PROFILE
 
-using namespace std;
+using std::cout;
+using std::setw;
+using std::endl;
 
 static time_t timeStamp; // for file timestamping
 static struct timeval timew1, timew2; // for wall-clock time record
@@ -52,15 +53,15 @@ static struct timeval timep1, timep2; // for internal wall-clock time profiling
 
 namespace dem {
 
-ofstream        progressinf;
+std::ofstream progressinf;
 
 void assembly::printParticle(const char* str) const
 {
-    ofstream ofs(str);
+    std::ofstream ofs(str);
     if(!ofs) {
 	cout<<"stream error in printParticle!"<<endl; exit(-1);
     }
-    ofs.setf(ios::scientific, ios::floatfield);
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     ofs<<setw(OWID)<<TotalNum<<setw(OWID)<<RORC<<endl;
     if(RORC==0)
@@ -109,7 +110,7 @@ void assembly::printParticle(const char* str) const
        <<endl;
 
     vec tmp;
-    list<particle*>::const_iterator  it;
+    std::list<particle*>::const_iterator  it;
     for (it=ParticleList.begin();it!=ParticleList.end();++it)
     {
 	ofs<<setw(OWID)<<(*it)->getID()
@@ -165,16 +166,16 @@ void assembly::printParticle(const char* str) const
 
 void assembly::printRectPile(const char* str)
 {
-    ofstream ofs(str, ios_base::app);
+    std::ofstream ofs(str, std::ios_base::app);
     if(!ofs) {
 	cout<<"stream error in printRectPile!"<<endl; exit(-1);
     }
-    ofs.setf(ios::scientific, ios::floatfield);
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
     ofs<<setw(OWID)<<8<<setw(OWID)<<6<<endl;
     vec pos[8];
-    for(list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+    for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
 	if((*rt)->getBdryID()==7){
 	    pos[0]=vec((*rt)->CoefOfLimits[0].apt.getx(),
 		       (*rt)->CoefOfLimits[1].apt.gety(),
@@ -230,11 +231,11 @@ void assembly::printRectPile(const char* str)
 //     compiler will give errors.
 void assembly::printContact(const char* str) const
 {
-    ofstream ofs(str);
+    std::ofstream ofs(str);
     if(!ofs) {
 	cout<<"stream error in printContact!"<<endl; exit(-1);
     }
-    ofs.setf(ios::scientific, ios::floatfield);
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     ofs<<setw(OWID)<<ActualCntctNum<<endl;
     ofs<<setw(OWID)<<"ptcl_1"
@@ -266,7 +267,7 @@ void assembly::printContact(const char* str) const
        <<setw(OWID)<<"vibra_time_step"
        <<setw(OWID)<<"impact_time_step"
        <<endl;
-    list<CONTACT>::const_iterator it;
+    std::list<CONTACT>::const_iterator it;
     for (it=ContactList.begin();it!=ContactList.end();++it)
 	ofs<<setw(OWID)<<it->getP1()->getID()
 	   <<setw(OWID)<<it->getP2()->getID()
@@ -302,7 +303,7 @@ void assembly::printContact(const char* str) const
 
 	
 void assembly::createSample(const char* str){
-    ifstream ifs(str);
+    std::ifstream ifs(str);
     if(!ifs) {
 	cout<<"stream error in createSample!"<<endl; exit(-1);
     }
@@ -314,7 +315,7 @@ void assembly::createSample(const char* str){
 	S.set_center(vec(cx,cy,cz));
 	S.set_radius(rd);
 	S.set_height(ht);
-	Volume = PI * powl(S.get_radius(),2) * S.get_height();
+	Volume = PI * pow(S.get_radius(),2) * S.get_height();
     }
     else{
 	ifs >> cx >> cy >> cz >> wd >> lt >> ht;
@@ -361,7 +362,7 @@ void assembly::findContact(){ // OpenMP version
     gettimeofday(&timep1,NULL); 
 #endif
     int iam, nt, i, j, ipoints, npoints, rpoints;
-    list<particle*>::iterator ot, it, pt;
+    std::list<particle*>::iterator ot, it, pt;
     vec u,v;
     npoints = ParticleList.size();
     ot = ParticleList.begin();
@@ -397,7 +398,7 @@ void assembly::findContact(){ // OpenMP version
 	    u=(*it)->getCurrPosition();
 	    for (pt=it,++pt;pt!=ParticleList.end();++pt){
 		v=(*pt)->getCurrPosition();
-		if (   ( vfabsl(v-u) < (*it)->getA() + (*pt)->getA())
+		if (   ( vfabs(v-u) < (*it)->getA() + (*pt)->getA())
 		    && ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
 		    && ( (*it)->getType() !=  5 || (*pt)->getType() != 5  )      // not both are free boundary particles
 		    && ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
@@ -427,13 +428,13 @@ void assembly::findContact(){ // serial version
 #ifdef TIME_PROFILE
     gettimeofday(&timep1,NULL); 
 #endif
-    list<particle*>::iterator it, pt;
+    std::list<particle*>::iterator it, pt;
     vec u,v;
     for (it=ParticleList.begin();it!=ParticleList.end();++it){
 	u=(*it)->getCurrPosition();
 	for (pt=it,++pt;pt!=ParticleList.end();++pt){
 	    v=(*pt)->getCurrPosition();
-	    if (   ( vfabsl(v-u) < (*it)->getA() + (*pt)->getA())
+	    if (   ( vfabs(v-u) < (*it)->getA() + (*pt)->getA())
 		&& ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
 		&& ( (*it)->getType() !=  5 || (*pt)->getType() != 5  )      // not both are free boundary particles
 		&& ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
@@ -464,7 +465,7 @@ void assembly::findContact(){
 #ifdef TIME_PROFILE
     gettimeofday(&timep1,NULL); 
 #endif
-    list<particle*>::iterator ot, it, pt;
+    std::list<particle*>::iterator ot, it, pt;
     vec u,v;
     int i,j,n;
     n =ParticleList.size();
@@ -478,7 +479,7 @@ void assembly::findContact(){
       u=(*it)->getCurrPosition();
       for (pt=it,++pt;pt!=ParticleList.end();++pt){
 	v=(*pt)->getCurrPosition();
-	if (vfabsl(v-u) < (*it)->getA() + (*pt)->getA() ) {
+	if (vfabs(v-u) < (*it)->getA() + (*pt)->getA() ) {
 	  contact<particle> tmpct(*it, *pt); // a local and temparory object
 	  ++PossCntctNum;
 	  if(tmpct.isOverlapped())
@@ -501,7 +502,7 @@ void assembly::findContact(){
 
 REAL assembly::getDensity() const{
     REAL dens=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	dens+=(*it)->getMass();
     return dens/=Volume;
@@ -514,7 +515,7 @@ REAL assembly::getAveragePenetration() const{
 	return 0;
     else {
 	REAL pene=0;
-	for (list<CONTACT>::const_iterator it=ContactList.begin();it!=ContactList.end();++it)
+	for (std::list<CONTACT>::const_iterator it=ContactList.begin();it!=ContactList.end();++it)
 	    pene += it->getPenetration(); 
 	return pene/totalcntct;
     }
@@ -526,7 +527,7 @@ REAL assembly::getVibraTimeStep() const {
     if (totalcntct == 0)
 	return 0;
     else {
-	list<CONTACT>::const_iterator it=ContactList.begin();
+	std::list<CONTACT>::const_iterator it=ContactList.begin();
         REAL minTimeStep = it->getVibraTimeStep();
 	for (++it; it != ContactList.end(); ++it) {
 	  REAL val = it->getVibraTimeStep(); 
@@ -542,7 +543,7 @@ REAL assembly::getImpactTimeStep() const {
     if (totalcntct == 0)
 	return 0;
     else {
-	list<CONTACT>::const_iterator it=ContactList.begin();
+	std::list<CONTACT>::const_iterator it=ContactList.begin();
         REAL minTimeStep = it->getImpactTimeStep();
 	for (++it; it != ContactList.end(); ++it) {
 	  REAL val = it->getImpactTimeStep(); 
@@ -556,10 +557,10 @@ REAL assembly::getImpactTimeStep() const {
 REAL assembly::getAverageVelocity() const{
     REAL avgv=0;
     int count=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==0) {
-	    avgv+=vfabsl((*it)->getCurrVelocity());
+	    avgv+=vfabs((*it)->getCurrVelocity());
 	    count++;
 	}
     return avgv/=count;
@@ -569,10 +570,10 @@ REAL assembly::getAverageVelocity() const{
 REAL assembly::getAverageOmga() const{
     REAL avgv=0;
     int count=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==0){
-	    avgv+=vfabsl((*it)->getCurrOmga());
+	    avgv+=vfabs((*it)->getCurrOmga());
 	    count++;
 	}
     return avgv/=count;
@@ -582,10 +583,10 @@ REAL assembly::getAverageOmga() const{
 REAL assembly::getAverageForce() const{
     REAL avgv=0;
     int count=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==0){
-	    avgv+=vfabsl((*it)->getForce());
+	    avgv+=vfabs((*it)->getForce());
 	    count++;
 	}
     return avgv/count;
@@ -595,10 +596,10 @@ REAL assembly::getAverageForce() const{
 REAL assembly::getAverageMoment() const{
     REAL avgv=0;
     int count=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==0){
-	    avgv+=vfabsl((*it)->getMoment());
+	    avgv+=vfabs((*it)->getMoment());
 	    count++;
 	}
     return avgv/=count;
@@ -607,7 +608,7 @@ REAL assembly::getAverageMoment() const{
 
 REAL assembly::getParticleVolume() const{
     REAL avgv=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==0)
 	    avgv+=(*it)->getVolume();
@@ -616,7 +617,7 @@ REAL assembly::getParticleVolume() const{
 
 
 vec assembly::getTopFreeParticlePosition() const{
-    list<particle*>::const_iterator it,jt,kt;
+    std::list<particle*>::const_iterator it,jt,kt;
     it=ParticleList.begin();
     while (it!=ParticleList.end() && (*it)->getType()!=0)   // find the 1st free particle
 	++it;
@@ -650,7 +651,7 @@ vec assembly::getTopFreeParticlePosition() const{
 
 REAL assembly::ellipPileForce() {
     REAL val=0;
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==3) {
 	    val = (*it)->getForce().getz();
 	    break;
@@ -661,7 +662,7 @@ REAL assembly::ellipPileForce() {
 
 vec assembly::ellipPileDimn() {
     vec val;
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==3) {
 	    val = vec((*it)->getA(), (*it)->getB(), (*it)->getC());
 	    break;
@@ -672,7 +673,7 @@ vec assembly::ellipPileDimn() {
 
 REAL assembly::ellipPileTipZ() {
     REAL val=0;
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
 	if ((*it)->getType()==3) {
 	    val = (*it)->getCurrPosition().getz()-(*it)->getA();
 	    break;
@@ -688,7 +689,7 @@ REAL assembly::ellipPilePeneVol() {
     else{
 	// low: a signed number as lower limit for volumetric integration
 	REAL low=ellipPileTipZ() + ellipPileDimn().getx() - getTopFreeParticlePosition().getz(); 
-	REAL lowint=low-powl(low,3)/3.0/powl(ellipPileDimn().getx(),2);
+	REAL lowint=low-pow(low,3)/3.0/pow(ellipPileDimn().getx(),2);
 	val = PI * ellipPileDimn().gety() * ellipPileDimn().getz()
 	      *(2.0/3*ellipPileDimn().getx()-lowint);
     }
@@ -697,7 +698,7 @@ REAL assembly::ellipPilePeneVol() {
 
 
 void assembly::ellipPileUpdate(){
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==3) {
 	    (*it)->curr_velocity.setx(0);	
 	    (*it)->curr_velocity.sety(0);
@@ -710,7 +711,7 @@ void assembly::ellipPileUpdate(){
 
 REAL assembly::getTransEnergy() const{
     REAL engy=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getTransEnergy();
@@ -721,7 +722,7 @@ REAL assembly::getTransEnergy() const{
 
 REAL assembly::getRotatEnergy() const{
     REAL engy=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getRotatEnergy();
@@ -732,7 +733,7 @@ REAL assembly::getRotatEnergy() const{
 
 REAL assembly::getKinetEnergy() const{
     REAL engy=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getKinetEnergy();
@@ -743,7 +744,7 @@ REAL assembly::getKinetEnergy() const{
 
 REAL assembly::getPotenEnergy(REAL ref) const{
     REAL engy=0;
-    list<particle*>::const_iterator it;
+    std::list<particle*>::const_iterator it;
     for(it=ParticleList.begin();it!=ParticleList.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getPotenEnergy(ref);
@@ -753,14 +754,14 @@ REAL assembly::getPotenEnergy(REAL ref) const{
 
 
 void assembly::clearForce(){
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	(*it)->clearForce();
     }
 }
 
 
 void assembly::flexiBoundaryForceZero(){
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	(*it)->flb_force=0;
 	(*it)->flb_moment=0;
     }
@@ -768,7 +769,7 @@ void assembly::flexiBoundaryForceZero(){
 
 
 void assembly::initFBForce(){
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	(*it)->force+=(*it)->flb_force;
 	(*it)->moment+=(*it)->flb_moment;
     }
@@ -785,7 +786,7 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 	avgsh = 0;
     }
     else{
-	list<CONTACT>::iterator it;
+	std::list<CONTACT>::iterator it;
 	for (it=ContactList.begin();it!=ContactList.end();++it)
 	    it->checkinPreTgt(CntTgtVec); // checkin previous tangential force and displacment    
 	
@@ -813,13 +814,13 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 
 
 void assembly::updateParticle(){
-    for(list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
 	(*it)->update();
     }
 }
 
 
-void assembly::createRigidBoundary(ifstream &ifs){
+void assembly::createRigidBoundary(std::ifstream &ifs){
     rgd_bdry<particle>* rbptr;
     int type;
     RBList.clear();
@@ -836,7 +837,7 @@ void assembly::createRigidBoundary(ifstream &ifs){
 }
 
 
-void assembly::createFlexiBoundary(ifstream &ifs){
+void assembly::createFlexiBoundary(std::ifstream &ifs){
     flb_bdry<particle>* fbptr;
     int type;
     FBList.clear();
@@ -854,7 +855,7 @@ void assembly::createFlexiBoundary(ifstream &ifs){
 
 	
 void assembly::createBoundary(const char* str){
-    ifstream ifs(str);
+    std::ifstream ifs(str);
     if(!ifs) {
 	cout<<"stream error in createBoundary!"<<endl; exit(-1);
     }
@@ -871,16 +872,16 @@ void assembly::createBoundary(const char* str){
 
 void assembly::printBoundary(const char* str) const
 {
-    ofstream ofs(str);
+    std::ofstream ofs(str);
     if(!ofs) {
 	cout<<"stream error in printBoundary!"<<endl; exit(-1);
     }
-    ofs.setf(ios::scientific, ios::floatfield);
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
 
     ofs<<setw(OWID)<<BdryType
        <<setw(OWID)<<RgdBdryNum<<endl;
     
-    list<RGDBDRY*>::const_iterator rt;
+    std::list<RGDBDRY*>::const_iterator rt;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
 	(*rt)->disp(ofs);
     ofs<<endl;
@@ -890,8 +891,8 @@ void assembly::printBoundary(const char* str) const
 
 
 void assembly::findParticleOnBoundary(){
-    list<RGDBDRY*>::iterator rt;
-    list<FLBBDRY*>::iterator ft;
+    std::list<RGDBDRY*>::iterator rt;
+    std::list<FLBBDRY*>::iterator ft;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
 	(*rt)->findParticleOnBoundary(ParticleList);
     for(ft=FBList.begin();ft!=FBList.end();++ft)
@@ -900,27 +901,27 @@ void assembly::findParticleOnBoundary(){
 
 
 void assembly::findParticleOnLine(){
-    list<FLBBDRY*>::iterator ft;
+    std::list<FLBBDRY*>::iterator ft;
     for(ft=FBList.begin();ft!=FBList.end();++ft)
 	(*ft)->findParticleOnLine();
 }
 
 
 void assembly::createFlbNet(){
-    list<FLBBDRY*>::iterator ft;
+    std::list<FLBBDRY*>::iterator ft;
     for(ft=FBList.begin();ft!=FBList.end();++ft)
 	(*ft)->createFlbNet();
 }
 
 
 void assembly::rigidBoundaryForce(){
-  list<RGDBDRY*>::iterator rt;
+  std::list<RGDBDRY*>::iterator rt;
   for(rt=RBList.begin();rt!=RBList.end();++rt)
     (*rt)->rigidBF(BdryTgtMap);
 
   /*
   vector<boundarytgt>::iterator it;
-  list<RGDBDRY*>::iterator rt;
+  std::list<RGDBDRY*>::iterator rt;
 
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
@@ -940,7 +941,7 @@ void assembly::rigidBoundaryForce(){
 
 
 void assembly::rigidBoundaryForce(REAL penetr[],int cntnum[]){
-  list<RGDBDRY*>::iterator rt;
+  std::list<RGDBDRY*>::iterator rt;
   for(rt=RBList.begin();rt!=RBList.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
     if ((*rt)->getBdryID()==1){
@@ -972,14 +973,14 @@ void assembly::rigidBoundaryForce(REAL penetr[],int cntnum[]){
 
 
 void assembly::flexiBoundaryForce(){
-    list<FLBBDRY*>::iterator ft;
+    std::list<FLBBDRY*>::iterator ft;
     for(ft=FBList.begin();ft!=FBList.end();++ft)
 	(*ft)->flxbBF();
 }
 
 
 vec assembly::getNormalForce(int bdry) const{
-    list<RGDBDRY*>::const_iterator it;
+    std::list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getNormalForce();
@@ -989,7 +990,7 @@ vec assembly::getNormalForce(int bdry) const{
 
 
 vec assembly::getShearForce(int bdry) const{
-    list<RGDBDRY*>::const_iterator it;
+    std::list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getShearForce();
@@ -999,7 +1000,7 @@ vec assembly::getShearForce(int bdry) const{
 
 
 REAL assembly::getAvgNormal(int bdry) const{
-    list<RGDBDRY*>::const_iterator it;
+    std::list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getAvgNormal();
@@ -1009,7 +1010,7 @@ REAL assembly::getAvgNormal(int bdry) const{
 
 
 vec assembly::getApt(int bdry) const{
-    list<RGDBDRY*>::const_iterator it;
+    std::list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getApt();
@@ -1019,7 +1020,7 @@ vec assembly::getApt(int bdry) const{
 
 
 vec assembly::getDirc(int bdry) const{
-    list<RGDBDRY*>::const_iterator it;
+    std::list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getDirc();
@@ -1029,7 +1030,7 @@ vec assembly::getDirc(int bdry) const{
 
 
 REAL assembly::getArea(int n) const{
-    list<RGDBDRY*>::const_iterator it;
+    std::list<RGDBDRY*>::const_iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==n)
 	    return (*it)->area;
@@ -1039,7 +1040,7 @@ REAL assembly::getArea(int n) const{
 
 
 void assembly::setArea(int n, REAL a){
-    list<RGDBDRY*>::iterator it;
+    std::list<RGDBDRY*>::iterator it;
     for(it=RBList.begin();it!=RBList.end();++it){
 	if((*it)->getBdryID()==n)
 	    (*it)->area=a;
@@ -1048,10 +1049,10 @@ void assembly::setArea(int n, REAL a){
 
 
 REAL assembly::getAverageRigidPressure() const{
-    list<RGDBDRY*>::const_iterator rt;
+    std::list<RGDBDRY*>::const_iterator rt;
     REAL avgpres=0;
     for(rt=RBList.begin();rt!=RBList.end();++rt)
-	avgpres+=vfabsl((*rt)->getNormalForce())/(*rt)->getArea();
+	avgpres+=vfabs((*rt)->getNormalForce())/(*rt)->getArea();
     return avgpres/=RgdBdryNum;
 }
 
@@ -1059,7 +1060,7 @@ REAL assembly::getAverageRigidPressure() const{
 // only update CoefOfLimits[0] for specified boundaries
 void assembly::updateRB(int bn[], UPDATECTL rbctl[], int num){
     for(int i=0;i<num;i++){
-	for(list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+	for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
 	    if((*rt)->getBdryID()==bn[i]){
 		(*rt)->update(rbctl[i]);
 		break;
@@ -1071,9 +1072,9 @@ void assembly::updateRB(int bn[], UPDATECTL rbctl[], int num){
 
 // update CoefOfLimits[1,2,3,4] for all 6 boundaries
 void assembly::updateRB6(){
-    for(list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+    for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
 	if((*rt)->getBdryID()==1 || (*rt)->getBdryID()==3){
-	    for(list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
 		if((*lt)->getBdryID()==4)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==2)
@@ -1085,7 +1086,7 @@ void assembly::updateRB6(){
 	    }
 	}
 	else if((*rt)->getBdryID()==2 || (*rt)->getBdryID()==4){
-	    for(list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
 		if((*lt)->getBdryID()==1)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==3)
@@ -1098,7 +1099,7 @@ void assembly::updateRB6(){
 
 	}
 	else if((*rt)->getBdryID()==5 || (*rt)->getBdryID()==6){
-	    for(list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
 		if((*lt)->getBdryID()==1)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==3)
@@ -1117,9 +1118,9 @@ void assembly::updateRB6(){
 
 // upgrade CoefOfLimits[1,2,3,4] for rectangular pile
 void assembly::updateRectPile(){
-    for(list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+    for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
 	if((*rt)->getBdryID()==7 || (*rt)->getBdryID()==9 ){
-	    for(list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
 		if((*lt)->getBdryID()==10)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==8)
@@ -1131,7 +1132,7 @@ void assembly::updateRectPile(){
 	    }
 	}
 	else if((*rt)->getBdryID()==8 || (*rt)->getBdryID()==10){
-	    for(list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
 		if((*lt)->getBdryID()==7)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==9)
@@ -1147,7 +1148,7 @@ void assembly::updateRectPile(){
 
 
 void assembly::updateFB(int bn[], UPDATECTL fbctl[], int num){
-    list<FLBBDRY*>::iterator ft;
+    std::list<FLBBDRY*>::iterator ft;
     int i,k=1;
     for(i=0;i<num;i++){
 	for(ft=FBList.begin();ft!=FBList.end();++ft){
@@ -1468,9 +1469,9 @@ void assembly::setBoundary(int   rors,
 		       REAL dimn,
 		       const char* boundaryfile)
 {
-    ofstream ofs(boundaryfile);
+    std::ofstream ofs(boundaryfile);
     if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
-    ofs.setf(ios::scientific, ios::floatfield);
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs<<setw(OWID)<<0
        <<setw(OWID)<<bdrynum<<endl<<endl;
 
@@ -2312,7 +2313,7 @@ void assembly::trim(int   rors,
     createSample(iniptclfile);
     createBoundary(inibdryfile);
 
-    list<particle*>::iterator itr,itp;
+    std::list<particle*>::iterator itr,itp;
     vec center;
     REAL mass = 0;
 
@@ -2327,8 +2328,8 @@ void assembly::trim(int   rors,
 	    
 	    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
 		center=(*itr)->getCurrPosition();
-		if(fabsl(center.getx()) >= L0/2 ||
-		   fabsl(center.gety()) >= W0/2 )
+		if(fabs(center.getx()) >= L0/2 ||
+		   fabs(center.gety()) >= W0/2 )
 		{
 		    itp = itr;
 		    --itr;
@@ -2350,8 +2351,8 @@ void assembly::trim(int   rors,
 	    
 	    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
 		center=(*itr)->getCurrPosition();
-		if(fabsl(center.getx()) >= L0/2 ||
-		   fabsl(center.gety()) >= W0/2 ||
+		if(fabs(center.getx()) >= L0/2 ||
+		   fabs(center.gety()) >= W0/2 ||
 		   center.getz() <= getApt(6).getz() )
 		{
 		    itp = itr;
@@ -2374,9 +2375,9 @@ void assembly::trim(int   rors,
 	    
 	    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
 		center=(*itr)->getCurrPosition();
-		if(fabsl(center.getx()) >= L0/2 ||
-		   fabsl(center.gety()) >= W0/2 ||
-		   fabsl(center.getz()) >= H0/2 )
+		if(fabs(center.getx()) >= L0/2 ||
+		   fabs(center.gety()) >= W0/2 ||
+		   fabs(center.getz()) >= H0/2 )
 		{
 		    itp = itr;
 		    --itr;
@@ -2407,7 +2408,7 @@ void assembly::TrimPtclBdryByHeight(REAL height,
 {
     createSample(iniptclfile);
 
-    list<particle*>::iterator itr, itp;
+    std::list<particle*>::iterator itr, itp;
     for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
 	if ( (*itr)->getType() == 1 ) { // 1-fixed
 	    vec center=(*itr)->getCurrPosition();
@@ -2445,7 +2446,7 @@ void assembly::deposit(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf.precision(OPREC);
     progressinf<<setw(OWID)<<"iteration"
 	       <<setw(OWID)<<"possible"
@@ -2524,7 +2525,7 @@ void assembly::deposit(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -2685,7 +2686,7 @@ void assembly::deposit_p(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"deposit..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -2703,7 +2704,7 @@ void assembly::deposit_p(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -2814,7 +2815,7 @@ void assembly::squeeze(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"deposit..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -2832,7 +2833,7 @@ void assembly::squeeze(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -2983,7 +2984,7 @@ void assembly::isotropic(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"isotropic..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -2999,9 +3000,9 @@ void assembly::isotropic(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"isotropic..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3019,7 +3020,7 @@ void assembly::isotropic(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3078,9 +3079,9 @@ void assembly::isotropic(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -3177,9 +3178,9 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 8. loop break condition
-	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma)/sigma < STRESS_ERROR && fabs(sigma1_2-sigma)/sigma < STRESS_ERROR
+	    && fabs(sigma2_1-sigma)/sigma < STRESS_ERROR && fabs(sigma2_2-sigma)/sigma < STRESS_ERROR
+	    && fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -3278,7 +3279,7 @@ void assembly::isotropic(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"isotropic..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3294,9 +3295,9 @@ void assembly::isotropic(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"isotropic..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3314,7 +3315,7 @@ void assembly::isotropic(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3376,9 +3377,9 @@ void assembly::isotropic(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -3475,9 +3476,9 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 8. find the balanced status and increase confining pressure
-	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma)/sigma < STRESS_ERROR && fabs(sigma1_2-sigma)/sigma < STRESS_ERROR
+	    && fabs(sigma2_1-sigma)/sigma < STRESS_ERROR && fabs(sigma2_2-sigma)/sigma < STRESS_ERROR
+	    && fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -3509,9 +3510,9 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 9. loop break condition
-	if (   fabsl(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
+	    && fabs(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -3582,7 +3583,7 @@ void assembly::isotropic(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"isotropic..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3598,9 +3599,9 @@ void assembly::isotropic(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"isotropic..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3618,7 +3619,7 @@ void assembly::isotropic(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3682,9 +3683,9 @@ void assembly::isotropic(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -3781,9 +3782,9 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 8. find the balanced status and increase confining pressure
-	if (   fabsl(sigma1_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma1_2-sigma)/sigma < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma2_2-sigma)/sigma < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma)/sigma < STRESS_ERROR && fabs(sigma1_2-sigma)/sigma < STRESS_ERROR
+	    && fabs(sigma2_1-sigma)/sigma < STRESS_ERROR && fabs(sigma2_2-sigma)/sigma < STRESS_ERROR
+	    && fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -3821,9 +3822,9 @@ void assembly::isotropic(int   total_steps,
 	}
 
 	// 9. loop break condition
-	if (   fabsl(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
+	    && fabs(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -3896,7 +3897,7 @@ void assembly::odometer(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"odometer..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3912,9 +3913,9 @@ void assembly::odometer(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"odometer..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -3932,7 +3933,7 @@ void assembly::odometer(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -3990,9 +3991,9 @@ void assembly::odometer(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -4053,7 +4054,7 @@ void assembly::odometer(int   total_steps,
 	}
 
 	// 8. find balanced status of odometer compression
-	if (fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
+	if (fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -4085,7 +4086,7 @@ void assembly::odometer(int   total_steps,
 	}
 
 	// 9. loop break condition
-	if (fabsl(sigma3_1-sigma_1)/sigma_1 < STRESS_ERROR && fabsl(sigma3_2-sigma_1)/sigma_1 < STRESS_ERROR) {
+	if (fabs(sigma3_1-sigma_1)/sigma_1 < STRESS_ERROR && fabs(sigma3_2-sigma_1)/sigma_1 < STRESS_ERROR) {
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -4158,7 +4159,7 @@ void assembly::odometer(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"odometer..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -4174,9 +4175,9 @@ void assembly::odometer(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"odometer..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -4194,7 +4195,7 @@ void assembly::odometer(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4255,9 +4256,9 @@ void assembly::odometer(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma)
@@ -4318,7 +4319,7 @@ void assembly::odometer(int   total_steps,
 	}
 
 	// 8. find balanced status of odometer compression
-	if (fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
+	if (fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -4355,7 +4356,7 @@ void assembly::odometer(int   total_steps,
 	}
 
 	// 9. loop break condition
-	if (fabsl(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabsl(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR) {
+	if (fabs(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR) {
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -4418,7 +4419,7 @@ void assembly::unconfined(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.  
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"unconfined..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -4434,7 +4435,7 @@ void assembly::unconfined(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4471,7 +4472,7 @@ void assembly::unconfined(int   total_steps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	sigma3_1=vfabsl(getNormalForce(5))/getArea(5); sigma3_2=vfabsl(getNormalForce(6))/getArea(6);
+	sigma3_1=vfabs(getNormalForce(5))/getArea(5); sigma3_2=vfabs(getNormalForce(6))/getArea(6);
 	minctl[0].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
 	minctl[1].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
 	updateRB(min,minctl,2);
@@ -4553,7 +4554,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -4571,7 +4572,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4612,7 +4613,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	sigma3_1=vfabsl(getNormalForce(5))/2.5e-3; sigma3_2=vfabsl(getNormalForce(6))/2.5e-3;
+	sigma3_1=vfabs(getNormalForce(5))/2.5e-3; sigma3_2=vfabs(getNormalForce(6))/2.5e-3;
 
 	// force control
 	if (sigma3_1 < sigma)
@@ -4672,7 +4673,7 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	}
 
 	// 9. loop break condition: through displacement control mechanism
-	if (   fabsl(sigma3_1-sigma)/sigma < STRESS_ERROR && fabsl(sigma3_2-sigma)/sigma < STRESS_ERROR )
+	if (   fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR )
 	       break;
 	
     } while (++g_iteration < total_steps);
@@ -4711,7 +4712,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -4727,9 +4728,9 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -4747,7 +4748,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -4788,7 +4789,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	sigma3_1=vfabsl(getNormalForce(5))/2.5e-3; sigma3_2=vfabsl(getNormalForce(6))/2.5e-3;
+	sigma3_1=vfabs(getNormalForce(5))/2.5e-3; sigma3_2=vfabs(getNormalForce(6))/2.5e-3;
 
 	// displacement control
 	if(g_iteration < 100001) {
@@ -4843,9 +4844,9 @@ void assembly::triaxialPtclBdry(int   total_steps,
 
 /* Most time it is balanced, so use progressinf instead.
 	// 8. find the balanced status and increase confining pressure
-	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
+	if (   fabs(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabs(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -4909,7 +4910,7 @@ void assembly::triaxial(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf.precision(OPREC);
     progressinf<<setw(OWID)<<"iteration"
 	       <<setw(OWID)<<"possible"
@@ -4976,9 +4977,9 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"time_step"
 	       <<setw(OWID)<<"time" << endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf.precision(OPREC);
     balancedinf<<setw(OWID)<<"iteration"
 	       <<setw(OWID)<<"possible"
@@ -5047,7 +5048,7 @@ void assembly::triaxial(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5107,9 +5108,9 @@ void assembly::triaxial(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	// displacement control
@@ -5211,9 +5212,9 @@ void assembly::triaxial(int   total_steps,
 
 	// Most time it is balanced, so use progressinf instead.
 	// 8. find the balanced status and increase confining pressure
-	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
+	if (   fabs(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabs(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -5290,7 +5291,7 @@ void assembly::triaxial(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -5306,9 +5307,9 @@ void assembly::triaxial(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -5326,7 +5327,7 @@ void assembly::triaxial(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5386,9 +5387,9 @@ void assembly::triaxial(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	// displacement control
@@ -5398,8 +5399,8 @@ void assembly::triaxial(int   total_steps,
 	}
 	else { 
 	    if (reload==false) { // unloading
-		if (fabsl(sigma3_1-sigma_a)/sigma_a > STRESS_ERROR && 
-		    fabsl(sigma3_2-sigma_a)/sigma_a > STRESS_ERROR){
+		if (fabs(sigma3_1-sigma_a)/sigma_a > STRESS_ERROR && 
+		    fabs(sigma3_2-sigma_a)/sigma_a > STRESS_ERROR){
 		    minctl[0].tran=vec(0,0, TIMESTEP*COMPRESS_RATE);
 		    minctl[1].tran=vec(0,0,-TIMESTEP*COMPRESS_RATE);
 		}
@@ -5498,9 +5499,9 @@ void assembly::triaxial(int   total_steps,
 
 /*
 	// 8. find the balanced status and increase confining pressure
-	if (   fabsl(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabsl(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
+	if (   fabs(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
+	    && fabs(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -5562,7 +5563,7 @@ void assembly::rectPile_Disp(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"pile penetrate..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -5580,7 +5581,7 @@ void assembly::rectPile_Disp(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
     g_debuginf<<" iteration    end_bearing     side_friction   total_force"<<endl;
 
     // pre_2. create particles and boundaries from files
@@ -5711,7 +5712,7 @@ void assembly::ellipPile_Disp(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"pile penetrate..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -5729,7 +5730,7 @@ void assembly::ellipPile_Disp(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -5846,7 +5847,7 @@ void assembly::ellipPile_Impact(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"penetrator impact..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -5864,7 +5865,7 @@ void assembly::ellipPile_Impact(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles
@@ -6005,7 +6006,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"penetrator impact..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -6023,7 +6024,7 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles
@@ -6144,7 +6145,7 @@ void assembly::ellipPile_Force(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"pile penetrate..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average       translational    rotational       "
@@ -6160,15 +6161,15 @@ void assembly::ellipPile_Force(int   total_steps,
 	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
 	       <<"epsilon_v"<<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"pile penetrate..."<<endl
 	       <<"   iteration   apply_force    pile_tip_pos     pile_force"<<endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -6212,7 +6213,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	if(zforce>ellipPileForce())
 	    ellipPileUpdate();
 
-	if(fabsl(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
+	if(fabs(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<zforce
 		       <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
@@ -6268,7 +6269,7 @@ void assembly::ellipPile_Force(int   total_steps,
 	}
 
 	// 8. loop break condition
-	if (fabsl((zforce-force)/force)<0.001)
+	if (fabs((zforce-force)/force)<0.001)
 	    break;
 	
     } while (++g_iteration < total_steps);
@@ -6310,7 +6311,7 @@ void assembly::truetriaxial(int   total_steps,
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
     if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
-    progressinf.setf(ios::scientific, ios::floatfield);
+    progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf<<"true triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -6326,9 +6327,9 @@ void assembly::truetriaxial(int   total_steps,
 	       <<"        ratio          porosity         number"
 	       <<endl;
 
-    ofstream balancedinf(balancedfile);
+    std::ofstream balancedinf(balancedfile);
     if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
-    balancedinf.setf(ios::scientific, ios::floatfield);
+    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf<<"true triaxial..."<<endl
 	       <<"     iteration possible  actual      average	    average         average         average"
 	       <<"         average         average         average        sample            sample     "
@@ -6346,7 +6347,7 @@ void assembly::truetriaxial(int   total_steps,
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
-    g_debuginf.setf(ios::scientific, ios::floatfield);
+    g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -6412,9 +6413,9 @@ void assembly::truetriaxial(int   total_steps,
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
-	sigma1_1=vfabsl(getNormalForce(2))/max_area; sigma1_2=vfabsl(getNormalForce(4))/max_area;
-	sigma2_1=vfabsl(getNormalForce(1))/mid_area; sigma2_2=vfabsl(getNormalForce(3))/mid_area;
-	sigma3_1=vfabsl(getNormalForce(5))/min_area; sigma3_2=vfabsl(getNormalForce(6))/min_area;
+	sigma1_1=vfabs(getNormalForce(2))/max_area; sigma1_2=vfabs(getNormalForce(4))/max_area;
+	sigma2_1=vfabs(getNormalForce(1))/mid_area; sigma2_2=vfabs(getNormalForce(3))/mid_area;
+	sigma3_1=vfabs(getNormalForce(5))/min_area; sigma3_2=vfabs(getNormalForce(6))/min_area;
 	void_ratio=Volume/getParticleVolume()-1;
 
 	if (sigma3_1<sigma_h1)
@@ -6511,9 +6512,9 @@ void assembly::truetriaxial(int   total_steps,
 	}
 
 	// 8. find the balanced status and increase confining pressure
-	if (   fabsl(sigma1_1-sigma_w1)/sigma_w1 < STRESS_ERROR && fabsl(sigma1_2-sigma_w1)/sigma_w1 < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_l1)/sigma_l1 < STRESS_ERROR && fabsl(sigma2_2-sigma_l1)/sigma_l1 < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma_h1)/sigma_h1 < STRESS_ERROR && fabsl(sigma3_2-sigma_h1)/sigma_h1 < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma_w1)/sigma_w1 < STRESS_ERROR && fabs(sigma1_2-sigma_w1)/sigma_w1 < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_l1)/sigma_l1 < STRESS_ERROR && fabs(sigma2_2-sigma_l1)/sigma_l1 < STRESS_ERROR
+	    && fabs(sigma3_1-sigma_h1)/sigma_h1 < STRESS_ERROR && fabs(sigma3_2-sigma_h1)/sigma_h1 < STRESS_ERROR ) {
 	    balancedinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -6547,9 +6548,9 @@ void assembly::truetriaxial(int   total_steps,
 	}
 
 	// 9. loop break condition
-	if (   fabsl(sigma1_1-sigma_w)/sigma_w < STRESS_ERROR && fabsl(sigma1_2-sigma_w)/sigma_w < STRESS_ERROR
-	    && fabsl(sigma2_1-sigma_l)/sigma_l < STRESS_ERROR && fabsl(sigma2_2-sigma_l)/sigma_l < STRESS_ERROR
-	    && fabsl(sigma3_1-sigma_h)/sigma_h < STRESS_ERROR && fabsl(sigma3_2-sigma_h)/sigma_h < STRESS_ERROR ) {
+	if (   fabs(sigma1_1-sigma_w)/sigma_w < STRESS_ERROR && fabs(sigma1_2-sigma_w)/sigma_w < STRESS_ERROR
+	    && fabs(sigma2_1-sigma_l)/sigma_l < STRESS_ERROR && fabs(sigma2_2-sigma_l)/sigma_l < STRESS_ERROR
+	    && fabs(sigma3_1-sigma_h)/sigma_h < STRESS_ERROR && fabs(sigma3_2-sigma_h)/sigma_h < STRESS_ERROR ) {
 	    progressinf<<setw(OWID)<<g_iteration
 		       <<setw(OWID)<<getPossCntctNum()
 		       <<setw(OWID)<<getActualCntctNum()
@@ -6631,7 +6632,7 @@ void assembly::dircShear(REAL rate, REAL roterate,REAL stress,const char* iniptc
 	loadctl[1]=loadctl[0];
 	loadctl[1].fixpt=getApt(4);
 
-	list<RGDBDRY*>::iterator rt;
+	std::list<RGDBDRY*>::iterator rt;
 	fprintf(fprslt,"bdry_1_norm_x  bdry_1_norm_y  bdry_1_norm_z  bdry_1_shar_x  bdry_1_shar_y  bdry_1_shar_z  \
 bdry_2_norm_x  bdry_2_norm_y  bdry_2_norm_z  bdry_2_shar_x  bdry_2_shar_y  bdry_2_shar_z  \
 bdry_3_norm_x  bdry_3_norm_y  bdry_3_norm_z  bdry_3_shar_x  bdry_3_shar_y  bdry_3_shar_z  \
@@ -6683,7 +6684,7 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		l13=getApt(1).getx()-getApt(3).getx();
 		min_area=l13*l24;
 		mid_area=l56*l24;
-		lead=fabsl(normalize(getDirc(2))%vec(0,1,0));
+		lead=fabs(normalize(getDirc(2))%vec(0,1,0));
 		max_area=l56*l13;
 		setArea(5,min_area);
 		setArea(6,min_area);
@@ -6693,12 +6694,12 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		setArea(4,max_area);
 		avgsigma=getAverageRigidPressure();
 		printf("avgsigma=%15.3lf\n",avgsigma);
-		sigma1_1=fabsl(getNormalForce(2))/max_area;
-		sigma1_2=fabsl(getNormalForce(4))/max_area;
-		sigma2_1=fabsl(getNormalForce(1))/mid_area;
-		sigma2_2=fabsl(getNormalForce(3))/mid_area;
-		sigma3_1=fabsl(getNormalForce(5))/min_area;
-		sigma3_2=fabsl(getNormalForce(6))/min_area;
+		sigma1_1=fabs(getNormalForce(2))/max_area;
+		sigma1_2=fabs(getNormalForce(4))/max_area;
+		sigma2_1=fabs(getNormalForce(1))/mid_area;
+		sigma2_2=fabs(getNormalForce(3))/mid_area;
+		sigma3_1=fabs(getNormalForce(5))/min_area;
+		sigma3_2=fabs(getNormalForce(6))/min_area;
 		if(sigma3_1<stress)
 			updownctl[0].tran=vec(0,0,-rate*TIMESTEP);
 		else
@@ -6744,7 +6745,7 @@ void assembly::soft_tric(REAL _sigma3,REAL _b,const char* iniptclfile,
 	int snapnum=0;
 	char snapfile[80];
 
-	list<RGDBDRY*>::iterator rt;
+	std::list<RGDBDRY*>::iterator rt;
 
 	int max[2]={1,2};//maximum stress acting on boundary 5 and 6
 	UPDATECTL maxctl[2];
@@ -6839,7 +6840,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 
 	clearForce();
 
-	list<RGDBDRY*>::iterator rt;
+	std::list<RGDBDRY*>::iterator rt;
 
 //	int mid[2]={2,4};//intermediate stress acting on boundary 2 and 4
 //	UPDATECTL midctl[2];
@@ -6945,7 +6946,7 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 	int snapnum=0;
 	char snapfile[80];
 
-	list<RGDBDRY*>::iterator rt;
+	std::list<RGDBDRY*>::iterator rt;
 
 	int mid[2]={2,4};//intermediate stress acting on boundary 2 and 4
 	UPDATECTL midctl[2];
@@ -7003,18 +7004,18 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
-		sigma1_1=fabsl(getNormalForce(5))/getArea(5);
-		ita1_1=fabsl(getShearForce(5))/getArea(5);
-		sigma1_2=fabsl(getNormalForce(6))/getArea(6);
-		ita1_2=fabsl(getShearForce(6))/getArea(6);
-		sigma2_1=fabsl(getNormalForce(2))/getArea(2);
-		ita2_1=fabsl(getShearForce(2))/getArea(2);
-		sigma2_2=fabsl(getNormalForce(4))/getArea(4);
-		ita2_2=fabsl(getShearForce(4))/getArea(4);
-		sigma3_1=fabsl(getNormalForce(1))/getArea(1);
-		ita3_1=fabsl(getShearForce(1))/getArea(1);
-		sigma3_2=fabsl(getNormalForce(3))/getArea(3);
-		ita3_2=fabsl(getShearForce(3))/getArea(1);
+		sigma1_1=fabs(getNormalForce(5))/getArea(5);
+		ita1_1=fabs(getShearForce(5))/getArea(5);
+		sigma1_2=fabs(getNormalForce(6))/getArea(6);
+		ita1_2=fabs(getShearForce(6))/getArea(6);
+		sigma2_1=fabs(getNormalForce(2))/getArea(2);
+		ita2_1=fabs(getShearForce(2))/getArea(2);
+		sigma2_2=fabs(getNormalForce(4))/getArea(4);
+		ita2_2=fabs(getShearForce(4))/getArea(4);
+		sigma3_1=fabs(getNormalForce(1))/getArea(1);
+		ita3_1=fabs(getShearForce(1))/getArea(1);
+		sigma3_2=fabs(getNormalForce(3))/getArea(3);
+		ita3_2=fabs(getShearForce(3))/getArea(1);
 		if(sigma3_1<_sigma3)
 			xbdry_velocity_0=-increment_velocity_x;
 		else
@@ -7076,12 +7077,12 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 			tmpctl.tran=maxctl[1].tran;
 			updateRB(&max[1],&tmpctl,1);
 			
-			if(af<0.02&&fabsl(sigma3_1-_sigma3)<0.02*_sigma3
-				  &&fabsl(sigma3_2-_sigma3)<0.02*_sigma3
-				  &&fabsl(sigma2_1-sigma2)<0.02*_sigma3
-				  &&fabsl(sigma2_2-sigma2)<0.02*_sigma3
-				  &&fabsl(sigma1_1-_sigma3)<0.02*_sigma3
-				  &&fabsl(sigma1_2-_sigma3)<0.02*_sigma3
+			if(af<0.02&&fabs(sigma3_1-_sigma3)<0.02*_sigma3
+				  &&fabs(sigma3_2-_sigma3)<0.02*_sigma3
+				  &&fabs(sigma2_1-sigma2)<0.02*_sigma3
+				  &&fabs(sigma2_2-sigma2)<0.02*_sigma3
+				  &&fabs(sigma1_1-_sigma3)<0.02*_sigma3
+				  &&fabs(sigma1_2-_sigma3)<0.02*_sigma3
 				  &&g_iteration-pre_it>=20
 				  ||g_iteration-pre_it>=500){
 			pre_it=g_iteration;
@@ -7137,7 +7138,7 @@ void assembly::earthPressure(REAL pressure,bool IsPassive,
 	char snapfile[80];
 	clearForce();
 
-	list<RGDBDRY*>::iterator rt;
+	std::list<RGDBDRY*>::iterator rt;
 
 	int wall[1]={1};
 	UPDATECTL wallctl[1];

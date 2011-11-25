@@ -9,9 +9,10 @@ OPTIMIZE = -O3
 # debugging options (macro DEBUG is defined in source code)
 DEBUG = -Wall -g -DDEBUG
 
-# OPENMP (macro OPENMP is defined in source code )
+# OpenMP (macro OPENMP is defined in source code )
 OPENMP = -DOPENMP -fopenmp
 
+# CXXFLAGS
  CXXFLAGS = $(OPTIMIZE) $(OPENMP)
 #CXXFLAGS = $(DEBUG) $(OPENMP)
 
