@@ -23,7 +23,10 @@ int main(int argc, char* argv[])
     // Part 0: command line arguments and timestamps
     time_t time1, time2;
     time(&time1);
-    if (argc == 2) dem::NUM_THREADS = atoi(argv[1]);
+    if (argc == 2) {
+	dem::NUM_THREADS = atoi(argv[1]);
+	std::cout << "command line: " << argv[0] << " " << argv[1] << std::endl; 
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 1: setup parameters (override parameter.cpp)
@@ -33,7 +36,7 @@ int main(int argc, char* argv[])
     dem::TIMESTEP      = 5.0e-07; // time step
     dem::MASS_SCL      = 1;       // mass scaling
     dem::MNT_SCL       = 1;       // moment of inertial scaling
-    dem::GRVT_SCL      = 0;       // gravity scaling
+    dem::GRVT_SCL      = 1;       // gravity scaling
     dem::DMP_F         = 0;       // background viscous damping on mass
     dem::DMP_M         = 0;       // background viscous damping on moment of inertial
 
@@ -63,7 +66,7 @@ int main(int argc, char* argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 2: set up a simulation to run
-    
+    /*
     A.deposit(100000,            // total_steps
 	      100,               // number of snapshots
               1,                 // print interval
@@ -73,7 +76,7 @@ int main(int argc, char* argv[])
 	      "dep_contact",      // output file, resulted contacts, including snapshots 
 	      "dep_progress",     // output file, statistical info
 	      "dep_debug");       // output file, debug info
-    /*
+    */
     // size, shape, and gradation of particles
     int rorc      = 1;     // rectangular = 1 or cylindrical = 0
     REAL dimn     = 0.05;  // specimen dimension
@@ -89,7 +92,7 @@ int main(int argc, char* argv[])
     dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
     A.deposit_RgdBdry(grad,
 		      2,                  // freetype, setting of free particles 
-		      500000,             // total_steps
+		      1000000,            // total_steps
 		      100,                // number of snapshots
                       10,                 // print interval
 		      5.0,                // height of floating particles relative to dimn
@@ -101,7 +104,7 @@ int main(int argc, char* argv[])
 		      "cre_particle",     // output file, resulted particles after trmming
 		      "cre_boundary",     // output file, resulted boundaries after trmming
 		      "dep_debug");       // output file, debug info
-    */
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 3: record run time
     time(&time2);
