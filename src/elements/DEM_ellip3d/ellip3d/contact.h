@@ -226,7 +226,6 @@ void contact<T>::contactForce(){
 	p1->cntnum++;
 	p2->cntnum++;
 	R0=radius1*radius2/(radius1+radius2);
-	contact_radius=sqrt(penetration*R0);
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
 	REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
@@ -241,6 +240,7 @@ void contact<T>::contactForce(){
 #ifdef MEASURE_EPS
 	penetration = nearbyint (penetration/MEPS) * MEPS;
 #endif
+	contact_radius=sqrt(penetration*R0);
 	NormDirc=normalize(point1-point2);         // NormDirc points out of particle 1
 	NormalForce= -sqrt(penetration*penetration*penetration)*sqrt(R0)*4*E0/3* NormDirc; // NormalForce pointing to particle 1
 	// pow(penetration, 1.5)

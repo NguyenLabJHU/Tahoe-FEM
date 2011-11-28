@@ -806,7 +806,6 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    return;
 
 	REAL R0=getRadius(pt2);
-	REAL contact_radius=sqrt(penetration*R0);
 	REAL E0=YOUNG/(1-POISSON*POISSON); // rigid wall has infinite YOUNG's modulus
 	REAL allowedOverlap = 2.0 * R0 * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
@@ -821,6 +820,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 #ifdef MEASURE_EPS
 	penetration = nearbyint (penetration/MEPS) * MEPS;
 #endif
+	REAL contact_radius=sqrt(penetration*R0);
 	penetr = penetration;
 	vec NormDirc=-dirc; //normalize(pt1-pt2);
 	vec NormalForce=sqrt(penetration*penetration*penetration)*sqrt(R0)*4*E0/3*NormDirc; // pow(penetration,1.5), a serious bug
