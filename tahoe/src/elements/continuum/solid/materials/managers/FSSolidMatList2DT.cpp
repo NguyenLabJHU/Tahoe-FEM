@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.18 2011-11-02 02:36:54 hspark Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.19 2011-11-28 14:32:44 hspark Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -82,6 +82,11 @@
 #ifdef DIELECTRIC_ELASTOMER_2D
 #include "FSDielectricElastomer2DT.h"
 #include "FSDEMatSupport2DT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+#include "FSDielectricElastomer2DViscoT.h"
+#include "FSDEMatSupport2DViscoT.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -196,6 +201,10 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef DIELECTRIC_ELASTOMER_2D
 		sub_lists.AddSub(FSDEMat2DT::Name);
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+		sub_lists.AddSub(FSDEMat2DViscoT::Name);
 #endif
 
 #ifdef ABAQUS_MATERIAL
@@ -342,6 +351,18 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 	    const FSDEMatSupport2DT* ddems = dynamic_cast<FSDEMatSupport2DT*>(dems);
 	    demat->SetFSDEMatSupport2D(ddems);
 	    mat = demat;
+	  }
+	}
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+	else if (name == FSDEMat2DViscoT::Name) {
+	  FSDEMat2DViscoT* dematv = new FSDEMat2DViscoT;
+	  if (dematv != 0) {
+	    FSMatSupportT* demsv = const_cast<FSMatSupportT*>(fFSMatSupport);
+	    const FSDEMatSupport2DViscoT* ddemsv = dynamic_cast<FSDEMatSupport2DViscoT*>(demsv);
+	    dematv->SetFSDEMatSupport2DVisco(ddemsv);
+	    mat = dematv;
 	  }
 	}
 #endif
