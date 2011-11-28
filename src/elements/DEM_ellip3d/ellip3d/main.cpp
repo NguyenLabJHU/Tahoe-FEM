@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     dem::TIMESTEP      = 5.0e-07; // time step
     dem::MASS_SCL      = 1;       // mass scaling
     dem::MNT_SCL       = 1;       // moment of inertial scaling
-    dem::GRVT_SCL      = 1;       // gravity scaling
+    dem::GRVT_SCL      = 0;       // gravity scaling
     dem::DMP_F         = 0;       // background viscous damping on mass
     dem::DMP_M         = 0;       // background viscous damping on moment of inertial
 
@@ -66,17 +66,17 @@ int main(int argc, char* argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 2: set up a simulation to run
-    /*
-    A.deposit(100000,            // total_steps
-	      100,               // number of snapshots
-              1,                 // print interval
+    
+    A.deposit(100000,             // total_steps
+	      100,                // number of snapshots
+              1,                  // print interval
 	      "flo_particle_end", // input file, initial particles
 	      "dep_boundary_ini", // input file, initial boundaries
 	      "dep_particle",     // output file, resulted particles, including snapshots 
 	      "dep_contact",      // output file, resulted contacts, including snapshots 
 	      "dep_progress",     // output file, statistical info
 	      "dep_debug");       // output file, debug info
-    */
+    /*
     // size, shape, and gradation of particles
     int rorc      = 1;     // rectangular = 1 or cylindrical = 0
     REAL dimn     = 0.05;  // specimen dimension
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 		      "cre_particle",     // output file, resulted particles after trmming
 		      "cre_boundary",     // output file, resulted boundaries after trmming
 		      "dep_debug");       // output file, debug info
-    
+    */    
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 3: record run time
     time(&time2);

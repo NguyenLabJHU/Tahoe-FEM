@@ -15,13 +15,18 @@ extern const REAL PI;
 // Gravitational acceleration
 extern const REAL G;
 
-
-// numeric zero (NOT float point relative precision), problem domain dependent
+// numeric zero (NOT float point relative precision, eps), problem domain dependent
 extern const REAL NUMZERO;
 
 // relative overlap between particles
 extern const REAL MINOVERLAP;
 extern const REAL MAXOVERLAP;
+
+// macro to toggle on/off MEPS
+#define MEASURE_EPS
+
+// measurable absolute overlap precision between particles
+extern const REAL MEPS;
 
 // random number seed
 extern long idum;

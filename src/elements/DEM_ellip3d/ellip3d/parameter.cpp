@@ -12,12 +12,15 @@ const REAL PI         = 3.14159265358979323846264338327950;
 // gravitational acceleration
 const REAL G          = 9.8;
 
-// numeric zero (NOT float point relative precision), problem domain dependent
-const REAL NUMZERO    = 1.0e-20;
+// numeric zero (NOT float point relative precision, eps), problem domain dependent
+const REAL NUMZERO    = 1.0e-12;
 
 // relative overlap between particles
 const REAL MINOVERLAP = 1.0e-6;
 const REAL MAXOVERLAP = 1.0e-2;
+
+// measurable absolute overlap precision between particles
+const REAL MEPS       = 1.0e-7;  // 0.1 micron
 
 // random number seed
 long idum             = -1;      // not a constant

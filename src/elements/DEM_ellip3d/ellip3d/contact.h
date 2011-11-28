@@ -238,6 +238,9 @@ void contact<T>::contactForce(){
 		     << " use smaller time step!" << std::endl;
 	  penetration = allowedOverlap;
 	}
+#ifdef MEASURE_EPS
+	penetration = nearbyint (penetration/MEPS) * MEPS;
+#endif
 	NormDirc=normalize(point1-point2);         // NormDirc points out of particle 1
 	NormalForce= -sqrt(penetration*penetration*penetration)*sqrt(R0)*4*E0/3* NormDirc; // NormalForce pointing to particle 1
 	// pow(penetration, 1.5)
