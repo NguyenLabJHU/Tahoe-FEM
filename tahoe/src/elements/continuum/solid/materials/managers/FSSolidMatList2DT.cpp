@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.19 2011-11-28 14:32:44 hspark Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.20 2011-11-28 15:26:35 hspark Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -84,7 +84,7 @@
 #include "FSDEMatSupport2DT.h"
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+#ifdef DIELECTRIC_ELASTOMER_2D_VISCO
 #include "FSDielectricElastomer2DViscoT.h"
 #include "FSDEMatSupport2DViscoT.h"
 #endif
@@ -203,7 +203,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub(FSDEMat2DT::Name);
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+#ifdef DIELECTRIC_ELASTOMER_2D_VISCO
 		sub_lists.AddSub(FSDEMat2DViscoT::Name);
 #endif
 
@@ -355,7 +355,7 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 	}
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+#ifdef DIELECTRIC_ELASTOMER_2D_VISCO
 	else if (name == FSDEMat2DViscoT::Name) {
 	  FSDEMat2DViscoT* dematv = new FSDEMat2DViscoT;
 	  if (dematv != 0) {
