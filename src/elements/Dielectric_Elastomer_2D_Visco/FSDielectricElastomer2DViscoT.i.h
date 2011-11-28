@@ -2,8 +2,6 @@
 namespace Tahoe {
 
   //
-  //
-  //
   inline FSDielectricElastomer2DViscoT::FSDielectricElastomer2DViscoT(
       const ElementSupportT& support) :
     FiniteStrainT(support), fFSDEMatSupport2DVisco(0), fCurrMaterial(0),
@@ -12,8 +10,6 @@ namespace Tahoe {
     SetName("dielectric_elastomer_2D_visco");
   }
 
-  //
-  //
   //
   inline int FSDielectricElastomer2DViscoT::TotalNumDOF() const
   {
@@ -29,8 +25,6 @@ namespace Tahoe {
     return fE_List[CurrIP()];
   }
 
-  //
-  //
   //
   inline const dArrayT&
   FSDielectricElastomer2DViscoT::ElectricField(int ip) const

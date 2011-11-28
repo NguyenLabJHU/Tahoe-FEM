@@ -35,12 +35,13 @@ namespace Tahoe {
 	 *RGViscoelasticity::TakeParameterLis               */  
   }
   
-  static const char DE[] = "Dielectric_Elastomer_2D_Viscoelastic";
+  static const char DE[] = "Dielectric_Elastomer_Viscoelastic_2D";
   const char* FSDEMat2DViscoT::Name = DE;
   const int kNSD       = 2;
   const int kNumDOF    = 2;
   const int kStressDim =dSymMatrixT::NumValues(kNSD);
-
+  const double third = 1.0/3.0;  
+  
   //
   void FSDEMat2DViscoT::Initialize()
   {
@@ -89,12 +90,12 @@ namespace Tahoe {
 	fElectricField.Dimension(kNumDOF);
 	
 	/* Code from RGSplitT2.cpp */
-	StringT caller = "FSDEMatViscoT::TakeParameterList";
+	StringT caller = "FSDEMatVisco2DT::TakeParameterList";
 	int num_neq =  list.NumLists("rg_neq_potential");
 	int num_shear_visc = list.NumLists("rg_shear_viscosity");
 	int num_bulk_visc = list.NumLists("rg_bulk_viscosity");
 	if (num_neq != num_shear_visc || num_neq != num_bulk_visc)
-		ExceptionT::GeneralFail("FSDEMatViscoT::TakeParameterList", 
+		ExceptionT::GeneralFail("FSDEMatVisco2DT::TakeParameterList", 
 			"number of matrix viscosity functions does not match number of matrix nonequilibrium potentials");
 	fNumProcess = list.NumLists("rg_shear_viscosity");
 
