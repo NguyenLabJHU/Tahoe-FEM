@@ -1,5 +1,8 @@
-/* $Id: ElementListT.cpp,v 1.147 2011-11-28 14:29:06 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.148 2011-11-28 15:26:08 hspark Exp $ */
 /* $Log: not supported by cvs2svn $
+/* Revision 1.147  2011/11/28 14:29:06  hspark
+/* Add 2D DE visco
+/*
 /* Revision 1.146  2011/11/02 01:05:43  hspark
 /* add viscoelastic DE
 /*
@@ -109,7 +112,7 @@
 #include "FSDielectricElastomerViscoT.h"
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
+#ifdef DIELECTRIC_ELASTOMER_2D_VISCO
 #include "FSDielectricElastomer2DViscoT.h"
 #endif
 
@@ -423,8 +426,8 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
     sub_lists.AddSub("dielectric_elastomer_visco");
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
-    sub_lists.AddSub("dielectric_elastomer_visco_2D");
+#ifdef DIELECTRIC_ELASTOMER_2D_VISCO
+    sub_lists.AddSub("dielectric_elastomer_2D_visco");
 #endif
 
 #ifdef HUWASHIZU
@@ -717,8 +720,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
     return new FSDielectricElastomerViscoT(fSupport);
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_VISCO_2D
-  else if (name == "dielectric_elastomer_visco_2D")
+#ifdef DIELECTRIC_ELASTOMER_2D_VISCO
+  else if (name == "dielectric_elastomer_2D_visco")
     return new FSDielectricElastomer2DViscoT(fSupport);
 #endif
 
