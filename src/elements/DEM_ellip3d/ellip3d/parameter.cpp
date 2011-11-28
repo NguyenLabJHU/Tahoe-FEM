@@ -20,13 +20,13 @@ const REAL MINOVERLAP = 1.0e-6;
 const REAL MAXOVERLAP = 1.0e-2;
 
 // measurable absolute overlap precision between particles
-const REAL MEPS       = 1.0e-7;  // 0.1 micron
+const REAL MEPS       = 1.0e-8;  // 0.1 micron or 0.01 micron
 
 // random number seed
 long idum             = -1;      // not a constant
 
 // particle material property
-const REAL YOUNG      = 2.90e+10;// quartz sanxd E=29GPa
+const REAL YOUNG      = 2.90e+10;// quartz sand E=29GPa
 const REAL POISSON    = 0.25;    // quartz sand v= 0.25     
 const REAL Gs         = 2.65;    // quartz sand Gs= 2.65    
 
