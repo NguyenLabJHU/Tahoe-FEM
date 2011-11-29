@@ -296,4 +296,7 @@ void free_f3tensor(REAL ***t, long nrl, long nrh, long ncl, long nch,
 	free((FREE_ARG) (t+nrl-NR_END));
 }
 
+#undef NR_END
+#undef FREE_ARG
+
 } // namespace dem ends

@@ -1,7 +1,10 @@
+// 11.7 The QR Algorithm for Real Hessenberg Matrices
+
 #include "nrutil.h"
-#define NRANSI
 
 namespace dem {
+
+#define NRANSI
 
 bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 {
@@ -130,6 +133,9 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 	return true;
 }
 
-} // namespace dem ends
 
 #undef NRANSI
+
+} // namespace dem ends
+
+

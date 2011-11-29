@@ -57,8 +57,6 @@ REAL ran(long *idum)
 	else return temp;
 }
 
-} // namespace dem ends
-
 #undef IM1
 #undef IM2
 #undef AM
@@ -73,3 +71,6 @@ REAL ran(long *idum)
 #undef NDIV
 #undef EPS
 #undef RNMX
+
+} // namespace dem ends
+

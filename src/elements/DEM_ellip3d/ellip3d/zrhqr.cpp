@@ -1,8 +1,9 @@
 #include "nrutil.h"
-#define NRANSI
-#define MAXM 50
 
 namespace dem {
+
+#define NRANSI
+#define MAXM 50
 
 bool zrhqr(REAL a[], int m, REAL rtr[], REAL rti[])
 {
@@ -41,7 +42,8 @@ bool zrhqr(REAL a[], int m, REAL rtr[], REAL rti[])
 	return true;
 }
 
-} // namespace dem ends
-
 #undef MAXM
-#undef NRANSI
+#undef NRANS
+
+} // namespace dem ends
+I

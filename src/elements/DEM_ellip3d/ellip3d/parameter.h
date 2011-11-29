@@ -1,3 +1,6 @@
+// #define marcos are placed in namespace dem nominally for convenience,
+// they are not contained by any namespace, i.e., they are preprocessed.
+ 
 #ifndef PARAMETER_H
 #define PARAMETER_H
 #include "realtypes.h"
@@ -31,7 +34,7 @@ extern const REAL MEPS;
 // random number seed
 extern long idum;
 
-// random shape for each particle
+// macro to toggle on/off random shape for each particle
 //#define RANDOM_SHAPE
 
 // particle material property
