@@ -19,7 +19,7 @@ const REAL NUMZERO    = 1.0e-12;
 const REAL MINOVERLAP = 1.0e-6;
 const REAL MAXOVERLAP = 1.0e-2;
 
-// measurable absolute overlap precision between particles
+// measurable absolute overlap precision between particles, enabled/disabled by macro MEASURE_EPS
 const REAL MEPS       = 1.0e-8;  // 0.1 micron or 0.01 micron
 
 // random number seed
@@ -35,8 +35,8 @@ std::ofstream g_debuginf;        // print debugging information
 int g_iteration;                 // iteration number
 
 // output width and precision
-const int OWID        = 20;      // output width
-const int OPREC       = 10;      // output precision, number of digits after decimal dot 
+const int OWID        = 16;      // 20, output width
+const int OPREC       = 6;       // 10, output precision, number of digits after decimal dot
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Part B: These parameters may change frequently and can be easily edited in main.cpp
