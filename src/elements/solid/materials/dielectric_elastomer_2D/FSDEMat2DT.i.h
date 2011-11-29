@@ -1,5 +1,3 @@
-#include "FSDE_inc_2D.h"
-
 namespace Tahoe {
 
   inline FSDEMat2DT::FSDEMat2DT() :

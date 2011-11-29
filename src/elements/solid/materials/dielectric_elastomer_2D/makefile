@@ -20,13 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	FSDEMatSupport2DT.o \
-	FSDEMat2DT.o \
-	Mech_PK2_AB_2D.o \
-	Mech_TanMod_AB_2D.o \
-	ME_MixedModulus_AB_2D.o \
-	ME_PK2_AB_2D.o \
-	ME_TanMod_AB_2D.o \
-	Elec_PK2_2D.o
+	FSDEMat2DT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -47,13 +41,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	FSDEMatSupport2DT.cpp \
-	FSDEMat2DT.cpp \
-	Mech_PK2_AB_2D.cpp \
-	Mech_TanMod_AB_2D.cpp \
-	ME_MixedModulus_AB_2D.cpp \
-	ME_PK2_AB_2D.cpp \
-	ME_TanMod_AB_2D.cpp \
-	Elec_PK2_2D.cpp
+	FSDEMat2DT.cpp 
 
 ##################### (3) headers
 #
@@ -68,9 +56,7 @@ HDR = \
 	FSDEMatSupport2DT.h \
 	FSDEMatSupport2DT.i.h \
 	FSDEMat2DT.h \
-	FSDEMat2DT.i.h \
-	FSDE_common_defines_2D.h \
-	FSDE_inc_2D.h 
+	FSDEMat2DT.i.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
