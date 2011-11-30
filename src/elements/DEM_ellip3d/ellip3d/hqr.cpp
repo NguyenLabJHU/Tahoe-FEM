@@ -2,6 +2,12 @@
 
 #include "nrutil.h"
 
+#ifndef QUADMATH
+#define MAXITER 30
+#else
+#define MAXITER 50
+#endif
+
 namespace dem {
 
 #define NRANSI
@@ -51,7 +57,7 @@ bool hqr(REAL **a, int n, REAL wr[], REAL wi[])
 					}
 					nn -= 2;
 				} else {
-				        if (its == 30) //nrerror("Too many iterations in hqr");
+				        if (its == MAXITER) //nrerror("Too many iterations in hqr");
 					        return false;
 					if (its == 10 || its == 20) {
 						t += x;
