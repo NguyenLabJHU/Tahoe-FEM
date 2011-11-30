@@ -1,5 +1,7 @@
-# 1. You can toggle on/off OpenMP by uncomment/commenting the line
-# 2. You can toggle on/off quadmath by uncomment/commenting the line
+# options available in this makefile:
+# 1. option to toggle on/off OpenMP (default on)
+# 2. option to toggle on/off GCC quadmath (default off)
+# 3. option to switch between optimization/debug mode (default optimization)
 
 # C++ compiler
 CXX = g++
@@ -10,14 +12,14 @@ OPTIMIZE = -O3
 # debugging options (macro DEBUG is defined in source code)
 DEBUG = -Wall -g -DDEBUG
 
-# OpenMP (macro OPENMP is defined in source code)
+# 1. OpenMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -fopenmp
 
-# quadmath
+# 2. GCC quadmath
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
-# CXXFLAGS
- CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
+# 3. Optimize or debug
+CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 #CXXFLAGS = $(DEBUG) $(OPENMP) $(QUADMATH)
 
 SOURCES = $(wildcard *.cpp)
