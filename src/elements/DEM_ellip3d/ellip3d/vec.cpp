@@ -1,7 +1,6 @@
 #include "vec.h"
 #include "parameter.h"
 #include <iostream>
-#include <iomanip>
 
 namespace dem {
 
@@ -110,7 +109,7 @@ REAL vec::operator%(vec p) const{
 
 
 void vec::print() const{
-  std::cout<<'('<<x<<' '<<y<<' '<<z<<')'<<std::endl;
+  std::cout << "(" << x <<" "<< y << " " << z << ")" << std::endl;
 }
 
 
@@ -162,7 +161,7 @@ vec rotateVec(vec v, vec ang){
 #ifdef DEBUG
     g_debuginf<<"vec.cpp: g_iteration="<<g_iteration 
 	      <<" alf="<<alf
-	      <<" theta="<<theta<<endl;
+	      <<" theta="<<theta<<std::endl;
 #endif
     if (theta<NUMZERO) // important, otherwise my cause numerical instability
 	return v;    

@@ -28,6 +28,10 @@
 #include <iomanip>
 #include <cstdlib>
 
+using std::cout;
+using std::setw;
+using std::endl;
+
 namespace dem {
 
 // BdryCoef is used for rigid boundary conditions
@@ -35,25 +39,24 @@ typedef struct bdryfunc{
 	int order;  // x1-linear; 2-quadratic
 	vec dirc;   // normal vector if plane, mother line vector if cylinder,it points out of the particles		
 	vec apt;    // a point on the plane or a point on the axis of the cylinder
-	REAL rad; //zero if plane
+	REAL rad;   //zero if plane
 	int side;   //zero if plane; side=1, particles are outside the cylinder; =-1, inside the cylinder
         void disp() const{
-		printf("the elements of a boundary are\n");
-		printf("order:%5d\n",order);
-		printf("dirc: %10.6Lf%10.6Lf%10.6Lf\n",dirc.getx(),dirc.gety(),dirc.getz());
-		printf("apt : %10.6Lf%10.6Lf%10.6Lf\n",apt.getx(),apt.gety(),apt.getz());
-		printf("radius %10.6Lf and side %5d:\n",rad,side);
+	  cout << "order: " << order << endl;
+	  cout << "dirc: " << dirc.getx() << " " << dirc.gety() << " " << dirc.getz() << endl;
+	  cout << "apt: " << apt.getx() << " " << apt.gety() << " " << apt.getz() << endl;
+	  cout << "radius: " << rad << " side: " << side << endl;
 	}
 	void disp(std::ofstream &ofs) const{
-	    ofs<<std::setw(OWID)<<order
-	       <<std::setw(OWID)<<dirc.getx()
-	       <<std::setw(OWID)<<dirc.gety()
-	       <<std::setw(OWID)<<dirc.getz()
-	       <<std::setw(OWID)<<apt.getx()
-	       <<std::setw(OWID)<<apt.gety()
-	       <<std::setw(OWID)<<apt.getz()
-	       <<std::setw(OWID)<<rad
-	       <<std::setw(OWID)<<side<<std::endl;
+	    ofs<<setw(OWID)<<order
+	       <<setw(OWID)<<dirc.getx()
+	       <<setw(OWID)<<dirc.gety()
+	       <<setw(OWID)<<dirc.getz()
+	       <<setw(OWID)<<apt.getx()
+	       <<setw(OWID)<<apt.gety()
+	       <<setw(OWID)<<apt.getz()
+	       <<setw(OWID)<<rad
+	       <<setw(OWID)<<side<<std::endl;
 	}
 } BdryCoef;
 
@@ -65,10 +68,10 @@ typedef struct updatectl{
 	REAL expnd;// expand last
 	updatectl(){tran=0;rote=0;fixpt=0;expnd=1;}
 	void disp() const{
-		printf("tran: %10.6Lf%10.6Lf%10.6Lf\n",tran.getx(),tran.gety(),tran.getz());
-		printf("rote: %10.6Lf%10.6Lf%10.6Lf\n",rote.getx(),rote.gety(),rote.getz());
-		printf("fixpt: %10.6Lf%10.6Lf%10.6Lf\n",fixpt.getx(),fixpt.gety(),fixpt.getz());
-		printf("expand: %Lf\n", expnd);
+	  cout << "tran: " << tran.getx() << " " << tran.gety() << " " << tran.getz() << endl;
+	  cout << "rote: " << rote.getx() << " " << rote.gety() << " " << rote.getz() << endl;
+	  cout << "fixpt: " << fixpt.getx() << " " << fixpt.gety() << " " << fixpt.getz() << endl;
+	  cout << "expand:" << expnd << endl;
 	};
 }UPDATECTL;
 
@@ -76,8 +79,8 @@ typedef struct line{
 	vec pt1; // begining point
 	vec pt2; // ending point
 	void disp() const{
-		printf("pt1: %10.6Lf%10.6Lf%10.6Lf\n",pt1.getx(),pt1.gety(),pt1.getz());
-		printf("pt2: %10.6Lf%10.6Lf%10.6Lf\n",pt2.getx(),pt2.gety(),pt2.getz());
+	  cout  << "pt1: " << pt1.getx() << " " << pt1.gety() << " " << pt1.getz() << endl;
+	  cout  << "pt2: " << pt2.getx() << " " << pt2.gety() << " " << pt2.getz() << endl;
 	}
 	void update(UPDATECTL& ctl){
 	   vec tmp1=ctl.tran+ctl.fixpt+rotateVec((pt1-ctl.fixpt),ctl.rote);   
@@ -97,11 +100,11 @@ typedef struct circ{
 	vec pt1;    // the begining point of a part circle
 	vec pt2;    // the end point of a part circle;it pt1==pt2, a closure circle
 	void disp() const {
-		printf("center: %10.6Lf%10.6Lf%10.6Lf\n",center.getx(),center.gety(),center.getz());
-		printf("norm: %10.6Lf%10.6Lf%10.6Lf\n",norm.getx(),norm.gety(),norm.getz());
-		printf("pt1: %10.6Lf%10.6Lf%10.6Lf\n",pt1.getx(),pt1.gety(),pt1.getz());
-		printf("pt2: %10.6Lf%10.6Lf%10.6Lf\n",pt2.getx(),pt2.gety(),pt2.getz());
-		printf("turn:%5d radius:%10.6Lf\n",turn,radius);
+	  cout << "center: " << center.getx() << " " << center.gety() << " " <<center.getz() << endl;
+	  cout << "norm: " << norm.getx() << " " << norm.gety() << " " << norm.getz() << endl;
+	  cout << "pt1: " << pt1.getx() << " " << pt1.gety() << " " << pt1.getz() << endl;
+	  cout << "pt2: " << pt2.getx() << " " << pt2.gety() << " " << pt2.getz() << endl;
+	  cout << "turn: " << turn << " radius: " << radius << endl;
 	}
 	void update(UPDATECTL& ctl){
 		center=ctl.tran+ctl.fixpt+rotateVec(center-ctl.fixpt,ctl.rote);
@@ -128,15 +131,15 @@ public:
 		std::vector<BdryCoef>::const_iterator it;
 		for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
 			(*it).disp();
-		printf("area: %Lf limitnum: %d\n",area,limitnum);
+		cout << "area: " << area << " limitnum: " << limitnum << endl;
 	}
 	virtual void disp(std::ofstream &ofs) const{
 		std::vector<BdryCoef>::const_iterator it;
 		ofs <<std::endl
-		    <<std::setw(OWID)<<(*CoefOfLimits.begin()).order<<std::endl;
-		ofs <<std::setw(OWID)<<bdry_id
-		    <<std::setw(OWID)<<limitnum
-		    <<std::setw(OWID)<<area <<std::endl;
+		    <<setw(OWID)<<(*CoefOfLimits.begin()).order<<std::endl;
+		ofs <<setw(OWID)<<bdry_id
+		    <<setw(OWID)<<limitnum
+		    <<setw(OWID)<<area <<std::endl;
 		for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
 			(*it).disp(ofs);
 	}
@@ -275,16 +278,15 @@ vec plnrgd_bdry<T>::getDirc() const{
 template<class T>
 void plnrgd_bdry<T>::disp() const{
 	rgd_bdry<T>::disp();
-	printf("normal: %20.6Lf%20.6Lf%20.6Lf\n", 
-		normal.getx(),normal.gety(),normal.getz());
+	cout << "normal: " << normal.getx() << " " << normal.gety() << " " <<normal.getz() << endl;
 	typename std::list<T*>::const_iterator it;
 	int i=0;
 	for(it=PBList.begin();it!=PBList.end();++it){
 		if(i++<10)
-			printf("%5d",(*it)->getID());
+			cout << (*it)->getID();
 		else{
 			i=0;
-			printf("%5d\n",(*it)->getID());
+			cout << (*it)->getID() << endl;
 		}
 	}
 };
@@ -410,15 +412,15 @@ public:
 template<class T>
 void cylrgd_bdry<T>::disp() const{
 	rgd_bdry<T>::disp();
-	printf("normal: %Lf %Lf %Lf\n", normal.getx(), normal.gety(), normal.getz());
+	cout << "normal: " << normal.getx() << " " << normal.gety() << " " <<normal.getz() << endl;
 	typename std::list<T*>::const_iterator it;
 	int i=0;
 	for(it=PBList.begin();it!=PBList.end();++it){
 		if(i++<10)
-			printf("%5d",(*it)->getID());
+		  cout << (*it)->getID();
 		else{
-			i=0;
-			printf("%5d\n",(*it)->getID());
+		  i=0;
+		  cout << (*it)->getID() << endl;
 		}
 	}
 };
@@ -502,12 +504,10 @@ public:
 template<class T>
 void plnflb_bdry<T>::disp() const{
 	int iz,ip,i;
-	printf("sumpressure:%20.6Lf%20.6Lf%20.6Lf\n",
-		sumpressure.getx(),sumpressure.gety(),sumpressure.getz());
-	printf("norm:%10.6Lf%10.6Lf%10.6Lf\n",
-		norm.getx(),norm.gety(),norm.getz());
-	printf("np:%5dnz:%5dframenum:%5d\n",np,nz,framenum);
-	printf("confining pressure:%20.6Lf\n",confining);
+	cout << "sumpressure: " << sumpressure.getx() << " " << sumpressure.gety() << " " << sumpressure.getz() << endl;
+        cout << "norm: " << norm.getx() << " " << norm.gety() << " " << norm.getz() << endl;
+        cout << "np:" << np << " nz: " << nz << " framenum: " << framenum << endl;
+        cout << "confining pressure: " << confining << endl;
 	std::list<LINE>::const_iterator it;
 	for(it=framelist.begin();it!=framelist.end();++it)
 		(*it).disp();
@@ -515,39 +515,38 @@ void plnflb_bdry<T>::disp() const{
 	i=0;
 	for(jt=PBList.begin();jt!=PBList.end();++jt){
 		if(i++<10)
-			printf("%5d",(*jt)->getID());
+			cout << (*jt)->getID();
 		else{
 			i=0;
-			printf("%5d\n",(*jt)->getID());
+			cout << (*jt)->getID() << endl;
 		}
 	}
-	printf("\npoint of the net\n");
+	cout << "point of the net" << endl;
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
-			printf("%10.6Lf%10.6Lf%10.6Lf",
-				FlxbNet[iz][ip].getx(),FlxbNet[iz][ip].gety(),FlxbNet[iz][ip].getz());
+		  cout << FlxbNet[iz][ip].getx() << " " <<FlxbNet[iz][ip].gety() << " " << FlxbNet[iz][ip].getz();
 		}
-		printf("\n\n");
+		cout << endl;
 	}
 	i=0;
-	printf("\nparticles of the net\n");
+	cout << "particles of the net" << endl;
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
 			if(i++<10) {
-				if(RelatedP[iz][ip]!=NULL)printf("%5d",RelatedP[iz][ip]->getID());
+				if(RelatedP[iz][ip]!=NULL) cout << RelatedP[iz][ip]->getID();
 			}
 			else{
 				i=0;
-				if(RelatedP[iz][ip]!=NULL)printf("%5d\n",RelatedP[iz][ip]->getID());
+				if(RelatedP[iz][ip]!=NULL) cout << RelatedP[iz][ip]->getID() << endl;
 			}
 		}
 	}
-	printf("\npossible particles around a line\n");
+	cout << "possible particles around a line" << endl;
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
 			for (jt=PCFB[iz][ip].begin();jt!=PCFB[iz][ip].end();++jt)
-				if((*jt)!=NULL)printf("%5d",(*jt)->getID());
-			printf("\n");
+				if((*jt)!=NULL) cout << (*jt)->getID();
+			cout << endl;
 		}
 	}
 };
@@ -734,7 +733,6 @@ void plnflb_bdry<T>::createFlbNet(){
 				RelatedP[iz][ip]=NULL;
 			if(op!=NULL)
 				op->IsFBP=true;
-			//fprintf(net,"%15.8lf%15.8lf%15.8lf\n",FlxbNet[iz][ip].x, FlxbNet[iz][ip].y,FlxbNet[iz][ip].z);
 		}
 	}
 	delNull();
@@ -794,11 +792,9 @@ public:
 template<class T>
 void cylflb_bdry<T>::disp() const{
 	int iz,ip,i;
-	printf("sumpressure:%10.6Lf%10.6Lf%10.6Lf\n",
-		sumpressure.getx(),sumpressure.gety(),sumpressure.getz());
-	printf("confining pressure:%20.6Lf\n",confining);
-	printf("side:%5d, framenum: %5d, np:%5d, nz:%5d,alf: %10.6Lf\n",
-		side,framenum,np,nz,alf);
+	cout << "sumpressure: " << sumpressure.getx() << " " << sumpressure.gety() << " " << sumpressure.getz() << endl;
+	cout << "confining pressure: " << confining << endl;
+	cout << "side: " << side << " framenum: " << framenum << " np: " << np << " nz: " << nz << " alf: " << alf << endl;
 	std::list<CIRC>::const_iterator it;
 	for(it=framelist.begin();it!=framelist.end();++it)
 		(*it).disp();
@@ -806,38 +802,37 @@ void cylflb_bdry<T>::disp() const{
 	i=0;
 	for(jt=PBList.begin();jt!=PBList.end();++jt){
 		if(i++<10)
-			printf("%5d",(*jt)->getID());
+			cout << (*jt)->getID();
 		else{
 			i=0;
-			printf("%5d\n",(*jt)->getID());
+			cout << (*jt)->getID() << endl;
 		}
 	}
-	printf("\npoint of the net\n");
+	cout << "point of the net" << endl;
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
-			printf("%10.6Lf%10.6Lf%10.6Lf",
-				FlxbNet[iz][ip].getx(),FlxbNet[iz][ip].gety(),FlxbNet[iz][ip].getz());
+		  cout << FlxbNet[iz][ip].getx() << " " << FlxbNet[iz][ip].gety() << " " << FlxbNet[iz][ip].getz();
 		}
-		printf("\n\n");
+		cout << endl;
 	}
-	printf("\nparticles of the net\n");
+	cout << "particles of the net" << endl;
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
 			if(i++<10) {
-				if(RelatedP[iz][ip]!=NULL)printf("%5d",RelatedP[iz][ip]->getID());
+				if(RelatedP[iz][ip]!=NULL) cout << RelatedP[iz][ip]->getID();
 			}
 			else{
 				i=0;
-				if(RelatedP[iz][ip]!=NULL)printf("%5d\n",RelatedP[iz][ip]->getID());
+				if(RelatedP[iz][ip]!=NULL) cout << RelatedP[iz][ip]->getID() << endl;
 			}
 		}
 	}
-	printf("\npossible particles around a line\n");
+	cout << "possible particles around a line" << endl;
 	for(iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
 			for (jt=PCFB[iz][ip].begin();jt!=PCFB[iz][ip].end();++jt)
-				if((*jt)!=NULL)printf("%5d",(*jt)->getID());
-			printf("\n");
+				if((*jt)!=NULL) cout << (*jt)->getID();
+			cout << endl;
 		}
 	}
 };

@@ -2,13 +2,12 @@
 #include "parameter.h"
 #include "ran.h"
 #include <iostream>
-#include <cstdio>
 
 namespace dem {
 
 void rectangle::print() const{
-    printf("%15.6Lf%15.6Lf%15.6Lf\n",width,length,height);
-    printf("%15.6Lf%15.6Lf%15.6Lf\n",center.getx(),center.gety(),center.getz());
+  std::cout << width << " " << length << << " " << height << std::endl;
+  std::cout << center.getx() << " " << center.gety() << " " << center.getz() << std::endl;
 }
 
 vec rectangle::randomPoint() const{
