@@ -1,9 +1,9 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.10 2004-07-15 08:27:51 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.11 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (10/12/1998) */
 #include "J2IsoVIB3DLinHardT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "toolboxConstants.h"
 #include "iArrayT.h"

@@ -1,8 +1,8 @@
-/* $Id: IsotropicT.cpp,v 1.13 2005-05-01 19:29:29 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.14 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
-#include <iostream.h>
+#include <iostream>
 
 #include "dMatrixT.h"
 #include "ifstreamT.h"

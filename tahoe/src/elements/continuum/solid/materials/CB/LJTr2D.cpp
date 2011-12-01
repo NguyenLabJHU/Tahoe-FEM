@@ -1,8 +1,8 @@
-/* $Id: LJTr2D.cpp,v 1.11 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.12 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

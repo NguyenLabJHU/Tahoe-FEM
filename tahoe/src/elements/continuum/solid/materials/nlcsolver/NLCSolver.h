@@ -5,7 +5,7 @@
 #ifndef _NLC_SOLVER_H_
 #define _NLC_SOLVER_H_
 
-#include <iostream.h>
+#include <iostream>
 
 #include "StringT.h"
 #include "dArrayT.h"

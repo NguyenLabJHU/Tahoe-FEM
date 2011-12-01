@@ -1,11 +1,11 @@
-/* $Id: PenaltyRegionT.cpp,v 1.24 2005-10-30 03:36:56 regueiro Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.25 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <ctype.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <cctype>
 
 #include "ofstreamT.h"
 #include "GlobalT.h"

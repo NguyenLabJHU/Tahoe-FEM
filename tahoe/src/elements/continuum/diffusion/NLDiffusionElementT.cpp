@@ -1,9 +1,9 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.8 2005-01-24 06:52:28 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.9 2011-12-01 21:11:36 bcyansfn Exp $ */
 #include "NLDiffusionElementT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"

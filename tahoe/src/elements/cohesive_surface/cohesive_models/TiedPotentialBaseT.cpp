@@ -1,9 +1,9 @@
-/* $Id: TiedPotentialBaseT.cpp,v 1.2 2003-05-27 07:01:15 paklein Exp $  */
+/* $Id: TiedPotentialBaseT.cpp,v 1.3 2011-12-01 21:11:36 bcyansfn Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "TiedPotentialBaseT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 #include "iArrayT.h"

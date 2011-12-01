@@ -1,12 +1,12 @@
- /* $Id: SSViscoelasticityT.cpp,v 1.4 2009-04-23 14:38:49 tdnguye Exp $ */
+ /* $Id: SSViscoelasticityT.cpp,v 1.5 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "SSViscoelasticityT.h"
 #include "ExceptionT.h"
 #include "ParameterContainerT.h"
 #include "SSMatSupportT.h"
 #include "TimeManagerT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "ExceptionT.h"
 

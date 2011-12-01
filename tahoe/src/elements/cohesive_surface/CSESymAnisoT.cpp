@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.13 2005-03-15 07:15:35 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.14 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -6,9 +6,9 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 
 #include "toolboxConstants.h"

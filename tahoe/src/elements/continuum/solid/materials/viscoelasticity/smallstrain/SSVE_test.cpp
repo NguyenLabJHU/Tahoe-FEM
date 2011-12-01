@@ -1,11 +1,11 @@
- /* $Id: SSVE_test.cpp,v 1.1 2009-04-23 14:45:29 tdnguye Exp $ */
+ /* $Id: SSVE_test.cpp,v 1.2 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "SSVE_test.h"
 #include "ExceptionT.h"
 #include "ParameterContainerT.h"
 #include "SSMatSupportT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "ExceptionT.h"
 

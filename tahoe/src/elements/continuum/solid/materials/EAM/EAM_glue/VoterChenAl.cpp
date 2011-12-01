@@ -1,7 +1,7 @@
-/* $Id: VoterChenAl.cpp,v 1.6 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: VoterChenAl.cpp,v 1.7 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (12/04/1996) */
 #include "VoterChenAl.h"
-#include <math.h>
+#include <cmath>
 #include "CubicSplineT.h"
 
 using namespace Tahoe;

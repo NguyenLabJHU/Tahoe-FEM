@@ -1,9 +1,9 @@
-/* $Id: NLSolver.cpp,v 1.44 2008-12-12 00:54:37 lxmota Exp $ */
+/* $Id: NLSolver.cpp,v 1.45 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

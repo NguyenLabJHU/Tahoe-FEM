@@ -1,4 +1,4 @@
-/* $Id: CrystalElastLat.h,v 1.4 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: CrystalElastLat.h,v 1.5 2011-12-01 21:11:38 bcyansfn Exp $ */
 /*
   File: CrystalElastLat.h
 */
@@ -6,7 +6,7 @@
 #ifndef _CRYSTAL_ELAST_LAT_H_
 #define _CRYSTAL_ELAST_LAT_H_
 
-#include <fstream.h>
+#include <fstream>
 #include "ArrayT.h"
 #include "dArrayT.h"
 #include "Array2DT.h"

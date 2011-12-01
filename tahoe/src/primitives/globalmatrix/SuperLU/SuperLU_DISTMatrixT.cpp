@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.8 2005-08-01 03:26:30 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.9 2011-12-01 21:11:40 bcyansfn Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -13,10 +13,10 @@
 #include "ElementMatrixT.h"
 #include "CommunicatorT.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 
 using namespace Tahoe;
 

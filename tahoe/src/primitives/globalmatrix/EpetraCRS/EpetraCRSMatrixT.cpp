@@ -1,4 +1,4 @@
-/* $Id: EpetraCRSMatrixT.cpp,v 1.4 2006-11-25 22:06:11 paklein Exp $ */
+/* $Id: EpetraCRSMatrixT.cpp,v 1.5 2011-12-01 21:11:40 bcyansfn Exp $ */
 #include "EpetraCRSMatrixT.h"
 
 /* library support options */
@@ -22,10 +22,10 @@
 #include "Epetra_SerialComm.h"
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 
 using namespace Tahoe;
 

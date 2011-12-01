@@ -1,10 +1,10 @@
-/* $Id: FDCrystalElast.h,v 1.6 2004-07-15 08:28:16 paklein Exp $ */
+/* $Id: FDCrystalElast.h,v 1.7 2011-12-01 21:11:38 bcyansfn Exp $ */
 #ifndef _FD_CRYSTAL_ELAST_H_
 #define _FD_CRYSTAL_ELAST_H_
 
 #include "CrystalElast.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

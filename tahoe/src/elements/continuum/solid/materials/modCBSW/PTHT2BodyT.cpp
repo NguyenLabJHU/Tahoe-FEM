@@ -1,8 +1,8 @@
-/* $Id: PTHT2BodyT.cpp,v 1.5 2004-07-15 08:28:36 paklein Exp $ */
+/* $Id: PTHT2BodyT.cpp,v 1.6 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (10/11/1997) */
 #include "PTHT2BodyT.h"
 
-#include <math.h>
+#include <cmath>
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;

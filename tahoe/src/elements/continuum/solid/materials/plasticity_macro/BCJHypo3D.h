@@ -1,10 +1,10 @@
-/* $Id: BCJHypo3D.h,v 1.10 2004-07-15 08:29:14 paklein Exp $ */
+/* $Id: BCJHypo3D.h,v 1.11 2011-12-01 21:11:38 bcyansfn Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
 #include "EVPFDBaseT.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

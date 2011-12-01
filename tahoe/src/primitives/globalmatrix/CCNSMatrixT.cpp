@@ -1,11 +1,11 @@
-/* $Id: CCNSMatrixT.cpp,v 1.28 2005-05-08 15:33:38 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.29 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <string.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <cstring>
 
 #include "toolboxConstants.h"
 #include "dMatrixT.h"

@@ -1,9 +1,9 @@
-/* $Id: SpherePointsT.cpp,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
+/* $Id: SpherePointsT.cpp,v 1.3 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (10/31/1997)                                          */
 /* Base class for spherical point generators.                             */
 
 #include "SpherePointsT.h"
-#include <math.h>
+#include <cmath>
 
 
 using namespace Tahoe;

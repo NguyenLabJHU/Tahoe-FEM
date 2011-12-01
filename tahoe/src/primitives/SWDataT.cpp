@@ -1,11 +1,11 @@
-/* $Id: SWDataT.cpp,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: SWDataT.cpp,v 1.7 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (03/22/1997) */
 #include "SWDataT.h"
 
 #include "ifstreamT.h"
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 using namespace Tahoe;
 

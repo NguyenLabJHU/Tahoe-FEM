@@ -1,7 +1,7 @@
-/* $Id: TersoffPairT.cpp,v 1.3 2006-08-25 22:14:13 d-farrell2 Exp $ */
+/* $Id: TersoffPairT.cpp,v 1.4 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "TersoffPairT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "dMatrixT.h"
 #include "dArrayT.h"
 

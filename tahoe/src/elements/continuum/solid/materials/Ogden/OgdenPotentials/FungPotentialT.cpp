@@ -1,9 +1,9 @@
-/* $Id: FungPotentialT.cpp,v 1.2 2010-06-24 13:26:03 tdnguye Exp $ */
+/* $Id: FungPotentialT.cpp,v 1.3 2011-12-01 21:11:37 bcyansfn Exp $ */
 #include "FungPotentialT.h"
 #include "ExceptionT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 
 using namespace Tahoe;

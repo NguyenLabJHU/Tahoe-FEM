@@ -1,9 +1,9 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.5 2005-11-18 06:31:25 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.6 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "MeshFreeFSSolidAxiT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

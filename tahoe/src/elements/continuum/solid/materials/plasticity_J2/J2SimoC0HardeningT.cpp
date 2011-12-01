@@ -1,10 +1,10 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.14 2004-08-14 05:13:20 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.15 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (05/01/2001) */
 #include "J2SimoC0HardeningT.h"
 
 #include "iArrayT.h"
 #include "ElementCardT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

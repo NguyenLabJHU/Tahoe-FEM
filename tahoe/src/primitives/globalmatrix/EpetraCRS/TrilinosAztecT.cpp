@@ -1,4 +1,4 @@
-/* $Id: TrilinosAztecT.cpp,v 1.2 2006-11-14 04:31:40 paklein Exp $ */
+/* $Id: TrilinosAztecT.cpp,v 1.3 2011-12-01 21:11:40 bcyansfn Exp $ */
 #include "TrilinosAztecT.h"
 
 /* library support options */
@@ -25,10 +25,10 @@
 #endif
 #include "AztecOO.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 
 using namespace Tahoe;
 

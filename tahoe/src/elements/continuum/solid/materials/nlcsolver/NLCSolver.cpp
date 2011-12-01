@@ -1,7 +1,7 @@
-/* $Id: NLCSolver.cpp,v 1.7 2003-01-29 07:35:00 paklein Exp $ */
+/* $Id: NLCSolver.cpp,v 1.8 2011-12-01 21:11:38 bcyansfn Exp $ */
 #include "NLCSolver.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "NLCSolverWrapperPtr.h"
 
 // some macros

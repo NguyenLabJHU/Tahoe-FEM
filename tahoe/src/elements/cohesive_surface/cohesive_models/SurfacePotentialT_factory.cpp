@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT_factory.cpp,v 1.10 2007-03-14 18:17:50 regueiro Exp $ */
+/* $Id: SurfacePotentialT_factory.cpp,v 1.11 2011-12-01 21:11:36 bcyansfn Exp $ */
 #include "SurfacePotentialT.h"
 
 #ifdef __DEVELOPMENT__
@@ -26,7 +26,7 @@
 #include "MR_NodalRP2DT.h"
 #endif
 
-#include <string.h>
+#include <cstring>
 
 using namespace Tahoe;
 

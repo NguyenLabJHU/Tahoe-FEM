@@ -1,10 +1,10 @@
-/* $Id: HyperEVP2D.h,v 1.7 2004-09-10 22:39:48 paklein Exp $ */
+/* $Id: HyperEVP2D.h,v 1.8 2011-12-01 21:11:38 bcyansfn Exp $ */
 #ifndef _HYPER_EVP_2D_H_
 #define _HYPER_EVP_2D_H_
 
 #include "HyperEVP3D.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 

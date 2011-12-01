@@ -1,9 +1,9 @@
-/* $Id: KBC_ControllerT.cpp,v 1.18 2009-05-26 12:29:41 tdnguye Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.19 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 #include "BasicSupportT.h"
 #include "ModelManagerT.h"
-#include <string.h>
+#include <cstring>
 
 using namespace Tahoe;
 

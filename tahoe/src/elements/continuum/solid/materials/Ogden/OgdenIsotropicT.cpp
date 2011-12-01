@@ -1,8 +1,8 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.14 2004-07-15 08:27:22 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.15 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

@@ -1,10 +1,10 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.23 2005-11-18 06:31:25 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.24 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.h,v 1.4 2004-07-15 08:28:16 paklein Exp $ */
+/* $Id: CrystalElastMat.h,v 1.5 2011-12-01 21:11:38 bcyansfn Exp $ */
 /*
   File: CrystalElastMat.h
 */
@@ -8,7 +8,7 @@
 
 #include "ios_fwd_decl.h"
 
-#include <fstream.h>
+#include <fstream>
 #include "ArrayT.h"
 #include "LocalArrayT.h"
 

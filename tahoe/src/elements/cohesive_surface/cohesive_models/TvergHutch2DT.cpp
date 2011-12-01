@@ -1,9 +1,9 @@
-/* $Id: TvergHutch2DT.cpp,v 1.24 2006-06-03 16:36:41 tdnguye Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.25 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutch2DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "StringT.h"
 

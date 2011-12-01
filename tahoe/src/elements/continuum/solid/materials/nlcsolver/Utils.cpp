@@ -1,8 +1,8 @@
-/* $Id: Utils.cpp,v 1.6 2004-07-15 08:28:42 paklein Exp $ */
+/* $Id: Utils.cpp,v 1.7 2011-12-01 21:11:38 bcyansfn Exp $ */
 #include "Utils.h"
 
-#include <iostream.h>
-#include <ctype.h>
+#include <iostream>
+#include <cctype>
 
 #include "StringT.h"
 #include "ifstreamT.h"

@@ -1,6 +1,6 @@
-/* $Id: PairPropertyT.cpp,v 1.4 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: PairPropertyT.cpp,v 1.5 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "PairPropertyT.h"
-#include <stddef.h>
+#include <cstddef>
 
 using namespace Tahoe;
 

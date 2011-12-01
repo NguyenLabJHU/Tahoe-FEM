@@ -1,9 +1,9 @@
-/* $Id: LJFCC111.cpp,v 1.10 2004-12-26 21:08:14 d-farrell2 Exp $ */
+/* $Id: LJFCC111.cpp,v 1.11 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (07/31/1996) */
 #include "LJFCC111.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ifstreamT.h"
 
 using namespace Tahoe;

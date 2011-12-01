@@ -5,7 +5,7 @@
 #ifndef _LATTICE_ORIENT_H_
 #define _LATTICE_ORIENT_H_
 
-#include <fstream.h>
+#include <fstream>
 #include "ArrayT.h"
 #include "dArrayT.h"
 #include "Array2DT.h"

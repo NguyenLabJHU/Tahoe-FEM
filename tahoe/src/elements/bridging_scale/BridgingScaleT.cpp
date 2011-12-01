@@ -1,8 +1,8 @@
-/* $Id: BridgingScaleT.cpp,v 1.54 2005-11-04 21:38:54 d-farrell2 Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.55 2011-12-01 21:11:36 bcyansfn Exp $ */
 #include "BridgingScaleT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 
 #include "SolidElementT.h"
 #include "ShapeFunctionT.h"

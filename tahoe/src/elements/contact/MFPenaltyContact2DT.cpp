@@ -1,9 +1,9 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.17 2005-04-06 01:28:00 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.18 2011-12-01 21:11:36 bcyansfn Exp $ */
 #include "MFPenaltyContact2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

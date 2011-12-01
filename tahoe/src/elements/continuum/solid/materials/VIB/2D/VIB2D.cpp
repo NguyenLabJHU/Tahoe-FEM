@@ -1,9 +1,9 @@
-/* $Id: VIB2D.cpp,v 1.12 2005-03-16 10:20:48 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.13 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"

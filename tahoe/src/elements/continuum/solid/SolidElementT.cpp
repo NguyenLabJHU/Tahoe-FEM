@@ -1,9 +1,9 @@
-/* $Id: SolidElementT.cpp,v 1.85 2010-11-08 15:34:44 hspark Exp $ */
+/* $Id: SolidElementT.cpp,v 1.86 2011-12-01 21:11:37 bcyansfn Exp $ */
 #include "SolidElementT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

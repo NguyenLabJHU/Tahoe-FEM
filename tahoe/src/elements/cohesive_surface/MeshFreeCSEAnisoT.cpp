@@ -1,11 +1,11 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.24 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.25 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (06/08/2000) */
 #include "MeshFreeCSEAnisoT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <fstream.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

@@ -1,11 +1,11 @@
-/* $Id: Chain1D.cpp,v 1.3 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.4 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
 #include "Lattice1DT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "ifstreamT.h"
 

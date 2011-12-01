@@ -1,9 +1,9 @@
-/* $Id: TiedPotentialT.cpp,v 1.24 2004-07-15 08:26:02 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.25 2011-12-01 21:11:36 bcyansfn Exp $  */
 /* created: cjkimme (10/23/2001) */
 #include "TiedPotentialT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 

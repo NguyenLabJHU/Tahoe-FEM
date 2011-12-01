@@ -1,10 +1,10 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.16 2006-04-28 16:37:13 tdnguye Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.17 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"

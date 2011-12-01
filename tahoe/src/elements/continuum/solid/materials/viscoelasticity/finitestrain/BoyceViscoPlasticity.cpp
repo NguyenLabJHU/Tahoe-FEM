@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.10 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.11 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -6,9 +6,9 @@
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 
 using namespace Tahoe;
 

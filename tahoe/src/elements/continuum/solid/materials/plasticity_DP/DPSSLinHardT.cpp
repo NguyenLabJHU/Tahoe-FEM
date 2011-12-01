@@ -1,8 +1,8 @@
-/* $Id: DPSSLinHardT.cpp,v 1.20 2006-04-27 04:37:50 cfoster01 Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.21 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSLinHardT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

@@ -1,10 +1,10 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.27 2005-08-04 07:06:02 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.28 2011-12-01 21:11:37 bcyansfn Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
 
-#include <ctype.h>
-#include <float.h>
+#include <cctype>
+#include <cfloat>
 
 #include "ContinuumElementT.h"
 #include "SpectralDecompT.h"

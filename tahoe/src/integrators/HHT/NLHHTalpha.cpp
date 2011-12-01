@@ -1,8 +1,8 @@
-/* $Id: NLHHTalpha.cpp,v 1.6 2004-07-15 08:30:28 paklein Exp $ */
+/* $Id: NLHHTalpha.cpp,v 1.7 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (10/11/1996) */
 #include "NLHHTalpha.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"

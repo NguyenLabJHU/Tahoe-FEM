@@ -1,8 +1,8 @@
-/* $Id: EvenSpacePtsT.cpp,v 1.7 2006-08-18 18:45:11 tdnguye Exp $ */
+/* $Id: EvenSpacePtsT.cpp,v 1.8 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (11/02/1997) */
 #include "EvenSpacePtsT.h"
 
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 

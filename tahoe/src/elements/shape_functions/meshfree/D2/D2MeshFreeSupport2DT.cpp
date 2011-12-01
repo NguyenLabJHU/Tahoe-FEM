@@ -1,9 +1,9 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.12 2005-07-20 17:02:35 kyonten Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.13 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeSupport2DT.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "ExceptionT.h"
 #include "toolboxConstants.h"

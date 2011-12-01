@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.cpp,v 1.6 2004-07-15 08:28:16 paklein Exp $ */
+/* $Id: CrystalElastMat.cpp,v 1.7 2011-12-01 21:11:38 bcyansfn Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
@@ -6,8 +6,8 @@
 #include "CrystalElastMat.h"
 #include "CrystalElast.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "StringT.h"
 

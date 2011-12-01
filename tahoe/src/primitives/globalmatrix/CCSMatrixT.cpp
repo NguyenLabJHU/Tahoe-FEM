@@ -1,12 +1,12 @@
-/* $Id: CCSMatrixT.cpp,v 1.29 2005-04-13 21:49:58 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.30 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
-#include <string.h>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cstring>
 
 #include "toolboxConstants.h"
 
