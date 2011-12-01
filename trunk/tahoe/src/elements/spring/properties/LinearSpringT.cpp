@@ -1,8 +1,8 @@
-/* $Id: LinearSpringT.cpp,v 1.7 2005-11-06 00:37:58 paklein Exp $ */
+/* $Id: LinearSpringT.cpp,v 1.8 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (05/28/1996) */
 #include "LinearSpringT.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "ExceptionT.h"
 //#include "ThermalDilatationT.h"
 

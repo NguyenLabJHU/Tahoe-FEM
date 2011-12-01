@@ -1,9 +1,9 @@
-/* $Id: SWDiamondT.cpp,v 1.13 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.14 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (03/19/1997) */
 #include "SWDiamondT.h"
 
-#include <math.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

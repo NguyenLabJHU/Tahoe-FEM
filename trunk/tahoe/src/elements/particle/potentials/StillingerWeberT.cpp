@@ -1,7 +1,7 @@
-/* $Id: StillingerWeberT.cpp,v 1.6 2004-12-09 01:41:17 cjkimme Exp $ */
+/* $Id: StillingerWeberT.cpp,v 1.7 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "StillingerWeberT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "dMatrixT.h"
 #include "dArrayT.h"
 

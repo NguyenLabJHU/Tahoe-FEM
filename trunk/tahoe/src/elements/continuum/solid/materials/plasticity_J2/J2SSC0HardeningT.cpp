@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.8 2005-07-26 16:30:09 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.9 2011-12-01 21:11:38 bcyansfn Exp $ */
 #include "J2SSC0HardeningT.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -6,7 +6,7 @@
 #include "iArrayT.h"
 #include "ElementCardT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

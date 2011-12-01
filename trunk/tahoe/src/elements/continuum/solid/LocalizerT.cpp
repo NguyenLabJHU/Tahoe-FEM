@@ -1,10 +1,10 @@
-/* $Id: LocalizerT.cpp,v 1.13 2005-01-29 01:30:45 raregue Exp $ */
+/* $Id: LocalizerT.cpp,v 1.14 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "SolidMaterialT.h"

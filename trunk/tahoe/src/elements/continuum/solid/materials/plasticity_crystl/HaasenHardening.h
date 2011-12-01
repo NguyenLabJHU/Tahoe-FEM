@@ -5,7 +5,7 @@
 #ifndef _HAASEN_HARDENING_H_
 #define _HAASEN_HARDENING_H_
 
-#include <iostream.h>
+#include <iostream>
 
 #include "SlipHardening.h"
 #include "dArrayT.h"

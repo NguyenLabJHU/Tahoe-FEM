@@ -1,12 +1,12 @@
-/* $Id: NodeManagerT.cpp,v 1.71 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.72 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <limits.h>
-#include <ctype.h>
+#include <iostream>
+#include <iomanip>
+#include <climits>
+#include <cctype>
 
 #include "ifstreamT.h"
 #include "FEManagerT.h"

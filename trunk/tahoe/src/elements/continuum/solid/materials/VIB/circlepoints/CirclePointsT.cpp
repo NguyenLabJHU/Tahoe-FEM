@@ -1,7 +1,7 @@
-/* $Id: CirclePointsT.cpp,v 1.3 2004-07-15 08:28:03 paklein Exp $ */
+/* $Id: CirclePointsT.cpp,v 1.4 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (11/02/1997) */
 #include "CirclePointsT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

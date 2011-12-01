@@ -1,9 +1,9 @@
-/* $Id: J2QLLinHardT.cpp,v 1.14 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.15 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (10/26/2000) */
 #include "J2QLLinHardT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "toolboxConstants.h"
 

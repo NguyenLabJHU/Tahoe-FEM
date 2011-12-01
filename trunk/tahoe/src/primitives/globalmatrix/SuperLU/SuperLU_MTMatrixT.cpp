@@ -1,13 +1,13 @@
-/* $Id: SuperLU_MTMatrixT.cpp,v 1.3 2005-05-29 04:24:30 paklein Exp $ */
+/* $Id: SuperLU_MTMatrixT.cpp,v 1.4 2011-12-01 21:11:40 bcyansfn Exp $ */
 #include "SuperLU_MTMatrixT.h"
 
 /* library support */
 #ifdef __SUPERLU_MT__
 
-#include <stdlib.h>
-#include <string.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

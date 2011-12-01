@@ -1,4 +1,4 @@
-/* $Id: SIMOD_2DT.cpp,v 1.4 2005-07-23 22:18:25 paklein Exp $ */
+/* $Id: SIMOD_2DT.cpp,v 1.5 2011-12-01 21:11:36 bcyansfn Exp $ */
 #include "SIMOD_2DT.h"
 
 /* enabled */
@@ -6,7 +6,7 @@
 
 #include "ParameterContainerT.h"
 #include "pArrayT.h"
-#include <string.h>
+#include <cstring>
 
 /* SIMOD headers */
 #include "simod_model_lists.h"

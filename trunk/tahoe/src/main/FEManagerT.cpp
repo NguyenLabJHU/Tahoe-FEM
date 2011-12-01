@@ -1,12 +1,12 @@
-/* $Id: FEManagerT.cpp,v 1.100 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: FEManagerT.cpp,v 1.101 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <string.h>
-#include <float.h>
-#include <ctype.h>
+#include <iostream>
+#include <iomanip>
+#include <cstring>
+#include <cfloat>
+#include <cctype>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -25,7 +25,7 @@
 #include "SolverT.h"
 #include "ParameterContainerT.h"
 
-#include <time.h> 
+#include <ctime> 
 #include "AutoArrayT.h"
 #include "RaggedArray2DT.h"
 #include "IOManager_mpi.h"

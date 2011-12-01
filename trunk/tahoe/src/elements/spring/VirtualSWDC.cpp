@@ -1,8 +1,8 @@
-/* $Id: VirtualSWDC.cpp,v 1.7 2004-07-15 08:30:17 paklein Exp $ */
+/* $Id: VirtualSWDC.cpp,v 1.8 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 
-#include <iomanip.h>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

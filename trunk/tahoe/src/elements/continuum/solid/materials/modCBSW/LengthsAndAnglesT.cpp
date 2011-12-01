@@ -1,11 +1,11 @@
-/* $Id: LengthsAndAnglesT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: LengthsAndAnglesT.cpp,v 1.3 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (05/26/1997)                                          */
 /* Class to compute/manage all bond angles and derivatives                */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
 /* constitutive equations.                                                */
 
 #include "LengthsAndAnglesT.h"
-#include <math.h>
+#include <cmath>
 #include "dArrayT.h"
 #include "iArray2DT.h"
 

@@ -1,7 +1,7 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.10 2005-12-23 03:20:17 kyonten Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.11 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "RectGaussianWindowT.h"
 #include "ExceptionT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

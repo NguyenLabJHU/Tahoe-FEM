@@ -1,8 +1,8 @@
-/* $Id: SW2BodyT.cpp,v 1.3 2003-11-21 22:46:42 paklein Exp $ */
+/* $Id: SW2BodyT.cpp,v 1.4 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (05/20/1997)                                          */
 
 #include "SW2BodyT.h"
-#include <math.h>
+#include <cmath>
 #include "SWDataT.h"
 #include "ThermalDilatationT.h"
 

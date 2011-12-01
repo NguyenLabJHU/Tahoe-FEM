@@ -1,7 +1,7 @@
-/* $Id: FDCrystalElast.cpp,v 1.10 2004-07-15 08:28:16 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.11 2011-12-01 21:11:38 bcyansfn Exp $ */
 #include "FDCrystalElast.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "CrystalElastLat.h"
 #include "CrystalElastMat.h"
 #include "ElementCardT.h"

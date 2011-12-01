@@ -1,7 +1,7 @@
-/* $Id: StaticIntegrator.cpp,v 1.3 2004-07-15 08:30:48 paklein Exp $ */
+/* $Id: StaticIntegrator.cpp,v 1.4 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (10/14/1996) */
 #include "StaticIntegrator.h"
-#include <iostream.h>
+#include <iostream>
 
 using namespace Tahoe;
 

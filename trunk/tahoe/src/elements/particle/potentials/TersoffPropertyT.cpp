@@ -1,6 +1,6 @@
-/* $Id: TersoffPropertyT.cpp,v 1.2 2006-07-25 16:29:47 d-farrell2 Exp $ */
+/* $Id: TersoffPropertyT.cpp,v 1.3 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "TersoffPropertyT.h"
-#include <stddef.h>
+#include <cstddef>
 
 using namespace Tahoe;
 

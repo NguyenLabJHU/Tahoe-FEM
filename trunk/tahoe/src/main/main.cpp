@@ -1,7 +1,7 @@
-/* $Id: main.cpp,v 1.31 2008-09-22 14:31:59 regueiro Exp $ */
+/* $Id: main.cpp,v 1.32 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (05/22/1996) */
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 
 #include "Environment.h"
 #include "ExceptionT.h"

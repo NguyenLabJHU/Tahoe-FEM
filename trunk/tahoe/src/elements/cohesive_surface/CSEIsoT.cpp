@@ -1,10 +1,10 @@
-/* $Id: CSEIsoT.cpp,v 1.23 2005-03-15 07:15:35 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.24 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ElementSupportT.h"
 

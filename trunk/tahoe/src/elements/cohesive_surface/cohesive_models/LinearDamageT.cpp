@@ -1,9 +1,9 @@
-/* $Id: LinearDamageT.cpp,v 1.21 2006-06-03 16:25:14 tdnguye Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.22 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (08/21/2000) */
 #include "LinearDamageT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 
 using namespace Tahoe;

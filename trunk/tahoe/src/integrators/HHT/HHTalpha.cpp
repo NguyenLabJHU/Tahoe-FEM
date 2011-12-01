@@ -1,8 +1,8 @@
-/* $Id: HHTalpha.cpp,v 1.7 2004-07-15 08:30:27 paklein Exp $ */
+/* $Id: HHTalpha.cpp,v 1.8 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (10/14/1996) */
 #include "HHTalpha.h"
 
-#include <iostream.h>
+#include <iostream>
 
 
 #include "dArrayT.h"

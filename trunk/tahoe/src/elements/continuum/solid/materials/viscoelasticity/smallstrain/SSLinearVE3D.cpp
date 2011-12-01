@@ -1,10 +1,10 @@
-/* $Id: SSLinearVE3D.cpp,v 1.6 2008-08-09 15:00:37 tdnguye Exp $ */
+/* $Id: SSLinearVE3D.cpp,v 1.7 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE3D.h"
 #include "SSMatSupportT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "ExceptionT.h"
 

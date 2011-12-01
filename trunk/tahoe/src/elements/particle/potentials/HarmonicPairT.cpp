@@ -1,6 +1,6 @@
-/* $Id: HarmonicPairT.cpp,v 1.5 2004-07-15 08:29:49 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.6 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "HarmonicPairT.h"
-#include <iostream.h>
+#include <iostream>
 
 using namespace Tahoe;
 

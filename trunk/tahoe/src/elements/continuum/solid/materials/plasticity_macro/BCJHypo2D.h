@@ -1,10 +1,10 @@
-/* $Id: BCJHypo2D.h,v 1.8 2004-09-10 22:39:48 paklein Exp $ */
+/* $Id: BCJHypo2D.h,v 1.9 2011-12-01 21:11:38 bcyansfn Exp $ */
 #ifndef _BCJ_HYPO_2D_H_
 #define _BCJ_HYPO_2D_H_
 
 #include "BCJHypo3D.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 

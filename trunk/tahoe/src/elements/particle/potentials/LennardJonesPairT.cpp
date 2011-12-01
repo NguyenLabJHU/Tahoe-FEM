@@ -1,7 +1,7 @@
-/* $Id: LennardJonesPairT.cpp,v 1.12 2004-07-26 09:26:46 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.13 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "LennardJonesPairT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 using namespace Tahoe;
 

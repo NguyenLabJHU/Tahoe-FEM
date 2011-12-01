@@ -1,9 +1,9 @@
-/* $Id: TvergHutchIrrev3DT.cpp,v 1.1 2007-03-12 02:20:07 cjkimme Exp $ */
+/* $Id: TvergHutchIrrev3DT.cpp,v 1.2 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (02/05/2000) */
 #include "TvergHutchIrrev3DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "StringT.h"
 

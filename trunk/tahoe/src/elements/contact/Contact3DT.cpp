@@ -1,10 +1,10 @@
-/* $Id: Contact3DT.cpp,v 1.11 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.12 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (07/17/1999) */
 #include "Contact3DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ofstreamT.h"
 #include "eIntegratorT.h"

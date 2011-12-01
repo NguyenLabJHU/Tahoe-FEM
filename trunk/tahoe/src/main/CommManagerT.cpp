@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.18 2005-06-04 17:00:29 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.19 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -7,7 +7,7 @@
 #include "InverseMapT.h"
 #include "FieldT.h"
 #include "SpatialGridT.h"
-#include <float.h>
+#include <cfloat>
 
 /* message types */
 #include "AllGatherT.h"

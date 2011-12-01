@@ -1,8 +1,8 @@
-/* $Id: VIB_E_MatT.cpp,v 1.7 2005-03-16 10:20:42 paklein Exp $ */
+/* $Id: VIB_E_MatT.cpp,v 1.8 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (11/08/1997) */
 #include "VIB_E_MatT.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"

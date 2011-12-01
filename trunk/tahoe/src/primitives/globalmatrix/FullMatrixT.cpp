@@ -1,8 +1,8 @@
-/* $Id: FullMatrixT.cpp,v 1.23 2006-11-20 17:27:35 r-jones Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.24 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 #include "iArrayT.h"

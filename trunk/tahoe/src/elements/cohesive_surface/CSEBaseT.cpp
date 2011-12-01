@@ -1,10 +1,10 @@
-/* $Id: CSEBaseT.cpp,v 1.39 2005-07-12 05:50:11 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.40 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 #include "ifstreamT.h"
 #include "SurfaceShapeT.h"
 #include "iAutoArrayT.h"

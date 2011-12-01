@@ -1,10 +1,10 @@
-/* $Id: ExecutionManagerT.cpp,v 1.18 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.19 2011-12-01 21:11:40 bcyansfn Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <time.h>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

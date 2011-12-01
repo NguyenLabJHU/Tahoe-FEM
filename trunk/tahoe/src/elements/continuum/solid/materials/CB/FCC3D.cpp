@@ -1,10 +1,10 @@
-/* $Id: FCC3D.cpp,v 1.11 2005-02-28 18:54:12 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.12 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 
 #include "ElementsConfig.h"
 #include "FCCLatticeT.h"
-#include <math.h>
+#include <cmath>
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT

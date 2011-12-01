@@ -1,11 +1,11 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.14 2007-07-05 00:03:19 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.15 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

@@ -1,6 +1,6 @@
-/* $Id: ThreeBodyPropertyT.cpp,v 1.1 2004-11-23 01:43:20 cjkimme Exp $ */
+/* $Id: ThreeBodyPropertyT.cpp,v 1.2 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "ThreeBodyPropertyT.h"
-#include <stddef.h>
+#include <cstddef>
 
 using namespace Tahoe;
 

@@ -1,9 +1,9 @@
-/* $Id: MeshFreeT.cpp,v 1.6 2004-03-04 08:54:29 paklein Exp $ */
+/* $Id: MeshFreeT.cpp,v 1.7 2011-12-01 21:11:39 bcyansfn Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MeshFreeT.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "ExceptionT.h"
 
 namespace Tahoe {

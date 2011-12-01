@@ -1,9 +1,9 @@
-/* $Id: D2VIB2D.cpp,v 1.8 2004-07-15 08:27:57 paklein Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.9 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "ifstreamT.h"
 #include "D2FSMatSupportT.h"

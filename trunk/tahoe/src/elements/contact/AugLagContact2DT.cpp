@@ -1,10 +1,10 @@
-/* $Id: AugLagContact2DT.cpp,v 1.21 2005-07-20 16:18:23 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.22 2011-12-01 21:11:36 bcyansfn Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "eIntegratorT.h"

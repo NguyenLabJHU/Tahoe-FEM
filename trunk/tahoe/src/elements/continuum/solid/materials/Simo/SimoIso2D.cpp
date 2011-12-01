@@ -1,7 +1,7 @@
-/* $Id: SimoIso2D.cpp,v 1.11 2004-09-10 22:39:12 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.12 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

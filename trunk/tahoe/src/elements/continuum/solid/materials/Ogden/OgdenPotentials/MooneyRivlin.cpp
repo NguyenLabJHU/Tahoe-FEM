@@ -1,12 +1,12 @@
-/* $Id: MooneyRivlin.cpp,v 1.6 2011-06-29 01:39:46 tdnguye Exp $ */
+/* $Id: MooneyRivlin.cpp,v 1.7 2011-12-01 21:11:37 bcyansfn Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
 #include "MooneyRivlin.h"
 #include "ExceptionT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 
 using namespace Tahoe;

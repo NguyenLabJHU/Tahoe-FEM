@@ -1,8 +1,8 @@
-/* $Id: SW3BodyT.cpp,v 1.2 2002-07-02 19:56:06 cjkimme Exp $ */
+/* $Id: SW3BodyT.cpp,v 1.3 2011-12-01 21:11:38 bcyansfn Exp $ */
 /* created: paklein (05/22/1997)                                          */
 
 #include "SW3BodyT.h"
-#include <math.h>
+#include <cmath>
 #include "SWDataT.h"
 #include "dMatrixT.h"
 #include "iArray2DT.h"

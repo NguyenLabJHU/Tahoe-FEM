@@ -1,7 +1,7 @@
-/* $Id: GaussIsokineticT.cpp,v 1.9 2004-07-15 08:29:54 paklein Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.10 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "GaussIsokineticT.h"
 
-#include <math.h>
+#include <cmath>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"

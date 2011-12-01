@@ -1,11 +1,11 @@
-/* $Id: BCJHypoIsoDamageYC3D.h,v 1.5 2004-07-15 08:29:14 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.h,v 1.6 2011-12-01 21:11:38 bcyansfn Exp $ */
 #ifndef _BCJ_HYPO_ISO_DAMAGE_YC_3D_H_
 #define _BCJ_HYPO_ISO_DAMAGE_YC_3D_H_
 
 #include "BCJHypo3D.h"
 #include "VoidGrowthModelImp.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"

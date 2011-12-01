@@ -1,8 +1,8 @@
-/* $Id: Utils.h,v 1.3 2003-01-27 07:00:29 paklein Exp $ */
+/* $Id: Utils.h,v 1.4 2011-12-01 21:11:38 bcyansfn Exp $ */
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#include <iostream.h>
+#include <iostream>
 #include "ArrayT.h"
 
 namespace Tahoe {

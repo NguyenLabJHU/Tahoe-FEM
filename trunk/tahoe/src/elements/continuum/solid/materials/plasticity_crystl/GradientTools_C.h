@@ -5,8 +5,8 @@
 #ifndef _GRADIENT_TOOLS_C_H_
 #define _GRADIENT_TOOLS_C_H_
 
-#include <iostream.h>
-#include <ctype.h>
+#include <iostream>
+#include <cctype>
 
 #include "Utils.h"
 #include "ifstreamT.h"

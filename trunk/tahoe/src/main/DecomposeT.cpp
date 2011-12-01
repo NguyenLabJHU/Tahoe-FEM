@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.8 2004-12-26 21:09:32 d-farrell2 Exp $ */
+/* $Id: DecomposeT.cpp,v 1.9 2011-12-01 21:11:39 bcyansfn Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -15,7 +15,7 @@
 #include "SpatialGridT.h"
 #include "ParameterListT.h"
 
-#include <time.h>
+#include <ctime>
 
 using namespace Tahoe;
 
