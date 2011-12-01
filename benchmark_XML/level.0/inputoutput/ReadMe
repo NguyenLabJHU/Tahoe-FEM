@@ -1,9 +1,0 @@
-### Notes in the split/join tests ###
-
-These are two test must be run together. The first test produces a decomposed
-geometry. The second test joins existing results files using the decomposed
-geometry file. These joined results are tested against the benchmarks. The
-geometry files reside in the decomp directory. The split results files are
-in the split directory. During "make clean", the decomposed geometry files are
-removed and copies of the split results files are moved to the inputoutput
-directory. "make clean" must be executed before the join test will run.

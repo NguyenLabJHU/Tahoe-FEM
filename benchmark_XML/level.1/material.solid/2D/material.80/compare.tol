@@ -1,4 +1,0 @@
-# $Id: compare.tol,v 1.1 2004-08-01 20:37:00 paklein Exp $
-# looser tolerance since solver is only running to 1.0e-08
-abs_tol 1.0-8
-
