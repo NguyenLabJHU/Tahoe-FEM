@@ -1,15 +1,15 @@
-/* $Id: StringT.cpp,v 1.49 2008-02-11 23:24:19 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.50 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #ifdef _MSC_VER
 #include <strstrea.h>
 #elif defined(__GCC_3__) || defined(__GCC_4__)

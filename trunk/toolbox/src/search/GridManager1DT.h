@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.11 2004-03-18 01:15:39 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.12 2011-12-01 20:25:17 bcyansfn Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -6,7 +6,7 @@
 #include "toolboxConstants.h"
 
 /* language support */
-#include <iostream.h>
+#include <iostream>
 
 /* direct members */
 #include "AutoArrayT.h"

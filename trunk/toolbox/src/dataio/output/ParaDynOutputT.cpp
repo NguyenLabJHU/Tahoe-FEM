@@ -3,7 +3,7 @@
 #include "ParaDynT.h"
 #include "OutputSetT.h"
 #include "AutoArrayT.h"
-#include <fstream.h>
+#include <fstream>
 
 #include "StringT.h"
 #include "iArrayT.h"

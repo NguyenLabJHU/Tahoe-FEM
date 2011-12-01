@@ -1,9 +1,9 @@
-/* $Id: AbaqusResultsT.cpp,v 1.24 2003-11-21 22:41:46 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.25 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
 #include "fstreamT.h"
-#include <time.h>
+#include <ctime>
 
 using namespace Tahoe;
 

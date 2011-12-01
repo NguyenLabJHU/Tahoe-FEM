@@ -1,9 +1,9 @@
-/* $Id: zArrayT.cpp,v 1.11 2005-07-29 03:09:32 paklein Exp $ */
+/* $Id: zArrayT.cpp,v 1.12 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 #include "zArrayT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 

@@ -1,7 +1,7 @@
-/* $Id: QuadT.cpp,v 1.22 2008-12-12 17:45:22 lxmota Exp $ */
+/* $Id: QuadT.cpp,v 1.23 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
-#include <math.h>
+#include <cmath>
 #include "ExceptionT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"

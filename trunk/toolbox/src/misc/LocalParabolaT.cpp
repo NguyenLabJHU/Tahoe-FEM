@@ -1,10 +1,10 @@
-/* $Id: LocalParabolaT.cpp,v 1.3 2002-10-20 22:39:04 paklein Exp $ */
+/* $Id: LocalParabolaT.cpp,v 1.4 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (01/28/1997)                                          */
 /* LocalParabolaT.cpp                                                     */
 /* For a successively fitted parabolic                                    */
 
 #include "LocalParabolaT.h"
-#include <math.h>
+#include <cmath>
 #include "ExceptionT.h"
 
 /*

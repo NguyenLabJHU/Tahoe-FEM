@@ -1,8 +1,8 @@
-/* $Id: EnSightT.cpp,v 1.19 2004-07-01 16:39:40 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.20 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
-#include <ctype.h>
+#include <cctype>
 
 #include "StringT.h"
 #include "iArray2DT.h"

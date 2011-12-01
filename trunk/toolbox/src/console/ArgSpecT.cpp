@@ -1,6 +1,6 @@
-/* $Id: ArgSpecT.cpp,v 1.13 2003-11-10 22:14:15 cjkimme Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.14 2011-12-01 20:25:16 bcyansfn Exp $ */
 #include "ArgSpecT.h"
-#include <ctype.h>
+#include <cctype>
 
 using namespace Tahoe;
 

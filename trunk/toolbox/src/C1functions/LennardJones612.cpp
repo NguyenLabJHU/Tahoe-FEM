@@ -1,8 +1,8 @@
-/* $Id: LennardJones612.cpp,v 1.8 2006-05-26 14:34:58 tdnguye Exp $ */
+/* $Id: LennardJones612.cpp,v 1.9 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (10/30/1997) */
 #include "LennardJones612.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

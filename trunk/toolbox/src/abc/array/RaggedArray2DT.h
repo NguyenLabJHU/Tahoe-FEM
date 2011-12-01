@@ -1,10 +1,10 @@
-/* $Id: RaggedArray2DT.h,v 1.26 2005-07-29 03:09:32 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.27 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
 
 /* language support */
-#include <iostream.h>
+#include <iostream>
 
 /* direct members */
 #include "AutoArrayT.h"

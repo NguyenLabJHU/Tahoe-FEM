@@ -1,9 +1,9 @@
-/* $Id: CMReLabellerT.cpp,v 1.4 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.5 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 #include "iArray2DT.h"
 #include "AutoArrayT.h"
 

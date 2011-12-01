@@ -1,8 +1,8 @@
-/* $Id: LineT.cpp,v 1.14 2006-11-02 21:51:37 regueiro Exp $ */
+/* $Id: LineT.cpp,v 1.15 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "ExceptionT.h"
 #include "iArrayT.h"

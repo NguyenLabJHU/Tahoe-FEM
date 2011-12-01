@@ -1,11 +1,11 @@
-/* $Id: ModelFileT.cpp,v 1.13 2004-06-17 06:38:21 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.14 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: paklein (12/15/1999)  */
 #include "ModelFileT.h"
 
-#include <iostream.h>
-#include <string.h>
-#include <ctype.h>
-#include <float.h>
+#include <iostream>
+#include <cstring>
+#include <cctype>
+#include <cfloat>
 
 #include "ifstreamT.h"
 #include "iArray2DT.h"

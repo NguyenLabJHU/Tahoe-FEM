@@ -1,9 +1,9 @@
-/* $Id: FindNeighbor23T.cpp,v 1.4 2003-11-21 22:41:59 paklein Exp $ */
+/* $Id: FindNeighbor23T.cpp,v 1.5 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighbor23T.cpp                                                    */
 
 #include "FindNeighbor23T.h"
-#include <iostream.h>
+#include <iostream>
 
 /* Constructors */
 

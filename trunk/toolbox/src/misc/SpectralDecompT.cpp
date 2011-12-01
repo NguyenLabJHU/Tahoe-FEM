@@ -1,11 +1,11 @@
-/* $Id: SpectralDecompT.cpp,v 1.11 2003-11-21 22:41:57 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.12 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
 #include "SpectralDecompT.h"
-#include <iostream.h>
-#include <math.h>
-#include <float.h>
+#include <iostream>
+#include <cmath>
+#include <cfloat>
 
 
 using namespace Tahoe;

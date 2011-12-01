@@ -1,10 +1,9 @@
-/* $Id: RowAutoFill2DT.h,v 1.10 2007-09-05 00:22:47 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.11 2011-12-01 20:25:16 bcyansfn Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
-
-#include <string.h>
-#include <fstream.h>
+#include <cstring>
+#include <fstream>
 
 #include "Environment.h"
 #include "ExceptionT.h"

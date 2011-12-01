@@ -1,10 +1,10 @@
-/* $Id: dSPMatrixT.cpp,v 1.9 2005-05-05 16:38:09 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.10 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <fstream.h> 
+#include <iostream>
+#include <iomanip>
+#include <fstream> 
 
 #include "dMatrixT.h"
 #include "dArrayT.h"

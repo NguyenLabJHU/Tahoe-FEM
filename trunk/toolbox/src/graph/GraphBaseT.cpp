@@ -1,10 +1,10 @@
-/* $Id: GraphBaseT.cpp,v 1.16 2003-11-21 23:32:11 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.17 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (04/13/1999) */
 #include "GraphBaseT.h"
 
-#include <iostream.h>
-#include <fstream.h>
-#include <time.h>
+#include <iostream>
+#include <fstream>
+#include <ctime>
 
 #include "iArrayT.h"
 #include "RaggedArray2DT.h"

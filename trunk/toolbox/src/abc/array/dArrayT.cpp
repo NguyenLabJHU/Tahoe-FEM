@@ -1,9 +1,10 @@
-/* $Id: dArrayT.cpp,v 1.11 2004-04-16 00:35:25 paklein Exp $ */
+/* $Id: dArrayT.cpp,v 1.12 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (08/11/1996) */
 #include "dArrayT.h"
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
 #include "toolboxConstants.h"
 
 using namespace Tahoe;

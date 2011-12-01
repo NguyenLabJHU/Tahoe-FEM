@@ -1,7 +1,7 @@
-/* $Id: SecantMethodT.cpp,v 1.7 2004-12-19 17:50:43 paklein Exp $ */
+/* $Id: SecantMethodT.cpp,v 1.8 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (12/01/1998)*/
 #include "SecantMethodT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

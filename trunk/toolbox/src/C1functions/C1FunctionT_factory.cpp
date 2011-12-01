@@ -1,6 +1,6 @@
-/* $Id: C1FunctionT_factory.cpp,v 1.9 2009-05-20 17:49:00 regueiro Exp $ */
+/* $Id: C1FunctionT_factory.cpp,v 1.10 2011-12-01 20:25:15 bcyansfn Exp $ */
 #include "C1FunctionT.h"
-#include <string.h>
+#include <cstring>
 
 /* subclasses supporting the factory method */
 #include "PiecewiseLinearT.h"

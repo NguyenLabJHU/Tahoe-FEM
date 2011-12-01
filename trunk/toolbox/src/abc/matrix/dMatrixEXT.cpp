@@ -1,10 +1,10 @@
-/* $Id: dMatrixEXT.cpp,v 1.16 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.17 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: paklein (03/06/1998)                                          */
 #include "dMatrixEXT.h"
 #include "toolboxConstants.h"
 #include "LAdMatrixT.h"
 #include "dArray2DT.h"
-#include <math.h>
+#include <cmath>
 #include "dTensor4DT.h"
 //#include "NRUTIL.H"
 

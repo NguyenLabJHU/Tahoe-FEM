@@ -1,6 +1,6 @@
-/* $Id: ParameterUtils.cpp,v 1.12 2005-06-07 16:34:16 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.13 2011-12-01 20:25:17 bcyansfn Exp $ */
 #include "ParameterUtils.h"
-#include <ctype.h>
+#include <cctype>
 
 using namespace Tahoe;
 

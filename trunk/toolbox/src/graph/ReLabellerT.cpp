@@ -1,10 +1,10 @@
-/* $Id: ReLabellerT.cpp,v 1.6 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.7 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
-#include <limits.h>
-#include <string.h>
-#include <fstream.h>
+#include <climits>
+#include <cstring>
+#include <fstream>
 #include "iArray2DT.h"
 #include "LocalParabolaT.h"
 #include "AutoArrayT.h"

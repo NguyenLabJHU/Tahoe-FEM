@@ -1,9 +1,9 @@
-/* $Id: ExceptionT.cpp,v 1.14 2008-12-12 17:47:28 lxmota Exp $ */
+/* $Id: ExceptionT.cpp,v 1.15 2011-12-01 20:25:16 bcyansfn Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
-#include <iostream.h>
-#include <iomanip.h>
-#include <time.h>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
 
 #if defined(__SGI__) || defined(__DELMAR__) || defined(__PGI__) || defined(__JANUS__) || defined(__MWERKS__)
 #include <stdio.h>

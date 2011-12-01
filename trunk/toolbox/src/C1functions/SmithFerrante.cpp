@@ -1,8 +1,8 @@
-/* $Id: SmithFerrante.cpp,v 1.6 2004-03-24 01:56:34 paklein Exp $ */
+/* $Id: SmithFerrante.cpp,v 1.7 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (10/30/1997) */
 #include "SmithFerrante.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

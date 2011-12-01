@@ -1,9 +1,9 @@
-/* $Id: AbaqusOutputT.cpp,v 1.7 2002-07-26 18:43:57 sawimme Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.8 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
 
-#include <fstream.h>
+#include <fstream>
 
 #include "AbaqusResultsT.h"
 #include "OutputSetT.h"

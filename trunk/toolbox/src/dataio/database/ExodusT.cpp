@@ -1,11 +1,11 @@
-/* $Id: ExodusT.cpp,v 1.32 2009-04-02 00:40:51 lxmota Exp $ */
+/* $Id: ExodusT.cpp,v 1.33 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
 /* ANSI headers */
-#include <iostream.h>
-#include <iomanip.h>
-#include <time.h>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
 
 #include "iArrayT.h"
 #include "dArrayT.h"

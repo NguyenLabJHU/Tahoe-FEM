@@ -1,7 +1,7 @@
-/* $Id: FormatterT.cpp,v 1.2 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: FormatterT.cpp,v 1.3 2011-12-01 20:25:17 bcyansfn Exp $ */
 #include "FormatterT.h"
 
-#include <string.h>
+#include <cstring>
 
 /* 1 less than length of fTabs */
 const int kMaxTab = 10;
