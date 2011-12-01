@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.23 2004-03-16 05:37:22 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.24 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created sawimme (05/17/2001) */
 #include "PatranT.h"
 #include "ifstreamT.h"
@@ -9,7 +9,7 @@
 #include "ExceptionT.h"
 #include "iAutoArrayT.h"
 #include "ofstreamT.h"
-#include <time.h>
+#include <ctime>
 
 using namespace Tahoe;
 

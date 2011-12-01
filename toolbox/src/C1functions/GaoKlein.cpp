@@ -1,9 +1,9 @@
-/* $Id: GaoKlein.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: GaoKlein.cpp,v 1.6 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoKlein.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

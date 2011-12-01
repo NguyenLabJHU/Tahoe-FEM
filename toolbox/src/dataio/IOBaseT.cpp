@@ -1,10 +1,10 @@
-/* $Id: IOBaseT.cpp,v 1.20 2007-04-04 17:07:07 sawimme Exp $ */
+/* $Id: IOBaseT.cpp,v 1.21 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 #include "ExceptionT.h"
 #include "StringT.h"

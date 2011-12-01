@@ -1,10 +1,10 @@
-/* $Id: FileCrawlerT.cpp,v 1.7 2004-06-17 06:38:29 paklein Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.8 2011-12-01 20:25:17 bcyansfn Exp $ */
 
 #include "FileCrawlerT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <time.h>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

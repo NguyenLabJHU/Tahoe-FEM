@@ -1,10 +1,10 @@
-/* $Id: ComplexT.cpp,v 1.18 2005-07-29 03:09:32 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.19 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 #include "ComplexT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "nArrayT.h"
 

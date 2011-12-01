@@ -1,8 +1,8 @@
-/* $Id: Gamma.cpp,v 1.6 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: Gamma.cpp,v 1.7 2011-12-01 20:25:15 bcyansfn Exp $ */
 
 #include "Gamma.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

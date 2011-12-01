@@ -1,8 +1,8 @@
-/* $Id: GaoVicky.cpp,v 1.6 2004-06-19 23:27:18 paklein Exp $ */
+/* $Id: GaoVicky.cpp,v 1.7 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (12/26/1998) */
 #include "GaoVicky.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

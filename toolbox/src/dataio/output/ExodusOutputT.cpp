@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.18 2005-06-09 00:00:45 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.19 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -7,7 +7,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
-#include <time.h>
+#include <ctime>
 
 
 using namespace Tahoe;

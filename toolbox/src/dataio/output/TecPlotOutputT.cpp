@@ -1,11 +1,11 @@
-/* $Id: TecPlotOutputT.cpp,v 1.4 2002-07-02 19:57:07 cjkimme Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.5 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
 #include "TecPlotT.h"
 #include "OutputSetT.h"
 #include "ios_fwd_decl.h"
-#include <fstream.h>
+#include <fstream>
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 

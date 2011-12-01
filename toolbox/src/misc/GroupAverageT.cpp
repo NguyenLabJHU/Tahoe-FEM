@@ -1,10 +1,10 @@
-/* $Id: GroupAverageT.cpp,v 1.8 2003-11-21 22:41:57 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.9 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (10/03/1996) */
 #include "GroupAverageT.h"
 
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 #include "toolboxConstants.h"
 #include "dArrayT.h"

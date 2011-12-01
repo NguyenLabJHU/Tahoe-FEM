@@ -1,7 +1,7 @@
-/* $Id: CosineT.cpp,v 1.1 2004-06-29 16:15:43 paklein Exp $ */
+/* $Id: CosineT.cpp,v 1.2 2011-12-01 20:25:15 bcyansfn Exp $ */
 #include "CosineT.h"
 #include "dArrayT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

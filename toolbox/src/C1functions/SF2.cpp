@@ -1,8 +1,8 @@
-/* $Id: SF2.cpp,v 1.5 2004-06-19 23:27:18 paklein Exp $ */
+/* $Id: SF2.cpp,v 1.6 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (10/30/1997) */
 #include "SF2.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

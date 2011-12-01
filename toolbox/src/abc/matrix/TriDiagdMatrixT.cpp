@@ -1,9 +1,9 @@
-/* $Id: TriDiagdMatrixT.cpp,v 1.6 2005-07-29 03:09:33 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.cpp,v 1.7 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination. The                        */
 /* matrix is stored in row major form.                                    */
 #include "TriDiagdMatrixT.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 

@@ -1,7 +1,7 @@
-/* $Id: CommunicatorT.cpp,v 1.19 2004-11-17 23:22:53 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.20 2011-12-01 20:25:17 bcyansfn Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
-#include <iostream.h>
+#include <iostream>
 #include "nArrayT.h"
 #include "ofstreamT.h"
 

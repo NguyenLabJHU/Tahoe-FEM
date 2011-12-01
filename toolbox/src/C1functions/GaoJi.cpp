@@ -1,8 +1,8 @@
-/* $Id: GaoJi.cpp,v 1.5 2004-06-19 23:27:18 paklein Exp $ */
+/* $Id: GaoJi.cpp,v 1.6 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: Baohua Ji (02/25/2002) */
 #include "GaoJi.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

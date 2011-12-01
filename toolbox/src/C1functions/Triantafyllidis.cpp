@@ -1,8 +1,8 @@
-/* $Id: Triantafyllidis.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: Triantafyllidis.cpp,v 1.5 2011-12-01 20:25:15 bcyansfn Exp $ */
 
 #include "Triantafyllidis.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

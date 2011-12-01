@@ -1,10 +1,10 @@
-/* $Id: dArray2DT.cpp,v 1.10 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: dArray2DT.cpp,v 1.11 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (07/16/1996) */
 
 #include "dArray2DT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 
 #include "toolboxConstants.h"
 #include "iArrayT.h"

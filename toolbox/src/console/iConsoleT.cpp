@@ -1,10 +1,10 @@
-/* $Id: iConsoleT.cpp,v 1.29 2005-04-30 21:14:51 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.30 2011-12-01 20:25:16 bcyansfn Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleT.h"
 
-#include <ctype.h>
-#include <time.h>
-#include <iomanip.h>
+#include <cctype>
+#include <ctime>
+#include <iomanip>
 #ifdef _MSC_VER
 #include <strstrea.h>
 #elif defined (__GCC_3__) || defined (__GCC_4__)

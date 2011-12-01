@@ -1,13 +1,13 @@
-/* $Id: nArrayT.h,v 1.29 2005-04-30 21:29:41 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.30 2011-12-01 20:25:15 bcyansfn Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
 
 /* ANSI headers */
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
+#include <cmath>
 
 #include "toolboxConstants.h"
 

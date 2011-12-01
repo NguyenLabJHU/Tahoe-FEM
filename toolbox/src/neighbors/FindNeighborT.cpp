@@ -1,8 +1,8 @@
-/* $Id: FindNeighborT.cpp,v 1.7 2003-11-21 22:41:59 paklein Exp $ */
+/* $Id: FindNeighborT.cpp,v 1.8 2011-12-01 20:25:17 bcyansfn Exp $ */
 /* created: paklein (03/21/1997) */
 #include "FindNeighborT.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "iGridManager1DT.h"
 #include "iGridManager2DT.h"
