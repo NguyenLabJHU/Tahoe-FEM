@@ -1,8 +1,8 @@
-/* $Id: VerondaWestmannT.cpp,v 1.2 2007-04-12 16:32:43 thao Exp $ */
+/* $Id: VerondaWestmannT.cpp,v 1.3 2011-12-01 20:38:07 beichuan Exp $ */
 /* created: paklein (02/17/2001) */
 #include "VerondaWestmannT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

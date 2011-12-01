@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.13 2003-11-21 22:54:35 paklein Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.14 2011-12-01 20:38:01 beichuan Exp $ */
 #include "TriaL3FaceT.h"
 
 /* suppress CW warning messages */
@@ -8,7 +8,7 @@
 #include "ContactNodeT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 /* vector functions */
 #include "vector3D.h"

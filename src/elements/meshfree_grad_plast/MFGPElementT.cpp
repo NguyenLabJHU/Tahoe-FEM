@@ -1,4 +1,4 @@
-/* $Id: MFGPElementT.cpp,v 1.15 2006-08-23 21:59:24 kyonten Exp $ */
+/* $Id: MFGPElementT.cpp,v 1.16 2011-12-01 20:38:04 beichuan Exp $ */
 #include "MFGPElementT.h"
 
 /* materials lists */
@@ -8,9 +8,9 @@
 #include "MFGPSSSolidMatList2DT.h"
 #include "MFGPSSSolidMatList3DT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

@@ -1,4 +1,4 @@
-/* $Id: SMRPrimitiveT.cpp,v 1.1 2006-07-27 13:20:08 kyonten Exp $ */
+/* $Id: SMRPrimitiveT.cpp,v 1.2 2011-12-01 20:38:11 beichuan Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 
 /* Base class for a nonassociative, small strain,        */
@@ -12,7 +12,7 @@
 #include "SMRPrimitiveT.h"
 
 #include "dSymMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

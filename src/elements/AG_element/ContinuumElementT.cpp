@@ -1,9 +1,9 @@
-/* $Id: ContinuumElementT.cpp,v 1.2 2008-12-10 22:30:10 amota Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.3 2011-12-01 20:37:58 beichuan Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "ModelManagerT.h"

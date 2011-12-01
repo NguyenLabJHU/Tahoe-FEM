@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include "rectangle.h"
 #include "ran.h"

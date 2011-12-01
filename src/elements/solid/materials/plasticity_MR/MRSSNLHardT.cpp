@@ -1,4 +1,4 @@
-/* $Id: MRSSNLHardT.cpp,v 1.24 2010-07-22 18:03:41 regueiro Exp $ */
+/* $Id: MRSSNLHardT.cpp,v 1.25 2011-12-01 20:38:10 beichuan Exp $ */
 /* created: Majid T. Manzari */
 
 /* Interface for a nonassociative, small strain,      */
@@ -6,8 +6,8 @@
 /* isotropic hardening/softening.                     */
 
 #include "MRSSNLHardT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

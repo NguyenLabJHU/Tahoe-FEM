@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.26 2007-06-20 10:16:55 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.27 2011-12-01 20:38:02 beichuan Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -13,7 +13,7 @@
 #include "OutputSetT.h"
 
 #include "DetCheckT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

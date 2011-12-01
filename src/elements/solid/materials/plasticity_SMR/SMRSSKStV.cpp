@@ -1,4 +1,4 @@
-/* $Id: SMRSSKStV.cpp,v 1.2 2006-08-22 14:37:11 kyonten Exp $ */
+/* $Id: SMRSSKStV.cpp,v 1.3 2011-12-01 20:38:11 beichuan Exp $ */
 /* created: Majid T. Manzari (04/16/2001) */
 #include "SMRSSKStV.h"
 #include "SSMatSupportT.h"
@@ -7,7 +7,7 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DetCheckT.h"
-#include <iostream.h>
+#include <iostream>
 
 using namespace Tahoe;
 

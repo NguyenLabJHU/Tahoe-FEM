@@ -1,9 +1,9 @@
-/* $Id: MultiplierContactElement3DT.cpp,v 1.5 2007-10-09 23:24:47 rjones Exp $ */
+/* $Id: MultiplierContactElement3DT.cpp,v 1.6 2011-12-01 20:38:01 beichuan Exp $ */
 #include "MultiplierContactElement3DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 #include "ofstreamT.h"
 #include "ContactNodeT.h"
 

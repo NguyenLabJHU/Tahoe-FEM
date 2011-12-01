@@ -1,11 +1,11 @@
-/* $Id: EAMFCC3DMatT_edge.cpp,v 1.4 2009-06-06 17:28:31 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_edge.cpp,v 1.5 2011-12-01 20:38:15 beichuan Exp $ */
 /* created: hspark (6/2/2009) */
 #include "EAMFCC3DMatT_edge.h"
 
 #include "EAMFCC3DSym_edge.h"
 #include "dMatrixT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

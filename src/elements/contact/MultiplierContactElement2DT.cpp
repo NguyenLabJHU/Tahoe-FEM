@@ -1,10 +1,10 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.25 2007-10-09 23:24:47 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.26 2011-12-01 20:38:01 beichuan Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"

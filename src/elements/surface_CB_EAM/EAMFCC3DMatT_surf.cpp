@@ -1,11 +1,11 @@
-/* $Id: EAMFCC3DMatT_surf.cpp,v 1.10 2009-06-04 22:45:31 hspark Exp $ */
+/* $Id: EAMFCC3DMatT_surf.cpp,v 1.11 2011-12-01 20:38:15 beichuan Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT_surf.h"
 
 #include "EAMFCC3DSym_surf.h"
 #include "dMatrixT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

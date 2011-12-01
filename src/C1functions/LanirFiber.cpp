@@ -1,8 +1,8 @@
-/* $Id: LanirFiber.cpp,v 1.1 2009-04-23 14:51:52 thao Exp $ */
+/* $Id: LanirFiber.cpp,v 1.2 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "LanirFiber.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

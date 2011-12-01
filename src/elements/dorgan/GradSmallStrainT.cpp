@@ -11,7 +11,7 @@
 #include "C1_QuadT.h"
 #include "C0_HexahedronT.h"
 
-#include <math.h>
+#include <cmath>
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 

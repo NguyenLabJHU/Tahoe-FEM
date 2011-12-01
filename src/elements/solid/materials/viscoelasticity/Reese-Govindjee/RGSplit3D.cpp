@@ -1,4 +1,4 @@
-/* $Id: RGSplit3D.cpp,v 1.2 2007-04-09 23:38:56 thao Exp $ */
+/* $Id: RGSplit3D.cpp,v 1.3 2011-12-01 20:38:12 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit3D.h"
@@ -7,9 +7,9 @@
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 
 using namespace Tahoe;
  

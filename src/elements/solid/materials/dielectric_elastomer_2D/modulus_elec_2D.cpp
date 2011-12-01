@@ -1,6 +1,6 @@
 #include "FSDE_inc_2D.h"
 
-#include <math.h>
+#include <cmath>
 
 static double z[5];
 

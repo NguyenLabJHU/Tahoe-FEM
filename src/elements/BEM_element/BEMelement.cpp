@@ -1,8 +1,8 @@
-/* $Id: BEMelement.cpp,v 1.7 2004-07-15 08:27:56 paklein Exp $ */
+/* $Id: BEMelement.cpp,v 1.8 2011-12-01 20:37:58 beichuan Exp $ */
 /* created: AFLP (02/28/1998) */
 #include "BEMelement.h"
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include "toolboxConstants.h"
 #include "StringT.h"
 

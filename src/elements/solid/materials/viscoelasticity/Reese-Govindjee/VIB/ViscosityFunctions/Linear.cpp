@@ -1,8 +1,8 @@
-/* $Id: Linear.cpp,v 1.1 2006-10-30 23:32:05 thao Exp $ */
+/* $Id: Linear.cpp,v 1.2 2011-12-01 20:38:12 beichuan Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "Linear.h"
-#include <iostream.h>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

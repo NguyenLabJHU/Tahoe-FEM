@@ -31,6 +31,7 @@
 #include "assembly.h"
 #include "parameter.h"
 #include "timefunc.h"
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -53,7 +54,12 @@ static struct timeval timep1, timep2; // for internal wall-clock time profiling
 
 namespace dem {
 
+<<<<<<< assembly.cpp
 std::ofstream progressinf;
+=======
+ofstream        progressinf;
+bool            toprintstep;
+>>>>>>> 1.8.2.1
 
 void assembly::printParticle(const char* str) const
 {

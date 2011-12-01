@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoNodal.cpp,v 1.3 2006-10-08 19:22:18 regueiro Exp $ */
+/* $Id: CSEAnisoNodal.cpp,v 1.4 2011-12-01 20:38:00 beichuan Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoNodal.h"
 
@@ -6,9 +6,9 @@
 #include "DevelopmentElementsConfig.h"
 #endif
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"

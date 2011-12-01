@@ -1,8 +1,8 @@
-/* $Id: ScaledCsch.cpp,v 1.3 2009-04-23 14:51:52 thao Exp $ */
+/* $Id: ScaledCsch.cpp,v 1.4 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "ScaledCsch.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

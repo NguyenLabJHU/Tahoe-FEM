@@ -13,7 +13,7 @@
 #include "OutputSetT.h"
 
 #include "DetCheckT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

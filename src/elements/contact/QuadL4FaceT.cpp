@@ -1,11 +1,11 @@
-/* $Id: QuadL4FaceT.cpp,v 1.27 2003-11-21 22:54:35 paklein Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.28 2011-12-01 20:38:01 beichuan Exp $ */
 #include "QuadL4FaceT.h"
 
 #include "ContactElementT.h"
 #include "ContactNodeT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 /* vector functions */
 #include "vector3D.h"

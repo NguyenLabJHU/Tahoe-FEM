@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSNLHardT.cpp,v 1.32 2006-08-29 21:18:41 kyonten Exp $ */
+/* $Id: GRAD_MRSSNLHardT.cpp,v 1.33 2011-12-01 20:38:09 beichuan Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -8,8 +8,8 @@
 /* with nonlinear isotropic hardening/softening.      */
 
 #include "GRAD_MRSSNLHardT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

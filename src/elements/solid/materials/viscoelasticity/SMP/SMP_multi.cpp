@@ -1,4 +1,4 @@
-/* $Id: SMP_multi.cpp,v 1.1 2010-12-06 20:17:42 thao Exp $ */
+/* $Id: SMP_multi.cpp,v 1.2 2011-12-01 20:38:13 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_multi.h"
@@ -9,9 +9,9 @@
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
+#include <cmath>
 #include "ofstreamT.h"
-#include <stdlib.h>
+#include <cstdlib>
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;

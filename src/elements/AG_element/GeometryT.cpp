@@ -1,8 +1,8 @@
-/* $Id: GeometryT.cpp,v 1.1 2006-04-30 04:09:15 regueiro Exp $ */
+/* $Id: GeometryT.cpp,v 1.2 2011-12-01 20:37:58 beichuan Exp $ */
  /* created: paklein (10/10/1999) */
  #include "GeometryT.h"
 
- #include <iostream.h>
+ #include <iostream>
  #include "ExceptionT.h"
  #include "ArrayT.h"
 
@@ -16,7 +16,7 @@
  #include "PentahedronT.h"
  #include "ParameterContainerT.h"
 
- #include <string.h>
+ #include <cstring>
 
  using namespace Tahoe;
  

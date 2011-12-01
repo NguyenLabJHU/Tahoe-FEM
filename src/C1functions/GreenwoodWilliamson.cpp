@@ -1,7 +1,7 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.22 2003-11-21 22:54:23 paklein Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.23 2011-12-01 20:37:57 beichuan Exp $ */
 #include "GreenwoodWilliamson.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 #include "ErrorFunc.h"

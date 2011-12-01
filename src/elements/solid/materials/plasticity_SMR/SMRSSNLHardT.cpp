@@ -1,4 +1,4 @@
-/* $Id: SMRSSNLHardT.cpp,v 1.6 2006-08-29 21:16:56 kyonten Exp $ */
+/* $Id: SMRSSNLHardT.cpp,v 1.7 2011-12-01 20:38:11 beichuan Exp $ */
 /* created: Karma Yonten */
 
 /* Interface for a nonassociative, small strain,      */
@@ -6,8 +6,8 @@
 /* isotropic hardening/softening.                     */
 
 #include "SMRSSNLHardT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

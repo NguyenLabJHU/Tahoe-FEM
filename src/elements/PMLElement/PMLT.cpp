@@ -1,9 +1,9 @@
-/* $Id: PMLT.cpp,v 1.13 2004-07-15 08:27:59 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.14 2011-12-01 20:37:59 beichuan Exp $ */
 #include "PMLT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 #include "toolboxConstants.h"
 

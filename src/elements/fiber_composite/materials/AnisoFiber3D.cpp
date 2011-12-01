@@ -1,8 +1,8 @@
-/* $Id: AnisoFiber3D.cpp,v 1.1 2007-12-19 23:35:54 thao Exp $ */
+/* $Id: AnisoFiber3D.cpp,v 1.2 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "AnisoFiber3D.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"

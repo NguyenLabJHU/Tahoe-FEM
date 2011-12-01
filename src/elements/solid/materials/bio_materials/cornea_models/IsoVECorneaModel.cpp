@@ -1,9 +1,9 @@
-/* $Id: IsoVECorneaModel.cpp,v 1.3 2006-11-12 18:26:54 thao Exp $ */
+/* $Id: IsoVECorneaModel.cpp,v 1.4 2011-12-01 20:38:08 beichuan Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVECorneaModel.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ParameterContainerT.h"
 #include "toolboxConstants.h"
 #include "dMatrixT.h"

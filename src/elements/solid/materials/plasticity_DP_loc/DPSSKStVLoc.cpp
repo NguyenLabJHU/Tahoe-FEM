@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.30 2006-06-15 18:07:17 regueiro Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.31 2011-12-01 20:38:10 beichuan Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 
@@ -9,7 +9,7 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DetCheckT.h"
-#include <iostream.h>
+#include <iostream>
 
 #include "DevelopmentElementsConfig.h"
 

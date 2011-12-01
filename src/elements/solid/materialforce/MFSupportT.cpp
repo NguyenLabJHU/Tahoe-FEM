@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.12 2005-04-11 19:42:46 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.13 2011-12-01 20:38:06 beichuan Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -8,9 +8,9 @@
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 using namespace Tahoe;
 
 /* constructor */

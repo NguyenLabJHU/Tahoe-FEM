@@ -1,4 +1,4 @@
-/* $Id: OgdenMaterialT.cpp,v 1.1 2006-10-30 23:32:05 thao Exp $ */
+/* $Id: OgdenMaterialT.cpp,v 1.2 2011-12-01 20:38:11 beichuan Exp $ */
 /* created: tdn (3/17/2003) */
 #include "OgdenMaterialT.h"
 #include "PotentialT.h"
@@ -6,9 +6,9 @@
 
 #include "ifstreamT.h"
 
-#include <iostream.h>
-#include <math.h>
-#include <iomanip.h>
+#include <iostream>
+#include <cmath>
+#include <iomanip>
 
 using namespace Tahoe;
 

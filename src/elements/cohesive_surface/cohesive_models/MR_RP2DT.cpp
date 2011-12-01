@@ -1,10 +1,10 @@
-/*$Id: MR_RP2DT.cpp,v 1.29 2006-10-08 19:22:19 regueiro Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.30 2011-12-01 20:38:01 beichuan Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 #include "ifstreamT.h"

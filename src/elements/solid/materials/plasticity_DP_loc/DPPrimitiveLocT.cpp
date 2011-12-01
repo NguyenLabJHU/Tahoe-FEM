@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveLocT.cpp,v 1.6 2005-04-08 19:22:46 raregue Exp $ */
+/* $Id: DPPrimitiveLocT.cpp,v 1.7 2011-12-01 20:38:10 beichuan Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 /* Base class for Druker-Prager, nonassociative, small strain,
@@ -9,7 +9,7 @@
 #include "DPPrimitiveLocT.h"
 
 #include "dSymMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

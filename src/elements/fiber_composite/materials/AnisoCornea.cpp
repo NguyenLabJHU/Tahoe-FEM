@@ -1,8 +1,8 @@
-/* $Id: AnisoCornea.cpp,v 1.12 2010-06-24 13:49:16 thao Exp $ */
+/* $Id: AnisoCornea.cpp,v 1.13 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: paklein (11/08/1997) */
 
 #include "AnisoCornea.h"
-#include <math.h>
+#include <cmath>
 #include "bessel.h"
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"

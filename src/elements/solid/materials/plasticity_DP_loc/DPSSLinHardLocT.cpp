@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.9 2006-06-14 18:44:12 regueiro Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.10 2011-12-01 20:38:10 beichuan Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -9,8 +9,8 @@
  */
 
 #include "DPSSLinHardLocT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

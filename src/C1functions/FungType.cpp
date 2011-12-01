@@ -1,8 +1,8 @@
-/* $Id: FungType.cpp,v 1.9 2010-06-24 13:48:29 thao Exp $ */
+/* $Id: FungType.cpp,v 1.10 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "FungType.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

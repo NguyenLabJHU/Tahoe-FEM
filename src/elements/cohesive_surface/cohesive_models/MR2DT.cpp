@@ -1,10 +1,10 @@
-/*$Id: MR2DT.cpp,v 1.39 2010-03-20 19:40:43 regueiro Exp $*/
+/*$Id: MR2DT.cpp,v 1.40 2011-12-01 20:38:01 beichuan Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 #include "ifstreamT.h"

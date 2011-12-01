@@ -1,9 +1,9 @@
-/*$Id: MR3DT.cpp,v 1.12 2010-01-20 22:35:58 skyu Exp $*/
+/*$Id: MR3DT.cpp,v 1.13 2011-12-01 20:38:01 beichuan Exp $*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR3DT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ExceptionT.h"
 #include "ifstreamT.h"

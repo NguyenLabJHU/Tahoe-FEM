@@ -1,7 +1,7 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.41 2003-12-20 01:22:14 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.42 2011-12-01 20:38:01 beichuan Exp $ */
 #include "ContactSurfaceT.h"
 
-#include <iostream.h>
+#include <iostream>
 #include "ofstreamT.h"
 
 #include "ContactNodeT.h"

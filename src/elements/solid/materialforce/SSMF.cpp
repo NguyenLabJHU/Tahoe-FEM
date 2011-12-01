@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.14 2005-04-11 19:42:46 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.15 2011-12-01 20:38:06 beichuan Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -19,9 +19,9 @@
 #include "eIntegratorT.h"
 #include "SolidMatListT.h"
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 
 using namespace Tahoe;
 

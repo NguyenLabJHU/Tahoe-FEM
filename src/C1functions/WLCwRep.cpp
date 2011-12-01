@@ -1,8 +1,8 @@
-/* $Id: WLCwRep.cpp,v 1.1 2005-04-20 23:47:27 thao Exp $ */
+/* $Id: WLCwRep.cpp,v 1.2 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "WLCwRep.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

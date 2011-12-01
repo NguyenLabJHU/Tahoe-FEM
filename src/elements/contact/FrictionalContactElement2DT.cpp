@@ -1,10 +1,10 @@
-/* $Id: FrictionalContactElement2DT.cpp,v 1.5 2007-10-09 23:24:46 rjones Exp $ */
+/* $Id: FrictionalContactElement2DT.cpp,v 1.6 2011-12-01 20:38:01 beichuan Exp $ */
 // created by : rjones 2003
 #include "FrictionalContactElement2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "FrictionalContactElement2DT.h"
 #include "ContactNodeT.h"

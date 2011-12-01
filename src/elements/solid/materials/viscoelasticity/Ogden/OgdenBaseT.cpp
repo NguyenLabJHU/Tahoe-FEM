@@ -1,9 +1,9 @@
-/* $Id: OgdenBaseT.cpp,v 1.1 2006-10-30 23:32:05 thao Exp $ */
+/* $Id: OgdenBaseT.cpp,v 1.2 2011-12-01 20:38:11 beichuan Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenBaseT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 using namespace Tahoe;
 

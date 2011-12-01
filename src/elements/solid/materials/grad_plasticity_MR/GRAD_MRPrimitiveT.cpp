@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRPrimitiveT.cpp,v 1.6 2006-08-23 21:57:03 kyonten Exp $ */
+/* $Id: GRAD_MRPrimitiveT.cpp,v 1.7 2011-12-01 20:38:09 beichuan Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -12,7 +12,7 @@
 
 #include "GRAD_MRPrimitiveT.h"
 
-#include <math.h>
+#include <cmath>
 #include "dSymMatrixT.h"
 
 

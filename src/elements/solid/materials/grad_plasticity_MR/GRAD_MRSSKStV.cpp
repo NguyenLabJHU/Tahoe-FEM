@@ -1,4 +1,4 @@
-/* $Id: GRAD_MRSSKStV.cpp,v 1.31 2006-01-09 21:08:59 kyonten Exp $ */
+/* $Id: GRAD_MRSSKStV.cpp,v 1.32 2011-12-01 20:38:09 beichuan Exp $ */
 /* created: Karma Yonten (03/04/2004)                   
    Gradient Enhanced MR Model
 */
@@ -8,7 +8,7 @@
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "DetCheckT.h"
-#include <iostream.h>
+#include <iostream>
 
 using namespace Tahoe;
 

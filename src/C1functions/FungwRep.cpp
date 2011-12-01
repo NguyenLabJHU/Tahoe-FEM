@@ -1,8 +1,8 @@
-/* $Id: FungwRep.cpp,v 1.2 2005-05-09 17:19:14 thao Exp $ */
+/* $Id: FungwRep.cpp,v 1.3 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "FungwRep.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

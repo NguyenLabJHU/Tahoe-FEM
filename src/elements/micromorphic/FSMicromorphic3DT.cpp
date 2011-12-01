@@ -3,7 +3,7 @@
 #include "OutputSetT.h"
 #include "ParameterContainerT.h"
 #include "CommunicatorT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

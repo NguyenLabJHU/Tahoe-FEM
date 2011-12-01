@@ -1,8 +1,8 @@
-/* $Id: NLV_Nfibers.cpp,v 1.4 2010-08-15 15:26:27 thao Exp $ */
+/* $Id: NLV_Nfibers.cpp,v 1.5 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Nfibers.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "ParameterContainerT.h"
 

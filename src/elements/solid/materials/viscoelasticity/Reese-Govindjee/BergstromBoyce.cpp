@@ -1,12 +1,12 @@
-/* $Id: BergstromBoyce.cpp,v 1.1 2009-04-23 15:00:25 thao Exp $ */
+/* $Id: BergstromBoyce.cpp,v 1.2 2011-12-01 20:38:12 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BergstromBoyce.h"
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 #include "ParameterContainerT.h"
 
 #include "MooneyRivlin.h"

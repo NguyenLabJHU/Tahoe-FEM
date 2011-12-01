@@ -1,7 +1,7 @@
-/* $Id: GasserHolzapfel2D.cpp,v 1.1 2011-09-16 21:00:28 thao Exp $ */
+/* $Id: GasserHolzapfel2D.cpp,v 1.2 2011-12-01 20:38:03 beichuan Exp $ */
 
 #include "GasserHolzapfel2D.h"
-#include <math.h>
+#include <cmath>
 #include "ParameterContainerT.h"
 
 const double third = 1.0/3.0;

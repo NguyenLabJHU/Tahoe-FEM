@@ -1,11 +1,11 @@
-/* $Id: ConHypGeom.cpp,v 1.6 2003-11-21 22:54:23 paklein Exp $ */
+/* $Id: ConHypGeom.cpp,v 1.7 2011-12-01 20:37:57 beichuan Exp $ */
 // CONHYPGEOM is the confluent hypergeometric function of the 1st kind
 // (a.k.a. Kummer function) Because of the rapid growth/decay of individual
 // components, for sufficiently large domain values, an asymptotic approximation
 // is utilized (see Abramawitz/Stegun, page 511.)
 #include "ConHypGeom.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 #include "Gamma.h"

@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.9 2004-11-30 23:06:24 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.10 2011-12-01 20:38:02 beichuan Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
 #include "ElementCardT.h"
@@ -8,7 +8,7 @@
 #include "dSymMatrixT.h"
 #include "iArrayT.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

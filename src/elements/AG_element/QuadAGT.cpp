@@ -1,7 +1,7 @@
-/* $Id: QuadAGT.cpp,v 1.1 2006-04-30 04:09:15 regueiro Exp $ */
+/* $Id: QuadAGT.cpp,v 1.2 2011-12-01 20:37:58 beichuan Exp $ */
 /* created: ebrahimi (02/01/2006) */
  #include "QuadAGT.h"
- #include <math.h>
+ #include <cmath>
  #include "ExceptionT.h"
  #include "iArrayT.h"
  #include "dArrayT.h"

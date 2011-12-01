@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     */
 
     // 2. normal damping and tangential friciton
-    dem::DMP_CNT       = 0.15;    // normal contact damping ratio
+    dem::DMP_CNT       = 0.10;    // normal contact damping ratio
     dem::FRICTION      = 0.5;     // coefficient of friction between particles
     dem::BDRYFRIC      = 0.5;     // coefficient of friction between particle and rigid wall
     dem::COHESION      = 0;       // cohesion between particles, 5.0e+8
@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
     // size, shape, and gradation of particles
     int rorc      = 1;     // rectangular = 1 or cylindrical = 0
     REAL dimn     = 0.05;  // specimen dimension
-    REAL ratio_ba = 0.8;   // ratio of radius b to radius a
-    REAL ratio_ca = 0.6;   // ratio of radius c to radius a
+    REAL ratio_ba = 1;//0.8;   // ratio of radius b to radius a
+    REAL ratio_ca = 1;//0.6;   // ratio of radius c to radius a
     std::vector<REAL> percent;  // mass percentage of particles smaller than a certain size
     std::vector<REAL> ptclsize; // particle size
     percent.push_back(1.00); ptclsize.push_back(2.5e-3);
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 		      1000000,            // total_steps
 		      100,                // number of snapshots
                       10,                 // print interval
-		      5.0,                // height of floating particles relative to dimn
+		      4.0,                // height of floating particles relative to dimn
 		      "flo_particle_end", // output file, initial particles
 		      "dep_boundary_ini", // output file, initial boundaries
 		      "dep_particle",     // output file, resulted particles, including snapshots 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 		      "cre_particle",     // output file, resulted particles after trmming
 		      "cre_boundary",     // output file, resulted boundaries after trmming
 		      "dep_debug");       // output file, debug 
-    
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Part 3: record run time
     time(&time2);

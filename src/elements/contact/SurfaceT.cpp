@@ -1,9 +1,9 @@
-/*  $Id: SurfaceT.cpp,v 1.39 2009-05-21 22:29:44 thao Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.40 2011-12-01 20:38:01 beichuan Exp $ */
 #include "SurfaceT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ModelManagerT.h"
 #include "ElementSupportT.h"

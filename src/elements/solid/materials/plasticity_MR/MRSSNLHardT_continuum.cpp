@@ -5,8 +5,8 @@
 /* isotropic hardening/softening.                     */
 
 #include "MRSSNLHardT.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"

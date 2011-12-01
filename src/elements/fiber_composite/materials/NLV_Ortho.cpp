@@ -1,8 +1,8 @@
-/* $Id: NLV_Ortho.cpp,v 1.2 2010-06-24 13:49:18 thao Exp $ */
+/* $Id: NLV_Ortho.cpp,v 1.3 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Ortho.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"

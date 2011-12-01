@@ -1,7 +1,7 @@
-/* $Id: AnisoCorneaIVisco.cpp,v 1.4 2006-11-12 18:28:36 thao Exp $ */
+/* $Id: AnisoCorneaIVisco.cpp,v 1.5 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 #include "AnisoCorneaIVisco.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"
 #include "ParameterContainerT.h"

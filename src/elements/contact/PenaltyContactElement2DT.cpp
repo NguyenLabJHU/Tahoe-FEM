@@ -1,9 +1,9 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.54 2007-10-09 23:24:47 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.55 2011-12-01 20:38:01 beichuan Exp $ */
 #include "PenaltyContactElement2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ofstreamT.h"
 #include "ifstreamT.h"

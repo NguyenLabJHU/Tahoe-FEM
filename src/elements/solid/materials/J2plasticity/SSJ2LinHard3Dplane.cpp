@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard3Dplane.cpp,v 1.4 2004-07-15 08:28:34 paklein Exp $ */
+/* $Id: SSJ2LinHard3Dplane.cpp,v 1.5 2011-12-01 20:38:07 beichuan Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -10,8 +10,8 @@
 
 #include "SSJ2LinHard3Dplane.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "SSMatSupportT.h"
 #include "iArrayT.h"

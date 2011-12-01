@@ -1,8 +1,8 @@
-/* $Id: PMLMatT.cpp,v 1.9 2004-07-15 08:28:02 paklein Exp $ */
+/* $Id: PMLMatT.cpp,v 1.10 2011-12-01 20:38:00 beichuan Exp $ */
 /* created: TDN (5/31/2001) */
 #include "PMLMatT.h"
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ExceptionT.h"
 #include "ifstreamT.h"
 #include "LinearDecreaseT.h"

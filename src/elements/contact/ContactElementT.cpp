@@ -1,9 +1,9 @@
-/* $Id: ContactElementT.cpp,v 1.51 2007-10-09 23:24:46 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.52 2011-12-01 20:38:01 beichuan Exp $ */
 #include "ContactElementT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ofstreamT.h"
 #include "ifstreamT.h"

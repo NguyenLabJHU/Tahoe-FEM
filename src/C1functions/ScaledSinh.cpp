@@ -1,8 +1,8 @@
-/* $Id: ScaledSinh.cpp,v 1.1 2006-08-18 18:43:15 thao Exp $ */
+/* $Id: ScaledSinh.cpp,v 1.2 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "ScaledSinh.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

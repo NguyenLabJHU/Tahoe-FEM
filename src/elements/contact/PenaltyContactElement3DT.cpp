@@ -1,9 +1,9 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.16 2007-10-09 23:24:47 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.17 2011-12-01 20:38:01 beichuan Exp $ */
 #include "PenaltyContactElement3DT.h"
 
-#include <math.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "ContactNodeT.h"
 #include "ParabolaT.h"

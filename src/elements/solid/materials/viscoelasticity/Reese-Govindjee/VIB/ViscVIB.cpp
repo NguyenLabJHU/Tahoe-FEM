@@ -1,8 +1,8 @@
-/* $Id: ViscVIB.cpp,v 1.1 2006-10-30 23:32:05 thao Exp $ */
+/* $Id: ViscVIB.cpp,v 1.2 2011-12-01 20:38:12 beichuan Exp $ */
 /* created: TDN (1/19/2000) */
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 
 #include "ViscVIB.h"
 #include "toolboxConstants.h"

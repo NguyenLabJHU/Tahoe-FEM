@@ -1,8 +1,8 @@
-/* $Id: MFGPAssemblyT.cpp,v 1.17 2006-08-23 21:59:24 kyonten Exp $ */
+/* $Id: MFGPAssemblyT.cpp,v 1.18 2011-12-01 20:38:04 beichuan Exp $ */
 #include "MFGPAssemblyT.h"
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "ModelManagerT.h"

@@ -1,6 +1,6 @@
 // Arruda-Boyce 2D stress
 #include "FSDE_inc_2D.h"
-#include <math.h>
+#include <cmath>
 static double z[45];
 
 /* function to compute mechanical stress */

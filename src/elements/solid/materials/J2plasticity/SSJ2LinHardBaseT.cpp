@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.11 2004-07-15 08:28:34 paklein Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.12 2011-12-01 20:38:07 beichuan Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -10,8 +10,8 @@
 
 #include "SSJ2LinHardBaseT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 #include "ifstreamT.h"
 #include "SSMatSupportT.h"

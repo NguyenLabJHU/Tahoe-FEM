@@ -1,4 +1,4 @@
-/* $Id: SMP_simple.cpp,v 1.14 2010-12-06 20:16:50 thao Exp $ */
+/* $Id: SMP_simple.cpp,v 1.15 2011-12-01 20:38:13 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_simple.h"
@@ -9,9 +9,9 @@
 
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 #include "ParameterContainerT.h"
 
 using namespace Tahoe;

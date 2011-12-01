@@ -1,9 +1,9 @@
- /* $Id: AnisoCorneaViscoDist_Opt.cpp,v 1.1 2009-04-23 03:03:49 thao Exp $ */
+ /* $Id: AnisoCorneaViscoDist_Opt.cpp,v 1.2 2011-12-01 20:38:06 beichuan Exp $ */
 #include "AnisoCorneaViscoDist_Opt.h"
 #include "ParameterContainerT.h"
 #include "ExceptionT.h"
 
-#include <math.h>
+#include <cmath>
 #include "bessel.h"
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"

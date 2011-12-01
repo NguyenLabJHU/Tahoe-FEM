@@ -1,8 +1,8 @@
-/* $Id: VWType.cpp,v 1.2 2010-06-24 13:48:30 thao Exp $ */
+/* $Id: VWType.cpp,v 1.3 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "VWType.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: MRPrimitiveT.cpp,v 1.9 2006-08-22 14:39:17 kyonten Exp $ */
+/* $Id: MRPrimitiveT.cpp,v 1.10 2011-12-01 20:38:10 beichuan Exp $ */
 /* created: Majid T. Manzari (04/16/2003)                */
 
 /* Base class for a nonassociative, small strain,        */
@@ -10,7 +10,7 @@
 #include "MRPrimitiveT.h"
 
 #include "dSymMatrixT.h"
-#include <math.h>
+#include <cmath>
 
 using namespace Tahoe;
 

@@ -1,10 +1,10 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.1 2006-10-30 23:32:06 thao Exp $ */
+/* $Id: SSSV_KStV3D.cpp,v 1.2 2011-12-01 20:38:13 beichuan Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 #include "SSMatSupportT.h"
 
-#include <math.h>
-#include <iostream.h>
+#include <cmath>
+#include <iostream>
 #include "ifstreamT.h"
 #include "ExceptionT.h"
 

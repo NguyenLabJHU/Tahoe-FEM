@@ -1,4 +1,4 @@
-/* $Id: FCC3D_Surf.cpp,v 1.19 2007-04-24 01:15:05 hspark Exp $ */
+/* $Id: FCC3D_Surf.cpp,v 1.20 2011-12-01 20:38:15 beichuan Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D_Surf.h"
 
@@ -7,7 +7,7 @@
 #include "ContinuumElementT.h"
 #include "dSymMatrixT.h"
 #include "ModelManagerT.h"
-#include <math.h>
+#include <cmath>
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT

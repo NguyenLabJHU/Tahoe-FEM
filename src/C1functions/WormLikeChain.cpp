@@ -1,8 +1,8 @@
-/* $Id: WormLikeChain.cpp,v 1.1 2005-04-15 22:47:45 thao Exp $ */
+/* $Id: WormLikeChain.cpp,v 1.2 2011-12-01 20:37:57 beichuan Exp $ */
 
 #include "WormLikeChain.h"
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 

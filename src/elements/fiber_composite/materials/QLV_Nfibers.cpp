@@ -1,8 +1,8 @@
-/* $Id: QLV_Nfibers.cpp,v 1.4 2010-08-15 15:26:28 thao Exp $ */
+/* $Id: QLV_Nfibers.cpp,v 1.5 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "QLV_Nfibers.h"
-#include <math.h>
+#include <cmath>
 #include "toolboxConstants.h"
 #include "ParameterContainerT.h"
 

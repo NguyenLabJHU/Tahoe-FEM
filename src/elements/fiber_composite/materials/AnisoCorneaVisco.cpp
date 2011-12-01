@@ -1,8 +1,8 @@
-/* $Id: AnisoCorneaVisco.cpp,v 1.20 2011-09-16 21:00:27 thao Exp $ */
+/* $Id: AnisoCorneaVisco.cpp,v 1.21 2011-12-01 20:38:03 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoCorneaVisco.h"
-#include <math.h>
+#include <cmath>
 #include "bessel.h"
 #include "toolboxConstants.h"
 #include "C1FunctionT.h"

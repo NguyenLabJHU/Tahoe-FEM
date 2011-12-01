@@ -1,12 +1,12 @@
-/* $Id: RGVIB2D.cpp,v 1.2 2006-11-12 18:26:55 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.3 2011-12-01 20:38:12 beichuan Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifdef VIB_MATERIAL
 
 #include "RGVIB2D.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
@@ -17,8 +17,8 @@
 /* point generator */
 #include "EvenSpacePtsT.h"
 
-#include <iostream.h>
-#include <math.h>
+#include <iostream>
+#include <cmath>
 
 using namespace Tahoe;
 
