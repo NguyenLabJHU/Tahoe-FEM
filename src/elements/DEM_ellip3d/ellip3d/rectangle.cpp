@@ -6,7 +6,7 @@
 namespace dem {
 
 void rectangle::print() const{
-  std::cout << width << " " << length << << " " << height << std::endl;
+  std::cout << width << " " << length << " " << height << std::endl;
   std::cout << center.getx() << " " << center.gety() << " " << center.getz() << std::endl;
 }
 
