@@ -1952,11 +1952,12 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
           out_variable[34]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvtrM);
           out_variable[35]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvdevM);
           out_variable[36]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvPhi);
-          out_variable[37]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi1);
-          out_variable[38]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi2);
-          out_variable[39]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi3);
-          out_variable[40]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammaGchi);
-          out_variable[41]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi);
+          out_variable[37]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvGPhi);
+//          out_variable[38]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi1);
+//          out_variable[39]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi2);
+//          out_variable[40]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi3);
+//          out_variable[41]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammaGchi);
+//          out_variable[42]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi);
 
 
 //          out_variable[37]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvGPhi);
@@ -2923,11 +2924,11 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
     					//if (global_iteration < 0) fCombinedYield_function_tr = -1.0;
 
                       //if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fMicroYield_function_tr> dYieldTrialTol  )// If one of the scales yield! Macro or Micro
-    					if(iPlasticityCheck==1 && fF_tr_fact>dYieldTrialTol || iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fMicroYield_function_tr> dYieldTrialTol  )// If one of the scales yield! Macro or Micro
+    					if(iPlasticityCheck==1 && fF_tr_fact>0.0 && fCombinedYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol || iPlasticityCheck==0 && fMicroYield_function_tr> dYieldTrialTol  )// If one of the scales yield! Macro or Micro
     					{
 
                         //if(fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
-                         if(iPlasticityCheck==1 && fF_tr_fact>dYieldTrialTol)//Combined Plasticity
+                         if(iPlasticityCheck==1 && fF_tr_fact>0.0 && fCombinedYield_function_tr>dYieldTrialTol)//Combined Plasticity
                              {
 
 //                             if(IP==2 )
@@ -3123,7 +3124,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                      fDelgamma += fdelDelgamma;
 
 
-                                    // if (fDelgamma < 0.0) fDelgamma = 0.0;
+                                     //if (fDelgamma < 0.0) fDelgamma = 0.0;
                                      fState_variables_IPs(IP,kDelgamma) = fDelgamma;
 
 
@@ -11085,9 +11086,9 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
     //if(iConstitutiveModelType==3)
     //{
     //knum_d_state=17;//before micro scale plasticity
-    //knum_d_state=20;//with micro scale plasticity
+    knum_d_state=20;//with micro scale plasticity
     //knum_d_state=56;//20+F,Fe,X,Xe=56
-    knum_d_state=25;// Micro scale gradient parameters
+    //knum_d_state=25;// Micro scale gradient parameters
     //}
     // else
    // {
