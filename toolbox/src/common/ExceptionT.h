@@ -1,10 +1,9 @@
-/* $Id: ExceptionT.h,v 1.8 2011-12-01 20:25:16 bcyansfn Exp $ */
+/* $Id: ExceptionT.h,v 1.9 2011-12-02 23:19:06 bcyansfn Exp $ */
 /* created: paklein (06/04/1996) */
 #ifndef _EXCEPTION_T_H_
 #define _EXCEPTION_T_H_
 
 #include "ios_fwd_decl.h"
-//#include <stdlib.h>
 #include <cstdlib>
 
 namespace Tahoe {
