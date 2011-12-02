@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.23 2011-12-01 20:25:15 bcyansfn Exp $ */
+/* $Id: ArrayT.h,v 1.24 2011-12-02 23:18:47 bcyansfn Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -13,9 +13,9 @@
 #include <istream>
 #include <ostream>
 #endif
-#include <string.h>
+#include <cstring>
 #ifdef __NEW_THROWS__
-#include <new.h>
+#include <new>
 #endif
 
 #include "ExceptionT.h"
