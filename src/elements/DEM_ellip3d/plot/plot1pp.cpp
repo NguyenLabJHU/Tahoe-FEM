@@ -1,12 +1,13 @@
-#include <cmath>
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include <cstdlib>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <iomanip>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 
 using namespace std;
 
