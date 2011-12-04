@@ -38,12 +38,13 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 		REAL y2=-coef2[7]/2;
 		REAL z2=-coef2[8]/2;
 		REAL R2=sqrt(x2*x2+y2*y2+z2*z2-coef2[9]);
-		vec dirc=vec(x1-x2,y1-y2,z1-z2);
+		vec  dirc=vec(x1-x2,y1-y2,z1-z2);
+		REAL dist=vfabs(dirc);
 		dirc=normalize(dirc);
 		point=vec(x2,y2,z2)+R2*dirc;
 		vec judge=point-vec(x1,y1,z1);
-		if(judge % dirc  < 0  && // ptcl_1 is outside ptcl_2
-		   (R1-vfabs(judge)) / (2.0*fmax(R1,R2)) > MINOVERLAP ) // overlapped and satisfy minimum relative overlap
+		if(dist < R1 + R2  &&
+		   (R1-vfabs(judge)) / (2.0*fmax(R1,R2)) > MINOVERLAP ) // satisfy minimum relative overlap
 		    return true;  // overlapped
 		else
 		    return false; // non-overlapped
