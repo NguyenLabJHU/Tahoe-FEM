@@ -29,7 +29,8 @@ EXECUTABLE = ellip3d
 
 .PHONY: all clean
 
-all: $(SOURCES) $(EXECUTABLE)
+# template classes contain implementation and need recompile after change
+all: $(SOURCES) $(EXECUTABLE) contact.h boundary.h
 
 sinclude $(SOURCES:.cpp=.d)
 
