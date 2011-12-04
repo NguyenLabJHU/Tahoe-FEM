@@ -1897,8 +1897,9 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 	g_debuginf<<"root6.cpp: jj="<<jj<<std::endl;
 #endif
 
-	REAL x, y, z, det, within;
+	REAL x, y, z, det, within, itself;
 	bool found=false;
+	REAL deepest = 0;
 	for (int k=0;k<jj;k++){
 	    x=0;
 	    y=0;
@@ -1967,20 +1968,25 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 			 4*a2*b2*i2 + i2*pow(d2,2))*pow(lamda[k],3)) )/det;
 	    
 		within = a1*x*x+b1*y*y+c1*z*z+d1*x*y+e1*y*z+f1*z*x+g1*x+h1*y+i1*z+j1;
+		itself = a2*x*x+b2*y*y+c2*z*z+d2*x*y+e2*y*z+f2*z*x+g2*x+h2*y+i2*z+j2;
 		
 #ifdef DEBUG
 		g_debuginf<<"root6.cpp: k="<<k
 			  <<" det="<<det
 			  <<" x="<< x <<" y="<< y <<" z="<< z
-			  <<" within="<<within<<std::endl;
+			  <<" within="<<within
+			  <<" itself="<<itself<<std::endl;
 #endif
-		
-		// in theory we need to seek the smallest within (when it < 0), 
-		// but tests show there is only one < 0  in the loop no matter what jj is.
-		if(within<0){
-		    point=vec(x,y,z);
-		    found=true;
-		    break;
+
+		// first, the found point must be on the surface of particle 2, i.e., itself < NUMZERO
+		// second, the point must penetrate deepest into particle 1, i.e., smallest negative within 
+		if(itself < NUMZERO && within < deepest){
+		  deepest = within;
+		  point=vec(x,y,z);
+		  found=true;
+#ifdef DEBUG
+		  g_debuginf<<"root6.cpp: selected within="<<deepest<<std::endl;
+#endif
 		}
 	    }
 	    else {
