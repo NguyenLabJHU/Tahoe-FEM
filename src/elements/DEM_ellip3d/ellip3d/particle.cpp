@@ -811,9 +811,8 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	if (penetration > allowedOverlap) {
 	  g_debuginf << "particle.cpp: g_iteration=" << g_iteration 
 		     << " particle=" << getID()
-		     << " boundary pentration=" << penetration 
-		     << " exceeding allowable value=" << allowedOverlap 
-		     << " use smaller time step!" << std::endl;
+		     << " boundary penetration=" << penetration 
+		     << " allowable=" << allowedOverlap << std::endl;
 	  penetration = allowedOverlap;
 	}
 
