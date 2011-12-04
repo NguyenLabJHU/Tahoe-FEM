@@ -57,7 +57,7 @@ public:
     REAL getImpactTimeStep() const {return impactTimeStep;}
     
     bool isOverlapped();
-    void contactForce();         // calculate normal and tangential force of contact
+    void contactForce(bool &exceed);         // calculate normal and tangential force of contact
     REAL getNormalForce() const {return vfabs(NormalForce);}
     REAL getTgtForce()  const {return vfabs(TgtForce);}
     REAL getPenetration() const {return penetration;}
@@ -70,12 +70,12 @@ public:
     vec TgtForceVec() const {return TgtForce;}
     
  private:
-    T*   p1;                     // particle 1
-    T*   p2;                     // particle 2
+    T*   p1;              // particle 1
+    T*   p2;              // particle 2
     REAL penetration;     // penetration
     REAL contact_radius;  // radius of contact surface
-    vec  point1;                 // point1 on particle 1, innermost to particle 2
-    vec  point2;                 // point2 on particle 2, innermost to particle 1
+    vec  point1;          // point1 on particle 1, innermost to particle 2
+    vec  point2;          // point2 on particle 2, innermost to particle 1
     REAL radius1;         // radius of osculating circles at point1
     REAL radius2;         // radius of osculating circles at point2
     REAL E0;              
@@ -217,7 +217,7 @@ void contact<T>::checkoutTgt(std::vector<cnttgt>& CntTgtVec) {
 
 
 template<class T>
-void contact<T>::contactForce(){
+void contact<T>::contactForce(bool &exceed){
     // isOverlapped() has been called in findContact() in assembly.cpp and information recorded, 
     // now this function is called by internalForce() in assembly.cpp.
 
@@ -232,9 +232,9 @@ void contact<T>::contactForce(){
 	  g_debuginf << "contact.h: g_iteration=" << g_iteration 
 		     << " particle1=" << getP1()->getID()
 		     << " particle2=" << getP2()->getID()
-		     << " pentration=" << penetration 
-		     << " exceeding allowable value=" << allowedOverlap 
-		     << " use smaller time step!" << std::endl;
+		     << " penetration=" << penetration 
+		     << " allowable=" << allowedOverlap << std::endl;
+	  //if (penetration > 1.0e-3) exceed = true;
 	  penetration = allowedOverlap;
 	}
 #ifdef MEASURE_EPS

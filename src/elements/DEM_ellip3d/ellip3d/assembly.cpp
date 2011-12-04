@@ -264,8 +264,8 @@ void assembly::printContact(const char* str) const
        <<setw(OWID)<<"tangt_x"
        <<setw(OWID)<<"tangt_y"
        <<setw(OWID)<<"tangt_z"
-       <<setw(OWID)<<"vibra_time_step"
-       <<setw(OWID)<<"impact_time_step"
+       <<setw(OWID)<<"vibra_t_step"
+       <<setw(OWID)<<"impact_t_step"
        <<endl;
     std::list<CONTACT>::const_iterator it;
     for (it=ContactList.begin();it!=ContactList.end();++it)
@@ -796,10 +796,21 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 	gettimeofday(&timep1,NULL); 
 #endif 
 	for (it=ContactList.begin();it!=ContactList.end();++it){
-	    it->contactForce();           // cannot be parallelized as it may change a particle's force simultaneously.
+            bool exceed = false;
+	    it->contactForce(exceed);           // cannot be parallelized as it may change a particle's force simultaneously.
 	    it->checkoutTgt(CntTgtVec);   // checkout current tangential force and displacment
 	    avgnm += it->getNormalForce();
 	    avgsh += it->getTgtForce();
+#ifdef DEBUG
+	    if (exceed) {
+	      char stepsstr[7];
+	      char stepsfp[50];
+	      sprintf(stepsstr, "%06d", g_iteration);
+	      strcpy(stepsfp,"particle_");
+	      strcat(stepsfp, stepsstr);
+	      printParticle(stepsfp);
+	    }
+#endif
 	}
 	avgnm /= totalcntct;
 	avgsh /= totalcntct;
@@ -2519,8 +2530,8 @@ void assembly::deposit(int   total_steps,
 	       <<setw(OWID)<<"epsilon_l"
 	       <<setw(OWID)<<"epsilon_h"
 	       <<setw(OWID)<<"epsilon_v"
-	       <<setw(OWID)<<"time_step"
-	       <<setw(OWID)<<"time_step"
+	       <<setw(OWID)<<"t_step"
+	       <<setw(OWID)<<"t_step"
 	       <<setw(OWID)<<"time" << endl;
 
     g_debuginf.open(debugfile);
@@ -4973,8 +4984,8 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"ratio"
 	       <<setw(OWID)<<"porosity"
 	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"time_step"
-	       <<setw(OWID)<<"time_step"
+	       <<setw(OWID)<<"t_step"
+	       <<setw(OWID)<<"t_step"
 	       <<setw(OWID)<<"time" << endl;
 
     std::ofstream balancedinf(balancedfile);
@@ -5042,8 +5053,8 @@ void assembly::triaxial(int   total_steps,
 	       <<setw(OWID)<<"ratio"
 	       <<setw(OWID)<<"porosity"
 	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"time_step"
-	       <<setw(OWID)<<"time_step"
+	       <<setw(OWID)<<"t_step"
+	       <<setw(OWID)<<"t_step"
 	       <<setw(OWID)<<"time" << endl;
 
     g_debuginf.open(debugfile);
