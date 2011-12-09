@@ -18,9 +18,7 @@
 9.  IP weight has different signs in FormStiffness and FormKd 
 */
 
-//
 // materials lists (3D only)
-//
 #include "FSSolidMatList2DT.h"
 #include "FSSolidMatList3DT.h"
 
@@ -33,12 +31,9 @@ namespace Tahoe {
 	  if (0 != fFSDEMatSupport) delete fFSDEMatSupport;
   }
 
-  //
-  // specify parameters needed by the interface
-  //
+  // specify parameters needed by the interface  
   void FSDielectricElastomerT::DefineParameters(ParameterListT& list) const
   {
-//  	cout << "FSDielectricElastomerT::DefineParameters" << endl;
     // inherited
     FiniteStrainT::DefineParameters(list);
 
@@ -46,22 +41,14 @@ namespace Tahoe {
     list.AddParameter(ParameterT::Word, "electric_field_name");
   }
 
-  //
   // accept parameter list
-  //
   void FSDielectricElastomerT::TakeParameterList(const ParameterListT& list)
   {
-//  	cout << "FSDielectricElastomerT::TakeParameterList" << endl;
-    //
     // inherited
-    //
     FiniteStrainT::TakeParameterList(list);
 
-    //
     // get electric scalar potential field
-    //
     // for now use same integration and interpolation schemes as primary field
-    //
     const StringT& electric_field_name = list.GetParameter(
         "electric_field_name");
 
@@ -97,76 +84,59 @@ namespace Tahoe {
     fAem.Dimension(nel, nme);
     fAee.Dimension(nel, nel);
 
-	/* Riks penalty matrix */
-//	fRiks_Penalty.Dimension(neq, neq);
-
 	/* Initialize mass matrix */
 	fMassMatrix.Dimension(nme, nme);
 
 	/* Define LHS type based upon analysis type, i.e. static vs. dynamic */
-// 	int order = fIntegrator->Order();
-// 	if (order == 2)
-// 		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-// 	else
-// 		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	int order = fIntegrator->Order();
+	if (order == 2)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 	
     fLHS.Dimension(neq);
     fRHS.Dimension(neq);
     
-// 	/* dimension workspace */
-// 	fStressMat.Dimension(NumSD());
-// 	fTempMat1.Dimension(NumSD());
-// 	fTempMat2.Dimension(NumSD());
-// 
-// 	fGradNa.Dimension(NumSD(), NumElementNodes());
-// 	fStressStiff.Dimension(NumElementNodes());
-// 	
-// 	/* Might need to re-dimension, or it does mechanical RHS only */
-// 	fTemp2.Dimension(NumElementNodes()*NumDOF());    
-    
   }
 
-  //
-  // PROTECTED
-  //
+/* form of tangent matrix */
+GlobalT::SystemTypeT FSDielectricElastomerT::TangentType(void) const
+{
+	/* Define LHS type based upon analysis type, i.e. static vs. dynamic */
+ 	int order = fIntegrator->Order();
+ 	if (order == 2)
+ 		return GlobalT::kNonSymmetric;
+ 	else
+ 		return GlobalT::kSymmetric;
 
-  //
+}
+
+  // PROTECTED
+
   // construct a new material support and return a pointer
-  //
   MaterialSupportT*
   FSDielectricElastomerT::NewMaterialSupport(MaterialSupportT* p) const
   {
-//  	cout << "FSDIelectricElastomerT::NewMaterialSupport" << endl;
-    //
     // allocate
-    //
     if (!p) p = new FSDEMatSupportT(1, NumIP());
     
-    //
     // inherited initializations
-    //
     FiniteStrainT::NewMaterialSupport(p);
 
-    //
     // set parent class fields
-    //
     FSDEMatSupportT* ps = dynamic_cast<FSDEMatSupportT*> (p);
 
     if (ps != 0) {
-//	  cout << "Setting Electric Field from FSDielectricElastomerT" << endl;
       ps->SetElectricField(&fE_List);
     }
 
     return p;
   }
 
-  //
   // construct materials manager and read data
-  //
   MaterialListT*
   FSDielectricElastomerT::NewMaterialList(const StringT& name, int size)
   {
-//  	cout << "FSDIelectricElastomerT::NewMaterialList" << endl;
   	
   	/* resolve number of spatial dimensions */
   	int nsd = -1;
@@ -210,7 +180,6 @@ namespace Tahoe {
   // IS THIS NEEDED FOR VALUES OF E?
   void FSDielectricElastomerT::SetGlobalShape()
   {
-//	cout << "FSDielectricElastomerT::SetGlobalShape" << endl;
     //
     // inherited
     //
@@ -220,7 +189,7 @@ namespace Tahoe {
     // what needs to be computed
     //
     SetLocalU(fLocScalarPotential);
-//	cout << "fLocScalarPotential = " << fLocScalarPotential << endl;
+
     for (int i = 0; i < NumIP(); i++) {
 
       //
@@ -230,14 +199,10 @@ namespace Tahoe {
         dArrayT& E = fE_List[i];
 		dMatrixT E1(1, NumSD());
 
-		/* Not sure if this is correct; would prefer Derivative_X */
-		/* Sometimes z value of E1 is e-19....*/
 		fShapes->GradU(fLocScalarPotential, E1, i);
 		E1 *= -1.0;
 		for (int i = 0; i < NumSD(); i++)
 			E[i] = E1(0,i);
-		
-//		cout << "E-field derived from Psi = " << E << endl;
       }
       
   }
@@ -247,7 +212,6 @@ namespace Tahoe {
   //
   void FSDielectricElastomerT::CurrElementInfo(ostream& out) const
   {
-//	cout << "FSDielectricElastomerT::CurrElementInfo" << endl;
     //
     // inherited
     //
@@ -273,7 +237,6 @@ namespace Tahoe {
 // 
   bool FSDielectricElastomerT::NextElement()
   {
-//	cout << "FSDielectricElastomerT::NextElement" << endl;
     bool isThereNext = FiniteStrainT::NextElement();
 
     if (isThereNext == true) {
@@ -293,7 +256,6 @@ namespace Tahoe {
   //
   void FSDielectricElastomerT::SetLocalArrays()
   {
-//	cout << "FSDielectricElastomerT::SetLocalArrays" << endl;
     //
     // look for an electric scalar potential field
     //
@@ -415,7 +377,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
 			}
 	
-			/* mechanical and electrical reaction forces? */
+			/* mechanical and electrical reaction forces */
 			double mr1, mr2, mr3, er1;
 			dArrayT react(3);
 			
@@ -542,9 +504,6 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
   {
 	/* Time integrator info for dynamic problems */
  	int order = fIntegrator->Order();  
-//   	double beta = 0.25;	// hard code this value for Newmark-based implicit dynamics
-//   	double time_step = fCurrMaterial->TimeStep();
-//   	double bdt2 = 1.0/(beta*time_step*time_step);	// beta * dt * dt factor for K
   
 	/* Matrix format - depends upon time integration order */
     dMatrixT::SymmetryFlagT format = (fLHS.Format()
@@ -568,17 +527,19 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
     while (fShapes->NextIP() != 0) 
     {
 		/* integration weight; w1 valid for both static and dynamic problems */
-//		const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
 		const double w = fShapes->IPDet() * fShapes->IPWeight();
 		const double w1 = constK * w;
-
+		
 	  	/* LHS tangent stiffnesses */  
 		dMatrixT CIJKL = fCurrMaterial->C_IJKL();
       	dSymMatrixT SIJ = fCurrMaterial->S_IJ();
       	dMatrixT BIJ = fCurrMaterial->B_IJ();
       	dMatrixT EIJK = fCurrMaterial->E_IJK();
+      	dMatrixT EIJK1 = fCurrMaterial->E_IJK();
       	CIJKL *= (0.25*w1);
-        EIJK *= (0.5*w1);
+      	// EIJK1 by HSP 12/8/2011 - weight by w instead of w1
+        EIJK *= (0.5*w);
+        EIJK1 *= (0.5*w1);
 	  	BIJ *= w;
         SIJ *= w1;
 
@@ -597,8 +558,11 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	  	AccumulateGeometricStiffness(fAmm_geo, DNaX, SIJ);
   
        	/* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
-       	/* What is the difference between format and dMatrixT::kWhole? */
        	fAme.MultATBC(B_C, EIJK, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate); 
+  
+       	/* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
+       	// NEW by HSP 12/8/2011
+       	fAem.MultATBC(B_C, EIJK1, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate);   
   
  	 	/* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
   		fAee.MultQTBQ(GradShape, BIJ, format, dMatrixT::kAccumulate);
@@ -608,7 +572,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
 //	fAme*=-1.0;
 //	fAee*=-1.0;
-	fAem.Transpose(fAme);
+	fAem.Transpose();
 	
 	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
 	if (order == 2)
@@ -625,9 +589,6 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
-	
-	/* If non-symmetric stiffness matrix, i.e. implicit dynamics, add EM coupling */
-//	if (format != dMatrixT::kUpperOnly) 
   }
 
 
