@@ -49,6 +49,9 @@ namespace Tahoe {
     virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
         AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
+	/** return a const reference to the run state flag */
+	virtual GlobalT::SystemTypeT TangentType(void) const;
+
     //
     // \name Electric fields
     // @{

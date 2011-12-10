@@ -86,9 +86,28 @@ namespace Tahoe {
     /* Initialize mass matrix */
     fMassMatrix.Dimension(nme, nme);
 
+	/* Define LHS type based upon analysis type, i.e. static vs. dynamic */
+	int order = fIntegrator->Order();
+	if (order == 2)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+
     fLHS.Dimension(neq);
     fRHS.Dimension(neq);
   }
+
+/* form of tangent matrix */
+GlobalT::SystemTypeT FSDielectricElastomer2DViscoT::TangentType(void) const
+{
+	/* Define LHS type based upon analysis type, i.e. static vs. dynamic */
+ 	int order = fIntegrator->Order();
+ 	if (order == 2)
+ 		return GlobalT::kNonSymmetric;
+ 	else
+ 		return GlobalT::kSymmetric;
+
+}
 
   //
   // PROTECTED
@@ -508,7 +527,6 @@ void FSDielectricElastomer2DViscoT::AddNodalForce(const FieldT& field, int node,
     {
 
 	  /* integration weight; w1 valid for both static and dynamic problems */
-//    const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
 	  const double w = fShapes->IPDet() * fShapes->IPWeight();
 	  const double w1 = constK * w;
 		
@@ -517,16 +535,18 @@ void FSDielectricElastomer2DViscoT::AddNodalForce(const FieldT& field, int node,
       dSymMatrixT SIJ = fCurrMaterial->S_IJ();
       dMatrixT BIJ = fCurrMaterial->B_IJ();
       dMatrixT EIJK = fCurrMaterial->E_IJK();
+      dMatrixT EIJK1 = fCurrMaterial->E_IJK();  
       
-      	/* LHS tangent NEQ stiffnesses */
-//      	dMatrixT CIJKL_NEQ = fCurrMaterial->C_IJKL_NEQ();
-//      	dSymMatrixT SIJ_NEQ = fCurrMaterial->S_IJ_NEQ();
-      	
-//      	CIJKL += CIJKL_NEQ;
-//      	SIJ += SIJ_NEQ;      
+      /* LHS tangent NEQ stiffnesses */
+      dMatrixT CIJKL_NEQ = fCurrMaterial->C_IJKL_NEQ();
+      dSymMatrixT SIJ_NEQ = fCurrMaterial->S_IJ_NEQ();
+
+      CIJKL += CIJKL_NEQ;
+      SIJ += SIJ_NEQ;      
       
       CIJKL *= (0.25*w1);
-      EIJK *= (0.5*w1);
+      EIJK *= (0.5*w);
+	  EIJK1 *= (0.5*w1);       
 	  BIJ *= w;
       SIJ *= w1;
 
@@ -546,7 +566,11 @@ void FSDielectricElastomer2DViscoT::AddNodalForce(const FieldT& field, int node,
 	  
  	  /* mechanical-electrical stiffness (8 x 4 matrix for 4-node 2D element) */
  	  /* What is the difference between format and dMatrixT::kWhole? */
- 	  fAme.MultATBC(B_C, EIJK, GradShape, dMatrixT::kAccumulate);
+ 	  fAme.MultATBC(B_C, EIJK, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate);
+
+      /* mechanical-electrical stiffness (8 x 4 matrix for 4-node 2D element) */
+      // NEW by HSP 12/10/2011
+      fAem.MultATBC(B_C, EIJK1, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate);  
   
  	  /* electrical-electrical stiffness (4 x 4 matrix for 4-node 2D element) */
  	  fAee.MultQTBQ(GradShape, BIJ, format, dMatrixT::kAccumulate);
@@ -554,7 +578,7 @@ void FSDielectricElastomer2DViscoT::AddNodalForce(const FieldT& field, int node,
 
 	/* Expand 8x8 geometric stiffness into 8x8 matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
-	fAem.Transpose(fAme);
+	fAem.Transpose();
 
 	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
 	if (order == 2)
@@ -703,9 +727,9 @@ void FSDielectricElastomer2DViscoT::MassMatrix()
 	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
 	  
 	  /* Viscoelastic NEQ Stress */
-//	  dSymMatrixT SIJ_NEQ = fCurrMaterial->S_IJ_NEQ();
+	  dSymMatrixT SIJ_NEQ = fCurrMaterial->S_IJ_NEQ();
 	  
-//	  SIJ += SIJ_NEQ;	  
+	  SIJ += SIJ_NEQ;	  
 	  
 	  SIJ *= (0.5*w);
 	  dMatrixT B_C;
@@ -730,16 +754,12 @@ void FSDielectricElastomer2DViscoT::MassMatrix()
 	fRHS += Rtotal;
   }
 
-  //
   // extrapolate from integration points and compute output nodal/element
   // values
-  //
   void FSDielectricElastomer2DViscoT::ComputeOutput(const iArrayT& n_codes,
       dArray2DT& n_values, const iArrayT& e_codes, dArray2DT& e_values)
   {
-    //
     // number of output values
-    //
     int n_out = n_codes.Sum();
     int e_out = e_codes.Sum();
 
