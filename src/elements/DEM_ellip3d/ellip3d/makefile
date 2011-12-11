@@ -27,12 +27,10 @@ OBJECTS = $(SOURCES:.cpp=.o)
 #OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
 EXECUTABLE = ellip3d
 
-.PHONY: all clean
+.PHONY: all tar clean
 
-# template classes contain implementation and need recompile after change
-all: $(SOURCES) $(EXECUTABLE) contact.h boundary.h
-
-sinclude $(SOURCES:.cpp=.d)
+# template classes contain implementation and need to recompile upon change
+all: $(EXECUTABLE) contact.h boundary.h
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@
@@ -40,10 +38,16 @@ $(EXECUTABLE): $(OBJECTS)
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
+sinclude $(SOURCES:.cpp=.d)
+
 %.d: %.cpp
 	$(CXX) -MM $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
+tar:
+	tar -cvf $(EXECUTABLE).tar *.h *.cpp makefile* readme
 clean:
-	-rm -f *.o *.d *~ ellip3d
+	-rm -f *.o *.d  *~ *.tar $(EXECUTABLE)
+
+# sinclude is always resolved even if make tar/clean
