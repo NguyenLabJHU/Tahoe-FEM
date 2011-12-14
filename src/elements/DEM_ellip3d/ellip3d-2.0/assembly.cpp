@@ -1167,22 +1167,21 @@ void assembly::deposit_RgdBdry(rectangle& container,
 			       int   total_steps,  
 			       int   snapshots,
 			       int   interval,
-			       REAL  height,
+			       REAL  rFloHeight,
+			       REAL  rTrimHeight,
 			       const char* iniptclfile,   
 			       const char* inibdryfile,
 			       const char* particlefile, 
 			       const char* contactfile,
 			       const char* progressfile, 
-			       const char* creparticle,
-			       const char* creboundary,
+			       const char* trmparticle,
+			       const char* trmboundary,
 			       const char* debugfile)
 {
   this->container = container;
-  generate_new(container, grad, iniptclfile, freetype, height); 
-  // 3.0 for uniform size of (2.5e-3,*0.8,*0.6); if not uniform, it may be larger, say, 4.5
-  // 3.0 for uniform spheres of 2.5e-3
+  generate(container, grad, iniptclfile, freetype, rFloHeight); 
   
-  setBoundary(5, container, inibdryfile);
+  setBoundary(5, container, inibdryfile); // container unchanged
   
   deposit(total_steps,        // total_steps
 	  snapshots,          // number of snapshots
@@ -1194,14 +1193,15 @@ void assembly::deposit_RgdBdry(rectangle& container,
 	  progressfile,       // output file, statistical info
 	  debugfile);         // output file, debug info
   
-  setBoundary(6,                  
-	      container,      // specimen dimension
-	      "trm_boundary");// output file, containing boundaries info
+  setBoundary(rTrimHeight,                  
+	      container,      // container unchanged
+	      trmboundary);   // output file, containing boundaries info
   
-  trim("dep_particle_end",    // input file, particles to be trimmed
-       "trm_boundary",  
-       creparticle,
-       creboundary); 
+  trim(rTrimHeight,
+       container,             // container unchanged
+       trmboundary,           // read only for RgdBdryNum
+       "dep_particle_end",    // input file, particles to be trimmed
+       trmparticle);          // output file, trimmed particles
 }
 
 
@@ -1210,11 +1210,11 @@ void assembly::deposit_RgdBdry(rectangle& container,
 // 1 - a horizontal layer of free particles
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
-void assembly::generate_new(rectangle& container,
-			    gradation& grad,
-			    const char* particlefile,
-			    int freetype,
-			    REAL vht)
+void assembly::generate(rectangle& container,
+			gradation& grad,
+			const char* particlefile,
+			int freetype,
+			REAL rFloHeight)
 {
   REAL x,y,z;
   particle* newptcl;
@@ -1224,12 +1224,21 @@ void assembly::generate_new(rectangle& container,
   REAL dimz     = container.getDimz();
   REAL diameter = grad.getMaxPtclRadius()*2.0;
 
-  REAL x1 = container.getV1().getx() + diameter/2.0;
-  REAL y1 = container.getV1().gety() + diameter/2.0;
-  REAL z1 = container.getV1().getz() + diameter/2.0;
-  REAL x2 = container.getV2().getx() - diameter/2.0;
-  REAL y2 = container.getV2().gety() - diameter/2.0;
-  REAL z2 = container.getV2().getz() - diameter/2.0;
+  REAL offset   = 0;
+  REAL edge     = diameter;
+  if (grad.getSize().size() == 1 &&
+      grad.getPtclRatioBA() == 1.0 && 
+      grad.getPtclRatioCA() == 1.0) {
+    edge   = diameter*2.0;
+    offset = diameter*0.25;
+  }
+  
+  REAL x1 = container.getV1().getx() + edge;
+  REAL y1 = container.getV1().gety() + edge;
+  REAL x2 = container.getV2().getx() - edge;
+  REAL y2 = container.getV2().gety() - edge;
+  REAL z1 = container.getV1().getz() + diameter;
+
   REAL x0 = container.getCenter().getx();
   REAL y0 = container.getCenter().gety();
   REAL z0 = container.getCenter().getz();
@@ -1249,11 +1258,7 @@ void assembly::generate_new(rectangle& container,
       }
   }
   else if (freetype == 2) { // multiple layers of free particles
-    REAL offset = 0;
-    if (grad.getPtclRatioBA() == 1.0 && grad.getPtclRatioCA() == 1.0)
-      offset = diameter*0.05;
-    
-    for (z = z1; z < z1 + dimz*vht; z += diameter) {
+    for (z = z1; z < z1 + dimz*rFloHeight; z += diameter) {
       for (x = x1 + offset; x - x2 < NUMZERO; x += diameter)
 	for (y = y1 + offset; y - y2 < NUMZERO; y += diameter) {
 	  newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
@@ -1514,7 +1519,7 @@ void assembly::collapse(int   rors,
 }
 */
   
-void assembly::setBoundary(int   bdrynum,
+void assembly::setBoundary(int bdrynum,
 			   rectangle& container,
 			   const char* boundaryfile)
 {
@@ -2134,31 +2139,405 @@ void assembly::setBoundary(int   bdrynum,
   ofs.close();
 }
 
-
-void assembly::trim(const char* iniptclfile,
-		    const char* inibdryfile,
-		    const char* particlefile,
-		    const char* boundaryfile)
+// bdrymum = 6 by default
+// rheight is relative height to original height, specified for boundary #6
+// this function changes container's height and saves to a data file
+void assembly::setBoundary(REAL rheight,
+			   rectangle& container,
+			   const char* boundaryfile)
 {
-  createSample(iniptclfile);
-  createBoundary(inibdryfile);
-  
+  std::ofstream ofs(boundaryfile);
+  if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
+
+  REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
+  x1 = container.getV1().getx();
+  y1 = container.getV1().gety();
+  z1 = container.getV1().getz();
+  x2 = container.getV2().getx();
+  y2 = container.getV2().gety();
+  z2 = container.getV2().getz();
+  x0 = container.getCenter().getx();
+  y0 = container.getCenter().gety();
+  z0 = container.getCenter().getz();
+
+  z2 = z1 + container.getDimz() * rheight;
+  int bdrynum = 6;
+
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs<<setw(OWID)<<0
+     <<setw(OWID)<<bdrynum<<endl<<endl;
+
+  // boundary 1
+  ofs<<setw(OWID)<<1<<endl
+     <<setw(OWID)<<1
+     <<setw(OWID)<<5
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0     
+     <<setw(OWID)<<x2
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0     
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0    
+     <<setw(OWID)<<y1
+     <<setw(OWID)<<z0     
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y2
+     <<setw(OWID)<<z0     
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<x0     
+     <<setw(OWID)<<y0    
+     <<setw(OWID)<<z2 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<x0     
+     <<setw(OWID)<<y0     
+     <<setw(OWID)<<z1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl<<endl
+    
+    // boundary 2
+     <<setw(OWID)<<1<<endl
+     <<setw(OWID)<<2
+     <<setw(OWID)<<5
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0     
+     <<setw(OWID)<<x0    
+     <<setw(OWID)<<y2
+     <<setw(OWID)<<z0     
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x2
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0     
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x1 
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0     
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<x0     
+     <<setw(OWID)<<y0    
+     <<setw(OWID)<<z2 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<x0     
+     <<setw(OWID)<<y0      
+     <<setw(OWID)<<z1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl<<endl
+    
+    // boundary 3
+     <<setw(OWID)<<1<<endl
+     <<setw(OWID)<<3
+     <<setw(OWID)<<5
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0     
+     <<setw(OWID)<<x1
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0     
+     <<setw(OWID)<<y1
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0  
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0       
+     <<setw(OWID)<<y2
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y0     
+     <<setw(OWID)<<z2 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y0      
+     <<setw(OWID)<<z1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl<<endl
+    
+    // boundary 4
+     <<setw(OWID)<<1<<endl
+     <<setw(OWID)<<4
+     <<setw(OWID)<<5
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0     
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y1
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x2
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<-1 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x1 
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y0     
+     <<setw(OWID)<<z2 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y0      
+     <<setw(OWID)<<z1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl<<endl
+    
+    // boundary 5
+     <<setw(OWID)<<1<<endl
+     <<setw(OWID)<<5
+     <<setw(OWID)<<5
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1     
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z2 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x2
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<-1 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x1 
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y2
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y1
+     <<setw(OWID)<<z0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl<<endl
+    
+    // boundary 6
+     <<setw(OWID)<<1<<endl
+     <<setw(OWID)<<6
+     <<setw(OWID)<<5
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<-1    
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x2
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<-1 
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x1 
+     <<setw(OWID)<<y0
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y2
+     <<setw(OWID)<<z0      
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl
+    
+     <<setw(OWID)<<1
+     <<setw(OWID)<<0
+     <<setw(OWID)<<-1
+     <<setw(OWID)<<0 
+     <<setw(OWID)<<x0      
+     <<setw(OWID)<<y1
+     <<setw(OWID)<<z0
+     <<setw(OWID)<<0
+     <<setw(OWID)<<0<<endl<<endl; 
+
+  ofs.close();
+}
+
+void assembly::trim(REAL rTrimHeight,
+		    rectangle& container,
+		    const char* trmboundary,
+		    const char* particlefile,
+		    const char* trmparticle)
+{
+  createSample(particlefile);
+  createBoundary(trmboundary); // read RgdBdryNum
+
+  REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
+  x1 = container.getV1().getx();
+  y1 = container.getV1().gety();
+  z1 = container.getV1().getz();
+  x2 = container.getV2().getx();
+  y2 = container.getV2().gety();
+  z2 = container.getV2().getz();
+  x0 = container.getCenter().getx();
+  y0 = container.getCenter().gety();
+  z0 = container.getCenter().getz();
+
+  z2 = z1 + container.getDimz() * rTrimHeight;
+ 
   std::list<particle*>::iterator itr,itp;
   vec center;
   REAL mass = 0;
   
-  if (RgdBdryNum == 1) {
-  }
-  else if (RgdBdryNum == 4) {
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    container.setDimx(W0); 
-    container.setDimy(L0); 
-    
+
+  if (RgdBdryNum == 4) {    
     for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
       center=(*itr)->getCurrPosition();
-      if(fabs(center.getx()) >= L0/2 ||
-	 fabs(center.gety()) >= W0/2 )
+      if(center.getx() <= x1 || center.getx() >= x2 ||
+	 center.gety() <= y1 || center.gety() >= y2 )
 	{
 	  itp = itr;
 	  --itr;
@@ -2169,20 +2548,11 @@ void assembly::trim(const char* iniptclfile,
     
   }
   else if (RgdBdryNum == 5) {
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = -getApt(6).getz()*4;
-    container.setDimx(W0); 
-    container.setDimy(L0); 
-    container.setDimz(H0);
-    container.setCenter(0);
-    Volume = W0*L0*H0;
-    
     for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
       center=(*itr)->getCurrPosition();
-      if(fabs(center.getx()) >= L0/2 ||
-	 fabs(center.gety()) >= W0/2 ||
-	 center.getz() <= getApt(6).getz() )
+      if(center.getx() <= x1 || center.getx() >= x2 ||
+	 center.gety() <= y1 || center.gety() >= y2 ||
+	 center.getz() <= z1)
 	{
 	  itp = itr;
 	  --itr;
@@ -2193,20 +2563,11 @@ void assembly::trim(const char* iniptclfile,
     
   }
   else if (RgdBdryNum == 6) {
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
-    container.setDimx(W0); 
-    container.setDimy(L0); 
-    container.setDimz(H0);
-    container.setCenter(0);
-    Volume = W0*L0*H0;
-    
     for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
       center=(*itr)->getCurrPosition();
-      if(fabs(center.getx()) >= L0/2 ||
-	 fabs(center.gety()) >= W0/2 ||
-	 fabs(center.getz()) >= H0/2 )
+      if(center.getx() <= x1 || center.getx() >= x2 ||
+	 center.gety() <= y1 || center.gety() >= y2 ||
+	 center.getz() <= z1 || center.getz() > z2)
 	{
 	  itp = itr;
 	  --itr;
@@ -2220,10 +2581,10 @@ void assembly::trim(const char* iniptclfile,
   for(itr=ParticleList.begin();itr!=ParticleList.end();++itr)
     mass += (*itr)->getMass();
   
+  Volume = container.getDimx() * container.getDimy() * container.getDimz();
   BulkDensity = mass/Volume;
   
-  printParticle(particlefile);
-  printBoundary(boundaryfile);
+  printParticle(trmparticle);
 }
 
 

@@ -130,7 +130,8 @@ public:
 			     int   total_steps,  
 			     int   snapshots,
 			     int   interval,
-			     REAL  height,
+			     REAL  rFloHeight,
+			     REAL  rTrimHeight,
 			     const char* iniptclfile,   
 			     const char* inibdryfile,
 			     const char* particlefile, 
@@ -166,17 +167,11 @@ public:
 			    const char* debugfile    ="scl_debug");      // output file, debug info
 
 	// generate particles in space for rigid boundaries
-	void generate(gradation& grad, 
+	void generate(rectangle& container,
+		      gradation& grad, 
 		      const char* str,
 		      int freetype,
 		      REAL ht);
-
-	// generate particles in space for rigid boundaries
-	void generate_new(rectangle& container,
-			  gradation& grad, 
-			  const char* str,
-			  int freetype,
-			  REAL ht);
 
 	// generate particles in space for particle boundaries
 	void generate_p(gradation& grad,
@@ -237,10 +232,15 @@ public:
 			 rectangle& container,
 			 const char* boundaryfile);
 
-	void trim(const char* iniptclfile,
-		  const char* inibdryfile,
+	void setBoundary(REAL rheight,
+			 rectangle& container,
+			 const char* boundaryfile);
+
+	void trim(REAL rTrimHeight,
+		  rectangle& container,
+		  const char* trmboundary,
 		  const char* particlefile,
-		  const char* boundaryfile);
+		  const char* trmparticle);
 
 	void TrimPtclBdryByHeight(REAL height,
 				  const char* iniptclfile,

@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   // 1. time integration method
   // --- dynamic
   
-  dem::TIMESTEP      = 5.0e-07; // time step
+  dem::TIMESTEP      = 5.0e-06; // time step
   dem::MASS_SCL      = 1;       // mass scaling
   dem::MNT_SCL       = 1;       // moment of inertial scaling
   dem::GRVT_SCL      = 1;       // gravity scaling
@@ -90,32 +90,40 @@ int main(int argc, char* argv[])
   std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
   std::vector<REAL> size;    // particle size
   percent.push_back(1.00); size.push_back(2.5e-3);
-  percent.push_back(0.80); size.push_back(2.3e-3);
-  percent.push_back(0.60); size.push_back(2.0e-3);
-  percent.push_back(0.30); size.push_back(1.5e-3);
-  percent.push_back(0.10); size.push_back(1.0e-3);
+  //percent.push_back(0.80); size.push_back(2.3e-3);
+  //percent.push_back(0.60); size.push_back(2.0e-3);
+  //percent.push_back(0.30); size.push_back(1.5e-3);
+  //percent.push_back(0.10); size.push_back(1.0e-3);
   dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
   // simu type
   A.deposit_RgdBdry(container,
 		    ptclGradation,
 		    2,                  // freetype, setting of free particles 
-		    1000000,            // total_steps
+		    100000,            // total_steps
 		    100,                // number of snapshots
 		    10,                 // print interval
-		    5.0,                // height of floating particles relative to dimn
-		    "flo_particle_end", // output file, initial particles
-		    "dep_boundary_ini", // output file, initial boundaries
+		    6.0,                // relative height of floating particles based on container height
+		    2.0,                // relative trimming height of deposited particles based on container height
+		    "flo_particle_end", // output file, initial particles for depositing
+		    "dep_boundary_ini", // output file, initial boundaries for depositing
 		    "dep_particle",     // output file, resulted particles, including snapshots 
 		    "dep_contact",      // output file, resulted contacts, including snapshots 
 		    "dep_progress",     // output file, statistical info
-		    "cre_particle",     // output file, resulted particles after trmming
-		    "cre_boundary",     // output file, resulted boundaries after trmming
+		    "trm_particle_end", // output file, resulted particles after trmming
+		    "trm_boundary_end", // output file, resulted boundaries after trmming
 		    "dep_debug");       // output file, debug 
-  
+  /*
+  A.trim(2.0,
+       container,             // container unchanged
+       "trm_boundary_end",           // read only for RgdBdryNum
+       "dep_particle_end",    // input file, particles to be trimmed
+       "zin_particle_end");          // output file, trimmed particles
+  */
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 3: record run time
   time(&time2);
   std::cout << std::endl 
+
 	    << "simulation start time: " << ctime(&time1);
   std::cout << "simulation  end  time: " << ctime(&time2);
   return 0;
