@@ -26,6 +26,7 @@ namespace dem {
     void setPtclRatioCA(REAL ca) {ptcl_ratio_ca = ca;}
 
     REAL getMaxPtclRadius() {return size[0];}
+    REAL getMinPtclRadius() {return size[sievenum-1] * ptcl_ratio_ca;}
 
   private:
     int  sievenum; // sievenum == percent.size() == size.size()

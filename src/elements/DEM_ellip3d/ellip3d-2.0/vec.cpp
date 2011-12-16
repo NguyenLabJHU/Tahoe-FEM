@@ -147,27 +147,27 @@ namespace dem {
   }
   
   vec rotateVec(vec v, vec ang){
-    REAL alf=vfabs(ang);
-    if (alf<NUMZERO) // important, otherwise my cause numerical instability
+    REAL alf = vfabs(ang);
+    if (alf < EPS) // important, otherwise my cause numerical instability
       return v;
     
-    vec nx=ang/alf;
-    vec vp=(v%nx)*nx;
-    vec vv=v-vp;
+    vec nx = ang/alf;
+    vec vp = (v % nx) * nx;
+    vec vv = v - vp;
     
-    REAL theta=atan(vfabs(vv)/vfabs(vp));
+    REAL theta = atan(vfabs(vv) / vfabs(vp));
 #ifdef DEBUG
     g_debuginf<<"vec.cpp: g_iteration="<<g_iteration 
 	      <<" alf="<<alf
 	      <<" theta="<<theta<<std::endl;
 #endif
-    if (theta<NUMZERO) // important, otherwise my cause numerical instability
+    if (theta < EPS) // important, otherwise my cause numerical instability
       return v;    
     
     vec ny=normalize(vv);
     vec nz=normalize(nx*ny); // normalize, for higher precision
     REAL l=vfabs(vv);
-    return l*sin(alf)*nz + l*cos(alf)*ny + vp;
+    return l * sin(alf) * nz + l * cos(alf) * ny + vp;
   }
   
   REAL angle(vec v1, vec v2, vec norm){
@@ -176,17 +176,17 @@ namespace dem {
     //norm specify that the rotation must be around norm according to right hand rule,
     //even if the 180<alf<360
     REAL alf;
-    vec crs=v1*v2;
-    alf=asin(vfabs(crs)/vfabs(v1)/vfabs(v2));//0<alf<90;
-    if(crs%norm>0){//0<=alf<=180
-      if(v1%v2<0)//90<alf<180
-	alf=PI-alf;
+    vec crs = v1 * v2;
+    alf=asin(vfabs(crs) / vfabs(v1) / vfabs(v2) ); //0<alf<90;
+    if(crs % norm > 0){//0<=alf<=180
+      if(v1 % v2 < 0)//90<alf<180
+	alf = PI-alf;
     }
     else{//180<alf<360
-      if(v1%v2>0)//270<alf<360
-	alf=2*PI-alf;
+      if(v1 % v2 > 0)//270<alf<360
+	alf = 2 *PI - alf;
       else
-	alf=PI+alf;
+	alf = PI + alf;
     }
     return alf;
   }

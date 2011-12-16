@@ -33,15 +33,16 @@ int main(int argc, char* argv[])
   // Part 1: setup parameters (override parameter.cpp)
   // 1. time integration method
   // --- dynamic
-  
+  /*
   dem::TIMESTEP      = 5.0e-06; // time step
   dem::MASS_SCL      = 1;       // mass scaling
   dem::MNT_SCL       = 1;       // moment of inertial scaling
   dem::GRVT_SCL      = 1;       // gravity scaling
   dem::DMP_F         = 0;       // background viscous damping on mass
   dem::DMP_M         = 0;       // background viscous damping on moment of inertial
+  */
 
-  /*
+  ///*
   // --- dynamic relaxation and scaling
   dem::TIMESTEP      = 5.0e-06;
   dem::MASS_SCL      = 1.0e+01;
@@ -49,8 +50,8 @@ int main(int argc, char* argv[])
   dem::GRVT_SCL      = 0;       // 1.0e+03;
   dem::DMP_F         = 2.0/dem::TIMESTEP;
   dem::DMP_M         = 2.0/dem::TIMESTEP;
-  */
-  
+  //*/
+
   // 2. normal damping and tangential friciton
   dem::DMP_CNT       = 0.20;    // normal contact damping ratio
   dem::FRICTION      = 0.50;    // coefficient of friction between particles
@@ -78,15 +79,18 @@ int main(int argc, char* argv[])
 	    "dep_progress",     // output file, statistical info
 	    "dep_debug");       // output file, debug info
   */
+
+ 
+  /*
   // container properties
   REAL dimx = 0.05;
   REAL dimy = 0.05;
-  REAL dimz = 0.05;
+  REAL dimz = 0.10;
   dem::vec center(0, 0, 0);
   dem::rectangle container(dimx,dimy,dimz,center);
   // particle shape, size and percentage
-  REAL ptcl_ratio_ba = 0.8;  // ratio of radius b to radius a
-  REAL ptcl_ratio_ca = 0.6;  // ratio of radius c to radius a
+  REAL ptcl_ratio_ba = 1;//0.8;  // ratio of radius b to radius a
+  REAL ptcl_ratio_ca = 1;//0.6;  // ratio of radius c to radius a
   std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
   std::vector<REAL> size;    // particle size
   percent.push_back(1.00); size.push_back(2.5e-3);
@@ -95,15 +99,13 @@ int main(int argc, char* argv[])
   //percent.push_back(0.30); size.push_back(1.5e-3);
   //percent.push_back(0.10); size.push_back(1.0e-3);
   dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
-  // simu type
   A.deposit_RgdBdry(container,
 		    ptclGradation,
 		    2,                  // freetype, setting of free particles 
 		    100000,            // total_steps
 		    100,                // number of snapshots
 		    10,                 // print interval
-		    6.0,                // relative height of floating particles based on container height
-		    2.0,                // relative trimming height of deposited particles based on container height
+		    3.0,                // relative height of floating particles based on container height
 		    "flo_particle_end", // output file, initial particles for depositing
 		    "dep_boundary_ini", // output file, initial boundaries for depositing
 		    "dep_particle",     // output file, resulted particles, including snapshots 
@@ -112,13 +114,57 @@ int main(int argc, char* argv[])
 		    "trm_particle_end", // output file, resulted particles after trmming
 		    "trm_boundary_end", // output file, resulted boundaries after trmming
 		    "dep_debug");       // output file, debug 
-  /*
-  A.trim(2.0,
-       container,             // container unchanged
-       "trm_boundary_end",           // read only for RgdBdryNum
-       "dep_particle_end",    // input file, particles to be trimmed
-       "zin_particle_end");          // output file, trimmed particles
   */
+
+  /* degravitation, no boundary, quasi-static
+  A.deGravitation(15000,             // total_steps
+		  5,                 // number of snapshots
+		  1,                  // print interval
+		  "dep_particle_end", // input file, initial particles
+		  "dgr_particle",     // output file, resulted particles, including snapshots 
+		  "dgr_contact",      // output file, resulted contacts, including snapshots 
+		  "dgr_progress",     // output file, statistical info
+		  "dgr_debug");       // output file, debug info
+  // container properties
+  REAL dimx = 0.05;
+  REAL dimy = 0.05;
+  REAL dimz = 0.10;
+  dem::vec center(0, 0, 0);
+  dem::rectangle container(dimx,dimy,dimz,center);
+  // particle shape, size and percentage
+  REAL ptcl_ratio_ba = 1;//0.8;  // ratio of radius b to radius a
+  REAL ptcl_ratio_ca = 1;//0.6;  // ratio of radius c to radius a
+  std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
+  std::vector<REAL> size;    // particle size
+  percent.push_back(1.00); size.push_back(2.5e-3);
+  //percent.push_back(0.80); size.push_back(2.3e-3);
+  //percent.push_back(0.60); size.push_back(2.0e-3);
+  //percent.push_back(0.30); size.push_back(1.5e-3);
+  //percent.push_back(0.10); size.push_back(1.0e-3);
+  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
+  A.trim(container,
+	 ptclGradation,
+	 "dgr_particle_end",  // input
+	 "trm_particle_end"); // output
+  A.createBdryParticle(container,
+		       ptclGradation,
+		       1.0e+5,
+		       "trm_particle_end",
+		       "mem_particle_end");
+  */
+
+  ///* need to turn on setConstForce
+  A.iso_PtclBdry(10000,
+		 100,
+		 10,
+		 1.0e+5,
+		 "mem_particle_end",
+		 "iso_particle",
+		 "iso_contact",
+		 "iso_progress",
+		 "iso_debug");
+  //*/
+  
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 3: record run time
   time(&time2);
@@ -129,7 +175,7 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-
+ 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notes:
 //

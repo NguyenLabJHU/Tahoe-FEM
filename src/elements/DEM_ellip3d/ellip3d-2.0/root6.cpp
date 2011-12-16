@@ -1863,7 +1863,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 
 	int order=0;
 	for (int k=0;k<=6;k++){
-	  if (fabs(rtc[k])>NUMZERO){
+	  if (fabs(rtc[k]) > EPS){
 		order=k;
 	    }
 	}
@@ -1890,7 +1890,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 	REAL lamda[6];
 	int jj=0;
 	for (int k=1;k<=order;k++){
-	    if(fabs(rti[k])<NUMZERO)
+	    if(fabs(rti[k]) < EPS)
 		lamda[jj++]=rtr[k];
 	}
 
@@ -1920,7 +1920,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 			pow(lamda[k],2) + (8*a2*b2*c2 + 2*d2*e2*f2 - 
 			2*c2*pow(d2,2) - 2*a2*pow(e2,2) - 2*b2*pow(f2,2))*
 	                pow(lamda[k],3);
-	    if(fabs(det)>NUMZERO){ // if determinant is zero, there are infinite solutions
+	    if(fabs(det) > EPS){ // if determinant is zero, there are infinite solutions
 		                    // it is necessary to skip this case, otherwise computatation will fail.
 		x=
 			((-4*b1*c1*g1 + 2*c1*d1*h1 - e1*f1*h1 - d1*e1*i1 + 
@@ -1979,9 +1979,9 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 			  <<" itself="<<itself<<std::endl;
 #endif
 
-		// first, the found point must be on the surface of particle 2, i.e., itself < NUMZERO
+		// first, the found point must be on the surface of particle 2, i.e., itself < EPS
 		// second, the point must penetrate deepest into particle 1, i.e., smallest negative within 
-		if(itself < NUMZERO && within < deepest){
+		if(itself < EPS && within < deepest){
 		  deepest = within;
 		  point=vec(x,y,z);
 		  found=true;

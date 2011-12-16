@@ -24,13 +24,13 @@ class assembly{
 public:
 	assembly(){
 	    TotalNum = 0;
+	    HistoryNum = 0;
 	    Volume = 0;
 	    BulkDensity = 0;
 	    PossCntctNum = 0;
 	    ActualCntctNum = 0;
 	    RgdBdryNum = 0;
 	    FlbBdryNum = 0;
-	    Gravity = false;
 	};
 	
 	~assembly(){
@@ -117,7 +117,7 @@ public:
 	REAL getArea(int bdry) const;
 	REAL getAverageRigidPressure() const;
 	void        setArea(int bdry,REAL a);      // set the area of the bdry-th rigid boundary be a
-
+	void        setHistoryNum(int n) {HistoryNum = n;}
 	void        printParticle(const char* str) const; // print particles info into a disk file
 	void        printContact(const char* str) const;  // print contacts information
 	void        printBoundary(const char* str) const; // print rigid boundaries info to a disk file
@@ -131,7 +131,6 @@ public:
 			     int   snapshots,
 			     int   interval,
 			     REAL  rFloHeight,
-			     REAL  rTrimHeight,
 			     const char* iniptclfile,   
 			     const char* inibdryfile,
 			     const char* particlefile, 
@@ -191,6 +190,15 @@ public:
 		     const char* progressfile ="dep_progress",      // output file, statistical info
 		     const char* debugfile    ="dep_debug");        // output file, debug info
 
+	void deGravitation(int   total_steps,  
+			   int   snapshots,
+			   int   interval,
+			   const char* iniptclfile,   
+			   const char* particlefile, 
+			   const char* contactfile,
+			   const char* progressfile, 
+			   const char* debugfile);
+			   
 	// actual deposit function for particle boundaries
 	void deposit_p(int         total_steps  =50000,             // total_steps
 		       int         snapshots    =100,               // number of snapshots   
@@ -232,15 +240,29 @@ public:
 			 rectangle& container,
 			 const char* boundaryfile);
 
-	void setBoundary(REAL rheight,
-			 rectangle& container,
+	void setBoundary(rectangle& container,
 			 const char* boundaryfile);
 
-	void trim(REAL rTrimHeight,
-		  rectangle& container,
-		  const char* trmboundary,
+	void trim(rectangle& container,
+		  gradation& grad,
 		  const char* particlefile,
 		  const char* trmparticle);
+
+	void createBdryParticle(rectangle& container,
+				gradation& grad,
+				REAL pressure,
+				const char* particlefile,
+				const char* allparticle);
+
+	void iso_PtclBdry(int   total_steps,  
+			  int   snapshots, 
+			  int   interval,
+			  REAL  sigma_a,	  
+			  const char* iniptclfile, 
+			  const char* particlefile,
+			  const char* contactfile, 
+			  const char* progressfile,
+			  const char* debugfile);
 
 	void TrimPtclBdryByHeight(REAL height,
 				  const char* iniptclfile,
@@ -535,11 +557,9 @@ public:
 		       const char* trackfile   ="trackds");
 
 private:
-	// gravitation property
-	bool Gravity;        
-
 	// particles property
 	int  TotalNum;                      // total number of particles
+	int  HistoryNum;                    // record history maximum numbering for trimming case
 	int  PossCntctNum;                  // possible contact number based on spherical distances
 	int  ActualCntctNum;                // actual contact number based on solution of 6th order equations
 	std::list<particle*>  ParticleList; // a list of pointers, each pointing to a particle

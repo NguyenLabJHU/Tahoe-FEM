@@ -12,8 +12,8 @@ const REAL PI         = 3.14159265358979323846264338327950;
 // gravitational acceleration
 const REAL G          = 9.8;
 
-// numeric zero (NOT float point relative precision, eps), problem domain dependent
-const REAL NUMZERO    = 1.0e-12;
+// EPS (NOT float point relative precision, eps), problem domain dependent
+const REAL EPS        = 1.0e-12;
 
 // relative overlap between particles
 const REAL MINOVERLAP = 1.0e-6;

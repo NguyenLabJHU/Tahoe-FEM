@@ -18,8 +18,8 @@ extern const REAL PI;
 // Gravitational acceleration
 extern const REAL G;
 
-// numeric zero (NOT float point relative precision, eps), problem domain dependent
-extern const REAL NUMZERO;
+// EPS (NOT float point relative precision, eps), problem domain dependent
+extern const REAL EPS;
 
 // relative overlap between particles
 extern const REAL MINOVERLAP;

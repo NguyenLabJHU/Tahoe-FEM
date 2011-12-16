@@ -1168,7 +1168,6 @@ void assembly::deposit_RgdBdry(rectangle& container,
 			       int   snapshots,
 			       int   interval,
 			       REAL  rFloHeight,
-			       REAL  rTrimHeight,
 			       const char* iniptclfile,   
 			       const char* inibdryfile,
 			       const char* particlefile, 
@@ -1193,13 +1192,11 @@ void assembly::deposit_RgdBdry(rectangle& container,
 	  progressfile,       // output file, statistical info
 	  debugfile);         // output file, debug info
   
-  setBoundary(rTrimHeight,                  
-	      container,      // container unchanged
+  setBoundary(container,      // container unchanged
 	      trmboundary);   // output file, containing boundaries info
   
-  trim(rTrimHeight,
-       container,             // container unchanged
-       trmboundary,           // read only for RgdBdryNum
+  trim(container,             // container unchanged
+       grad,
        "dep_particle_end",    // input file, particles to be trimmed
        trmparticle);          // output file, trimmed particles
 }
@@ -1250,8 +1247,8 @@ void assembly::generate(rectangle& container,
   }
   else if (freetype == 1) { // a horizontal layer of free particles
     z = container.getV2().getz();
-    for (x = x1; x - x2 < NUMZERO; x += diameter)
-      for (y = y1; y - y2 < NUMZERO; y += diameter) {
+    for (x = x1; x - x2 < EPS; x += diameter)
+      for (y = y1; y - y2 < EPS; y += diameter) {
 	newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
 	ParticleList.push_back(newptcl);
 	TotalNum++;
@@ -1259,8 +1256,8 @@ void assembly::generate(rectangle& container,
   }
   else if (freetype == 2) { // multiple layers of free particles
     for (z = z1; z < z1 + dimz*rFloHeight; z += diameter) {
-      for (x = x1 + offset; x - x2 < NUMZERO; x += diameter)
-	for (y = y1 + offset; y - y2 < NUMZERO; y += diameter) {
+      for (x = x1 + offset; x - x2 < EPS; x += diameter)
+	for (y = y1 + offset; y - y2 < EPS; y += diameter) {
 	  newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
 	  ParticleList.push_back(newptcl);
 	  TotalNum++;
@@ -2140,10 +2137,7 @@ void assembly::setBoundary(int bdrynum,
 }
 
 // bdrymum = 6 by default
-// rheight is relative height to original height, specified for boundary #6
-// this function changes container's height and saves to a data file
-void assembly::setBoundary(REAL rheight,
-			   rectangle& container,
+void assembly::setBoundary(rectangle& container,
 			   const char* boundaryfile)
 {
   std::ofstream ofs(boundaryfile);
@@ -2160,7 +2154,6 @@ void assembly::setBoundary(REAL rheight,
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
 
-  z2 = z1 + container.getDimz() * rheight;
   int bdrynum = 6;
 
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -2506,14 +2499,69 @@ void assembly::setBoundary(REAL rheight,
   ofs.close();
 }
 
-void assembly::trim(REAL rTrimHeight,
-		    rectangle& container,
-		    const char* trmboundary,
+void assembly::trim(rectangle& container,
+		    gradation& grad,
 		    const char* particlefile,
 		    const char* trmparticle)
 {
   createSample(particlefile);
-  createBoundary(trmboundary); // read RgdBdryNum
+  HistoryNum = TotalNum;
+
+  REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
+  x1 = container.getV1().getx();
+  y1 = container.getV1().gety();
+  z1 = container.getV1().getz();
+  x2 = container.getV2().getx();
+  y2 = container.getV2().gety();
+  z2 = container.getV2().getz();
+  x0 = container.getCenter().getx();
+  y0 = container.getCenter().gety();
+  z0 = container.getCenter().getz();
+ 
+  std::list<particle*>::iterator itr,itp;
+  vec center;
+  REAL mass = 0;
+
+  for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
+    center=(*itr)->getCurrPosition();
+    if(center.getx() <= x1 || center.getx() >= x2 ||
+       center.gety() <= y1 || center.gety() >= y2 ||
+       center.getz() <= z1 || center.getz() + grad.getMaxPtclRadius() > z2)
+      {
+	itp = itr;
+	--itr;
+	delete (*itp); // release memory
+	ParticleList.erase(itp); 
+      }
+  }
+  
+  for(itr=ParticleList.begin();itr!=ParticleList.end();++itr)
+    mass += (*itr)->getMass();
+  
+  Volume = container.getDimx() * container.getDimy() * container.getDimz();
+  BulkDensity = mass/Volume;
+  
+  TotalNum = ParticleList.size();
+  printParticle(trmparticle);
+}
+
+
+void assembly::createBdryParticle(rectangle& container,
+				  gradation& grad,
+				  REAL pressure,
+				  const char* particlefile,
+				  const char* allparticle)
+{
+  createSample(particlefile);
+
+  REAL radius = grad.getMinPtclRadius();
+  if (grad.getSize().size() == 1 &&
+      grad.getPtclRatioBA() == 1.0 && 
+      grad.getPtclRatioCA() == 1.0)
+    radius *= 0.5; // determine how tiny the boundary particles are
+  REAL diameter = radius*2;
+  REAL mag      = radius*radius*4*pressure;
+  REAL overlap  = radius;
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
   x1 = container.getV1().getx();
@@ -2526,65 +2574,67 @@ void assembly::trim(REAL rTrimHeight,
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
 
-  z2 = z1 + container.getDimz() * rTrimHeight;
- 
-  std::list<particle*>::iterator itr,itp;
-  vec center;
-  REAL mass = 0;
-  
+  particle* newptcl = NULL;
+  vec force;
+  REAL x, y, z;
 
-  if (RgdBdryNum == 4) {    
-    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
-      center=(*itr)->getCurrPosition();
-      if(center.getx() <= x1 || center.getx() >= x2 ||
-	 center.gety() <= y1 || center.gety() >= y2 )
-	{
-	  itp = itr;
-	  --itr;
-	  delete (*itp); // release memory
-	  ParticleList.erase(itp); 
-	}
+  x = x1 - overlap;
+  force.set(mag, 0, 0);
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+    for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
     }
-    
-  }
-  else if (RgdBdryNum == 5) {
-    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
-      center=(*itr)->getCurrPosition();
-      if(center.getx() <= x1 || center.getx() >= x2 ||
-	 center.gety() <= y1 || center.gety() >= y2 ||
-	 center.getz() <= z1)
-	{
-	  itp = itr;
-	  --itr;
-	  delete (*itp); // release memory
-	  ParticleList.erase(itp); 
-	}
-    }
-    
-  }
-  else if (RgdBdryNum == 6) {
-    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
-      center=(*itr)->getCurrPosition();
-      if(center.getx() <= x1 || center.getx() >= x2 ||
-	 center.gety() <= y1 || center.gety() >= y2 ||
-	 center.getz() <= z1 || center.getz() > z2)
-	{
-	  itp = itr;
-	  --itr;
-	  delete (*itp); // release memory
-	  ParticleList.erase(itp); 
-	}
-    }
-  }
   
+  x = x2 + overlap;
+  force.set(-mag, 0, 0);
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+    for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
+
+    }
+  
+  y = y1 - overlap;
+  force.set(0, mag, 0);
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
+    }
+
+  y = y2 + overlap;
+  force.set(0, -mag, 0);
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
+    }
+  
+  z = z1 - overlap;
+  force.set(0, 0, mag);
+  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
+    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
+    }
+
+  z = z2 + overlap;
+  force.set(0, 0, -mag);
+  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
+    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
+    }
+
   TotalNum = ParticleList.size();
-  for(itr=ParticleList.begin();itr!=ParticleList.end();++itr)
-    mass += (*itr)->getMass();
-  
-  Volume = container.getDimx() * container.getDimy() * container.getDimz();
-  BulkDensity = mass/Volume;
-  
-  printParticle(trmparticle);
+  printParticle(allparticle);
 }
 
 
@@ -2635,79 +2685,42 @@ void assembly::deposit(int   total_steps,
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf.precision(OPREC);
     progressinf<<setw(OWID)<<"iteration"
-	       <<setw(OWID)<<"possible"
-	       <<setw(OWID)<<"actual"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"translational"
-	       <<setw(OWID)<<"rotational"
-	       <<setw(OWID)<<"kinetic"
-	       <<setw(OWID)<<"potential"
-	       <<setw(OWID)<<"total"
-	       <<setw(OWID)<<"void"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"coordination"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"vibra"
-	       <<setw(OWID)<<"impact"
-	       <<setw(OWID)<<"wall-clock" << endl
-	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"contacts"
-	       <<setw(OWID)<<"contacts"
+	       <<setw(OWID)<<"poss_contact"
+	       <<setw(OWID)<<"actual_contact"
 	       <<setw(OWID)<<"penetration"
-	       <<setw(OWID)<<"contact_normal"
-	       <<setw(OWID)<<"contact_tangt"
-	       <<setw(OWID)<<"velocity"
-	       <<setw(OWID)<<"omga"
-	       <<setw(OWID)<<"force"
-	       <<setw(OWID)<<"moment"
-	       <<setw(OWID)<<"energy"
-	       <<setw(OWID)<<"energy"
-	       <<setw(OWID)<<"energy"
-	       <<setw(OWID)<<"energy"
-	       <<setw(OWID)<<"energy"
-	       <<setw(OWID)<<"ratio"
+	       <<setw(OWID)<<"avg_normal"
+	       <<setw(OWID)<<"avg_tangt"
+	       <<setw(OWID)<<"avg_velocity"
+	       <<setw(OWID)<<"avg_omga"
+	       <<setw(OWID)<<"avg_force"
+	       <<setw(OWID)<<"avg_moment"
+	       <<setw(OWID)<<"trans_energy"
+	       <<setw(OWID)<<"rotat_energy"
+	       <<setw(OWID)<<"kinet_energy"
+	       <<setw(OWID)<<"poten_energy"
+	       <<setw(OWID)<<"total_energy"
+	       <<setw(OWID)<<"void_ratio"
 	       <<setw(OWID)<<"porosity"
-	       <<setw(OWID)<<"number"
+	       <<setw(OWID)<<"coord_number"
 	       <<setw(OWID)<<"density"
-	       <<setw(OWID)<<"sigma1_1"
-	       <<setw(OWID)<<"sigma1_2"
-	       <<setw(OWID)<<"sigma2_1"
-	       <<setw(OWID)<<"sigma2_2"
-	       <<setw(OWID)<<"sigma3_1"
-	       <<setw(OWID)<<"sigma3_2"
+	       <<setw(OWID)<<"sigma_y1"
+	       <<setw(OWID)<<"sigma_y2"
+	       <<setw(OWID)<<"sigma_x1"
+	       <<setw(OWID)<<"sigma_x2"
+	       <<setw(OWID)<<"sigma_z1"
+	       <<setw(OWID)<<"sigma_z2"
 	       <<setw(OWID)<<"mean_stress"
-	       <<setw(OWID)<<"width"
-	       <<setw(OWID)<<"length"
-	       <<setw(OWID)<<"height"
+	       <<setw(OWID)<<"dimx"
+	       <<setw(OWID)<<"dimy"
+	       <<setw(OWID)<<"dimz"
 	       <<setw(OWID)<<"volume"
-	       <<setw(OWID)<<"epsilon_w"
-	       <<setw(OWID)<<"epsilon_l"
-	       <<setw(OWID)<<"epsilon_h"
+	       <<setw(OWID)<<"epsilon_x"
+	       <<setw(OWID)<<"epsilon_y"
+	       <<setw(OWID)<<"epsilon_z"
 	       <<setw(OWID)<<"epsilon_v"
-	       <<setw(OWID)<<"t_step"
-	       <<setw(OWID)<<"t_step"
-	       <<setw(OWID)<<"time" << endl;
+	       <<setw(OWID)<<"vibra_t_step"
+	       <<setw(OWID)<<"impact_t_step"
+	       <<setw(OWID)<<"wall_time" << endl;
 
     g_debuginf.open(debugfile);
     if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
@@ -2853,6 +2866,118 @@ void assembly::deposit(int   total_steps,
     // post_2. close streams
     progressinf.close();
     g_debuginf.close();
+}
+
+
+void assembly::deGravitation(int   total_steps,  
+			     int   snapshots,
+			     int   interval,
+			     const char* iniptclfile,   
+			     const char* particlefile, 
+			     const char* contactfile,
+			     const char* progressfile, 
+			     const char* debugfile)
+{
+  // pre_1: open streams for output.
+  progressinf.open(progressfile); 
+  if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+  progressinf.setf(std::ios::scientific, std::ios::floatfield);
+  progressinf.precision(OPREC);
+  progressinf<<setw(OWID)<<"iteration"
+	     <<setw(OWID)<<"poss_contact"
+	     <<setw(OWID)<<"actual_contact"
+	     <<setw(OWID)<<"penetration"
+	     <<setw(OWID)<<"avg_normal"
+	     <<setw(OWID)<<"avg_tangt"
+	     <<setw(OWID)<<"avg_velocity"
+	     <<setw(OWID)<<"avg_omga"
+	     <<setw(OWID)<<"avg_force"
+	     <<setw(OWID)<<"avg_moment"
+	     <<setw(OWID)<<"trans_energy"
+	     <<setw(OWID)<<"rotat_energy"
+	     <<setw(OWID)<<"kinet_energy"
+	     << endl;
+  
+  g_debuginf.open(debugfile);
+  if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+  g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
+  
+  // pre_2. create particles from existing files.
+  createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
+  
+  // pre_3. define variables used in iterations
+  REAL avgNormal=0;
+  REAL avgTangt=0;
+  int  stepsnum=0;
+  char stepsstr[4];
+  char stepsfp[50];
+
+  // iterations starting ...
+  g_iteration=0; 
+  do
+    {
+      // 1. find contacts between particles.
+      findContact();
+      
+      // 2. set particles' forces/moments as zero before each re-calculation,
+      clearForce();	
+      
+      // 3. calculate contact forces/moments and apply them to particles.
+      internalForce(avgNormal, avgTangt);
+      
+      // 4. update particles' velocity/omga/position/orientation based on force/moment.
+      updateParticle();
+      
+      // 5. (1) output particles and contacts information as snapshots.
+      if (g_iteration % (total_steps/snapshots) == 0){
+	sprintf(stepsstr, "%03d", stepsnum); 
+	strcpy(stepsfp, particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	printParticle(stepsfp);
+	cout << stepsfp;
+	
+	sprintf(stepsstr, "%03d", stepsnum); 
+	strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	printContact(stepsfp);
+	++stepsnum;
+	time(&timeStamp);
+	cout << "  " << stepsfp << "  " << ctime(&timeStamp);
+      }
+      
+      // 5. (2) output stress and strain info.
+      if (g_iteration % interval == 0) {
+	progressinf<<setw(OWID)<<g_iteration
+		   <<setw(OWID)<<getPossCntctNum()
+		   <<setw(OWID)<<getActualCntctNum()
+		   <<setw(OWID)<<getAveragePenetration()
+		   <<setw(OWID)<<avgNormal
+		   <<setw(OWID)<<avgTangt
+		   <<setw(OWID)<<getAverageVelocity() 
+		   <<setw(OWID)<<getAverageOmga()
+		   <<setw(OWID)<<getAverageForce()   
+		   <<setw(OWID)<<getAverageMoment()
+		   <<setw(OWID)<<getTransEnergy()
+		   <<setw(OWID)<<getRotatEnergy()
+		   <<setw(OWID)<<getKinetEnergy()
+		   <<endl;
+      }
+      
+      // 7. loop break conditions.
+      if (ContactList.size() == 0) break;
+      
+    } while (++g_iteration < total_steps);
+  
+  // post_1. store the final snapshot of particles & contacts.
+  strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
+  printParticle(stepsfp);
+  cout << stepsfp;
+  
+  strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
+  printContact(stepsfp);
+  cout << "  " << stepsfp << "  " << ctime(&timeStamp);
+  
+  // post_2. close streams
+  progressinf.close();
+  g_debuginf.close();
 }
 
 
@@ -3156,7 +3281,7 @@ void assembly::squeeze(int   total_steps,
 void assembly::isotropic(int   total_steps,
 			 int   snapshots, 
 			 int   interval,
-			 REAL sigma,			  
+			 REAL  sigma,			  
 			 const char* iniptclfile,   
 			 const char* inibdryfile,
 			 const char* particlefile, 
@@ -4723,6 +4848,117 @@ void assembly::unconfined(int   total_steps,
 }
 
 
+void assembly::iso_PtclBdry(int   total_steps,  
+			    int   snapshots, 
+			    int   interval,
+			    REAL  sigma3,	  
+			    const char* iniptclfile, 
+			    const char* particlefile,
+			    const char* contactfile, 
+			    const char* progressfile,
+			    const char* debugfile) 
+{
+  // pre_1: open streams for output
+  // particlefile and contactfile are used for snapshots at the end.
+  progressinf.open(progressfile);
+  if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+  progressinf.setf(std::ios::scientific, std::ios::floatfield);
+  progressinf.precision(OPREC);
+  progressinf<<setw(OWID)<<"iteration"
+	     <<setw(OWID)<<"poss_contact"
+	     <<setw(OWID)<<"actual_contact"
+	     <<setw(OWID)<<"penetration"
+	     <<setw(OWID)<<"avg_normal"
+	     <<setw(OWID)<<"avg_tangt"
+	     <<setw(OWID)<<"avg_velocity"
+	     <<setw(OWID)<<"avg_omga"
+	     <<setw(OWID)<<"avg_force"
+	     <<setw(OWID)<<"avg_moment"
+	     <<setw(OWID)<<"trans_energy"
+	     <<setw(OWID)<<"rotat_energy"
+	     <<setw(OWID)<<"kinet_energy"
+	     <<endl;
+  
+  g_debuginf.open(debugfile);
+  if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+  g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
+  
+  // pre_2. create particles from file
+  createSample(iniptclfile); // need to turn on constant force
+  
+  // pre_3. define variables used in iterations
+  REAL avgNormal=0;
+  REAL avgTangt=0;
+  int  stepsnum=0;
+  char stepsstr[4];
+  char stepsfp[50];
+  
+  // iterations start here...
+  g_iteration=0;
+  do 
+    {
+      // 1. find contacts between particles
+      findContact();
+      
+      // 2. set particles' forces/moments as zero before each re-calculation
+      clearForce();	
+      
+      // 3. calculate contact forces/moments and apply them to particles
+      internalForce(avgNormal, avgTangt);
+      
+      // 4. update particles' velocity/omga/position/orientation based on force/moment
+      updateParticle();
+      
+      // 5. (1) output particles and contacts information
+      if (g_iteration % (total_steps/snapshots) == 0){
+	sprintf(stepsstr, "%03d", stepsnum); 
+	strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	printParticle(stepsfp);
+	cout << stepsfp;
+	
+	sprintf(stepsstr, "%03d", stepsnum); 
+	strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	printContact(stepsfp);
+	++stepsnum;
+	time(&timeStamp);
+	cout << "  " << stepsfp << "  " << ctime(&timeStamp);
+      }
+      
+      // 5. (2) output stress and strain info
+	if (g_iteration % interval == 0 ){
+	  progressinf<<setw(OWID)<<g_iteration
+		     <<setw(OWID)<<getPossCntctNum()
+		     <<setw(OWID)<<getActualCntctNum()
+		     <<setw(OWID)<<getAveragePenetration()
+		     <<setw(OWID)<<avgNormal
+		     <<setw(OWID)<<avgTangt
+		     <<setw(OWID)<<getAverageVelocity() 
+		     <<setw(OWID)<<getAverageOmga()
+		     <<setw(OWID)<<getAverageForce()   
+		     <<setw(OWID)<<getAverageMoment()
+		     <<setw(OWID)<<getTransEnergy()
+		     <<setw(OWID)<<getRotatEnergy()
+		     <<setw(OWID)<<getKinetEnergy()
+		     <<endl;
+	}
+	  
+    } while (++g_iteration < total_steps);
+  
+  // post_1. store the final snapshot of particles, contacts and boundaries.
+  strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
+  printParticle(stepsfp);
+  cout << stepsfp;
+  
+  strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
+  printContact(stepsfp);
+  cout << "  " << stepsfp << "  " << ctime(&timeStamp);
+  
+  // post_2. close streams
+  progressinf.close();
+  g_debuginf.close();
+}
+
+
 // This function initializes triaxial sample to a certain confining pressure.
 void assembly::triaxialPtclBdryIni(int   total_steps,  
 				   int   snapshots, 
@@ -5082,7 +5318,7 @@ void assembly::triaxialPtclBdry(int   total_steps,
 void assembly::triaxial(int   total_steps,  
 			int   snapshots, 
 			int   interval,
-			REAL sigma_a,	  
+			REAL  sigma_a,	  
 			const char* iniptclfile, 
 			const char* inibdryfile,
 			const char* particlefile,
