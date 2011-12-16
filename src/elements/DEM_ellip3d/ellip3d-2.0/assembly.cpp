@@ -2548,7 +2548,7 @@ void assembly::trim(rectangle& container,
 
 void assembly::createBdryParticle(rectangle& container,
 				  gradation& grad,
-				  REAL pressure,
+				  REAL rRadius,
 				  const char* particlefile,
 				  const char* allparticle)
 {
@@ -2558,10 +2558,8 @@ void assembly::createBdryParticle(rectangle& container,
   if (grad.getSize().size() == 1 &&
       grad.getPtclRatioBA() == 1.0 && 
       grad.getPtclRatioCA() == 1.0)
-    radius *= 0.5; // determine how tiny the boundary particles are
+    radius *= rRadius; // determine how tiny the boundary particles are
   REAL diameter = radius*2;
-  REAL mag      = radius*radius*4*pressure;
-  REAL overlap  = radius;
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
   x1 = container.getV1().getx();
@@ -2575,61 +2573,47 @@ void assembly::createBdryParticle(rectangle& container,
   z0 = container.getCenter().getz();
 
   particle* newptcl = NULL;
-  vec force;
   REAL x, y, z;
 
-  x = x1 - overlap;
-  force.set(mag, 0, 0);
+  x = x1 - radius;
   for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
     for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
       newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      newptcl->setForce(force);
       ParticleList.push_back(newptcl);
     }
   
-  x = x2 + overlap;
-  force.set(-mag, 0, 0);
+  x = x2 + radius;
   for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
     for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
       newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      newptcl->setForce(force);
-      ParticleList.push_back(newptcl);
-
-    }
-  
-  y = y1 - overlap;
-  force.set(0, mag, 0);
-  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
-    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      newptcl->setForce(force);
-      ParticleList.push_back(newptcl);
-    }
-
-  y = y2 + overlap;
-  force.set(0, -mag, 0);
-  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
-    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      newptcl->setForce(force);
       ParticleList.push_back(newptcl);
     }
   
-  z = z1 - overlap;
-  force.set(0, 0, mag);
-  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
+  y = y1 - radius;
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
     for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
       newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      newptcl->setForce(force);
       ParticleList.push_back(newptcl);
     }
 
-  z = z2 + overlap;
-  force.set(0, 0, -mag);
+  y = y2 + radius;
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
+      ParticleList.push_back(newptcl);
+    }
+  
+  z = z1 - radius;
   for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
     for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
       newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      newptcl->setForce(force);
+      ParticleList.push_back(newptcl);
+    }
+
+  z = z2 + radius;
+  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
+    for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
+      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
       ParticleList.push_back(newptcl);
     }
 
@@ -4851,7 +4835,10 @@ void assembly::unconfined(int   total_steps,
 void assembly::iso_PtclBdry(int   total_steps,  
 			    int   snapshots, 
 			    int   interval,
-			    REAL  sigma3,	  
+			    REAL  sigma3,
+			    rectangle& container,
+			    gradation& grad,
+			    REAL  rRadius,
 			    const char* iniptclfile, 
 			    const char* particlefile,
 			    const char* contactfile, 
@@ -4883,9 +4870,39 @@ void assembly::iso_PtclBdry(int   total_steps,
   if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
   g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
   
-  // pre_2. create particles from file
-  createSample(iniptclfile); // need to turn on constant force
-  
+  // pre_2. create particles from file and calculate forces caused by hydraulic pressure
+  createSample(iniptclfile);
+  REAL radius = grad.getMinPtclRadius();
+  if (grad.getSize().size() == 1 &&
+      grad.getPtclRatioBA() == 1.0 && 
+      grad.getPtclRatioCA() == 1.0)
+    radius *= rRadius; // determine how tiny the boundary particles are
+  REAL mag  = radius*radius*4*sigma3;
+  REAL x1 = container.getV1().getx();
+  REAL y1 = container.getV1().gety();
+  REAL z1 = container.getV1().getz();
+  REAL x2 = container.getV2().getx();
+  REAL y2 = container.getV2().gety();
+  REAL z2 = container.getV2().getz();
+  std::list<particle*>::const_iterator  it;
+  vec pos;
+  for (it=ParticleList.begin();it!=ParticleList.end();++it)
+    {
+      pos = (*it)->getCurrPosition();
+      if (pos.getx() < x1)
+	(*it)->setConstForce( vec(mag, 0, 0) );
+      else if (pos.getx() > x2)
+	(*it)->setConstForce( vec(-mag, 0, 0) );
+      else if (pos.gety() < y1)
+	(*it)->setConstForce( vec(0, mag, 0) );
+      else if (pos.gety() > y2)
+	(*it)->setConstForce( vec(0, -mag, 0) );
+      else if (pos.getz() < z1)
+	(*it)->setConstForce( vec(0, 0, mag) );
+      else if (pos.getz() > z2)
+	(*it)->setConstForce( vec(0, 0, -mag) );
+    }
+
   // pre_3. define variables used in iterations
   REAL avgNormal=0;
   REAL avgTangt=0;

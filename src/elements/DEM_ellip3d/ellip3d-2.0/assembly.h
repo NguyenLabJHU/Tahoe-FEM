@@ -250,20 +250,23 @@ public:
 
 	void createBdryParticle(rectangle& container,
 				gradation& grad,
-				REAL pressure,
+				REAL rRadius,
 				const char* particlefile,
 				const char* allparticle);
 
 	void iso_PtclBdry(int   total_steps,  
 			  int   snapshots, 
 			  int   interval,
-			  REAL  sigma_a,	  
+			  REAL  sigma3,
+			  rectangle& container,
+			  gradation& grad,
+			  REAL  rRadius,
 			  const char* iniptclfile, 
 			  const char* particlefile,
 			  const char* contactfile, 
 			  const char* progressfile,
 			  const char* debugfile);
-
+	  
 	void TrimPtclBdryByHeight(REAL height,
 				  const char* iniptclfile,
 				  const char* particlefile);

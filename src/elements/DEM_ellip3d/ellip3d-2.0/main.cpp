@@ -45,11 +45,11 @@ int main(int argc, char* argv[])
   ///*
   // --- dynamic relaxation and scaling
   dem::TIMESTEP      = 5.0e-06;
-  dem::MASS_SCL      = 1.0e+01;
-  dem::MNT_SCL       = 1.0e+01;
+  dem::MASS_SCL      = 1;//1.0e+01;
+  dem::MNT_SCL       = 1;//1.0e+01;
   dem::GRVT_SCL      = 0;       // 1.0e+03;
-  dem::DMP_F         = 2.0/dem::TIMESTEP;
-  dem::DMP_M         = 2.0/dem::TIMESTEP;
+  dem::DMP_F         = 2.0/dem::TIMESTEP * 0.1;
+  dem::DMP_M         = 2.0/dem::TIMESTEP * 0.1;
   //*/
 
   // 2. normal damping and tangential friciton
@@ -148,16 +148,36 @@ int main(int argc, char* argv[])
 	 "trm_particle_end"); // output
   A.createBdryParticle(container,
 		       ptclGradation,
-		       1.0e+5,
+		       0.5, // size relative to minimum radius
 		       "trm_particle_end",
 		       "mem_particle_end");
   */
 
-  ///* need to turn on setConstForce
-  A.iso_PtclBdry(10000,
+  ///*
+  //container properties
+  REAL dimx = 0.05;
+  REAL dimy = 0.05;
+  REAL dimz = 0.10;
+  dem::vec center(0, 0, 0);
+  dem::rectangle container(dimx,dimy,dimz,center);
+  // particle shape, size and percentage
+  REAL ptcl_ratio_ba = 1;//0.8;  // ratio of radius b to radius a
+  REAL ptcl_ratio_ca = 1;//0.6;  // ratio of radius c to radius a
+  std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
+  std::vector<REAL> size;    // particle size
+  percent.push_back(1.00); size.push_back(2.5e-3);
+  //percent.push_back(0.80); size.push_back(2.3e-3);
+  //percent.push_back(0.60); size.push_back(2.0e-3);
+  //percent.push_back(0.30); size.push_back(1.5e-3);
+  //percent.push_back(0.10); size.push_back(1.0e-3);
+  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
+  A.iso_PtclBdry(100000,
 		 100,
 		 10,
-		 1.0e+5,
+		 1.0e+3,
+		 container,
+		 ptclGradation,
+		 0.5, // size relative to minimum radius
 		 "mem_particle_end",
 		 "iso_particle",
 		 "iso_contact",
