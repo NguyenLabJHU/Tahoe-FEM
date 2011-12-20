@@ -7,10 +7,10 @@
 CXX = g++
 
 # optimization
-OPTIMIZE = -O3
+OPTIMIZE = -O3 -DNDEBUG
 
-# debugging options (macro DEBUG is defined in source code)
-DEBUG = -Wall -g -DDEBUG
+# debugging options
+DEBUG = -Wall -g
 
 # 1. OpenMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -fopenmp

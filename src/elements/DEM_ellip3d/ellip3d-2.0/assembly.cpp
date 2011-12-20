@@ -784,7 +784,7 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 	    it->checkoutTgt(CntTgtVec);   // checkout current tangential force and displacment
 	    avgnm += it->getNormalForce();
 	    avgsh += it->getTgtForce();
-#ifdef DEBUG
+#ifndef NDEBUG
 	    if (exceed) {
 	      char stepsstr[7];
 	      char stepsfp[50];

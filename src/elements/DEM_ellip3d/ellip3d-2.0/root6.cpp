@@ -1873,7 +1873,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 	for (int k=0;k<=order;k++)
 	    rtc[k]/=rtc[order];
 
-#ifdef DEBUG  // tested: order==6 whether or not in contact
+#ifndef NDEBUG  // tested: order==6 whether or not in contact
 	g_debuginf<<"root6.cpp: g_iteration="<<g_iteration
 		  <<" order="<<order<<std::endl;
 #endif
@@ -1881,7 +1881,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 	if (!zrhqr(rtc, order, rtr, rti)) // find roots for a polynomial using eigenvalues method
 	    return false;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	for (int k=1;k<=order;k++){
 	  g_debuginf<<"root6.cpp: rtr="<<rtr[k]<<" rti="<<rti[k]<<std::endl;
 	}
@@ -1894,7 +1894,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 		lamda[jj++]=rtr[k];
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	g_debuginf<<"root6.cpp: jj="<<jj<<std::endl;
 #endif
 
@@ -1971,7 +1971,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 		within = a1*x*x+b1*y*y+c1*z*z+d1*x*y+e1*y*z+f1*z*x+g1*x+h1*y+i1*z+j1;
 		itself = a2*x*x+b2*y*y+c2*z*z+d2*x*y+e2*y*z+f2*z*x+g2*x+h2*y+i2*z+j2;
 		
-#ifdef DEBUG
+#ifndef NDEBUG
 		g_debuginf<<"root6.cpp: k="<<k
 			  <<" det="<<det
 			  <<" x="<< x <<" y="<< y <<" z="<< z
@@ -1985,13 +1985,13 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 		  deepest = within;
 		  point=vec(x,y,z);
 		  found=true;
-#ifdef DEBUG
+#ifndef NDEBUG
 		  g_debuginf<<"root6.cpp: selected within="<<deepest<<std::endl;
 #endif
 		}
 	    }
 	    else {
-#ifdef DEBUG
+#ifndef NDEBUG
 	      g_debuginf<<"root6: k="<<k
 			<<" det="<<det
 			<<" determinant is 0!" <<std::endl;

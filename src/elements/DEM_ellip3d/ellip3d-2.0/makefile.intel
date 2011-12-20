@@ -4,11 +4,11 @@
 CXX = icpc
 
 # optimization
-OPTIMIZE = -O3 -fp-model source
+OPTIMIZE = -O3 -DNDEBUG -fp-model source
 # -xCORE-AVX2 -axCORE-AVX2 -ipo -guide (-vec) -parallel (-ftz) -fp-model extended/source/precise/strict
 
-# debugging options (macro DEBUG is defined in source code)
-DEBUG = -Wall -g -DDEBUG
+# debugging options
+DEBUG = -Wall -g
 
 # OpenMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -openmp

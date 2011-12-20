@@ -156,7 +156,7 @@ namespace dem {
     vec vv = v - vp;
     
     REAL theta = atan(vfabs(vv) / vfabs(vp));
-#ifdef DEBUG
+#ifndef NDEBUG
     g_debuginf<<"vec.cpp: g_iteration="<<g_iteration 
 	      <<" alf="<<alf
 	      <<" theta="<<theta<<std::endl;
