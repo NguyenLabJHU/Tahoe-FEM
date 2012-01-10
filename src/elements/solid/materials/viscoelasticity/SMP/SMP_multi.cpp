@@ -1,4 +1,4 @@
-/* $Id: SMP_multi.cpp,v 1.2 2011-12-01 20:38:13 beichuan Exp $ */
+/* $Id: SMP_multi.cpp,v 1.3 2012-01-10 19:00:56 xiaorui Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "SMP_multi.h"
@@ -1448,7 +1448,7 @@ double SMP_multi::StretchedExponentialSpectrum(const double x, const double tauK
 	for (int k = 0; k < nk; k++)
 	{
 		double kfac= fGamma.Function(k+1);
-		double kpow = pow(-1,k);
+		double kpow = pow(-1.0,k);
 		double kb = betakWW*k;
 		rho += kpow/kfac * sin(pi*kb)*fGamma.Function(kb+1.0)*pow(x,kb+1.0);
 	}
