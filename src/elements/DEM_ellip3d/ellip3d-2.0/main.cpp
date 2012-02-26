@@ -33,24 +33,24 @@ int main(int argc, char* argv[])
   // Part 1: setup parameters (override parameter.cpp)
   // 1. time integration method
   // --- dynamic
-  /*
+  ///*
   dem::TIMESTEP      = 5.0e-06; // time step
   dem::MASS_SCL      = 1;       // mass scaling
   dem::MNT_SCL       = 1;       // moment of inertial scaling
   dem::GRVT_SCL      = 1;       // gravity scaling
   dem::DMP_F         = 0;       // background viscous damping on mass
   dem::DMP_M         = 0;       // background viscous damping on moment of inertial
-  */
+  //*/
 
-  ///*
+  /*
   // --- dynamic relaxation and scaling
   dem::TIMESTEP      = 5.0e-06;
   dem::MASS_SCL      = 1;//1.0e+01;
   dem::MNT_SCL       = 1;//1.0e+01;
-  dem::GRVT_SCL      = 0;       // 1.0e+03;
-  dem::DMP_F         = 2.0/dem::TIMESTEP * 0.1;
-  dem::DMP_M         = 2.0/dem::TIMESTEP * 0.1;
-  //*/
+  dem::GRVT_SCL      = 0; //1.0e+03;
+  dem::DMP_F         = 2.0/dem::TIMESTEP * 0.01;
+  dem::DMP_M         = 2.0/dem::TIMESTEP * 0.01;
+  */
 
   // 2. normal damping and tangential friciton
   dem::DMP_CNT       = 0.20;    // normal contact damping ratio
@@ -58,103 +58,90 @@ int main(int argc, char* argv[])
   dem::BDRYFRIC      = 0.50;    // coefficient of friction between particle and rigid wall
   dem::COHESION      = 0;       // cohesion between particles, 5.0e+8
   
-  // 3. boundary displacement rate
+  // 3. rigid wall displacement rate
   dem::COMPRESS_RATE = 7.0e-03; // 7.0e-03 for triaxial; 1.0e-03 for isotropic and odometer.
   dem::RELEASE_RATE  = 7.0e-03; // the same as above
   dem::PILE_RATE     = 2.5e-01; // pile penetration velocity
   dem::STRESS_ERROR  = 2.0e-02; // tolerance of stress equilibrium on rigid walls
   
-  dem::assembly A;
+  dem::assembly sample;
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 2: set up a simulation to run
   /*
-  A.deposit(10000,             // total_steps
-	    500,                // number of snapshots
-	    1,                  // print interval
-	    "flo_particle_end", // input file, initial particles
-	    "dep_boundary_ini", // input file, initial boundaries
-	    "dep_particle",     // output file, resulted particles, including snapshots 
-	    "dep_contact",      // output file, resulted contacts, including snapshots 
-	    "dep_progress",     // output file, statistical info
-	    "dep_debug");       // output file, debug info
+  sample.deposit(10000,             // total_steps
+		 100,                // number of snapshots
+		 10,                  // print interval
+		 "flo_particle_end", // input file, initial particles
+		 "dep_boundary_ini", // input file, initial boundaries
+		 "dep_particle",     // output file, resulted particles, including snapshots 
+		 "dep_contact",      // output file, resulted contacts, including snapshots 
+		 "dep_progress",     // output file, statistical info
+		 "dep_debug");       // output file, debug info
   */
-
- 
+  
   /*
-  // container properties
-  REAL dimx = 0.05;
-  REAL dimy = 0.05;
-  REAL dimz = 0.10;
-  dem::vec center(0, 0, 0);
-  dem::rectangle container(dimx,dimy,dimz,center);
-  // particle shape, size and percentage
-  REAL ptcl_ratio_ba = 1;//0.8;  // ratio of radius b to radius a
-  REAL ptcl_ratio_ca = 1;//0.6;  // ratio of radius c to radius a
-  std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
-  std::vector<REAL> size;    // particle size
-  percent.push_back(1.00); size.push_back(2.5e-3);
-  //percent.push_back(0.80); size.push_back(2.3e-3);
-  //percent.push_back(0.60); size.push_back(2.0e-3);
-  //percent.push_back(0.30); size.push_back(1.5e-3);
-  //percent.push_back(0.10); size.push_back(1.0e-3);
-  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
-  A.deposit_RgdBdry(container,
-		    ptclGradation,
-		    2,                  // freetype, setting of free particles 
-		    100000,            // total_steps
-		    100,                // number of snapshots
-		    10,                 // print interval
-		    3.0,                // relative height of floating particles based on container height
-		    "flo_particle_end", // output file, initial particles for depositing
-		    "dep_boundary_ini", // output file, initial boundaries for depositing
-		    "dep_particle",     // output file, resulted particles, including snapshots 
-		    "dep_contact",      // output file, resulted contacts, including snapshots 
-		    "dep_progress",     // output file, statistical info
-		    "trm_particle_end", // output file, resulted particles after trmming
-		    "trm_boundary_end", // output file, resulted boundaries after trmming
-		    "dep_debug");       // output file, debug 
-  */
-
-  /* degravitation, no boundary, quasi-static
-  A.deGravitation(15000,             // total_steps
-		  5,                 // number of snapshots
-		  1,                  // print interval
-		  "dep_particle_end", // input file, initial particles
-		  "dgr_particle",     // output file, resulted particles, including snapshots 
-		  "dgr_contact",      // output file, resulted contacts, including snapshots 
-		  "dgr_progress",     // output file, statistical info
-		  "dgr_debug");       // output file, debug info
-  // container properties
-  REAL dimx = 0.05;
-  REAL dimy = 0.05;
-  REAL dimz = 0.10;
-  dem::vec center(0, 0, 0);
-  dem::rectangle container(dimx,dimy,dimz,center);
-  // particle shape, size and percentage
-  REAL ptcl_ratio_ba = 1;//0.8;  // ratio of radius b to radius a
-  REAL ptcl_ratio_ca = 1;//0.6;  // ratio of radius c to radius a
-  std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
-  std::vector<REAL> size;    // particle size
-  percent.push_back(1.00); size.push_back(2.5e-3);
-  //percent.push_back(0.80); size.push_back(2.3e-3);
-  //percent.push_back(0.60); size.push_back(2.0e-3);
-  //percent.push_back(0.30); size.push_back(1.5e-3);
-  //percent.push_back(0.10); size.push_back(1.0e-3);
-  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
-  A.trim(container,
-	 ptclGradation,
-	 "dgr_particle_end",  // input
-	 "trm_particle_end"); // output
-  A.createBdryParticle(container,
-		       ptclGradation,
-		       0.5, // size relative to minimum radius
-		       "trm_particle_end",
-		       "mem_particle_end");
+  sample.isotropic(100000,             // total_steps
+		   100,                // number of snapshots
+		   10,                 // print interval
+		   1.0e+3,             // a low confining pressure to achieve for initialization
+		   "trm_particle_end",     // input file, initial particles
+		   "trm_boundary_end",     // input file, initial boundaries
+		   "iso_particle",     // output file, resulted particles, including snapshots 
+		   "iso_boundary",     // output file, resulted boundaries 
+		   "iso_contact",      // output file, resulted contacts, including snapshots 
+		   "iso_progress",     // output file, statistical info
+		   "iso_balanced",     // output file, balanced status
+		   "iso_debug");       // output file, debug info
   */
 
   ///*
-  //container properties
+  // container properties
+  REAL dimx = 0.05;
+  REAL dimy = 0.05;
+  REAL dimz = 0.05;
+  dem::vec center(0, 0, 0);
+  dem::rectangle container(dimx,dimy,dimz,center);
+  // particle shape, size and percentage
+  REAL ptcl_ratio_ba = 0.8;  // ratio of radius b to radius a
+  REAL ptcl_ratio_ca = 0.6;  // ratio of radius c to radius a
+  std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
+  std::vector<REAL> size;    // particle size
+  percent.push_back(1.00); size.push_back(2.5e-3);
+  //percent.push_back(0.80); size.push_back(2.3e-3);
+  //percent.push_back(0.60); size.push_back(2.0e-3);
+  //percent.push_back(0.30); size.push_back(1.5e-3);
+  //percent.push_back(0.10); size.push_back(1.0e-3);
+  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
+  sample.deposit_RgdBdry(container,
+			 ptclGradation,
+			 2,                  // freetype, setting of free particles 
+			 100000,             // total_steps
+			 100,                // number of snapshots
+			 10,                 // print interval
+			 3.0,                // relative height of floating particles based on container height
+			 "flo_particle_end", // output file, initial particles for depositing
+			 "dep_boundary_ini", // output file, initial boundaries for depositing
+			 "dep_particle",     // output file, resulted particles, including snapshots 
+			 "dep_contact",      // output file, resulted contacts, including snapshots 
+			 "dep_progress",     // output file, statistical info
+			 "trm_particle_end", // output file, resulted particles after trmming
+			 "trm_boundary_end", // output file, resulted boundaries after trmming
+			 "dep_debug");       // output file, debug 
+  //*/
+
+  /*
+  // degravitation, no boundary, quasi-static
+  sample.deGravitation(1000,               // total_steps
+		       5,                  // number of snapshots
+		       1,                  // print interval
+		       true,               // recreate from input file
+		       "dep_particle_end", // input file, initial particles
+		       "dgr_particle",     // output file, resulted particles, including snapshots 
+		       "dgr_contact",      // output file, resulted contacts, including snapshots 
+		       "dgr_progress",     // output file, statistical info
+		       "dgr_debug");       // output file, debug info
+  // container properties
   REAL dimx = 0.05;
   REAL dimy = 0.05;
   REAL dimz = 0.10;
@@ -171,25 +158,40 @@ int main(int argc, char* argv[])
   //percent.push_back(0.30); size.push_back(1.5e-3);
   //percent.push_back(0.10); size.push_back(1.0e-3);
   dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
-  A.iso_PtclBdry(100000,
-		 100,
-		 10,
-		 1.0e+3,
-		 container,
-		 ptclGradation,
-		 0.5, // size relative to minimum radius
-		 "mem_particle_end",
-		 "iso_particle",
-		 "iso_contact",
-		 "iso_progress",
-		 "iso_debug");
-  //*/
+  ///////////////////////////////////////////////////////////////////////////////////
+  // trim(), createMemParticle() and iso_MemBdry() must be called together because:
+  // 1. trim() and createMemParticle() share variable HistoryNum.
+  // 2. springs in iso_MemBdry() reference particles created in createMemParticle().
+  sample.trim(container,
+	      ptclGradation,
+	      false,               // recreate from input file or not
+	      "dgr_particle_end",  // input
+	      "trm_particle_end"); // output
+  sample.createMemParticle(container,
+			   ptclGradation,
+			   0.25,   // size relative to minimum radius
+			   false,  // recreate from input file or not
+			   "trm_particle_end",
+			   "mem_particle_end");
+  sample.iso_MemBdry(100000,
+		     100,
+		     10,
+		     1.0e+3,
+		     container,
+		     ptclGradation,
+		     0.25,        // size relative to minimum radius
+		     false,       // recreate from input file or not, must be false
+		     "mem_particle_end",
+		     "iso_particle",
+		     "iso_contact",
+		     "iso_progress",
+		     "iso_debug");
+  */
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 3: record run time
   time(&time2);
   std::cout << std::endl 
-
 	    << "simulation start time: " << ctime(&time1);
   std::cout << "simulation  end  time: " << ctime(&time2);
   return 0;
@@ -218,18 +220,18 @@ int main(int argc, char* argv[])
 /*
 
     // for triaxalPtclBdry
-    A.TrimPtclBdryByHeight(0.061,
+    sample.TrimPtclBdryByHeight(0.061,
 			   "dep_particle_end",
 			   "dep_particle_trimmed");
 
 
     // for de-fe coupling			   
-    A.TrimPtclBdryByHeight(0.061,
+    sample.TrimPtclBdryByHeight(0.061,
 			   "pile_particle_ini",
 			   "pile_particle_trimmed");
 
 
-    A.triaxialPtclBdryIni(100000,             // total_steps
+    sample.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
                           10,                 // print interval
 			  2.5e+6,             // confining pressure to achieve
@@ -242,7 +244,7 @@ int main(int argc, char* argv[])
 			  "ini_debug");       // output file, debug info
 
 
-    A.triaxialPtclBdryIni(100000,             // total_steps
+    sample.triaxialPtclBdryIni(100000,             // total_steps
 			  100,                // number of snapshots
                           10,                 // print interval
 			  5.0e+5,             // confining pressure to achieve
@@ -255,7 +257,7 @@ int main(int argc, char* argv[])
 			  "ini_debug");       // output file, debug info
 
 
-    A.triaxialPtclBdry(100000,             // total_steps
+    sample.triaxialPtclBdry(100000,             // total_steps
 		       100,                // number of snapshots
                        10,                 // print interval
 		       "tri_particle_ini", // input file, initial particles
@@ -281,7 +283,7 @@ int main(int argc, char* argv[])
     //percent.push_back(0.30); ptclsize.push_back(1.5e-3);
     //percent.push_back(0.10); ptclsize.push_back(1.0e-3);
     dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
-    A.deposit_RgdBdry(grad,
+    sample.deposit_RgdBdry(grad,
 		      2,                  // freetype, setting of free particles 
 		      100000,             // total_steps
 		      100,                // number of snapshots
@@ -310,7 +312,7 @@ int main(int argc, char* argv[])
     //percent.push_back(0.30); ptclsize.push_back(1.0e-3);
     //percent.push_back(0.10); ptclsize.push_back(0.5e-3);
     dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
-    A.deposit_PtclBdry(grad,
+    sample.deposit_PtclBdry(grad,
 		       2,                  // freetype, setting of free particles
 		       1.0,                // relative container size, 0.8/1.0/1.2---small/medium/large
 		       100000,             // total_steps
@@ -323,7 +325,7 @@ int main(int argc, char* argv[])
 		       "dep_debug");       // output file, debug info
  
    
-    A.scale_PtclBdry(20000,             // total_steps
+    sample.scale_PtclBdry(20000,             // total_steps
 		     100,               // number of snapshots  
                      10,                // print interval
 		     0.05,              // dimension of particle-composed-boundary
@@ -335,7 +337,7 @@ int main(int argc, char* argv[])
 		     "scl_debug");      // output file, debug info
 
 
-    A.ellipPile_Disp(50000,              // total_steps
+    sample.ellipPile_Disp(50000,              // total_steps
 		     100,                // number of snapshots
                      10,                 // print interval
 		     0.05,               // dimension of particle-composed-boundary
@@ -347,7 +349,7 @@ int main(int argc, char* argv[])
 		     "pile_debug");      // output file, debug info
 
 
-    A.rectPile_Disp(50000,              // total_steps
+    sample.rectPile_Disp(50000,              // total_steps
 		    100,                // number of snapshots
                     10,                 // print interval
 		    "pile_particle_ini",// input file, initial particles
@@ -359,7 +361,7 @@ int main(int argc, char* argv[])
 		    "pile_debug");      // output file, debug info
 
 
-    A.ellipPile_Impact(50000,              // total_steps
+    sample.ellipPile_Impact(50000,              // total_steps
 		       100,                // number of snapshots
                        10,                 // print interval
 		       0.05,               // size of particle-composed-boundary
@@ -371,7 +373,7 @@ int main(int argc, char* argv[])
 		       "ipt_debug");       // output file, debug info
 
 
-    A.ellipPile_Impact_p(50000,              // total_steps
+    sample.ellipPile_Impact_p(50000,              // total_steps
 			 100,                // number of snapshots
                          10,                 // print interval
 			 0.05,               // size of particle-composed-boundary
@@ -382,7 +384,7 @@ int main(int argc, char* argv[])
 			 "ipt_debug");       // output file, debug info
 
     
-    A.deposit(5000,               // total_steps
+    sample.deposit(5000,               // total_steps
 	      100,                // number of snapshots
               10,                 // print interval
 	      "flo_particle_end", // input file, initial particles
@@ -393,7 +395,7 @@ int main(int argc, char* argv[])
 	      "dep_debug");       // output file, debug info
 
 
-    A.squeeze(300000,             // total_steps
+    sample.squeeze(300000,             // total_steps
 	      100000,             // initial_steps to reach equilibrium
               100,                // number of snapshots
               10,                 // print interval
@@ -407,7 +409,7 @@ int main(int argc, char* argv[])
 	      "dep_debug");       // output file, debug info
 
 
-    A.collapse(rorc,
+    sample.collapse(rorc,
 	       100000,
 	       100,
                10,                // print interval
@@ -419,7 +421,7 @@ int main(int argc, char* argv[])
 	       "clp_debug");      // output file, debug info
 
 
-    A.isotropic(100000,             // total_steps
+    sample.isotropic(100000,             // total_steps
 		100,                // number of snapshots
                 10,                 // print interval
 		1.0e+3,             // a low confining pressure to achieve for initialization
@@ -433,7 +435,7 @@ int main(int argc, char* argv[])
 		"iso_debug");       // output file, debug info
 
     
-    A.isotropic(100000,             // total_steps
+    sample.isotropic(100000,             // total_steps
 		100,                // number of snapshots
 		1.0e+3,             // pre-existing confining pressure from initial isotropic compression
 		1.0e+5,             // confining pressure for final isotropic compression
@@ -448,7 +450,7 @@ int main(int argc, char* argv[])
 		"iso_debug");       // output file, debug info
 
     
-    A.isotropic(100000,             // total_steps
+    sample.isotropic(100000,             // total_steps
 		100,                // number of snapshots
                 10,                 // print interval
 		1.0e+5,             // pre-existing confining pressure from initial isotropic compression
@@ -465,7 +467,7 @@ int main(int argc, char* argv[])
 
     
     REAL sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 7.0e+5}; // last one must be a larger value	
-    A.isotropic(100000,             // total_steps
+    sample.isotropic(100000,             // total_steps
 		100,                // number of snapshots
                 10,                 // print interval
 		4,                  // number of points indicating pressure applying process
@@ -481,7 +483,7 @@ int main(int argc, char* argv[])
 		"iso_debug");       // output file, debug info
 
     
-    A.odometer(100000,             // total_steps
+    sample.odometer(100000,             // total_steps
 	       100,                // number of snapshots
                10,                 // print interval
 	       1.0e+5,             // pre-existing confining pressure from initial isotropic compression
@@ -498,7 +500,7 @@ int main(int argc, char* argv[])
 
     
     REAL sigma_values[4]={1.0e+5, 5.0e+5, 1.0e+5, 1.0e+6}; // last one must be a larger value	
-    A.odometer(100000,             // total_steps
+    sample.odometer(100000,             // total_steps
 	       100,                // number of snapshots
                10,                 // print interval
 	       4,                  // number of points indicating pressure applying process
@@ -514,7 +516,7 @@ int main(int argc, char* argv[])
 	       "odo_debug");       // output file, debug info
 
 
-    A.triaxial(100000,             // total_steps
+    sample.triaxial(100000,             // total_steps
 	       100,                // number of snapshots
 	       1.0e+5,             // pre-existing confining pressure from initial isotropic compression
 	       "iso_particle_100k",// input file, initial particles
@@ -527,7 +529,7 @@ int main(int argc, char* argv[])
 	       "tri_debug");       // output file, debug info
 
     
-    A.triaxial(100000,             // total_steps
+    sample.triaxial(100000,             // total_steps
 	       100,                // number of snapshots
                10,                 // print interval
 	       3.0e+5,             // pre-existing confining pressure from initial isotropic compression
@@ -541,7 +543,7 @@ int main(int argc, char* argv[])
 	       "tri_debug");       // output file, debug info
 
     
-    A.triaxial(100000,             // total_steps
+    sample.triaxial(100000,             // total_steps
 	       100,                // number of snapshots
                10,                 // print interval
 	       5.0e+5,             // pre-existing confining pressure from initial isotropic compression
@@ -555,7 +557,7 @@ int main(int argc, char* argv[])
 	       "tri_debug");       // output file, debug info
 
     
-    A.triaxial(120000,             // total_steps
+    sample.triaxial(120000,             // total_steps
 	       30000,              // at which step to unload
 	       100,                // number of snapshots
                10,                 // print interval
@@ -570,7 +572,7 @@ int main(int argc, char* argv[])
 	       "tri_debug");       // output file, debug info
 
     
-    A.truetriaxial(100000,             // total_steps
+    sample.truetriaxial(100000,             // total_steps
 		   100,                // number of snapshots
                    10,                 // print interval
 		   1.0e+4,             // pre-existing confining pressure from initial isotropic compression
@@ -588,7 +590,7 @@ int main(int argc, char* argv[])
 		   "tru_debug");       // output file, debug info
 
 
-    A.unconfined(100000,             // total_steps
+    sample.unconfined(100000,             // total_steps
 		 100,                // number of snapshots
                  10,                 // print interval
 		 "flo_particle_end", // input file, initial particles

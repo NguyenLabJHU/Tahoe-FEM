@@ -143,7 +143,7 @@ public:
 		for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
 			(*it).disp(ofs);
 	}
-	virtual void findParticleOnBoundary(std::list<T*>& ptcls){};
+	virtual void findParticleOnBoundary(std::vector<T*>& ptcls){};
 	virtual void rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap)
 	    {std::cout<<"parent"<<std::endl;} // calculate for each boundary particles the rigid boundary force
 	virtual vec getNormalForce() const{return 0;}
@@ -192,7 +192,7 @@ template<class T> class flb_bdry{
 public:
 	int bdry_id;
 	virtual void disp() const{};
-	virtual void findParticleOnBoundary(std::list<T*>& ptcls){};
+	virtual void findParticleOnBoundary(std::vector<T*>& ptcls){};
 	virtual void update(UPDATECTL ctl[], unsigned int len){};
 	virtual void findParticleOnLine(){}; // create possible particles per line
 	virtual void createFlbNet(){};
@@ -237,7 +237,7 @@ public:
 	vec normal;  // normal force acting on the boundary by all contacting particles 
 	vec tangt;   // tangential force acting on the boundary
 	vec moment;  // moment on the boundary
-	std::list<T*> PBList; // possible boundary particles of this specific boundary
+	std::vector<T*> PBVec; // possible boundary particles of this specific boundary
 public:
 	plnrgd_bdry(std::ifstream &ifs):rgd_bdry<T>(ifs){
 	    normal=0;
@@ -250,7 +250,7 @@ public:
 	int getBdryID() {return this->bdry_id;}
 	void disp() const;
 	REAL distToBdry(vec posi) const;
-	void findParticleOnBoundary(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::vector<T*>& ptcls);
 	vec getApt() const;
 	vec getDirc() const;
 	plnrgd_bdry<T>* getBdry(int bdryid) const{
@@ -279,9 +279,9 @@ template<class T>
 void plnrgd_bdry<T>::disp() const{
 	rgd_bdry<T>::disp();
 	cout << "normal: " << normal.getx() << " " << normal.gety() << " " <<normal.getz() << endl;
-	typename std::list<T*>::const_iterator it;
+	typename std::vector<T*>::const_iterator it;
 	int i=0;
-	for(it=PBList.begin();it!=PBList.end();++it){
+	for(it=PBVec.begin();it!=PBVec.end();++it){
 		if(i++<10)
 			cout << (*it)->getID();
 		else{
@@ -300,11 +300,11 @@ REAL plnrgd_bdry<T>::distToBdry(vec posi) const{
 };
 
 template<class T>
-void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
-    typename std::list<T*>::iterator it;
+void plnrgd_bdry<T>::findParticleOnBoundary(std::vector<T*>& ptcls){
+    typename std::vector<T*>::iterator it;
     std::vector<BdryCoef>::iterator bt;
     bool next;
-    PBList.clear();
+    PBVec.clear();
     REAL dist, r;
     vec posi, ndirc;
     for (it=ptcls.begin();it!=ptcls.end();++it){
@@ -329,7 +329,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 		}
 	    }
 	    if(next)
-		PBList.push_back(*it);
+		PBVec.push_back(*it);
 	}
     }
 
@@ -337,11 +337,11 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 
 /*
 template<class T>
-void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
-	typename std::list<T*>::iterator it;
+void plnrgd_bdry<T>::findParticleOnBoundary(std::vector<T*>& ptcls){
+	typename std::vector<T*>::iterator it;
 	std::vector<BdryCoef>::iterator bt;
 	bool next;
-	PBList.clear();
+	PBVec.clear();
  	for (it=ptcls.begin();it!=ptcls.end();++it){
 		vec posi=(*it)->getCurrPosition();
 		REAL dist=distToBdry(posi);
@@ -359,7 +359,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 			}
 		}
 		if(!next)
-			PBList.push_back(*it);
+			PBVec.push_back(*it);
 	}
 };
 */
@@ -367,7 +367,7 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 
 template<class T>
 void plnrgd_bdry<T>::rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap){
-    typename std::list<T*>::iterator it;
+    typename std::vector<T*>::iterator it;
     this->avg_normal=0;
     this->avg_penetr=0;
     this->cntnum=0;
@@ -383,7 +383,7 @@ void plnrgd_bdry<T>::rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap
     // for each possible boundary particle
     REAL penetr=0;
     int count=0;
-    for (it=PBList.begin();it!=PBList.end();++it){
+    for (it=PBVec.begin();it!=PBVec.end();++it){
 	penetr=0;
 	(*it)->planeRBForce(this,BdryTgtMap,vtmp,penetr);
 	this->avg_penetr += penetr;
@@ -399,12 +399,12 @@ void plnrgd_bdry<T>::rigidBF(std::map<int,std::vector<boundarytgt> >& BdryTgtMap
 template<class T> class cylrgd_bdry:public rgd_bdry<T>{
 public:
 	vec normal; 
-	std::list<T*> PBList;
+	std::vector<T*> PBVec;
 public:
 	cylrgd_bdry(std::ifstream &ifs):rgd_bdry<T>(ifs){normal=0;}
 	void disp() const;
 	REAL distToBdry(vec posi) const;
-	void findParticleOnBoundary(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::vector<T*>& ptcls);
 	void rigidBF();
 	vec getNormalForce() const{return normal;};
 };
@@ -413,9 +413,9 @@ template<class T>
 void cylrgd_bdry<T>::disp() const{
 	rgd_bdry<T>::disp();
 	cout << "normal: " << normal.getx() << " " << normal.gety() << " " <<normal.getz() << endl;
-	typename std::list<T*>::const_iterator it;
+	typename std::vector<T*>::const_iterator it;
 	int i=0;
-	for(it=PBList.begin();it!=PBList.end();++it){
+	for(it=PBVec.begin();it!=PBVec.end();++it){
 		if(i++<10)
 		  cout << (*it)->getID();
 		else{
@@ -435,11 +435,11 @@ REAL cylrgd_bdry<T>::distToBdry(vec posi) const{
 };
 
 template<class T>
-void cylrgd_bdry<T>::findParticleOnBoundary(std::list<T*> &ptcls){
-	typename std::list<T*>::iterator it;
+void cylrgd_bdry<T>::findParticleOnBoundary(std::vector<T*> &ptcls){
+	typename std::vector<T*>::iterator it;
 	std::vector<BdryCoef>::iterator bt;
 	bool next;
-	PBList.clear();
+	PBVec.clear();
 	REAL dist,r;
 	vec posi, ndirc;
  	for (it=ptcls.begin();it!=ptcls.end();++it){
@@ -458,7 +458,7 @@ void cylrgd_bdry<T>::findParticleOnBoundary(std::list<T*> &ptcls){
 			}
 		}
 		if(!next)
-			PBList.push_back(*it);
+			PBVec.push_back(*it);
 	}
 };
 
@@ -466,13 +466,13 @@ template<class T>
 void cylrgd_bdry<T>::rigidBF(){
 	// I am temporially saitisfied with the cylinder with vertical mother line
 	cylinder cyl;
-	typename std::list<T*>::iterator it;
+	typename std::vector<T*>::iterator it;
 	BdryCoef tmp;
 	tmp=*this->CoefOfLimits.begin();
 	cyl.setRadius(tmp.rad);
 	cyl.setCenter(tmp.apt);
 	normal=0;
-	for (it=PBList.begin();it!=PBList.end();++it){
+	for (it=PBVec.begin();it!=PBVec.end();++it){
 		normal-=(*it)->cylinderRBForce(this->bdry_id,cyl,tmp.side);
 	}
 };
@@ -481,19 +481,19 @@ template<class T> class plnflb_bdry:public flb_bdry<T>{
 public:
 	vec sumpressure; // sum of total water pressure on particles
 	REAL confining;// confining pressure by surrounding liquid
-	std::list<LINE> framelist;//store rigid lines it
+	std::vector<LINE> framelist;//store rigid lines it
 	vec norm;        // normal direction pointing outward the assembly
 	int framenum;    // how many rigid lines there are, can only be 2
-	std::list<T*> PBList;
+	std::vector<T*> PBVec;
 	vec FlxbNet[100][50];
 	T* RelatedP[100][50];
-	std::list<T*> PCFB[100][50];
+	std::vector<T*> PCFB[100][50];
 	int np, nz;
 public:
 	plnflb_bdry(std::ifstream &ifs);
 	virtual ~plnflb_bdry() {}; // base class needs a virtual destructor.
 	void disp() const;
-	void findParticleOnBoundary(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::vector<T*>& ptcls);
 	void findParticleOnLine(); // create possible particles per line
 	void createFlbNet();
 	void flxbBF();    // FlxbNet[nz][np], RelatedP[nz][np]; if side=1, particle is in the side of >0, side=-1, <0
@@ -508,12 +508,12 @@ void plnflb_bdry<T>::disp() const{
         cout << "norm: " << norm.getx() << " " << norm.gety() << " " << norm.getz() << endl;
         cout << "np:" << np << " nz: " << nz << " framenum: " << framenum << endl;
         cout << "confining pressure: " << confining << endl;
-	std::list<LINE>::const_iterator it;
+	std::vector<LINE>::const_iterator it;
 	for(it=framelist.begin();it!=framelist.end();++it)
 		(*it).disp();
-	typename std::list<T*>::const_iterator jt;
+	typename std::vector<T*>::const_iterator jt;
 	i=0;
-	for(jt=PBList.begin();jt!=PBList.end();++jt){
+	for(jt=PBVec.begin();jt!=PBVec.end();++jt){
 		if(i++<10)
 			cout << (*jt)->getID();
 		else{
@@ -580,19 +580,19 @@ plnflb_bdry<T>::plnflb_bdry(std::ifstream &ifs){
 };
 
 template<class T>
-void plnflb_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
+void plnflb_bdry<T>::findParticleOnBoundary(std::vector<T*>& ptcls){
 	/*
 		1----2
 		|    |
 		|	 |
 		4----3
 	*/
-	typename std::list<T*>::iterator it;
+	typename std::vector<T*>::iterator it;
 	vec pt1=(*framelist.begin()).pt1;
 	vec pt2=(*framelist.begin()).pt2;
 	vec pt3=(*++framelist.begin()).pt2;
 	vec pt4=(*++framelist.begin()).pt1;
-	PBList.clear();
+	PBVec.clear();
 	for (it=ptcls.begin();it!=ptcls.end();++it){
 		vec posi=(*it)->getCurrPosition();
 		vec vdt=(posi-pt1)%normalize(norm)*normalize(norm);
@@ -607,13 +607,13 @@ void plnflb_bdry<T>::findParticleOnBoundary(std::list<T*>& ptcls){
 		if(((v1*v2)%norm)*((v2*v3)%norm)*((v3*v4)%norm)*((v4*v1)%norm)<0){
 			continue;
 		}
-		PBList.push_back(*it);
+		PBVec.push_back(*it);
 	}
 };
 
 template<class T>
 void plnflb_bdry<T>::update(UPDATECTL ctl[], unsigned int len){
-	std::list<LINE>::iterator it;
+	std::vector<LINE>::iterator it;
 	int i=0;
 	if (framelist.size()!=len){
 		perror("in plnflb_bdry::update: not enough information for update");
@@ -638,14 +638,14 @@ void plnflb_bdry<T>::findParticleOnLine(){
 	vec pt3=(*++framelist.begin()).pt1;
 	vec pt4=(*++framelist.begin()).pt2;
 	int iz, ip;
-	typename std::list<T*>::iterator it;
+	typename std::vector<T*>::iterator it;
 	for (iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
 			PCFB[iz][ip].clear();
 			vec ip_top=pt1+ip*(pt2-pt1)/(np-1);
 			vec ip_bot=pt3+ip*(pt4-pt3)/(np-1);
 			vec thept=ip_bot+(ip_top-ip_bot)/(nz-1)*iz;
-			for (it=PBList.begin();it!=PBList.end();++it){
+			for (it=PBVec.begin();it!=PBVec.end();++it){
 				vec v0=(*it)->getCurrPosition();
 				REAL dist=vfabs((v0-thept)-(v0-thept)%normalize(norm)*normalize(norm));
 				if(dist<(*it)->getA())
@@ -687,7 +687,7 @@ void plnflb_bdry<T>::delNull(){
 template<class T>
 void plnflb_bdry<T>::createFlbNet(){
 	int iz, ip;
-	typename std::list<T*>::iterator it;
+	typename std::vector<T*>::iterator it;
 	vec pt1=(*framelist.begin()).pt1;
 	vec pt2=(*framelist.begin()).pt2;
 	vec pt3=(*++framelist.begin()).pt1;
@@ -768,20 +768,20 @@ template <class T> class cylflb_bdry:public flb_bdry<T>{
 public:
 	vec sumpressure;
 	REAL confining;
-	std::list<CIRC> framelist;// top and bottom frame, can only have two elements
+	std::vector<CIRC> framelist;// top and bottom frame, can only have two elements
 	REAL alf;               // the expand from pt1 ro pt2; for a complete cylinder alf=2Pi
 	int framenum;             // =2
 	int side;                 // 1, the particles are outside cylinder; -1, inside
-	std::list<T*> PBList;
+	std::vector<T*> PBVec;
 	vec FlxbNet[100][50];
 	T* RelatedP[100][50];
-	std::list<T*> PCFB[100][50];
+	std::vector<T*> PCFB[100][50];
 	int np, nz;
 public:
 	cylflb_bdry(std::ifstream &ifs);
 	virtual ~cylflb_bdry() {}; // base class needs a virtual destructor.
 	void disp() const;
-	void findParticleOnBoundary(std::list<T*>& ptcls);
+	void findParticleOnBoundary(std::vector<T*>& ptcls);
 	void delNull();
 	void findParticleOnLine();          // create possible particles per line
 	void createFlbNet();
@@ -795,12 +795,12 @@ void cylflb_bdry<T>::disp() const{
 	cout << "sumpressure: " << sumpressure.getx() << " " << sumpressure.gety() << " " << sumpressure.getz() << endl;
 	cout << "confining pressure: " << confining << endl;
 	cout << "side: " << side << " framenum: " << framenum << " np: " << np << " nz: " << nz << " alf: " << alf << endl;
-	std::list<CIRC>::const_iterator it;
+	std::vector<CIRC>::const_iterator it;
 	for(it=framelist.begin();it!=framelist.end();++it)
 		(*it).disp();
-	typename std::list<T*>::const_iterator jt;
+	typename std::vector<T*>::const_iterator jt;
 	i=0;
-	for(jt=PBList.begin();jt!=PBList.end();++jt){
+	for(jt=PBVec.begin();jt!=PBVec.end();++jt){
 		if(i++<10)
 			cout << (*jt)->getID();
 		else{
@@ -870,8 +870,8 @@ cylflb_bdry<T>::cylflb_bdry(std::ifstream &ifs){
 };
 
 template<class T>
-void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
-	typename std::list<T*>::iterator it;
+void cylflb_bdry<T>::findParticleOnBoundary(std::vector<T*>&ptcls){
+	typename std::vector<T*>::iterator it;
 	vec ct1=framelist.begin()->center;
 	vec ct2=(++framelist.begin())->center;
 	vec ml1=framelist.begin()->norm;
@@ -896,7 +896,7 @@ void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 
 	alf=angle(pt1-ct1,pt2-ct1,turn*ml1);
 	
-	PBList.clear();
+	PBVec.clear();
 	vec ct=(ct1+ct2)/2;
 	vec norm=ml1;
 	REAL rad=r1;
@@ -911,7 +911,7 @@ void cylflb_bdry<T>::findParticleOnBoundary(std::list<T*>&ptcls){
 			if (bta>alf)
 				continue;
 		}
-		PBList.push_back(*it);
+		PBVec.push_back(*it);
 	}
 };
 
@@ -926,7 +926,7 @@ void cylflb_bdry<T>::findParticleOnLine(){
 	vec rote=turn*alf/(nz-1)*normalize(nm);
 
 	int iz, ip;
-	typename std::list<T*>::iterator it;
+	typename std::vector<T*>::iterator it;
 	for (iz=0;iz<nz;iz++){
 		for(ip=0;ip<np;ip++){
 			PCFB[iz][ip].clear();
@@ -934,7 +934,7 @@ void cylflb_bdry<T>::findParticleOnLine(){
 			vec ip_top=ct1+ll;
 			vec ip_bot=ct2+ll;
 			vec thept=ip_bot+iz*(ip_top-ip_bot)/(nz-1);
-			for (it=PBList.begin();it!=PBList.end();++it){
+			for (it=PBVec.begin();it!=PBVec.end();++it){
 				vec v0=(*it)->getCurrPosition();
 				REAL dist=vfabs((v0-thept)-(v0-thept)%normalize(ll)*normalize(ll));
 				if(dist<(*it)->getA())
@@ -976,7 +976,7 @@ void cylflb_bdry<T>::delNull(){
 template<class T>
 void cylflb_bdry<T>::createFlbNet(){
 	int iz, ip;
-	typename std::list<T*>::iterator it;
+	typename std::vector<T*>::iterator it;
 
 	vec pt1=(*framelist.begin()).pt1;
 	vec ct1=framelist.begin()->center;
@@ -1050,7 +1050,7 @@ void cylflb_bdry<T>::flxbBF(){
 
 template<class T>
 void cylflb_bdry<T>::update(UPDATECTL ctl[], unsigned int len){
-	std::list<CIRC>::iterator it;
+	std::vector<CIRC>::iterator it;
 	int i=0;
 	if (framelist.size()!=len){
 		perror("in plnflb_bdry::update: not enough information for update");

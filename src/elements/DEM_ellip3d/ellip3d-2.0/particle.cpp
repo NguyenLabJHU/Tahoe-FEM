@@ -15,9 +15,8 @@ const int START = 10000;  // at which time step to apply moment? for moment rota
 
 namespace dem {
 
-particle::particle(int n, int tp, vec center, REAL r){
-    type=tp;
-    ID=n;
+particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
+  :ID(n), type(tp), a(r), b(r), c(r), young(yng), poisson(poi) {
     REAL tmp0=ran(&idum);
     REAL tmp1=ran(&idum);
     REAL tmp2=ran(&idum);
@@ -26,10 +25,6 @@ particle::particle(int n, int tp, vec center, REAL r){
     REAL tmp5=ran(&idum);
     REAL tmp6=ran(&idum);
     REAL tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
-
-    a=r;
-    b=r;
-    c=r;
 
     // generate orientation of axle a/b/c
     REAL l1,m1,n1,l2,m2,n2,x,y,z;
@@ -70,13 +65,13 @@ particle::particle(int n, int tp, vec center, REAL r){
     mass=density*volume;
     J=vec(mass/5*(b*b+c*c),mass/5*(a*a+c*c),mass/5*(a*a+b*b));
     cntnum=0;
+    inContact=false;
     GlobCoef();
 }
 
 
-particle::particle(int n, int tp, vec center, REAL _a, REAL _b, REAL _c){
-    type=tp;
-    ID=n;
+particle::particle(int n, int tp, vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
+  :ID(n), type(tp), a(ra), b(rb), c(rc), young(yng), poisson(poi) {
     REAL tmp0=ran(&idum);
     REAL tmp1=ran(&idum);
     REAL tmp2=ran(&idum);
@@ -85,10 +80,6 @@ particle::particle(int n, int tp, vec center, REAL _a, REAL _b, REAL _c){
     REAL tmp5=ran(&idum);
     REAL tmp6=ran(&idum);
     REAL tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
-
-    a=_a;
-    b=_b;
-    c=_c;
 
     // generate orientation of axle a/b/c
     REAL l1,m1,n1,l2,m2,n2,x,y,z;
@@ -129,13 +120,13 @@ particle::particle(int n, int tp, vec center, REAL _a, REAL _b, REAL _c){
     mass=density*volume;
     J=vec(mass/5*(b*b+c*c),mass/5*(a*a+c*c),mass/5*(a*a+b*b));
     cntnum=0;
+    inContact=false;
     GlobCoef();
 }
 
 
-particle::particle(int n, int tp, vec center, gradation& grad){
-    type=tp;
-    ID=n;
+particle::particle(int n, int tp, vec center, gradation& grad, REAL yng, REAL poi)
+  :ID(n), type(tp), young(yng), poisson(poi) {
     REAL tmp0=ran(&idum);
     REAL tmp1=ran(&idum);
     REAL tmp2=ran(&idum);
@@ -202,13 +193,13 @@ particle::particle(int n, int tp, vec center, gradation& grad){
     mass=density*volume;
     J=vec(mass/5*(b*b+c*c),mass/5*(a*a+c*c),mass/5*(a*a+b*b));
     cntnum=0;
+    inContact=false;
     GlobCoef();
 }
 
 
-particle::particle(int id, int tp, vec dim, vec position, vec dirca, vec dircb, vec dircc){
-    type=tp;
-    ID=id;
+particle::particle(int id, int tp, vec dim, vec position, vec dirca, vec dircb, vec dircc, REAL yng, REAL poi)
+  :ID(id), type(tp), young(yng), poisson(poi) {
     a=dim.getx();
     b=dim.gety();
     c=dim.getz();
@@ -227,37 +218,9 @@ particle::particle(int id, int tp, vec dim, vec position, vec dirca, vec dircb, 
     volume=4/3.0*PI*a*b*c;
     mass=density*volume;
     J=vec(mass/5*(b*b+c*c),mass/5*(a*a+c*c),mass/5*(a*a+b*b));
+    inContact=false;
     GlobCoef();
 }
-
-
-int    particle::getID() const {return ID;}
-int    particle::getType() const {return type;}
-REAL particle::getA() const {return a;}
-REAL particle::getB() const {return b;}
-REAL particle::getC() const {return c;}
-REAL particle::getVolume() const {return volume;}
-REAL particle::getMass() const {return mass;}
-REAL particle::getDensity() const {return density;}
-vec    particle::getCurrPosition() const {return curr_position;}
-vec    particle::getPrevPosition() const {return prev_position;}
-vec    particle::getCurrDirecA() const {return curr_direction_a;}
-vec    particle::getCurrDirecB() const {return curr_direction_b;}
-vec    particle::getCurrDirecC() const {return curr_direction_c;}
-vec    particle::getPrevDirecA() const {return prev_direction_a;}
-vec    particle::getPrevDirecB() const {return prev_direction_b;}
-vec    particle::getPrevDirecC() const {return prev_direction_c;}
-vec    particle::getCurrVelocity() const {return curr_velocity;}
-vec    particle::getPrevVelocity() const {return prev_velocity;}
-vec    particle::getCurrOmga() const {return curr_omga;}
-vec    particle::getPrevOmga() const {return prev_omga;}
-vec    particle::getCurrAcceleration() const {return curr_acceleration;}
-vec    particle::getPrevAcceleration() const {return prev_acceleration;}
-vec    particle::getForce() const {return force;}
-vec    particle::getMoment() const {return moment;}
-vec    particle::getConstForce() const {return const_force;}
-vec    particle::getConstMoment() const {return const_moment;}
-vec    particle::getJ() const {return J;}
 
 
 // 1: rotational energy is 1/2(I1*w1^2+I2*w2^2+I3*w3^2), where each term
@@ -292,31 +255,6 @@ REAL particle::getPotenEnergy(REAL ref) const{
 }
 
 
-void   particle::setID(int n){ID=n;}
-void   particle::setType(int n) {type=n;}
-void   particle::setA(REAL dd){a=dd;}
-void   particle::setB(REAL dd){b=dd;}
-void   particle::setC(REAL dd){c=dd;}
-void   particle::setCurrPosition(vec vv){curr_position=vv;}
-void   particle::setPrevPosition(vec vv){prev_position=vv;}
-void   particle::setCurrDirecA(vec vv){curr_direction_a=vv;}
-void   particle::setCurrDirecB(vec vv){curr_direction_b=vv;}
-void   particle::setCurrDirecC(vec vv){curr_direction_c=vv;}
-void   particle::setPrevDirecA(vec vv){prev_direction_a=vv;}
-void   particle::setPrevDirecB(vec vv){prev_direction_b=vv;}
-void   particle::setPrevDirecC(vec vv){prev_direction_c=vv;}
-void   particle::setCurrVelocity(vec vv){curr_velocity=vv;}
-void   particle::setPrevVelocity(vec vv){prev_velocity=vv;}
-void   particle::setCurrOmga(vec vv){curr_omga=vv;}
-void   particle::setPrevOmga(vec vv){prev_omga=vv;}
-void   particle::setCurrAcceleration(vec vv){curr_acceleration=vv;}
-void   particle::setPrevAcceleration(vec vv){prev_acceleration=vv;}
-void   particle::setForce(vec vv){force=vv;}
-void   particle::setMoment(vec vv){moment=vv;}
-void   particle::setConstForce(vec vv){const_force=vv;}
-void   particle::setConstMoment(vec vv){const_moment=vv;}
-void   particle::setJ(vec v){J=v;}
-void   particle::setMass(REAL d){mass=d;}
 void   particle::getGlobCoef(REAL coef[]) const{
     for (int i=0;i<10;i++)
 	coef[i]=this->coef[i];
@@ -552,6 +490,8 @@ void particle::clearForce(){
     moment=const_moment;
 
     force += vec(0,0,-G*mass*GRVT_SCL); // Unit is Newton, GRVT_SCL is for amplification.
+    inContact = false;
+
     if (getType()==3) // pile
 	force -= vec(0,0,-G*mass*GRVT_SCL); 
 
@@ -784,6 +724,7 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 
 	// if particle and plane intersect:
 	cntnum++;
+	inContact = true;
 	vec dirc=normalize(vec(p,q,r));
 	vec rt[2];
 	if (!intersectWithLine(pt1,dirc,rt))    // the line and ellipsoid surface does not intersect

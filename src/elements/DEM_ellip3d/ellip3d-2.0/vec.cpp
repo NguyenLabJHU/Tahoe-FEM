@@ -4,60 +4,6 @@
 
 namespace dem {
   
-  vec::vec(){
-    x=0;
-    y=0;
-    z=0;
-  }
-  
-  vec::vec(REAL d){
-    x=d;
-    y=d;
-    z=d;
-  }
-  
-  vec::vec(REAL _x, REAL _y, REAL _z){
-    x=_x;
-    y=_y;
-    z=_z;
-  }
-  
-  REAL vec::getx() const{
-    return x;
-  }
-
-  REAL vec::gety() const{
-    return y;
-  }
-  
-  REAL vec::getz() const{
-    return z;
-  }
-  
-  void vec::setx(REAL _x){
-    x=_x;
-  }
-  
-  void vec::sety(REAL _y){
-    y=_y;
-  }
-  
-  void vec::setz(REAL _z){
-    z=_z;
-  }
-  
-  void vec::set(REAL _x, REAL _y, REAL _z) {
-    x = _x;
-    y = _y;
-    z = _z;
-  }
-  
-  void vec::set(vec v) {
-    x = v.getx();
-    y = v.gety();
-    z = v.getz();
-  }
-  
   bool vec::operator==(const vec v){
     return x==v.x && y==v.y && z==v.z;
   }
@@ -121,13 +67,16 @@ namespace dem {
   vec operator*(REAL d, vec v){
     return vec(v.getx()*d, v.gety()*d, v.getz()*d);
   }
-  
+
   vec operator/(vec v, REAL d){
     return vec(v.getx()/d, v.gety()/d, v.getz()/d);
   }
   
   REAL vfabs(vec v){
-    return sqrt(v.getx()*v.getx()+v.gety()*v.gety()+v.getz()*v.getz());
+    REAL x = v.getx();
+    REAL y = v.gety();
+    REAL z = v.getz();
+    return sqrt(x * x + y * y + z * z);
   }
   
   vec vcos(vec v){
@@ -139,10 +88,13 @@ namespace dem {
   }
   
   vec operator-(vec v){
-    return -1*v;
+    return -1.0*v;
   }
   
   vec normalize(vec v){
+    REAL alf = vfabs(v);
+    if (alf < EPS) // important, otherwise my cause numerical instability
+      return v;
     return v/(vfabs(v));
   }
   
@@ -178,12 +130,12 @@ namespace dem {
     REAL alf;
     vec crs = v1 * v2;
     alf=asin(vfabs(crs) / vfabs(v1) / vfabs(v2) ); //0<alf<90;
-    if(crs % norm > 0){//0<=alf<=180
-      if(v1 % v2 < 0)//90<alf<180
+    if(crs % norm > 0){ //0<=alf<=180
+      if(v1 % v2 < 0)   //90<alf<180
 	alf = PI-alf;
     }
     else{//180<alf<360
-      if(v1 % v2 > 0)//270<alf<360
+      if(v1 % v2 > 0)   //270<alf<360
 	alf = 2 *PI - alf;
       else
 	alf = PI + alf;

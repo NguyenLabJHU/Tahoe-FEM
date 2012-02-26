@@ -225,6 +225,9 @@ void contact<T>::contactForce(bool &exceed){
 	// obtain normal force, using absolute equation instead of stiffness method
 	p1->cntnum++;
 	p2->cntnum++;
+	p1->inContact = true;
+	p2->inContact = true;
+
 	R0=radius1*radius2/(radius1+radius2);
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
 	REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * MAXOVERLAP;

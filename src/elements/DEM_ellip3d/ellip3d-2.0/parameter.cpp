@@ -26,9 +26,13 @@ const REAL MEPS       = 1.0e-8;  // 0.1 micron or 0.01 micron
 long idum             = -1;      // not a constant
 
 // particle material property
-const REAL YOUNG      = 2.90e+10;// quartz sand E=29GPa
-const REAL POISSON    = 0.25;    // quartz sand v= 0.25     
-const REAL Gs         = 2.65;    // quartz sand Gs= 2.65    
+const REAL YOUNG      = 2.90e+10;// quartz sand E  = 29GPa
+const REAL POISSON    = 0.25;    // quartz sand v  = 0.25     
+const REAL Gs         = 2.65;    // quartz sand Gs = 2.65    
+
+// membrane particle material property
+const REAL memYOUNG   = 1.40e+6; // 1.4MPa
+const REAL memPOISSON = 0.49;
 
 // other global variables
 std::ofstream g_debuginf;        // print debugging information

@@ -40,7 +40,11 @@ extern long idum;
 // particle material property
 extern const REAL YOUNG;  
 extern const REAL POISSON;      
-extern const REAL Gs;     
+extern const REAL Gs;   
+
+// membrane particle material property
+extern const REAL memYOUNG;
+extern const REAL memPOISSON;
 
 // other global variables
 extern std::ofstream g_debuginf;

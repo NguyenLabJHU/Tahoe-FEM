@@ -2,15 +2,15 @@
 //                         /                    /|
 //                        /                    / |
 //                       /                    /  |
-//                      /         5          /   |
+//                      /         z2 (5)     /   |
 //                     /                    /    |height
 //                    /                    /     |                    z (sigma3)
 //                   /                    /      |                    |
 //                  |---------------------       |                    |
-//                  |                    |   2   |                    |____ y (sigma1)
+//                  |                    | y2(2) |                    |____ y (sigma1)
 //                  |                    |       /                   /
 //                  |                    |      /                   /
-//                  |         1          |     /                   x (sigma2) 
+//                  |        x2 (1)      |     /                   x (sigma2) 
 //                  |                    |    /length
 //                  |                    |   /
 //                  |                    |  /
@@ -18,6 +18,9 @@
 //                  |                    |/
 //                  ----------------------
 //                         width
+//
+//    It is preferable to use the description of surface x1, x2, y1, y2, z1, z2,
+//    where x1 < x2, y1 < y2, z1 < z2
 //
 //    sigma1_1 & sigma1_2 refers to side 2 & side 4 respectively,
 //    sigma2_1 & sigma2_2 refers to side 1 & side 3 respectively,
@@ -36,6 +39,7 @@
 #include <iomanip>
 #include <cstring>
 #include <ctime>
+#include <cassert>
 
 #ifdef OPENMP
 #include <omp.h>
@@ -46,6 +50,8 @@
 using std::cout;
 using std::setw;
 using std::endl;
+using std::flush;
+using std::vector;
 
 static time_t timeStamp; // for file timestamping
 static struct timeval timew1, timew2; // for wall-clock time record
@@ -53,122 +59,370 @@ static struct timeval timep1, timep2; // for internal wall-clock time profiling
 
 namespace dem {
   
-  std::ofstream progressinf;
+std::ofstream progressinf;
   
-  void assembly::printParticle(const char* str) const
-  {
-    std::ofstream ofs(str);
-    if(!ofs) {
-      cout<<"stream error in printParticle!"<<endl; exit(-1);
-    }
-    ofs.setf(std::ios::scientific, std::ios::floatfield);
-    ofs.precision(OPREC);
-    ofs<<setw(OWID)<<TotalNum<<setw(OWID)<<1<<endl;
-    ofs<<setw(OWID)<<container.getCenter().getx()
-       <<setw(OWID)<<container.getCenter().gety()
-       <<setw(OWID)<<container.getCenter().getz()
-       <<setw(OWID)<<container.getDimx()
-       <<setw(OWID)<<container.getDimy()
-       <<setw(OWID)<<container.getDimz()<<endl;
+void assembly::printParticle(const char* str) const {
+  std::ofstream ofs(str);
+  if(!ofs) {
+    cout << "stream error!" << endl; exit(-1);
+  }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+  ofs << setw(OWID) << TotalNum << setw(OWID) << 1 << endl;
+  ofs << setw(OWID) << container.getCenter().getx()
+      << setw(OWID) << container.getCenter().gety()
+      << setw(OWID) << container.getCenter().getz()
+      << setw(OWID) << container.getDimx()
+      << setw(OWID) << container.getDimy()
+      << setw(OWID) << container.getDimz() << endl;
+  
+  ofs << setw(OWID) << "ID"
+      << setw(OWID) << "type"
+      << setw(OWID) << "radius_a"
+      << setw(OWID) << "radius_b"
+      << setw(OWID) << "radius_c"
+      << setw(OWID) << "position_x"
+      << setw(OWID) << "position_y"
+      << setw(OWID) << "position_z"
+      << setw(OWID) << "axle_a_x"
+      << setw(OWID) << "axle_a_y"
+      << setw(OWID) << "axle_a_z"
+      << setw(OWID) << "axle_b_x"
+      << setw(OWID) << "axle_b_y"
+      << setw(OWID) << "axle_b_z"
+      << setw(OWID) << "axle_c_x"
+      << setw(OWID) << "axle_c_y"
+      << setw(OWID) << "axle_c_z"
+      << setw(OWID) << "velocity_x"
+      << setw(OWID) << "velocity_y"
+      << setw(OWID) << "velocity_z"
+      << setw(OWID) << "omga_x"
+      << setw(OWID) << "omga_y"
+      << setw(OWID) << "omga_z"
+      << setw(OWID) << "force_x"
+      << setw(OWID) << "force_y"
+      << setw(OWID) << "force_z"
+      << setw(OWID) << "moment_x"
+      << setw(OWID) << "moment_y"
+      << setw(OWID) << "moment_z"
+      << endl;
+  
+  vec tmp;
+  std::vector<particle*>::const_iterator  it;
+  for (it=ParticleVec.begin();it!=ParticleVec.end();++it)  {
+    ofs << setw(OWID) << (*it)->getID()
+	<< setw(OWID) << (*it)->getType()
+	<< setw(OWID) << (*it)->getA()
+	<< setw(OWID) << (*it)->getB()
+	<< setw(OWID) << (*it)->getC();
     
-    ofs<<setw(OWID)<<"ID"
-       <<setw(OWID)<<"type"
-       <<setw(OWID)<<"radius_a"
-       <<setw(OWID)<<"radius_b"
-       <<setw(OWID)<<"radius_c"
-       <<setw(OWID)<<"position_x"
-       <<setw(OWID)<<"position_y"
-       <<setw(OWID)<<"position_z"
-       <<setw(OWID)<<"axle_a_x"
-       <<setw(OWID)<<"axle_a_y"
-       <<setw(OWID)<<"axle_a_z"
-       <<setw(OWID)<<"axle_b_x"
-       <<setw(OWID)<<"axle_b_y"
-       <<setw(OWID)<<"axle_b_z"
-       <<setw(OWID)<<"axle_c_x"
-       <<setw(OWID)<<"axle_c_y"
-       <<setw(OWID)<<"axle_c_z"
-       <<setw(OWID)<<"velocity_x"
-       <<setw(OWID)<<"velocity_y"
-       <<setw(OWID)<<"velocity_z"
-       <<setw(OWID)<<"omga_x"
-       <<setw(OWID)<<"omga_y"
-       <<setw(OWID)<<"omga_z"
-       <<setw(OWID)<<"force_x"
-       <<setw(OWID)<<"force_y"
-       <<setw(OWID)<<"force_z"
-       <<setw(OWID)<<"moment_x"
-       <<setw(OWID)<<"moment_y"
-       <<setw(OWID)<<"moment_z"
-       <<endl;
+    tmp=(*it)->getCurrPosition();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
     
-    vec tmp;
-    std::list<particle*>::const_iterator  it;
-    for (it=ParticleList.begin();it!=ParticleList.end();++it)
-    {
-	ofs<<setw(OWID)<<(*it)->getID()
-	   <<setw(OWID)<<(*it)->getType()
-	   <<setw(OWID)<<(*it)->getA()
-	   <<setw(OWID)<<(*it)->getB()
-	   <<setw(OWID)<<(*it)->getC();
-	
-	tmp=(*it)->getCurrPosition();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getCurrDirecA();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getCurrDirecB();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getCurrDirecC();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getCurrVelocity();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getCurrOmga();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getForce();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz();
-	
-	tmp=(*it)->getMoment();
-	ofs<<setw(OWID)<<tmp.getx()
-	   <<setw(OWID)<<tmp.gety()
-	   <<setw(OWID)<<tmp.getz()<<endl;
-    }
-
-    ofs.close();
+    tmp=(*it)->getCurrDirecA();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
+    
+    tmp=(*it)->getCurrDirecB();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
+    
+    tmp=(*it)->getCurrDirecC();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
+    
+    tmp=(*it)->getCurrVelocity();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
+    
+    tmp=(*it)->getCurrOmga();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
+    
+    tmp=(*it)->getForce();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz();
+    
+    tmp=(*it)->getMoment();
+    ofs << setw(OWID) << tmp.getx()
+	<< setw(OWID) << tmp.gety()
+	<< setw(OWID) << tmp.getz() << endl;
+  }
+  
+  ofs.close();
 }
 
+void assembly::printSpring(const char *str) const {
+  std::ofstream ofs(str);
+  if(!ofs) {
+    cout << "stream error!" << endl; exit(-1);
+  }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
 
+  int totalMemParticle = 0;
+  for (int i = 0; i < MemBoundary.size(); ++i) 
+    for (int j = 0; j < MemBoundary[i].size(); ++j) 
+      for (int k = 0; k < MemBoundary[i][j].size(); ++k) 
+	++totalMemParticle;
+  int totalSpring = SpringVec.size();
+  ofs << "ZONE N=" << totalMemParticle << ", E=" << totalSpring << ", DATAPACKING=POINT, ZONETYPE=FELINESEG" << endl;
+  particle *pt = NULL;
+  vec vt;
+  for (int i = 0; i < MemBoundary.size(); ++i) 
+    for (int j = 0; j < MemBoundary[i].size(); ++j) 
+      for (int k = 0; k < MemBoundary[i][j].size(); ++k) {
+	pt = MemBoundary[i][j][k]; 
+	vt = pt->getCurrPosition();
+	ofs << setw(OWID) << vt.getx() << setw(OWID) << vt.gety() << setw(OWID) << vt.getz() << endl;
+      }
+  for (int i = 0; i < SpringVec.size(); ++i) {
+    ofs << setw(OWID) << SpringVec[i]->getParticleId1() - trimHistoryNum  << setw(OWID) << SpringVec[i]->getParticleId2() - trimHistoryNum << endl;
+  }
+
+  ofs.close();
+}  
+
+void assembly::printMemParticle(const char* str) const  {
+  std::ofstream ofs(str);
+  if(!ofs) {
+    cout << "stream error!" << endl; exit(-1);
+  }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+  
+  int totalMemParticle = 0;
+  for (int i = 0; i < MemBoundary.size(); ++i) 
+    for (int j = 0; j < MemBoundary[i].size(); ++j) 
+      for (int k = 0; k < MemBoundary[i][j].size(); ++k) 
+	++totalMemParticle;
+  
+  ofs << setw(OWID) << totalMemParticle << setw(OWID) << 1 << endl;
+  ofs << setw(OWID) << container.getCenter().getx()
+      << setw(OWID) << container.getCenter().gety()
+      << setw(OWID) << container.getCenter().getz()
+      << setw(OWID) << container.getDimx()
+      << setw(OWID) << container.getDimy()
+      << setw(OWID) << container.getDimz() << endl;
+  
+  ofs << setw(OWID) << "ID"
+      << setw(OWID) << "type"
+      << setw(OWID) << "radius_a"
+      << setw(OWID) << "radius_b"
+      << setw(OWID) << "radius_c"
+      << setw(OWID) << "position_x"
+      << setw(OWID) << "position_y"
+      << setw(OWID) << "position_z"
+      << setw(OWID) << "axle_a_x"
+      << setw(OWID) << "axle_a_y"
+      << setw(OWID) << "axle_a_z"
+      << setw(OWID) << "axle_b_x"
+      << setw(OWID) << "axle_b_y"
+      << setw(OWID) << "axle_b_z"
+      << setw(OWID) << "axle_c_x"
+      << setw(OWID) << "axle_c_y"
+      << setw(OWID) << "axle_c_z"
+      << setw(OWID) << "velocity_x"
+      << setw(OWID) << "velocity_y"
+      << setw(OWID) << "velocity_z"
+      << setw(OWID) << "omga_x"
+      << setw(OWID) << "omga_y"
+      << setw(OWID) << "omga_z"
+      << setw(OWID) << "force_x"
+      << setw(OWID) << "force_y"
+      << setw(OWID) << "force_z"
+      << setw(OWID) << "moment_x"
+      << setw(OWID) << "moment_y"
+      << setw(OWID) << "moment_z"
+      << endl;
+  
+  particle *it = NULL;
+  vec tmp;
+  for (int i = 0; i < MemBoundary.size(); ++i) 
+    for (int j = 0; j < MemBoundary[i].size(); ++j) 
+      for (int k = 0; k < MemBoundary[i][j].size(); ++k) {
+	it = MemBoundary[i][j][k];
+	ofs << setw(OWID) << it->getID()
+	    << setw(OWID) << it->getType()
+	    << setw(OWID) << it->getA()
+	    << setw(OWID) << it->getB()
+	    << setw(OWID) << it->getC();
+	
+	tmp=it->getCurrPosition();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getCurrDirecA();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getCurrDirecB();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getCurrDirecC();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getCurrVelocity();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getCurrOmga();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getForce();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	    << setw(OWID) << tmp.getz();
+	
+	tmp=it->getMoment();
+	ofs << setw(OWID) << tmp.getx()
+	    << setw(OWID) << tmp.gety()
+	      << setw(OWID) << tmp.getz() << endl;
+      }
+  ofs.close();  
+}
+ 
+// vector elements are in the order of:
+// x1: inner, outer
+// x2: inner, outer
+// y1: inner, outer
+// y2: inner, outer
+// z1: inner, outer
+// z2: inner, outer
+void assembly::checkMembrane(vector<REAL> &vx ) const {
+  vector<particle*> vec1d;  // 1-dimension
+  vector< vector<particle*>  > vec2d; // 2-dimension
+  REAL in, out, tmp;
+  REAL x1_in, x1_out, x2_in, x2_out;
+  REAL y1_in, y1_out, y2_in, y2_out;
+  REAL z1_in, z1_out, z2_in, z2_out;
+
+  // surface x1
+  vec2d = MemBoundary[0];
+  in = vec2d[0][0]->getCurrPosition().getx();
+  out= in;
+  for (int i = 0; i < vec2d.size(); ++i)
+    for (int j = 0; j < vec2d[i].size(); ++j) {
+      tmp = vec2d[i][j]->getCurrPosition().getx();
+      if (tmp < out) out = tmp;
+      if (tmp > in ) in  = tmp;
+    }
+  vx.push_back(in);
+  vx.push_back(out);
+  x1_in  = in;
+  x1_out = out;
+
+  // surface x2
+  vec2d.clear();
+  vec2d = MemBoundary[1];
+  in = vec2d[0][0]->getCurrPosition().getx();
+  out= in;
+  for (int i = 0; i < vec2d.size(); ++i)
+    for (int j = 0; j < vec2d[i].size(); ++j) {
+      tmp = vec2d[i][j]->getCurrPosition().getx();
+      if (tmp > out) out = tmp;
+      if (tmp < in ) in  = tmp;
+    }
+  vx.push_back(in);
+  vx.push_back(out);
+  x2_in  = in;
+  x2_out = out;
+
+  // surface y1
+  vec2d.clear();
+  vec2d = MemBoundary[2];
+  in = vec2d[0][0]->getCurrPosition().gety();
+  out= in;
+  for (int i = 0; i < vec2d.size(); ++i)
+    for (int j = 0; j < vec2d[i].size(); ++j) {
+      tmp = vec2d[i][j]->getCurrPosition().gety();
+      if (tmp < out) out = tmp;
+      if (tmp > in ) in  = tmp;
+    }
+  vx.push_back(in);
+  vx.push_back(out);
+  y1_in  = in;
+  y1_out = out;
+
+  // surface y2
+  vec2d.clear();
+  vec2d = MemBoundary[3];
+  in = vec2d[0][0]->getCurrPosition().gety();
+  out= in;
+  for (int i = 0; i < vec2d.size(); ++i)
+    for (int j = 0; j < vec2d[i].size(); ++j) {
+      tmp = vec2d[i][j]->getCurrPosition().gety();
+      if (tmp > out) out = tmp;
+      if (tmp < in ) in  = tmp;
+    }
+  vx.push_back(in);
+  vx.push_back(out);
+  y2_in  = in;
+  y2_out = out;
+  
+  // surface z1
+  vec2d.clear();
+  vec2d = MemBoundary[4];
+  in = vec2d[0][0]->getCurrPosition().getz();
+  out= in;
+  for (int i = 0; i < vec2d.size(); ++i)
+    for (int j = 0; j < vec2d[i].size(); ++j) {
+      tmp = vec2d[i][j]->getCurrPosition().getz();
+      if (tmp < out) out = tmp;
+      if (tmp > in ) in  = tmp;
+    }
+  vx.push_back(in);
+  vx.push_back(out);
+  z1_in  = in;
+  z1_out = out;
+
+  // surface z2
+  vec2d.clear();
+  vec2d = MemBoundary[5];
+  in = vec2d[0][0]->getCurrPosition().getz();
+  out= in;
+  for (int i = 0; i < vec2d.size(); ++i)
+    for (int j = 0; j < vec2d[i].size(); ++j) {
+      tmp = vec2d[i][j]->getCurrPosition().getz();
+      if (tmp > out) out = tmp;
+      if (tmp < in ) in  = tmp;
+    }
+  vx.push_back(in);
+  vx.push_back(out);
+  z2_in  = in;
+  z2_out = out;
+
+}
+  
 void assembly::printRectPile(const char* str)
 {
     std::ofstream ofs(str, std::ios_base::app);
     if(!ofs) {
-	cout<<"stream error in printRectPile!"<<endl; exit(-1);
+	cout << "stream error!" << endl; exit(-1);
     }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
-    ofs<<setw(OWID)<<8<<setw(OWID)<<6<<endl;
+    ofs << setw(OWID) << 8 << setw(OWID) << 6 << endl;
     vec pos[8];
-    for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+    for(std::vector<RGDBDRY*>::iterator rt=RBVec.begin();rt!=RBVec.end();++rt){
 	if((*rt)->getBdryID()==7){
 	    pos[0]=vec((*rt)->CoefOfLimits[0].apt.getx(),
 		       (*rt)->CoefOfLimits[1].apt.gety(),
@@ -200,14 +454,14 @@ void assembly::printRectPile(const char* str)
     }
 
     for (int i=0;i<8;i++)
-	ofs<<setw(OWID)<<pos[i].getx()<<setw(OWID)<<pos[i].gety()<<setw(OWID)<<pos[i].getz()<<endl;
+	ofs << setw(OWID) << pos[i].getx() << setw(OWID) << pos[i].gety() << setw(OWID) << pos[i].getz() << endl;
 
-    ofs<<setw(OWID)<<1<<setw(OWID)<<2<<setw(OWID)<<6<<setw(OWID)<<5<<endl
-       <<setw(OWID)<<2<<setw(OWID)<<3<<setw(OWID)<<7<<setw(OWID)<<6<<endl
-       <<setw(OWID)<<3<<setw(OWID)<<4<<setw(OWID)<<8<<setw(OWID)<<7<<endl
-       <<setw(OWID)<<4<<setw(OWID)<<1<<setw(OWID)<<5<<setw(OWID)<<8<<endl
-       <<setw(OWID)<<1<<setw(OWID)<<4<<setw(OWID)<<3<<setw(OWID)<<2<<endl
-       <<setw(OWID)<<5<<setw(OWID)<<6<<setw(OWID)<<7<<setw(OWID)<<8<<endl;
+    ofs << setw(OWID) << 1 << setw(OWID) << 2 << setw(OWID) << 6 << setw(OWID) << 5 << endl
+        << setw(OWID) << 2 << setw(OWID) << 3 << setw(OWID) << 7 << setw(OWID) << 6 << endl
+        << setw(OWID) << 3 << setw(OWID) << 4 << setw(OWID) << 8 << setw(OWID) << 7 << endl
+        << setw(OWID) << 4 << setw(OWID) << 1 << setw(OWID) << 5 << setw(OWID) << 8 << endl
+        << setw(OWID) << 1 << setw(OWID) << 4 << setw(OWID) << 3 << setw(OWID) << 2 << endl
+        << setw(OWID) << 5 << setw(OWID) << 6 << setw(OWID) << 7 << setw(OWID) << 8 << endl;
 
     ofs.close();
 }
@@ -226,71 +480,71 @@ void assembly::printContact(const char* str) const
 {
     std::ofstream ofs(str);
     if(!ofs) {
-	cout<<"stream error in printContact!"<<endl; exit(-1);
+	cout << "stream error!" << endl; exit(-1);
     }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
-    ofs<<setw(OWID)<<ActualCntctNum<<endl;
-    ofs<<setw(OWID)<<"ptcl_1"
-       <<setw(OWID)<<"ptcl_2"
-       <<setw(OWID)<<"point1_x"
-       <<setw(OWID)<<"point1_y"
-       <<setw(OWID)<<"point1_z"
-       <<setw(OWID)<<"point2_x"
-       <<setw(OWID)<<"point2_y"
-       <<setw(OWID)<<"point2_z"
-       <<setw(OWID)<<"radius_1"
-       <<setw(OWID)<<"radius_2"
-       <<setw(OWID)<<"penetration"
-       <<setw(OWID)<<"tangt_dispmt"
-       <<setw(OWID)<<"contact_radius"
-       <<setw(OWID)<<"R0"
-       <<setw(OWID)<<"E0"
-       <<setw(OWID)<<"normal_force"
-       <<setw(OWID)<<"tangt_force"
-       <<setw(OWID)<<"contact_x"
-       <<setw(OWID)<<"contact_y"
-       <<setw(OWID)<<"contact_z"
-       <<setw(OWID)<<"normal_x"
-       <<setw(OWID)<<"normal_y"
-       <<setw(OWID)<<"normal_z"
-       <<setw(OWID)<<"tangt_x"
-       <<setw(OWID)<<"tangt_y"
-       <<setw(OWID)<<"tangt_z"
-       <<setw(OWID)<<"vibra_t_step"
-       <<setw(OWID)<<"impact_t_step"
-       <<endl;
-    std::list<CONTACT>::const_iterator it;
-    for (it=ContactList.begin();it!=ContactList.end();++it)
-	ofs<<setw(OWID)<<it->getP1()->getID()
-	   <<setw(OWID)<<it->getP2()->getID()
-	   <<setw(OWID)<<it->getPoint1().getx()
-	   <<setw(OWID)<<it->getPoint1().gety()
-	   <<setw(OWID)<<it->getPoint1().getz()
-	   <<setw(OWID)<<it->getPoint2().getx()
-	   <<setw(OWID)<<it->getPoint2().gety()
-	   <<setw(OWID)<<it->getPoint2().getz()
-	   <<setw(OWID)<<it->getRadius1()
-	   <<setw(OWID)<<it->getRadius2()
-	   <<setw(OWID)<<it->getPenetration()
-	   <<setw(OWID)<<it->getTgtDisp()
-	   <<setw(OWID)<<it->getContactRadius()
-	   <<setw(OWID)<<it->getR0()
-	   <<setw(OWID)<<it->getE0()
-	   <<setw(OWID)<<it->getNormalForce()
-	   <<setw(OWID)<<it->getTgtForce()
-	   <<setw(OWID)<<( it->getPoint1().getx()+it->getPoint2().getx() )/2
-	   <<setw(OWID)<<( it->getPoint1().gety()+it->getPoint2().gety() )/2
-	   <<setw(OWID)<<( it->getPoint1().getz()+it->getPoint2().getz() )/2
-	   <<setw(OWID)<<it->NormalForceVec().getx()
-	   <<setw(OWID)<<it->NormalForceVec().gety()
-	   <<setw(OWID)<<it->NormalForceVec().getz()
-	   <<setw(OWID)<<it->TgtForceVec().getx()
-	   <<setw(OWID)<<it->TgtForceVec().gety()
-	   <<setw(OWID)<<it->TgtForceVec().getz()
-	   <<setw(OWID)<<it->getVibraTimeStep()
-	   <<setw(OWID)<<it->getImpactTimeStep()
-	   <<endl;
+    ofs << setw(OWID) << ActualCntctNum << endl;
+    ofs << setw(OWID) << "ptcl_1"
+        << setw(OWID) << "ptcl_2"
+        << setw(OWID) << "point1_x"
+        << setw(OWID) << "point1_y"
+        << setw(OWID) << "point1_z"
+        << setw(OWID) << "point2_x"
+        << setw(OWID) << "point2_y"
+        << setw(OWID) << "point2_z"
+        << setw(OWID) << "radius_1"
+        << setw(OWID) << "radius_2"
+        << setw(OWID) << "penetration"
+        << setw(OWID) << "tangt_dispmt"
+        << setw(OWID) << "contact_radius"
+        << setw(OWID) << "R0"
+        << setw(OWID) << "E0"
+        << setw(OWID) << "normal_force"
+        << setw(OWID) << "tangt_force"
+        << setw(OWID) << "contact_x"
+        << setw(OWID) << "contact_y"
+        << setw(OWID) << "contact_z"
+        << setw(OWID) << "normal_x"
+        << setw(OWID) << "normal_y"
+        << setw(OWID) << "normal_z"
+        << setw(OWID) << "tangt_x"
+        << setw(OWID) << "tangt_y"
+        << setw(OWID) << "tangt_z"
+        << setw(OWID) << "vibra_t_step"
+        << setw(OWID) << "impact_t_step"
+        << endl;
+   std::vector<CONTACT>::const_iterator it;
+    for (it=ContactVec.begin();it!=ContactVec.end();++it)
+	ofs << setw(OWID) << it->getP1()->getID()
+	    << setw(OWID) << it->getP2()->getID()
+	    << setw(OWID) << it->getPoint1().getx()
+	    << setw(OWID) << it->getPoint1().gety()
+	    << setw(OWID) << it->getPoint1().getz()
+	    << setw(OWID) << it->getPoint2().getx()
+	    << setw(OWID) << it->getPoint2().gety()
+	    << setw(OWID) << it->getPoint2().getz()
+	    << setw(OWID) << it->getRadius1()
+	    << setw(OWID) << it->getRadius2()
+	    << setw(OWID) << it->getPenetration()
+	    << setw(OWID) << it->getTgtDisp()
+	    << setw(OWID) << it->getContactRadius()
+	    << setw(OWID) << it->getR0()
+	    << setw(OWID) << it->getE0()
+	    << setw(OWID) << it->getNormalForce()
+	    << setw(OWID) << it->getTgtForce()
+	    << setw(OWID) << ( it->getPoint1().getx()+it->getPoint2().getx() )/2
+	    << setw(OWID) << ( it->getPoint1().gety()+it->getPoint2().gety() )/2
+	    << setw(OWID) << ( it->getPoint1().getz()+it->getPoint2().getz() )/2
+	    << setw(OWID) << it->NormalForceVec().getx()
+	    << setw(OWID) << it->NormalForceVec().gety()
+	    << setw(OWID) << it->NormalForceVec().getz()
+	    << setw(OWID) << it->TgtForceVec().getx()
+	    << setw(OWID) << it->TgtForceVec().gety()
+	    << setw(OWID) << it->TgtForceVec().getz()
+	    << setw(OWID) << it->getVibraTimeStep()
+	    << setw(OWID) << it->getImpactTimeStep()
+	    << endl;
     ofs.close();
 }
 
@@ -298,7 +552,7 @@ void assembly::printContact(const char* str) const
 void assembly::createSample(const char* str){
     std::ifstream ifs(str);
     if(!ifs) {
-	cout<<"stream error in createSample!"<<endl; exit(-1);
+	cout << "stream error!" << endl; exit(-1);
     }
     int RORC;
     ifs >> TotalNum >> RORC;
@@ -313,14 +567,14 @@ void assembly::createSample(const char* str){
     ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
        >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
 
-    ParticleList.clear();
+    ParticleVec.clear();
     int ID, type;
     REAL a, b, c, px,py,pz,dax,day,daz,dbx,dby,dbz,dcx,dcy,dcz;
     REAL vx,vy,vz,omx,omy,omz,fx,fy,fz,mx,my,mz;
     for (int i=0;i<TotalNum;i++){
 	ifs>>ID>>type>>a>>b>>c>>px>>py>>pz>>dax>>day>>daz>>dbx>>dby>>dbz>>dcx>>dcy>>dcz
 	   >>vx>>vy>>vz>>omx>>omy>>omz>>fx>>fy>>fz>>mx>>my>>mz;
-	particle* pt= new particle(ID,type,vec(a,b,c),vec(px,py,pz),vec(dax,day,daz),vec(dbx,dby,dbz),vec(dcx,dcy,dcz));
+	particle* pt= new particle(ID,type,vec(a,b,c),vec(px,py,pz),vec(dax,day,daz),vec(dbx,dby,dbz),vec(dcx,dcy,dcz),YOUNG,POISSON);
 
 //      optional settings for a particle's initial status
 //	pt->setPrevVelocity(vec(vx,vy,vz));
@@ -330,7 +584,7 @@ void assembly::createSample(const char* str){
 //	pt->setConstForce(vec(fx,fy,fz));  // constant force, not initial force
 //	pt->setConstMoment(vec(mx,my,mz)); // constant moment, not initial moment
 
-	ParticleList.push_back(pt);
+	ParticleVec.push_back(pt);
     }
     ifs.close();
 }
@@ -338,17 +592,17 @@ void assembly::createSample(const char* str){
 
 #ifdef OPENMP	
 void assembly::findContact(){ // OpenMP version
-    ContactList.clear();
+    ContactVec.clear();
     PossCntctNum = 0;
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep1,NULL); 
 #endif
     int iam, nt, i, j, ipoints, npoints, rpoints;
-    std::list<particle*>::iterator ot, it, pt;
+    std::vector<particle*>::iterator ot, it, pt;
     vec u,v;
-    npoints = ParticleList.size();
-    ot = ParticleList.begin();
+    npoints = ParticleVec.size();
+    ot = ParticleVec.begin();
 
 #pragma omp parallel num_threads(NUM_THREADS), private(iam, nt, i, j, ipoints, it, pt, u, v)
     {
@@ -359,6 +613,7 @@ void assembly::findContact(){ // OpenMP version
 	it = ot;
 
 	// determine starting point and extend of each partition
+	// this algorithm applies to both vector and list
 	if (rpoints == 0) {
 	  for (i = 0; i < iam * ipoints; ++i)
 	    ++it;              // starting point of each partition
@@ -379,7 +634,7 @@ void assembly::findContact(){ // OpenMP version
 	// explore each partition
 	for (j=0;j<ipoints;++j,++it) { 
 	    u=(*it)->getCurrPosition();
-	    for (pt=it,++pt;pt!=ParticleList.end();++pt){
+	    for (pt=it,++pt;pt!=ParticleVec.end();++pt){
 		v=(*pt)->getCurrPosition();
 		if (   ( vfabs(v-u) < (*it)->getA() + (*pt)->getA())
 		    && ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
@@ -389,7 +644,7 @@ void assembly::findContact(){ // OpenMP version
 		    ++PossCntctNum;
 		    if(tmpct.isOverlapped())
 #pragma omp critical
-			ContactList.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
+			ContactVec.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
 		}
 	    }
 	}
@@ -397,25 +652,25 @@ void assembly::findContact(){ // OpenMP version
     
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(OWID)<<timediffsec(); 
+    g_debuginf << setw(OWID) << timediffsec(timep1, timep2); 
 #endif
 	
-    ActualCntctNum = ContactList.size();
+    ActualCntctNum = ContactVec.size();
 }
 
 #else
 void assembly::findContact(){ // serial version
-    ContactList.clear();
+    ContactVec.clear();
     PossCntctNum = 0;
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep1,NULL); 
 #endif
-    std::list<particle*>::iterator it, pt;
+    std::vector<particle*>::iterator it, pt;
     vec u,v;
-    for (it=ParticleList.begin();it!=ParticleList.end();++it){
+    for (it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	u=(*it)->getCurrPosition();
-	for (pt=it,++pt;pt!=ParticleList.end();++pt){
+	for (pt=it,++pt;pt!=ParticleVec.end();++pt){
 	    v=(*pt)->getCurrPosition();
 	    if (   ( vfabs(v-u) < (*it)->getA() + (*pt)->getA())
 		&& ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
@@ -424,17 +679,17 @@ void assembly::findContact(){ // serial version
 		contact<particle> tmpct(*it, *pt); // a local and temparory object
 		++PossCntctNum;
 		if(tmpct.isOverlapped())
-		  ContactList.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
+		  ContactVec.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
 	    }
 	}
     }	
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(OWID)<<timediffsec(); 
+    g_debuginf << setw(OWID) << timediffsec(timep1, timep2); 
 #endif
  
-    ActualCntctNum = ContactList.size();
+    ActualCntctNum = ContactVec.size();
 }
 #endif
 
@@ -442,17 +697,17 @@ void assembly::findContact(){ // serial version
 
 #ifdef OPENMP	
 void assembly::findContact(){
-    ContactList.clear();
+    ContactVec.clear();
     PossCntctNum = 0;
 
 #ifdef TIME_PROFILE
     gettimeofday(&timep1,NULL); 
 #endif
-    std::list<particle*>::iterator ot, it, pt;
+    std::vector<particle*>::iterator ot, it, pt;
     vec u,v;
     int i,j,n;
-    n =ParticleList.size();
-    ot=ParticleList.begin();
+    n =ParticleVec.size();
+    ot=ParticleVec.begin();
 
 #pragma omp parallel for private(j, it, pt, u, v)    
     for (i=0; i < n; i++){
@@ -460,23 +715,23 @@ void assembly::findContact(){
       for (j=0; j < i; j++)
 	++it;
       u=(*it)->getCurrPosition();
-      for (pt=it,++pt;pt!=ParticleList.end();++pt){
+      for (pt=it,++pt;pt!=ParticleVec.end();++pt){
 	v=(*pt)->getCurrPosition();
 	if (vfabs(v-u) < (*it)->getA() + (*pt)->getA() ) {
 	  contact<particle> tmpct(*it, *pt); // a local and temparory object
 	  ++PossCntctNum;
 	  if(tmpct.isOverlapped())
 #pragma omp critical
-	      ContactList.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
+	      ContactVec.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
 	}
       }
     }
 #ifdef TIME_PROFILE
     gettimeofday(&timep2,NULL);
-    g_debuginf<<setw(OWID)<<timediffsec(); 
+    g_debuginf << setw(OWID) << timediffsec(timep1, timep2); 
 #endif
 	
-    ActualCntctNum = ContactList.size();
+    ActualCntctNum = ContactVec.size();
 }
 
 #else
@@ -485,20 +740,20 @@ void assembly::findContact(){
 
 REAL assembly::getDensity() const{
     REAL dens=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it)
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	dens+=(*it)->getMass();
     return dens/=Volume;
 }
 
 
 REAL assembly::getAveragePenetration() const{
-    int totalcntct = ContactList.size();
+    int totalcntct = ContactVec.size();
     if (totalcntct==0)
 	return 0;
     else {
 	REAL pene=0;
-	for (std::list<CONTACT>::const_iterator it=ContactList.begin();it!=ContactList.end();++it)
+	for (std::vector<CONTACT>::const_iterator it=ContactVec.begin();it!=ContactVec.end();++it)
 	    pene += it->getPenetration(); 
 	return pene/totalcntct;
     }
@@ -506,13 +761,13 @@ REAL assembly::getAveragePenetration() const{
 
 
 REAL assembly::getVibraTimeStep() const {
-    int totalcntct = ContactList.size();
+    int totalcntct = ContactVec.size();
     if (totalcntct == 0)
 	return 0;
     else {
-	std::list<CONTACT>::const_iterator it=ContactList.begin();
+	std::vector<CONTACT>::const_iterator it=ContactVec.begin();
         REAL minTimeStep = it->getVibraTimeStep();
-	for (++it; it != ContactList.end(); ++it) {
+	for (++it; it != ContactVec.end(); ++it) {
 	  REAL val = it->getVibraTimeStep(); 
 	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
 	}
@@ -522,13 +777,13 @@ REAL assembly::getVibraTimeStep() const {
 
 
 REAL assembly::getImpactTimeStep() const {
-    int totalcntct = ContactList.size();
+    int totalcntct = ContactVec.size();
     if (totalcntct == 0)
 	return 0;
     else {
-	std::list<CONTACT>::const_iterator it=ContactList.begin();
+	std::vector<CONTACT>::const_iterator it=ContactVec.begin();
         REAL minTimeStep = it->getImpactTimeStep();
-	for (++it; it != ContactList.end(); ++it) {
+	for (++it; it != ContactVec.end(); ++it) {
 	  REAL val = it->getImpactTimeStep(); 
 	  minTimeStep =  val < minTimeStep ? val : minTimeStep;
 	}
@@ -540,8 +795,8 @@ REAL assembly::getImpactTimeStep() const {
 REAL assembly::getAverageVelocity() const{
     REAL avgv=0;
     int count=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it)
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==0) {
 	    avgv+=vfabs((*it)->getCurrVelocity());
 	    count++;
@@ -553,8 +808,8 @@ REAL assembly::getAverageVelocity() const{
 REAL assembly::getAverageOmga() const{
     REAL avgv=0;
     int count=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it)
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==0){
 	    avgv+=vfabs((*it)->getCurrOmga());
 	    count++;
@@ -566,8 +821,8 @@ REAL assembly::getAverageOmga() const{
 REAL assembly::getAverageForce() const{
     REAL avgv=0;
     int count=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it)
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==0){
 	    avgv+=vfabs((*it)->getForce());
 	    count++;
@@ -579,8 +834,8 @@ REAL assembly::getAverageForce() const{
 REAL assembly::getAverageMoment() const{
     REAL avgv=0;
     int count=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it)
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==0){
 	    avgv+=vfabs((*it)->getMoment());
 	    count++;
@@ -591,8 +846,8 @@ REAL assembly::getAverageMoment() const{
 
 REAL assembly::getParticleVolume() const{
     REAL avgv=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it)
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==0)
 	    avgv+=(*it)->getVolume();
     return avgv;
@@ -600,12 +855,12 @@ REAL assembly::getParticleVolume() const{
 
 
 vec assembly::getTopFreeParticlePosition() const{
-    std::list<particle*>::const_iterator it,jt,kt;
-    it=ParticleList.begin();
-    while (it!=ParticleList.end() && (*it)->getType()!=0)   // find the 1st free particle
+    std::vector<particle*>::const_iterator it,jt,kt;
+    it=ParticleVec.begin();
+    while (it!=ParticleVec.end() && (*it)->getType()!=0)   // find the 1st free particle
 	++it;
 
-    if (it==ParticleList.end())    // no free particles
+    if (it==ParticleVec.end())    // no free particles
 	return 0;
 
     jt=it; 
@@ -614,8 +869,8 @@ vec assembly::getTopFreeParticlePosition() const{
     // two cases:
     // 1: 1st particle is not free
     // 2: 1st particle is free
-    if (++kt!=ParticleList.end()){ // case1: more than 2 particles; case 2: more than 1 particle
-	for(++it;it!=ParticleList.end();++it){
+    if (++kt!=ParticleVec.end()){ // case1: more than 2 particles; case 2: more than 1 particle
+	for(++it;it!=ParticleVec.end();++it){
 	    if ((*it)->getType()==0)
 		if ((*it)->getCurrPosition().getz() > (*jt)->getCurrPosition().getz())
 		    jt=it;
@@ -631,10 +886,20 @@ vec assembly::getTopFreeParticlePosition() const{
 
 }
 
+REAL assembly::getMaxCenterHeight() const {
+  std::vector<particle*>::const_iterator it = ParticleVec.begin();
+  REAL z0 = (*it)->getCurrPosition().getz();
+  for (; it != ParticleVec.end(); ++it) {
+    if ( (*it)->getCurrPosition().getz() > z0 )
+      z0 = (*it)->getCurrPosition().getz();
+  }
+  return z0;
+}
+
 
 REAL assembly::ellipPileForce() {
     REAL val=0;
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==3) {
 	    val = (*it)->getForce().getz();
 	    break;
@@ -645,7 +910,7 @@ REAL assembly::ellipPileForce() {
 
 vec assembly::ellipPileDimn() {
     vec val;
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==3) {
 	    val = vec((*it)->getA(), (*it)->getB(), (*it)->getC());
 	    break;
@@ -656,7 +921,7 @@ vec assembly::ellipPileDimn() {
 
 REAL assembly::ellipPileTipZ() {
     REAL val=0;
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it)
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it)
 	if ((*it)->getType()==3) {
 	    val = (*it)->getCurrPosition().getz()-(*it)->getA();
 	    break;
@@ -681,7 +946,7 @@ REAL assembly::ellipPilePeneVol() {
 
 
 void assembly::ellipPileUpdate(){
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	if ((*it)->getType()==3) {
 	    (*it)->curr_velocity.setx(0);	
 	    (*it)->curr_velocity.sety(0);
@@ -694,8 +959,8 @@ void assembly::ellipPileUpdate(){
 
 REAL assembly::getTransEnergy() const{
     REAL engy=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it){
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getTransEnergy();
     }
@@ -705,8 +970,8 @@ REAL assembly::getTransEnergy() const{
 
 REAL assembly::getRotatEnergy() const{
     REAL engy=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it){
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getRotatEnergy();
     }
@@ -716,8 +981,8 @@ REAL assembly::getRotatEnergy() const{
 
 REAL assembly::getKinetEnergy() const{
     REAL engy=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it){
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getKinetEnergy();
     }
@@ -727,8 +992,8 @@ REAL assembly::getKinetEnergy() const{
 
 REAL assembly::getPotenEnergy(REAL ref) const{
     REAL engy=0;
-    std::list<particle*>::const_iterator it;
-    for(it=ParticleList.begin();it!=ParticleList.end();++it){
+    std::vector<particle*>::const_iterator it;
+    for(it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	if ((*it)->getType()==0)
 	    engy+=(*it)->getPotenEnergy(ref);
     }
@@ -737,14 +1002,14 @@ REAL assembly::getPotenEnergy(REAL ref) const{
 
 
 void assembly::clearForce(){
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	(*it)->clearForce();
     }
 }
 
 
 void assembly::flexiBoundaryForceZero(){
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	(*it)->flb_force=0;
 	(*it)->flb_moment=0;
     }
@@ -752,25 +1017,31 @@ void assembly::flexiBoundaryForceZero(){
 
 
 void assembly::initFBForce(){
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	(*it)->force+=(*it)->flb_force;
 	(*it)->moment+=(*it)->flb_moment;
     }
 }
 
+void assembly::springForce() {
+  vector<spring*> :: iterator it;
+  for (it = SpringVec.begin(); it != SpringVec.end(); ++it) {
+    (*it)->applyForce();
+  }
+}
 
 void assembly::internalForce(REAL& avgnm, REAL& avgsh){
     avgnm=0;
     avgsh=0;
 
-    int totalcntct = ContactList.size();
+    int totalcntct = ContactVec.size();
     if(totalcntct==0){
 	avgnm = 0;
 	avgsh = 0;
     }
     else{
-	std::list<CONTACT>::iterator it;
-	for (it=ContactList.begin();it!=ContactList.end();++it)
+	std::vector<CONTACT>::iterator it;
+	for (it=ContactVec.begin();it!=ContactVec.end();++it)
 	    it->checkinPreTgt(CntTgtVec); // checkin previous tangential force and displacment    
 	
 	CntTgtVec.clear(); // CntTgtVec must be cleared before filling in new values.
@@ -778,7 +1049,7 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 #ifdef TIME_PROFILE
 	gettimeofday(&timep1,NULL); 
 #endif 
-	for (it=ContactList.begin();it!=ContactList.end();++it){
+	for (it=ContactVec.begin();it!=ContactVec.end();++it){
             bool exceed = false;
 	    it->contactForce(exceed);           // cannot be parallelized as it may change a particle's force simultaneously.
 	    it->checkoutTgt(CntTgtVec);   // checkout current tangential force and displacment
@@ -800,7 +1071,7 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 
 #ifdef TIME_PROFILE
 	gettimeofday(&timep2,NULL);
-	g_debuginf<<setw(OWID)<<timediffsec()<<endl; 
+	g_debuginf << setw(OWID) << timediffsec(timep1, timep2) << endl; 
 #endif
 
     }
@@ -808,7 +1079,7 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 
 
 void assembly::updateParticle(){
-    for(std::list<particle*>::iterator it=ParticleList.begin();it!=ParticleList.end();++it){
+    for(std::vector<particle*>::iterator it=ParticleVec.begin();it!=ParticleVec.end();++it){
 	(*it)->update();
     }
 }
@@ -817,7 +1088,7 @@ void assembly::updateParticle(){
 void assembly::createRigidBoundary(std::ifstream &ifs){
     rgd_bdry<particle>* rbptr;
     int type;
-    RBList.clear();
+    RBVec.clear();
     ifs>>RgdBdryNum;
     
     for(int i=0;i<RgdBdryNum;i++){
@@ -826,7 +1097,7 @@ void assembly::createRigidBoundary(std::ifstream &ifs){
 	    rbptr=new plnrgd_bdry<particle>(ifs);
 	else        // cylindrical boundary
 	    rbptr=new cylrgd_bdry<particle>(ifs);
-	RBList.push_back(rbptr);
+	RBVec.push_back(rbptr);
     }
 }
 
@@ -834,7 +1105,7 @@ void assembly::createRigidBoundary(std::ifstream &ifs){
 void assembly::createFlexiBoundary(std::ifstream &ifs){
     flb_bdry<particle>* fbptr;
     int type;
-    FBList.clear();
+    FBVec.clear();
     ifs>>FlbBdryNum;
     
     for(int i=0;i<FlbBdryNum;i++){
@@ -843,7 +1114,7 @@ void assembly::createFlexiBoundary(std::ifstream &ifs){
 	    fbptr=new plnflb_bdry<particle>(ifs);
 	else        // cylindrical boundary
 	    fbptr=new cylflb_bdry<particle>(ifs);
-	FBList.push_back(fbptr);
+	FBVec.push_back(fbptr);
     }
 }
 
@@ -851,7 +1122,7 @@ void assembly::createFlexiBoundary(std::ifstream &ifs){
 void assembly::createBoundary(const char* str){
     std::ifstream ifs(str);
     if(!ifs) {
-	cout<<"stream error in createBoundary!"<<endl; exit(-1);
+	cout << "stream error!" << endl; exit(-1);
     }
     ifs >> BdryType;
     if(BdryType==0){      // rigid boundaries
@@ -868,66 +1139,66 @@ void assembly::printBoundary(const char* str) const
 {
     std::ofstream ofs(str);
     if(!ofs) {
-	cout<<"stream error in printBoundary!"<<endl; exit(-1);
+	cout << "stream error!" << endl; exit(-1);
     }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
 
-    ofs<<setw(OWID)<<BdryType
-       <<setw(OWID)<<RgdBdryNum<<endl;
+    ofs << setw(OWID) << BdryType
+        << setw(OWID) << RgdBdryNum << endl;
     
-    std::list<RGDBDRY*>::const_iterator rt;
-    for(rt=RBList.begin();rt!=RBList.end();++rt)
+    std::vector<RGDBDRY*>::const_iterator rt;
+    for(rt=RBVec.begin();rt!=RBVec.end();++rt)
 	(*rt)->disp(ofs);
-    ofs<<endl;
+    ofs << endl;
 
     ofs.close();
 }
 
 
 void assembly::findParticleOnBoundary(){
-    std::list<RGDBDRY*>::iterator rt;
-    std::list<FLBBDRY*>::iterator ft;
-    for(rt=RBList.begin();rt!=RBList.end();++rt)
-	(*rt)->findParticleOnBoundary(ParticleList);
-    for(ft=FBList.begin();ft!=FBList.end();++ft)
-	(*ft)->findParticleOnBoundary(ParticleList);
+    std::vector<RGDBDRY*>::iterator rt;
+    std::vector<FLBBDRY*>::iterator ft;
+    for(rt=RBVec.begin();rt!=RBVec.end();++rt)
+	(*rt)->findParticleOnBoundary(ParticleVec);
+    for(ft=FBVec.begin();ft!=FBVec.end();++ft)
+	(*ft)->findParticleOnBoundary(ParticleVec);
 }
 
 
 void assembly::findParticleOnLine(){
-    std::list<FLBBDRY*>::iterator ft;
-    for(ft=FBList.begin();ft!=FBList.end();++ft)
+    std::vector<FLBBDRY*>::iterator ft;
+    for(ft=FBVec.begin();ft!=FBVec.end();++ft)
 	(*ft)->findParticleOnLine();
 }
 
 
 void assembly::createFlbNet(){
-    std::list<FLBBDRY*>::iterator ft;
-    for(ft=FBList.begin();ft!=FBList.end();++ft)
+    std::vector<FLBBDRY*>::iterator ft;
+    for(ft=FBVec.begin();ft!=FBVec.end();++ft)
 	(*ft)->createFlbNet();
 }
 
 
 void assembly::rigidBoundaryForce(){
-  std::list<RGDBDRY*>::iterator rt;
-  for(rt=RBList.begin();rt!=RBList.end();++rt)
+  std::vector<RGDBDRY*>::iterator rt;
+  for(rt=RBVec.begin();rt!=RBVec.end();++rt)
     (*rt)->rigidBF(BdryTgtMap);
 
   /*
   vector<boundarytgt>::iterator it;
-  std::list<RGDBDRY*>::iterator rt;
+  std::vector<RGDBDRY*>::iterator rt;
 
-  for(rt=RBList.begin();rt!=RBList.end();++rt){	
+  for(rt=RBVec.begin();rt!=RBVec.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
     for (it=BdryTgtMap[(*rt)->bdry_id].begin();it!=BdryTgtMap[(*rt)->bdry_id].end();++it){
-      g_debuginf<<setw(OWID)<<g_iteration
-		<<setw(OWID)<<(*rt)->bdry_id
-		<<setw(OWID)<<BdryTgtMap[(*rt)->bdry_id].size()
-		<<setw(OWID)<<it->TgtForce.getx()
-		<<setw(OWID)<<it->TgtForce.gety()
-		<<setw(OWID)<<it->TgtForce.getz()
-		<<endl;
-      //<<setw(OWID)<<it->TgtPeak<<endl;
+      g_debuginf << setw(OWID) << g_iteration
+		 << setw(OWID) << (*rt)->bdry_id
+		 << setw(OWID) << BdryTgtMap[(*rt)->bdry_id].size()
+		 << setw(OWID) << it->TgtForce.getx()
+		 << setw(OWID) << it->TgtForce.gety()
+		 << setw(OWID) << it->TgtForce.getz()
+		 << endl;
+      // << setw(OWID) << it->TgtPeak << endl;
     }
   }
   */
@@ -935,8 +1206,8 @@ void assembly::rigidBoundaryForce(){
 
 
 void assembly::rigidBoundaryForce(REAL penetr[],int cntnum[]){
-  std::list<RGDBDRY*>::iterator rt;
-  for(rt=RBList.begin();rt!=RBList.end();++rt){	
+  std::vector<RGDBDRY*>::iterator rt;
+  for(rt=RBVec.begin();rt!=RBVec.end();++rt){	
     (*rt)->rigidBF(BdryTgtMap);
     if ((*rt)->getBdryID()==1){
 	penetr[1] = (*rt)->getAvgPenetr();
@@ -967,15 +1238,15 @@ void assembly::rigidBoundaryForce(REAL penetr[],int cntnum[]){
 
 
 void assembly::flexiBoundaryForce(){
-    std::list<FLBBDRY*>::iterator ft;
-    for(ft=FBList.begin();ft!=FBList.end();++ft)
+    std::vector<FLBBDRY*>::iterator ft;
+    for(ft=FBVec.begin();ft!=FBVec.end();++ft)
 	(*ft)->flxbBF();
 }
 
 
 vec assembly::getNormalForce(int bdry) const{
-    std::list<RGDBDRY*>::const_iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::const_iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getNormalForce();
     }
@@ -984,8 +1255,8 @@ vec assembly::getNormalForce(int bdry) const{
 
 
 vec assembly::getShearForce(int bdry) const{
-    std::list<RGDBDRY*>::const_iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::const_iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getShearForce();
     }
@@ -994,8 +1265,8 @@ vec assembly::getShearForce(int bdry) const{
 
 
 REAL assembly::getAvgNormal(int bdry) const{
-    std::list<RGDBDRY*>::const_iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::const_iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getAvgNormal();
     }
@@ -1004,8 +1275,8 @@ REAL assembly::getAvgNormal(int bdry) const{
 
 
 vec assembly::getApt(int bdry) const{
-    std::list<RGDBDRY*>::const_iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::const_iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getApt();
     }
@@ -1014,8 +1285,8 @@ vec assembly::getApt(int bdry) const{
 
 
 vec assembly::getDirc(int bdry) const{
-    std::list<RGDBDRY*>::const_iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::const_iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getDirc();
     }
@@ -1024,8 +1295,8 @@ vec assembly::getDirc(int bdry) const{
 
 
 REAL assembly::getArea(int n) const{
-    std::list<RGDBDRY*>::const_iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::const_iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==n)
 	    return (*it)->area;
     }
@@ -1034,8 +1305,8 @@ REAL assembly::getArea(int n) const{
 
 
 void assembly::setArea(int n, REAL a){
-    std::list<RGDBDRY*>::iterator it;
-    for(it=RBList.begin();it!=RBList.end();++it){
+    std::vector<RGDBDRY*>::iterator it;
+    for(it=RBVec.begin();it!=RBVec.end();++it){
 	if((*it)->getBdryID()==n)
 	    (*it)->area=a;
     }
@@ -1043,9 +1314,9 @@ void assembly::setArea(int n, REAL a){
 
 
 REAL assembly::getAverageRigidPressure() const{
-    std::list<RGDBDRY*>::const_iterator rt;
+    std::vector<RGDBDRY*>::const_iterator rt;
     REAL avgpres=0;
-    for(rt=RBList.begin();rt!=RBList.end();++rt)
+    for(rt=RBVec.begin();rt!=RBVec.end();++rt)
 	avgpres+=vfabs((*rt)->getNormalForce())/(*rt)->getArea();
     return avgpres/=RgdBdryNum;
 }
@@ -1054,7 +1325,7 @@ REAL assembly::getAverageRigidPressure() const{
 // only update CoefOfLimits[0] for specified boundaries
 void assembly::updateRB(int bn[], UPDATECTL rbctl[], int num){
     for(int i=0;i<num;i++){
-	for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+	for(std::vector<RGDBDRY*>::iterator rt=RBVec.begin();rt!=RBVec.end();++rt){
 	    if((*rt)->getBdryID()==bn[i]){
 		(*rt)->update(rbctl[i]);
 		break;
@@ -1066,9 +1337,9 @@ void assembly::updateRB(int bn[], UPDATECTL rbctl[], int num){
 
 // update CoefOfLimits[1,2,3,4] for all 6 boundaries
 void assembly::updateRB6(){
-    for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+    for(std::vector<RGDBDRY*>::iterator rt=RBVec.begin();rt!=RBVec.end();++rt){
 	if((*rt)->getBdryID()==1 || (*rt)->getBdryID()==3){
-	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::vector<RGDBDRY*>::iterator lt=RBVec.begin();lt!=RBVec.end();++lt){
 		if((*lt)->getBdryID()==4)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==2)
@@ -1080,7 +1351,7 @@ void assembly::updateRB6(){
 	    }
 	}
 	else if((*rt)->getBdryID()==2 || (*rt)->getBdryID()==4){
-	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::vector<RGDBDRY*>::iterator lt=RBVec.begin();lt!=RBVec.end();++lt){
 		if((*lt)->getBdryID()==1)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==3)
@@ -1093,7 +1364,7 @@ void assembly::updateRB6(){
 
 	}
 	else if((*rt)->getBdryID()==5 || (*rt)->getBdryID()==6){
-	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::vector<RGDBDRY*>::iterator lt=RBVec.begin();lt!=RBVec.end();++lt){
 		if((*lt)->getBdryID()==1)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==3)
@@ -1112,9 +1383,9 @@ void assembly::updateRB6(){
 
 // upgrade CoefOfLimits[1,2,3,4] for rectangular pile
 void assembly::updateRectPile(){
-    for(std::list<RGDBDRY*>::iterator rt=RBList.begin();rt!=RBList.end();++rt){
+    for(std::vector<RGDBDRY*>::iterator rt=RBVec.begin();rt!=RBVec.end();++rt){
 	if((*rt)->getBdryID()==7 || (*rt)->getBdryID()==9 ){
-	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::vector<RGDBDRY*>::iterator lt=RBVec.begin();lt!=RBVec.end();++lt){
 		if((*lt)->getBdryID()==10)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==8)
@@ -1126,7 +1397,7 @@ void assembly::updateRectPile(){
 	    }
 	}
 	else if((*rt)->getBdryID()==8 || (*rt)->getBdryID()==10){
-	    for(std::list<RGDBDRY*>::iterator lt=RBList.begin();lt!=RBList.end();++lt){
+	    for(std::vector<RGDBDRY*>::iterator lt=RBVec.begin();lt!=RBVec.end();++lt){
 		if((*lt)->getBdryID()==7)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==9)
@@ -1142,10 +1413,10 @@ void assembly::updateRectPile(){
 
 
 void assembly::updateFB(int bn[], UPDATECTL fbctl[], int num){
-    std::list<FLBBDRY*>::iterator ft;
+    std::vector<FLBBDRY*>::iterator ft;
     int i,k=1;
     for(i=0;i<num;i++){
-	for(ft=FBList.begin();ft!=FBList.end();++ft){
+	for(ft=FBVec.begin();ft!=FBVec.end();++ft){
 	    if(k++==bn[i]){
 		UPDATECTL ctl[2];
 		ctl[0]=fbctl[bn[i]*2-2];
@@ -1197,8 +1468,296 @@ void assembly::deposit_RgdBdry(rectangle& container,
   
   trim(container,             // container unchanged
        grad,
+       false,                 // recreate from input file or not
        "dep_particle_end",    // input file, particles to be trimmed
        trmparticle);          // output file, trimmed particles
+}
+
+
+void assembly::deposit_repose(rectangle& container,
+			      gradation& grad,
+			      int   interval,
+			      const char* inibdryfile,
+			      const char* particlefile, 
+			      const char* contactfile,
+			      const char* progressfile, 
+			      const char* debugfile)
+{
+  this->container = container;
+  
+  setBoundary(5, container, inibdryfile); // container unchanged
+  
+  angleOfRepose(container,
+		grad,
+		interval,           // print interval
+		inibdryfile,        // input file, initial boundaries
+		particlefile,       // output file, resulted particles, including snapshots 
+		contactfile,        // output file, resulted contacts, including snapshots 
+		progressfile,       // output file, statistical info
+		debugfile);         // output file, debug info
+}
+
+void assembly::angleOfRepose(rectangle& container,
+			     gradation& grad,
+			     int   interval,
+			     const char* inibdryfile,
+			     const char* particlefile, 
+			     const char* contactfile,
+			     const char* progressfile, 
+			     const char* debugfile)
+{
+  // pre_1: open streams for output.
+  progressinf.open(progressfile); 
+  if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
+  progressinf.setf(std::ios::scientific, std::ios::floatfield);
+  progressinf.precision(OPREC);
+  progressinf << setw(OWID) << "iteration"
+	      << setw(OWID) << "poss_contact"
+	      << setw(OWID) << "actual_contact"
+	      << setw(OWID) << "penetration"
+	      << setw(OWID) << "avg_normal"
+	      << setw(OWID) << "avg_tangt"
+	      << setw(OWID) << "avg_velocity"
+	      << setw(OWID) << "avg_omga"
+	      << setw(OWID) << "avg_force"
+	      << setw(OWID) << "avg_moment"
+	      << setw(OWID) << "trans_energy"
+	      << setw(OWID) << "rotat_energy"
+	      << setw(OWID) << "kinet_energy"
+	      << setw(OWID) << "poten_energy"
+	      << setw(OWID) << "total_energy"
+	      << setw(OWID) << "void_ratio"
+	      << setw(OWID) << "porosity"
+	      << setw(OWID) << "coord_number"
+	      << setw(OWID) << "density"
+	      << setw(OWID) << "sigma_y1"
+	      << setw(OWID) << "sigma_y2"
+	      << setw(OWID) << "sigma_x1"
+	      << setw(OWID) << "sigma_x2"
+	      << setw(OWID) << "sigma_z1"
+	      << setw(OWID) << "sigma_z2"
+	      << setw(OWID) << "mean_stress"
+	      << setw(OWID) << "dimx"
+	      << setw(OWID) << "dimy"
+	      << setw(OWID) << "dimz"
+	      << setw(OWID) << "volume"
+	      << setw(OWID) << "epsilon_x"
+	      << setw(OWID) << "epsilon_y"
+	      << setw(OWID) << "epsilon_z"
+	      << setw(OWID) << "epsilon_v"
+	      << setw(OWID) << "vibra_t_step"
+	      << setw(OWID) << "impact_t_step"
+	      << setw(OWID) << "wall_time" << endl;
+  
+  g_debuginf.open(debugfile);
+  if(!g_debuginf) { cout << "stream error!" << endl; exit(-1); }
+  g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
+  
+  // pre_2. create boundaries from existing files.
+  createBoundary(inibdryfile);
+
+  // pre_3: define variables used in iterations.
+  REAL avgNormal=0;
+  REAL avgTangt=0;
+  int  stepsnum=0;
+  char stepsstr[4];
+  bool toSnapshot=false;
+  char stepsfp[50];
+  REAL void_ratio=0;
+  REAL bdry_penetr[7] = {0,0,0,0,0,0,0};
+  int  bdry_cntnum[7] = {0,0,0,0,0,0,0};
+
+  REAL maxRadius = grad.getMaxPtclRadius();
+  REAL maxDiameter = maxRadius * 2.0;
+  REAL z0 = container.getV1().getz();
+  vector<particle*> lastPtcls;
+  particle *newPtcl = NULL;
+  int layers = 1; // how many layers of new particles to generate each time?
+
+  g_iteration = 0; 
+  TotalNum = 0;
+  REAL zCurr;
+  gettimeofday(&timew1,NULL);
+  // iterations starting ...
+  do
+    {
+      // 1. add particle
+      if ( TotalNum == 0 ) {
+	zCurr = z0 + maxRadius;
+
+	for ( int i = 0; i != layers; ++i) {
+	  newPtcl = new particle(TotalNum+1, 0, vec(0, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  ParticleVec.push_back(newPtcl);
+	  ++TotalNum;
+	  lastPtcls.push_back(newPtcl);
+	  
+	  newPtcl = new particle(TotalNum+1, 0, vec(maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  ParticleVec.push_back(newPtcl);
+	  ++TotalNum;
+	  //lastPtcls.push_back(newPtcl);
+	  
+	  newPtcl = new particle(TotalNum+1, 0, vec(-maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  ParticleVec.push_back(newPtcl);
+	  ++TotalNum;
+	  //lastPtcls.push_back(newPtcl);
+	  
+	  newPtcl = new particle(TotalNum+1, 0, vec(0, maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  ParticleVec.push_back(newPtcl);
+	  ++TotalNum;
+	  //lastPtcls.push_back(newPtcl);
+	  
+	  newPtcl = new particle(TotalNum+1, 0, vec(0, -maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  ParticleVec.push_back(newPtcl);
+	  ++TotalNum;
+	  //lastPtcls.push_back(newPtcl);
+	}
+	toSnapshot = true;
+
+      }
+      else {
+	vector<particle*>::iterator it;
+	bool allInContact = false;
+	for ( it = lastPtcls.begin(); it != lastPtcls.end(); ++it) {
+	  if ( (*it)->isInContact() ) 
+	    allInContact = true;
+	  else {
+	    allInContact = false;
+	    break;
+	  }
+	}
+
+	if ( allInContact ) {
+
+	  lastPtcls.clear(); // do not delete those pointers to release memory; ParticleVec will do it.
+	  zCurr = getMaxCenterHeight() + maxDiameter;
+
+	  for ( int i = 0; i != layers; ++i) {
+	    newPtcl = new particle(TotalNum+1, 0, vec(0, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    ParticleVec.push_back(newPtcl);
+	    ++TotalNum;
+	    lastPtcls.push_back(newPtcl);
+	    
+	    newPtcl = new particle(TotalNum+1, 0, vec(maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    ParticleVec.push_back(newPtcl);
+	    ++TotalNum;
+	    //lastPtcls.push_back(newPtcl);
+	    
+	    newPtcl = new particle(TotalNum+1, 0, vec(-maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    ParticleVec.push_back(newPtcl);
+	    ++TotalNum;
+	    //lastPtcls.push_back(newPtcl);
+	    
+	    newPtcl = new particle(TotalNum+1, 0, vec(0, maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    ParticleVec.push_back(newPtcl);
+	    ++TotalNum;
+	    //lastPtcls.push_back(newPtcl);
+	    
+	    newPtcl = new particle(TotalNum+1, 0, vec(0, -maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    ParticleVec.push_back(newPtcl);
+	    ++TotalNum;
+	    //lastPtcls.push_back(newPtcl);	
+	  }
+	  toSnapshot = true;
+	}
+      }
+      // 2. create possible boundary particles and contacts between particles.
+      findContact();
+      findParticleOnBoundary();
+      
+      // 3. set particle forces/moments as zero before each re-calculation,
+      clearForce();	
+      
+      // 4. calculate contact forces/moments and apply them to particles.
+      internalForce(avgNormal, avgTangt);
+      
+      // 5. calculate boundary forces/moments and apply them to particles.
+      rigidBoundaryForce(bdry_penetr, bdry_cntnum);
+      
+      // 6. update particles' velocity/omga/position/orientation based on force/moment.
+      updateParticle();
+      
+      // 7. (1) output particles and contacts information as snapshots.
+      if (toSnapshot){
+	sprintf(stepsstr, "%03d", stepsnum); 
+	strcpy(stepsfp, particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	printParticle(stepsfp);
+	cout << stepsfp;
+	
+	sprintf(stepsstr, "%03d", stepsnum); 
+	strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	printContact(stepsfp);
+	++stepsnum;
+	time(&timeStamp);
+	cout << "  " << stepsfp << "  " << ctime(&timeStamp) << flush;
+
+	toSnapshot = false;
+      }
+      
+      // 8. (2) output stress and strain info.
+      if (g_iteration % interval == 0) {
+	gettimeofday(&timew2,NULL);
+	REAL t1=getTransEnergy();
+	REAL t2=getRotatEnergy();
+	REAL t3=getPotenEnergy(-0.025);
+	progressinf << setw(OWID) << g_iteration
+		    << setw(OWID) << getPossCntctNum()
+		    << setw(OWID) << getActualCntctNum()
+		    << setw(OWID) << getAveragePenetration()
+		    << setw(OWID) << avgNormal
+		    << setw(OWID) << avgTangt
+		    << setw(OWID) << getAverageVelocity() 
+		    << setw(OWID) << getAverageOmga()
+		    << setw(OWID) << getAverageForce()   
+		    << setw(OWID) << getAverageMoment()
+		    << setw(OWID) << t1
+		    << setw(OWID) << t2
+		    << setw(OWID) << (t1+t2)
+		    << setw(OWID) << t3
+		    << setw(OWID) << (t1+t2+t3)
+		    << setw(OWID) << void_ratio
+		    << setw(OWID) << void_ratio/(1+void_ratio)
+		    << setw(OWID) << 2.0*(getActualCntctNum()
+				      +bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
+				      +bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << "0"
+		    << setw(OWID) << getVibraTimeStep()
+		    << setw(OWID) << getImpactTimeStep()
+		    << setw(OWID) << timediffsec(timew1,timew2)
+		        << endl;
+      }
+      
+      // 7. loop break conditions.
+      ++g_iteration;
+      
+    } while (TotalNum < 2000); //( zCurr < container.getV2().getz() );  //(++g_iteration < total_steps);
+    
+    // post_1. store the final snapshot of particles & contacts.
+    strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
+    printParticle(stepsfp);
+    cout << stepsfp;
+
+    strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
+    printContact(stepsfp);
+    cout << "  " << stepsfp << "  " << ctime(&timeStamp) << endl;
+
+    // post_2. close streams
+    progressinf.close();
+    g_debuginf.close();
 }
 
 
@@ -1241,16 +1800,16 @@ void assembly::generate(rectangle& container,
   REAL z0 = container.getCenter().getz();
 
   if (freetype == 0) {      // just one free particle
-    newptcl = new particle(TotalNum+1, 0, vec(x0,y0,z0), grad);
-    ParticleList.push_back(newptcl);
+    newptcl = new particle(TotalNum+1, 0, vec(x0,y0,z0), grad, YOUNG, POISSON);
+    ParticleVec.push_back(newptcl);
     TotalNum++;
   }
   else if (freetype == 1) { // a horizontal layer of free particles
     z = container.getV2().getz();
     for (x = x1; x - x2 < EPS; x += diameter)
       for (y = y1; y - y2 < EPS; y += diameter) {
-	newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
-	ParticleList.push_back(newptcl);
+	newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+	ParticleVec.push_back(newptcl);
 	TotalNum++;
       }
   }
@@ -1258,8 +1817,8 @@ void assembly::generate(rectangle& container,
     for (z = z1; z < z1 + dimz*rFloHeight; z += diameter) {
       for (x = x1 + offset; x - x2 < EPS; x += diameter)
 	for (y = y1 + offset; y - y2 < EPS; y += diameter) {
-	  newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
-	  ParticleList.push_back(newptcl);
+	  newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+	  ParticleVec.push_back(newptcl);
 	  TotalNum++;
 	}	
       offset *= -1;
@@ -1294,16 +1853,16 @@ void assembly::generate(gradation& grad,
 
     REAL dimn=grad.dimn;
     if (freetype == 0) {      // just one free particle
-	newptcl = new particle(TotalNum+1, 0, vec(dimn/2/40,dimn/2/20,dimn/2), grad);
-	ParticleList.push_back(newptcl);
+	newptcl = new particle(TotalNum+1, 0, vec(dimn/2/40,dimn/2/20,dimn/2), grad, YOUNG, POISSON);
+	ParticleVec.push_back(newptcl);
 	TotalNum++;
     }
     else if (freetype == 1) { // a horizontal layer of free particles
 	z=dimn/2;
 	for (x=-dimn/2*(grid-1)/10; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 	    for (y=-dimn/2*(grid-1)/10; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
-		newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
-		ParticleList.push_back(newptcl);
+		newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+		ParticleVec.push_back(newptcl);
 		TotalNum++;
 	    }
     }
@@ -1316,8 +1875,8 @@ void assembly::generate(gradation& grad,
 	//for (z=-dimn/2*4/5; z<dimn/2 + dimn*ht; z+=dimn/2/10) { // spheres
 	    for (x=-dimn/2*(grid-1)/10+offset; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 		for (y=-dimn/2*(grid-1)/10+offset; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
-		    newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
-		    ParticleList.push_back(newptcl);
+		    newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+		    ParticleVec.push_back(newptcl);
 		    TotalNum++;
 		}	
 	    offset *= -1;
@@ -1393,8 +1952,8 @@ void assembly::generate_p(gradation&  grad,
     x=dimn/2*(grid+1)/10;
     for (y=-dimn/2*grid/10; y<dimn/2*grid/10*est; y+=dimn/2/5)
 	for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5){
-	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99);
-	    ParticleList.push_back(newptcl);
+	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99, YOUNG, POISSON);
+	    ParticleVec.push_back(newptcl);
 	    TotalNum++;
 	}
 
@@ -1402,8 +1961,8 @@ void assembly::generate_p(gradation&  grad,
     y=dimn/2*(grid+1)/10;
     for (x=-dimn/2*grid/10; x<dimn/2*grid/10*est; x+=dimn/2/5)
 	for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5){
-	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99 );
-	    ParticleList.push_back(newptcl);
+	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99, YOUNG, POISSON);
+	    ParticleVec.push_back(newptcl);
 	    TotalNum++;
 	}
 
@@ -1411,8 +1970,8 @@ void assembly::generate_p(gradation&  grad,
     x=-dimn/2*(grid+1)/10;
     for (y=-dimn/2*grid/10; y<dimn/2*grid/10*est; y+=dimn/2/5)
 	for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5){
-	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99);
-	    ParticleList.push_back(newptcl);
+	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99, YOUNG, POISSON);
+	    ParticleVec.push_back(newptcl);
 	    TotalNum++;
 	}
 
@@ -1420,8 +1979,8 @@ void assembly::generate_p(gradation&  grad,
     y=-dimn/2*(grid+1)/10;
     for (x=-dimn/2*grid/10; x<dimn/2*grid/10*est; x+=dimn/2/5)
 	for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5){
-	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99);
-	    ParticleList.push_back(newptcl);
+	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99, YOUNG, POISSON);
+	    ParticleVec.push_back(newptcl);
 	    TotalNum++;
 	}
 
@@ -1429,22 +1988,22 @@ void assembly::generate_p(gradation&  grad,
     z=-dimn/2;
     for (y=-dimn/2*grid/10; y<dimn/2*grid/10*est; y+=dimn/2/5)
 	for( x=-dimn/2*grid/10; x<dimn/2*grid/10*est; x+=dimn/2/5){
-	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99);
-	    ParticleList.push_back(newptcl);
+	    newptcl = new particle(TotalNum+1, 1, vec(x,y,z), grad.ptclsize[0]*0.99, YOUNG, POISSON);
+	    ParticleVec.push_back(newptcl);
 	    TotalNum++;
 	}
 
     if (freetype == 0) {      // just one free particle
-	newptcl = new particle(TotalNum+1, 0, vec(dimn/2/40,dimn/2/20,dimn/2), grad);
-	ParticleList.push_back(newptcl);
+	newptcl = new particle(TotalNum+1, 0, vec(dimn/2/40,dimn/2/20,dimn/2), grad, YOUNG, POISSON);
+	ParticleVec.push_back(newptcl);
 	TotalNum++;
     }
     else if (freetype == 1) { // a horizontal layer of free particles
 	z=dimn/2;
 	for (x=-dimn/2*(grid-1)/10; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 	    for (y=-dimn/2*(grid-1)/10; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
-		newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
-		ParticleList.push_back(newptcl);
+		newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+		ParticleVec.push_back(newptcl);
 		TotalNum++;
 	    }
     }
@@ -1452,8 +2011,8 @@ void assembly::generate_p(gradation&  grad,
 	for (z=dimn/2; z<dimn/2 + dimn*ht; z+=dimn/2/5)
 	    for (x=-dimn/2*(grid-1)/10; x<dimn/2*(grid-1)/10*est; x+=dimn/2/5)
 		for (y=-dimn/2*(grid-1)/10; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5){
-		    newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad);
-		    ParticleList.push_back(newptcl);
+		    newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+		    ParticleVec.push_back(newptcl);
 		    TotalNum++;
 		}	
     }
@@ -1486,9 +2045,9 @@ void assembly::scale_PtclBdry(int   total_steps,
 	      debugfile);         // output file, debug info
 }
 
-/*
+
 // collapse a deposited specimen through gravitation
-void assembly::collapse(int   rors, 
+void assembly::collapse(rectangle &container, 
 			int   total_steps,  
 			int   snapshots,
 			int   interval,
@@ -1499,29 +2058,28 @@ void assembly::collapse(int   rors,
 			const char* progressfile,
 			const char* debugfile)
 {
-    setBoundary(rors,           // rectangular--1 or cylindrical--0?
-	    1,                  // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
-	    0.05,               // specimen dimension
-	    initboundary);      // output file, containing boundaries info
-    
-    deposit(total_steps,        // number of iterations
-	    snapshots,          // number of snapshots
-	    interval,           // print interval
-	    iniptclfile,        // input file, initial particles
-	    initboundary,       // input file, boundaries
-	    particlefile,       // output file, resulted particles, including snapshots 
-	    contactfile,        // output file, resulted contacts, including snapshots 
-	    progressfile,       // output file, statistical info
-	    debugfile);         // output file, debug info
+  setBoundary(1,              // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
+	      container,      // specimen dimension
+	      initboundary);  // output file, containing boundaries info
+  
+  deposit(total_steps,        // number of iterations
+	  snapshots,          // number of snapshots
+	  interval,           // print interval
+	  iniptclfile,        // input file, initial particles
+	  initboundary,       // input file, boundaries
+	  particlefile,       // output file, resulted particles, including snapshots 
+	  contactfile,        // output file, resulted contacts, including snapshots 
+	  progressfile,       // output file, statistical info
+	  debugfile);         // output file, debug info
 }
-*/
+
   
 void assembly::setBoundary(int bdrynum,
 			   rectangle& container,
 			   const char* boundaryfile)
 {
   std::ofstream ofs(boundaryfile);
-  if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
+  if(!ofs) { cout << "stream error!" << endl; exit(-1);}
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
   x1 = container.getV1().getx();
   y1 = container.getV1().gety();
@@ -1534,603 +2092,603 @@ void assembly::setBoundary(int bdrynum,
   z0 = container.getCenter().getz();
 
   ofs.setf(std::ios::scientific, std::ios::floatfield);
-  ofs<<setw(OWID)<<0
-     <<setw(OWID)<<bdrynum<<endl<<endl;
+  ofs << setw(OWID) << 0
+      << setw(OWID) << bdrynum << endl << endl;
   
   if (bdrynum == 1){   // only a bottom boundary
-    ofs<<setw(OWID)<<1<<endl
-       <<setw(OWID)<<6
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0<<endl
+    ofs << setw(OWID) << 1 << endl
+        << setw(OWID) << 6
+        << setw(OWID) << 1
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl;
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl;
     
   }
   else if (bdrynum == 5){ // no top boundary
     // boundary 1
-    ofs<<setw(OWID)<<1<<endl
-       <<setw(OWID)<<1
-       <<setw(OWID)<<4
-       <<setw(OWID)<<0<<endl
+    ofs << setw(OWID) << 1 << endl
+        << setw(OWID) << 1
+        << setw(OWID) << 4
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0
+        << setw(OWID) << y1
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << x0     
+        << setw(OWID) << y0
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 2
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<2
-       <<setw(OWID)<<4
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 2
+        << setw(OWID) << 4
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0     
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0      
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0 
+        << setw(OWID) << x2
+        << setw(OWID) << y0      
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x1
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << x1
+        << setw(OWID) << y0     
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0     
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 3
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<3
-       <<setw(OWID)<<4
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 3
+        << setw(OWID) << 4
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x1
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << x1
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<y0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0     
+        << setw(OWID) << y1
+        << setw(OWID) << y0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0      
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0     
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 4
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<4
-       <<setw(OWID)<<4
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 4
+        << setw(OWID) << 4
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << -1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0      
+        << setw(OWID) << y1
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0 
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x1
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << x1
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0     
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 6
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<6
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 6
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << x0
+        << setw(OWID) << y0
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x1 
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << x1 
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << x0      
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl;
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << x0      
+        << setw(OWID) << y1
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl;
   }
   else if (bdrynum == 6){ // all 6 boundaries
     // boundary 1
-    ofs<<setw(OWID)<<1<<endl
-       <<setw(OWID)<<1
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+    ofs << setw(OWID) << 1 << endl
+        << setw(OWID) << 1
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0     
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0     
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0     
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0     
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0    
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0     
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << x0    
+        << setw(OWID) << y1
+        << setw(OWID) << z0     
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0     
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << x0      
+        << setw(OWID) << y2
+        << setw(OWID) << z0     
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y0    
-       <<setw(OWID)<<z2 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << x0     
+        << setw(OWID) << y0    
+        << setw(OWID) << z2 
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << -1
+        << setw(OWID) << x0     
+        << setw(OWID) << y0     
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 2
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<2
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 2
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0     
-       <<setw(OWID)<<x0    
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0     
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << 0     
+        << setw(OWID) << x0    
+        << setw(OWID) << y2
+        << setw(OWID) << z0     
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0     
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0     
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x1 
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0     
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << x1 
+        << setw(OWID) << y0
+        << setw(OWID) << z0     
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y0    
-       <<setw(OWID)<<z2 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << x0     
+        << setw(OWID) << y0    
+        << setw(OWID) << z2 
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y0      
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << -1
+        << setw(OWID) << x0     
+        << setw(OWID) << y0      
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 3
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<3
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 3
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0     
-       <<setw(OWID)<<x1
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << 0     
+        << setw(OWID) << x1
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0     
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << x0     
+        << setw(OWID) << y1
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0  
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0       
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0  
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << x0       
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z2 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0     
+        << setw(OWID) << z2 
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0      
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << -1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0      
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 4
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<4
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 4
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0     
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << -1
+        << setw(OWID) << 0     
+        << setw(OWID) << x0      
+        << setw(OWID) << y1
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x1 
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1 
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << x1 
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0     
-       <<setw(OWID)<<z2 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0     
+        << setw(OWID) << z2 
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0      
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 
+        << setw(OWID) << -1
+        << setw(OWID) << x0      
+        << setw(OWID) << y0      
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 5
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<5
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 5
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1     
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z2 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << 1     
+        << setw(OWID) << x0      
+        << setw(OWID) << y0
+        << setw(OWID) << z2 
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x1 
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1 
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << x1 
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << x0      
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0
+        << setw(OWID) << x0      
+        << setw(OWID) << y1
+        << setw(OWID) << z0
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl
       
       // boundary 6
-       <<setw(OWID)<<1<<endl
-       <<setw(OWID)<<6
-       <<setw(OWID)<<5
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1 << endl
+        << setw(OWID) << 6
+        << setw(OWID) << 5
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1    
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << -1    
+        << setw(OWID) << x0      
+        << setw(OWID) << y0
+        << setw(OWID) << z1
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x2
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 1
+        << setw(OWID) << 0 
+        << setw(OWID) << 0
+        << setw(OWID) << x2
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<-1 
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x1 
-       <<setw(OWID)<<y0
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << -1 
+        << setw(OWID) << 0
+        << setw(OWID) << 0
+        << setw(OWID) << x1 
+        << setw(OWID) << y0
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y2
-       <<setw(OWID)<<z0      
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << x0      
+        << setw(OWID) << y2
+        << setw(OWID) << z0      
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl
       
-       <<setw(OWID)<<1
-       <<setw(OWID)<<0
-       <<setw(OWID)<<-1
-       <<setw(OWID)<<0 
-       <<setw(OWID)<<x0      
-       <<setw(OWID)<<y1
-       <<setw(OWID)<<z0
-       <<setw(OWID)<<0
-       <<setw(OWID)<<0<<endl<<endl;
+        << setw(OWID) << 1
+        << setw(OWID) << 0
+        << setw(OWID) << -1
+        << setw(OWID) << 0 
+        << setw(OWID) << x0      
+        << setw(OWID) << y1
+        << setw(OWID) << z0
+        << setw(OWID) << 0
+        << setw(OWID) << 0 << endl << endl;
   }
   
   ofs.close();
@@ -2141,7 +2699,7 @@ void assembly::setBoundary(rectangle& container,
 			   const char* boundaryfile)
 {
   std::ofstream ofs(boundaryfile);
-  if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
+  if(!ofs) { cout << "stream error!" << endl; exit(-1);}
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
   x1 = container.getV1().getx();
@@ -2157,355 +2715,356 @@ void assembly::setBoundary(rectangle& container,
   int bdrynum = 6;
 
   ofs.setf(std::ios::scientific, std::ios::floatfield);
-  ofs<<setw(OWID)<<0
-     <<setw(OWID)<<bdrynum<<endl<<endl;
+  ofs << setw(OWID) << 0
+      << setw(OWID) << bdrynum << endl << endl;
 
   // boundary 1
-  ofs<<setw(OWID)<<1<<endl
-     <<setw(OWID)<<1
-     <<setw(OWID)<<5
-     <<setw(OWID)<<0<<endl
+  ofs << setw(OWID) << 1 << endl
+      << setw(OWID) << 1
+      << setw(OWID) << 5
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0     
-     <<setw(OWID)<<x2
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0     
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0     
+      << setw(OWID) << x2
+      << setw(OWID) << y0
+      << setw(OWID) << z0     
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0    
-     <<setw(OWID)<<y1
-     <<setw(OWID)<<z0     
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << -1
+      << setw(OWID) << 0
+      << setw(OWID) << x0    
+      << setw(OWID) << y1
+      << setw(OWID) << z0     
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y2
-     <<setw(OWID)<<z0     
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << x0      
+      << setw(OWID) << y2
+      << setw(OWID) << z0     
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<x0     
-     <<setw(OWID)<<y0    
-     <<setw(OWID)<<z2 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << x0     
+      << setw(OWID) << y0    
+      << setw(OWID) << z2 
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<x0     
-     <<setw(OWID)<<y0     
-     <<setw(OWID)<<z1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 
+      << setw(OWID) << -1
+      << setw(OWID) << x0     
+      << setw(OWID) << y0     
+      << setw(OWID) << z1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl << endl
     
     // boundary 2
-     <<setw(OWID)<<1<<endl
-     <<setw(OWID)<<2
-     <<setw(OWID)<<5
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1 << endl
+      << setw(OWID) << 2
+      << setw(OWID) << 5
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0     
-     <<setw(OWID)<<x0    
-     <<setw(OWID)<<y2
-     <<setw(OWID)<<z0     
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << 0     
+      << setw(OWID) << x0    
+      << setw(OWID) << y2
+      << setw(OWID) << z0     
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x2
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0     
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 0
+      << setw(OWID) << x2
+      << setw(OWID) << y0
+      << setw(OWID) << z0     
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x1 
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0     
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << -1
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << x1 
+      << setw(OWID) << y0
+      << setw(OWID) << z0     
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<x0     
-     <<setw(OWID)<<y0    
-     <<setw(OWID)<<z2 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << x0     
+      << setw(OWID) << y0    
+      << setw(OWID) << z2 
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<x0     
-     <<setw(OWID)<<y0      
-     <<setw(OWID)<<z1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 
+      << setw(OWID) << -1
+      << setw(OWID) << x0     
+      << setw(OWID) << y0      
+      << setw(OWID) << z1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl << endl
     
     // boundary 3
-     <<setw(OWID)<<1<<endl
-     <<setw(OWID)<<3
-     <<setw(OWID)<<5
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1 << endl
+      << setw(OWID) << 3
+      << setw(OWID) << 5
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0     
-     <<setw(OWID)<<x1
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << -1
+      << setw(OWID) << 0
+      << setw(OWID) << 0     
+      << setw(OWID) << x1
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0     
-     <<setw(OWID)<<y1
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << -1
+      << setw(OWID) << 0
+      << setw(OWID) << x0     
+      << setw(OWID) << y1
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0  
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0       
-     <<setw(OWID)<<y2
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0  
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << x0       
+      << setw(OWID) << y2
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y0     
-     <<setw(OWID)<<z2 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << x0      
+      << setw(OWID) << y0     
+      << setw(OWID) << z2 
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y0      
-     <<setw(OWID)<<z1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 
+      << setw(OWID) << -1
+      << setw(OWID) << x0      
+      << setw(OWID) << y0      
+      << setw(OWID) << z1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl << endl
     
     // boundary 4
-     <<setw(OWID)<<1<<endl
-     <<setw(OWID)<<4
-     <<setw(OWID)<<5
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1 << endl
+      << setw(OWID) << 4
+      << setw(OWID) << 5
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0     
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y1
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << -1
+      << setw(OWID) << 0     
+      << setw(OWID) << x0      
+      << setw(OWID) << y1
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x2
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 0
+      << setw(OWID) << x2
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<-1 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x1 
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << -1 
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << x1 
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y0     
-     <<setw(OWID)<<z2 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << x0      
+      << setw(OWID) << y0     
+      << setw(OWID) << z2 
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y0      
-     <<setw(OWID)<<z1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 
+      << setw(OWID) << -1
+      << setw(OWID) << x0      
+      << setw(OWID) << y0      
+      << setw(OWID) << z1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl << endl
     
     // boundary 5
-     <<setw(OWID)<<1<<endl
-     <<setw(OWID)<<5
-     <<setw(OWID)<<5
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1 << endl
+      << setw(OWID) << 5
+      << setw(OWID) << 5
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1     
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z2 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 0
+      << setw(OWID) << 1     
+      << setw(OWID) << x0      
+      << setw(OWID) << y0
+      << setw(OWID) << z2 
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x2
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 0
+      << setw(OWID) << x2
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<-1 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x1 
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << -1 
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << x1 
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y2
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << x0      
+      << setw(OWID) << y2
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y1
-     <<setw(OWID)<<z0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << -1
+      << setw(OWID) << 0
+      << setw(OWID) << x0      
+      << setw(OWID) << y1
+      << setw(OWID) << z0
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl << endl
     
     // boundary 6
-     <<setw(OWID)<<1<<endl
-     <<setw(OWID)<<6
-     <<setw(OWID)<<5
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1 << endl
+      << setw(OWID) << 6
+      << setw(OWID) << 5
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<-1    
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 0
+      << setw(OWID) << -1    
+      << setw(OWID) << x0      
+      << setw(OWID) << y0
+      << setw(OWID) << z1
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x2
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 1
+      << setw(OWID) << 0 
+      << setw(OWID) << 0
+      << setw(OWID) << x2
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<-1 
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x1 
-     <<setw(OWID)<<y0
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << -1 
+      << setw(OWID) << 0
+      << setw(OWID) << 0
+      << setw(OWID) << x1 
+      << setw(OWID) << y0
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y2
-     <<setw(OWID)<<z0      
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << x0      
+      << setw(OWID) << y2
+      << setw(OWID) << z0      
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl
     
-     <<setw(OWID)<<1
-     <<setw(OWID)<<0
-     <<setw(OWID)<<-1
-     <<setw(OWID)<<0 
-     <<setw(OWID)<<x0      
-     <<setw(OWID)<<y1
-     <<setw(OWID)<<z0
-     <<setw(OWID)<<0
-     <<setw(OWID)<<0<<endl<<endl; 
+      << setw(OWID) << 1
+      << setw(OWID) << 0
+      << setw(OWID) << -1
+      << setw(OWID) << 0 
+      << setw(OWID) << x0      
+      << setw(OWID) << y1
+      << setw(OWID) << z0
+      << setw(OWID) << 0
+      << setw(OWID) << 0 << endl << endl; 
 
   ofs.close();
 }
 
 void assembly::trim(rectangle& container,
 		    gradation& grad,
+		    bool toRecreate,
 		    const char* particlefile,
 		    const char* trmparticle)
 {
-  createSample(particlefile);
-  HistoryNum = TotalNum;
+  if (toRecreate) createSample(particlefile);
+  trimHistoryNum = TotalNum;
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
   x1 = container.getV1().getx();
@@ -2518,41 +3077,42 @@ void assembly::trim(rectangle& container,
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
  
-  std::list<particle*>::iterator itr,itp;
+  std::vector<particle*>::iterator itr;
   vec center;
   REAL mass = 0;
 
-  for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
+  for (itr = ParticleVec.begin(); itr != ParticleVec.end(); ){
     center=(*itr)->getCurrPosition();
     if(center.getx() <= x1 || center.getx() >= x2 ||
        center.gety() <= y1 || center.gety() >= y2 ||
        center.getz() <= z1 || center.getz() + grad.getMaxPtclRadius() > z2)
       {
-	itp = itr;
-	--itr;
-	delete (*itp); // release memory
-	ParticleList.erase(itp); 
+	delete (*itr); // release memory
+	itr = ParticleVec.erase(itr); 
       }
+    else
+      ++itr;
   }
   
-  for(itr=ParticleList.begin();itr!=ParticleList.end();++itr)
+  for(itr=ParticleVec.begin();itr!=ParticleVec.end();++itr)
     mass += (*itr)->getMass();
   
   Volume = container.getDimx() * container.getDimy() * container.getDimz();
   BulkDensity = mass/Volume;
   
-  TotalNum = ParticleList.size();
+  TotalNum = ParticleVec.size();
   printParticle(trmparticle);
 }
 
-
-void assembly::createBdryParticle(rectangle& container,
+// create boundary particles and springs connecting those boundary particles
+void assembly::createMemParticle(rectangle& container,
 				  gradation& grad,
 				  REAL rRadius,
+				  bool toRecreate,
 				  const char* particlefile,
 				  const char* allparticle)
 {
-  createSample(particlefile);
+  if (toRecreate) createSample(particlefile);
 
   REAL radius = grad.getMinPtclRadius();
   if (grad.getSize().size() == 1 &&
@@ -2560,7 +3120,6 @@ void assembly::createBdryParticle(rectangle& container,
       grad.getPtclRatioCA() == 1.0)
     radius *= rRadius; // determine how tiny the boundary particles are
   REAL diameter = radius*2;
-
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
   x1 = container.getV1().getx();
   y1 = container.getV1().gety();
@@ -2574,51 +3133,324 @@ void assembly::createBdryParticle(rectangle& container,
 
   particle* newptcl = NULL;
   REAL x, y, z;
+  
+  vector<particle*> vec1d;  // 1-dimension
+  vector< vector<particle*>  > vec2d; // 2-dimension
+  spring* newspring = NULL;
+  REAL young   = YOUNG;   //memYOUNG;
+  REAL poisson = POISSON; //memPOISSON;
+  REAL modulus = memYOUNG;
 
+  int memPtclIndex = trimHistoryNum;
+  // process in the order of surfaces: x1 x2 y1 y2 z1 z2
+  // surface x1
   x = x1 - radius;
-  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter) {
+    vec1d.clear();
     for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      ParticleList.push_back(newptcl);
+      newptcl = new particle(++memPtclIndex, 5, vec(x,y,z), radius, young, poisson);
+      vec1d.push_back(newptcl);
+      ParticleVec.push_back(newptcl);
     }
-  
+    vec2d.push_back(vec1d);
+  }
+  MemBoundary.push_back(vec2d);
+  for (int i = 0; i != vec2d.size() ; ++i)
+    for (int j = 0; j != vec2d[i].size() ; ++ j) {
+      if (j + 1 < vec2d[i].size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i][j+1], modulus);
+	SpringVec.push_back(newspring);
+      }
+      if (i + 1 < vec2d.size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i+1][j], modulus);
+	SpringVec.push_back(newspring);
+      }
+    }
+
+  // surface x2     
+  vec2d.clear();
   x = x2 + radius;
-  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter) {
+    vec1d.clear();
     for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      ParticleList.push_back(newptcl);
+      newptcl = new particle(++memPtclIndex, 5, vec(x,y,z), radius, young, poisson);
+      vec1d.push_back(newptcl);
+      ParticleVec.push_back(newptcl);
     }
-  
+    vec2d.push_back(vec1d);
+  }
+  MemBoundary.push_back(vec2d);
+  for (int i = 0; i != vec2d.size() ; ++i)
+    for (int j = 0; j != vec2d[i].size() ; ++ j) {
+      if (j + 1 < vec2d[i].size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i][j+1], modulus);
+	SpringVec.push_back(newspring);
+      }
+      if (i + 1 < vec2d.size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i+1][j], modulus);
+	SpringVec.push_back(newspring);
+      }
+    }
+ 
+  // surface y1
+  vec2d.clear();
   y = y1 - radius;
-  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter) {
+    vec1d.clear();
     for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      ParticleList.push_back(newptcl);
+      newptcl = new particle(++memPtclIndex, 5, vec(x,y,z), radius, young, poisson);
+      vec1d.push_back(newptcl);
+      ParticleVec.push_back(newptcl);
+    }
+    vec2d.push_back(vec1d);
+  }
+  MemBoundary.push_back(vec2d);
+  for (int i = 0; i != vec2d.size() ; ++i)
+    for (int j = 0; j != vec2d[i].size() ; ++ j) {
+      if (j + 1 < vec2d[i].size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i][j+1], modulus);
+	SpringVec.push_back(newspring);
+      }
+      if (i + 1 < vec2d.size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i+1][j], modulus);
+	SpringVec.push_back(newspring);
+      }
     }
 
+  // surface y2
+  vec2d.clear();
   y = y2 + radius;
-  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter)
+  for (z = z1 + radius; z <= z2 - radius + EPS; z += diameter) {
+    vec1d.clear();
     for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      ParticleList.push_back(newptcl);
+      newptcl = new particle(++memPtclIndex, 5, vec(x,y,z), radius, young, poisson);
+      vec1d.push_back(newptcl);
+      ParticleVec.push_back(newptcl);
     }
-  
+    vec2d.push_back(vec1d);
+  }
+  MemBoundary.push_back(vec2d);
+  for (int i = 0; i != vec2d.size() ; ++i)
+    for (int j = 0; j != vec2d[i].size() ; ++ j) {
+      if (j + 1 < vec2d[i].size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i][j+1], modulus);
+	SpringVec.push_back(newspring);
+      }
+      if (i + 1 < vec2d.size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i+1][j], modulus);
+	SpringVec.push_back(newspring);
+      }
+    }
+
+  // surface z1
+  vec2d.clear();
   z = z1 - radius;
-  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
+  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
+    vec1d.clear();
     for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      ParticleList.push_back(newptcl);
+      newptcl = new particle(++memPtclIndex, 5, vec(x,y,z), radius, young, poisson);
+      vec1d.push_back(newptcl);
+      ParticleVec.push_back(newptcl);
+    }
+    vec2d.push_back(vec1d);
+  }
+  MemBoundary.push_back(vec2d);
+  for (int i = 0; i != vec2d.size() ; ++i)
+    for (int j = 0; j != vec2d[i].size() ; ++ j) {
+      if (j + 1 < vec2d[i].size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i][j+1], modulus);
+	SpringVec.push_back(newspring);
+      }
+      if (i + 1 < vec2d.size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i+1][j], modulus);
+	SpringVec.push_back(newspring);
+      }
     }
 
+  // surface z2
+  vec2d.clear();
   z = z2 + radius;
-  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter)
+  for (y = y1 + radius; y <= y2 - radius + EPS; y += diameter) {
+    vec1d.clear();
     for (x = x1 + radius; x <= x2 - radius + EPS; x += diameter) {
-      newptcl = new particle(++HistoryNum, 5, vec(x,y,z), radius);
-      ParticleList.push_back(newptcl);
+      newptcl = new particle(++memPtclIndex, 5, vec(x,y,z), radius, young, poisson);
+      vec1d.push_back(newptcl);
+      ParticleVec.push_back(newptcl);
+    }
+    vec2d.push_back(vec1d);
+  }
+  MemBoundary.push_back(vec2d);
+  for (int i = 0; i != vec2d.size() ; ++i)
+    for (int j = 0; j != vec2d[i].size() ; ++ j) {
+      if (j + 1 < vec2d[i].size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i][j+1], modulus);
+	SpringVec.push_back(newspring);
+      }
+      if (i + 1 < vec2d.size() ) {
+	newspring = new spring(*vec2d[i][j], *vec2d[i+1][j], modulus);
+	SpringVec.push_back(newspring);
+      }
     }
 
-  TotalNum = ParticleList.size();
+  // membrane particles at the edges of each surface, for example,
+  // x1y1 means particles on surface x1 connecting to particles on surface y1
+  vector<particle *> x1y1;
+  vector<particle *> x1y2;
+  vector<particle *> x1z1;
+  vector<particle *> x1z2;
+
+  vector<particle *> x2y1;
+  vector<particle *> x2y2;
+  vector<particle *> x2z1;
+  vector<particle *> x2z2;
+
+  vector<particle *> y1x1;
+  vector<particle *> y1x2;
+  vector<particle *> y1z1;
+  vector<particle *> y1z2;
+
+  vector<particle *> y2x1;
+  vector<particle *> y2x2;
+  vector<particle *> y2z1;
+  vector<particle *> y2z2;
+
+  vector<particle *> z1x1;
+  vector<particle *> z1x2;
+  vector<particle *> z1y1;
+  vector<particle *> z1y2;
+
+  vector<particle *> z2x1;
+  vector<particle *> z2x2;
+  vector<particle *> z2y1;
+  vector<particle *> z2y2;
+
+  // find edge particles for each surface
+  // MemBoundary[0, 1, 2, 3, 4, 5] correspond to 
+  // surface     x1 x2 y1 y2 z1 z2 respectively
+  // surface x1
+  vec2d.clear();
+  vec2d = MemBoundary[0];
+  x1z1  = vec2d[0];
+  x1z2  = vec2d[vec2d.size() - 1];
+  for (int i = 0; i < vec2d.size(); ++i) {
+    x1y1.push_back(vec2d[i][0]);
+    x1y2.push_back(vec2d[i][ vec2d[i].size() - 1 ]);  
+  }
+  // surface x2
+  vec2d.clear();
+  vec2d = MemBoundary[1];
+  x2z1  = vec2d[0];
+  x2z2  = vec2d[vec2d.size() - 1];
+  for (int i = 0; i < vec2d.size(); ++i) {
+    x2y1.push_back(vec2d[i][0]);
+    x2y2.push_back(vec2d[i][ vec2d[i].size() - 1 ]);  
+  }
+  // surface y1
+  vec2d.clear();
+  vec2d = MemBoundary[2];
+  y1z1  = vec2d[0];
+  y1z2  = vec2d[vec2d.size() - 1];
+  for (int i = 0; i < vec2d.size(); ++i) {
+    y1x1.push_back(vec2d[i][0]);
+    y1x2.push_back(vec2d[i][ vec2d[i].size() - 1 ]);  
+  }
+  // surface y2
+  vec2d.clear();
+  vec2d = MemBoundary[3];
+  y2z1  = vec2d[0];
+  y2z2  = vec2d[vec2d.size() - 1];
+  for (int i = 0; i < vec2d.size(); ++i) {
+    y2x1.push_back(vec2d[i][0]);
+    y2x2.push_back(vec2d[i][ vec2d[i].size() - 1 ]);  
+  }
+  // surface z1
+  vec2d.clear();
+  vec2d = MemBoundary[4];
+  z1y1  = vec2d[0];
+  z1y2  = vec2d[vec2d.size() - 1];
+  for (int i = 0; i < vec2d.size(); ++i) {
+    z1x1.push_back(vec2d[i][0]);
+    z1x2.push_back(vec2d[i][ vec2d[i].size() - 1 ]);  
+  }
+  // surface z2
+  vec2d.clear();
+  vec2d = MemBoundary[5];
+  z2y1  = vec2d[0];
+  z2y2  = vec2d[vec2d.size() - 1];
+  for (int i = 0; i < vec2d.size(); ++i) {
+    z2x1.push_back(vec2d[i][0]);
+    z2x2.push_back(vec2d[i][ vec2d[i].size() - 1 ]);  
+  }
+
+  // create springs connecting 12 edges of a cube
+  // 4 edges on surface x1
+  assert(x1y1.size() == y1x1.size());
+  for (int i = 0; i < x1y1.size(); ++i) {
+    newspring = new spring(*x1y1[i], *y1x1[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(x1y2.size() == y2x1.size());
+  for (int i = 0; i < x1y2.size(); ++i) {
+    newspring = new spring(*x1y2[i], *y2x1[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(x1z1.size() == z1x1.size());
+  for (int i = 0; i < x1z1.size(); ++i) {
+    newspring = new spring(*x1z1[i], *z1x1[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(x1z2.size() == z2x1.size());
+  for (int i = 0; i < x1z2.size(); ++i) {
+    newspring = new spring(*x1z2[i], *z2x1[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  // 4 edges on surface x2  
+  assert(x2y1.size() == y1x2.size());
+  for (int i = 0; i < x2y1.size(); ++i) {
+    newspring = new spring(*x2y1[i], *y1x2[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(x2y2.size() == y2x2.size());
+  for (int i = 0; i < x2y2.size(); ++i) {
+    newspring = new spring(*x2y2[i], *y2x2[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(x2z1.size() == z1x2.size());
+  for (int i = 0; i < x2z1.size(); ++i) {
+    newspring = new spring(*x2z1[i], *z1x2[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(x2z2.size() == z2x2.size());
+  for (int i = 0; i < x2z2.size(); ++i) {
+    newspring = new spring(*x2z2[i], *z2x2[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  // 2 edges on surface y1 
+  assert(y1z1.size() == z1y1.size());
+  for (int i = 0; i < y1z1.size(); ++i) {
+    newspring = new spring(*y1z1[i], *z1y1[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(y1z2.size() == z2y1.size());
+  for (int i = 0; i < y1z2.size(); ++i) {
+    newspring = new spring(*y1z2[i], *z2y1[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  // 2 edges on surface y2
+  assert(y2z1.size() == z1y2.size());
+  for (int i = 0; i < y2z1.size(); ++i) {
+    newspring = new spring(*y2z1[i], *z1y2[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+  assert(y2z2.size() == z2y2.size());
+  for (int i = 0; i < y2z2.size(); ++i) {
+    newspring = new spring(*y2z2[i], *z2y2[i], modulus);
+    SpringVec.push_back(newspring);
+  }
+
+  TotalNum = ParticleVec.size();
   printParticle(allparticle);
+
 }
 
 
@@ -2626,27 +3458,26 @@ void assembly::TrimPtclBdryByHeight(REAL height,
 			    const char* iniptclfile,
 			    const char* particlefile)
 {
-    createSample(iniptclfile);
-
-    std::list<particle*>::iterator itr, itp;
-    for(itr=ParticleList.begin();itr!=ParticleList.end();++itr){
-	if ( (*itr)->getType() == 1 ) { // 1-fixed
-	    vec center=(*itr)->getCurrPosition();
-	    if(center.getz() > height)
-	    {
-		itp = itr;
-		--itr;
-		delete (*itp); // release memory
-		ParticleList.erase(itp); 
-	    }
-	    else
-		(*itr)->setType(10); // 10-ghost
+  createSample(iniptclfile);
+  
+  std::vector<particle*>::iterator itr;
+  for (itr = ParticleVec.begin(); itr != ParticleVec.end(); ){
+    if ( (*itr)->getType() == 1 ) { // 1-fixed
+      vec center=(*itr)->getCurrPosition();
+      if(center.getz() > height)
+	{
+	  delete (*itr); // release memory
+	  itr = ParticleVec.erase(itr); 
 	}
+      else {
+	(*itr)->setType(10); // 10-ghost
+	++itr;
+      }
     }
-
-    TotalNum = ParticleList.size();
-    
-    printParticle(particlefile);
+  }
+  
+  TotalNum = ParticleVec.size();  
+  printParticle(particlefile);
 }
 
 
@@ -2665,49 +3496,49 @@ void assembly::deposit(int   total_steps,
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf.precision(OPREC);
-    progressinf<<setw(OWID)<<"iteration"
-	       <<setw(OWID)<<"poss_contact"
-	       <<setw(OWID)<<"actual_contact"
-	       <<setw(OWID)<<"penetration"
-	       <<setw(OWID)<<"avg_normal"
-	       <<setw(OWID)<<"avg_tangt"
-	       <<setw(OWID)<<"avg_velocity"
-	       <<setw(OWID)<<"avg_omga"
-	       <<setw(OWID)<<"avg_force"
-	       <<setw(OWID)<<"avg_moment"
-	       <<setw(OWID)<<"trans_energy"
-	       <<setw(OWID)<<"rotat_energy"
-	       <<setw(OWID)<<"kinet_energy"
-	       <<setw(OWID)<<"poten_energy"
-	       <<setw(OWID)<<"total_energy"
-	       <<setw(OWID)<<"void_ratio"
-	       <<setw(OWID)<<"porosity"
-	       <<setw(OWID)<<"coord_number"
-	       <<setw(OWID)<<"density"
-	       <<setw(OWID)<<"sigma_y1"
-	       <<setw(OWID)<<"sigma_y2"
-	       <<setw(OWID)<<"sigma_x1"
-	       <<setw(OWID)<<"sigma_x2"
-	       <<setw(OWID)<<"sigma_z1"
-	       <<setw(OWID)<<"sigma_z2"
-	       <<setw(OWID)<<"mean_stress"
-	       <<setw(OWID)<<"dimx"
-	       <<setw(OWID)<<"dimy"
-	       <<setw(OWID)<<"dimz"
-	       <<setw(OWID)<<"volume"
-	       <<setw(OWID)<<"epsilon_x"
-	       <<setw(OWID)<<"epsilon_y"
-	       <<setw(OWID)<<"epsilon_z"
-	       <<setw(OWID)<<"epsilon_v"
-	       <<setw(OWID)<<"vibra_t_step"
-	       <<setw(OWID)<<"impact_t_step"
-	       <<setw(OWID)<<"wall_time" << endl;
+    progressinf << setw(OWID) << "iteration"
+	        << setw(OWID) << "poss_contact"
+	        << setw(OWID) << "actual_contact"
+	        << setw(OWID) << "penetration"
+	        << setw(OWID) << "avg_normal"
+	        << setw(OWID) << "avg_tangt"
+	        << setw(OWID) << "avg_velocity"
+	        << setw(OWID) << "avg_omga"
+	        << setw(OWID) << "avg_force"
+	        << setw(OWID) << "avg_moment"
+	        << setw(OWID) << "trans_energy"
+	        << setw(OWID) << "rotat_energy"
+	        << setw(OWID) << "kinet_energy"
+	        << setw(OWID) << "poten_energy"
+	        << setw(OWID) << "total_energy"
+	        << setw(OWID) << "void_ratio"
+	        << setw(OWID) << "porosity"
+	        << setw(OWID) << "coord_number"
+	        << setw(OWID) << "density"
+	        << setw(OWID) << "sigma_y1"
+	        << setw(OWID) << "sigma_y2"
+	        << setw(OWID) << "sigma_x1"
+	        << setw(OWID) << "sigma_x2"
+	        << setw(OWID) << "sigma_z1"
+	        << setw(OWID) << "sigma_z2"
+	        << setw(OWID) << "mean_stress"
+	        << setw(OWID) << "dimx"
+	        << setw(OWID) << "dimy"
+	        << setw(OWID) << "dimz"
+	        << setw(OWID) << "volume"
+	        << setw(OWID) << "epsilon_x"
+	        << setw(OWID) << "epsilon_y"
+	        << setw(OWID) << "epsilon_z"
+	        << setw(OWID) << "epsilon_v"
+	        << setw(OWID) << "vibra_t_step"
+	        << setw(OWID) << "impact_t_step"
+	        << setw(OWID) << "wall_time" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1); }
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
@@ -2776,60 +3607,60 @@ void assembly::deposit(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-		       <<setw(OWID)<<"0"
-	               <<setw(OWID)<<getVibraTimeStep()
-	               <<setw(OWID)<<getImpactTimeStep()
-		       <<setw(OWID)<<timediffsec(timew1,timew2)
-		       <<endl;
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+		        << setw(OWID) << "0"
+	                << setw(OWID) << getVibraTimeStep()
+	                << setw(OWID) << getImpactTimeStep()
+		        << setw(OWID) << timediffsec(timew1,timew2)
+		        << endl;
 
 	    /*
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	    */
 
 	}
@@ -2856,6 +3687,7 @@ void assembly::deposit(int   total_steps,
 void assembly::deGravitation(int   total_steps,  
 			     int   snapshots,
 			     int   interval,
+			     bool  toRecreate,
 			     const char* iniptclfile,   
 			     const char* particlefile, 
 			     const char* contactfile,
@@ -2864,30 +3696,30 @@ void assembly::deGravitation(int   total_steps,
 {
   // pre_1: open streams for output.
   progressinf.open(progressfile); 
-  if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+  if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
   progressinf.setf(std::ios::scientific, std::ios::floatfield);
   progressinf.precision(OPREC);
-  progressinf<<setw(OWID)<<"iteration"
-	     <<setw(OWID)<<"poss_contact"
-	     <<setw(OWID)<<"actual_contact"
-	     <<setw(OWID)<<"penetration"
-	     <<setw(OWID)<<"avg_normal"
-	     <<setw(OWID)<<"avg_tangt"
-	     <<setw(OWID)<<"avg_velocity"
-	     <<setw(OWID)<<"avg_omga"
-	     <<setw(OWID)<<"avg_force"
-	     <<setw(OWID)<<"avg_moment"
-	     <<setw(OWID)<<"trans_energy"
-	     <<setw(OWID)<<"rotat_energy"
-	     <<setw(OWID)<<"kinet_energy"
+  progressinf << setw(OWID) << "iteration"
+	      << setw(OWID) << "poss_contact"
+	      << setw(OWID) << "actual_contact"
+	      << setw(OWID) << "penetration"
+	      << setw(OWID) << "avg_normal"
+	      << setw(OWID) << "avg_tangt"
+	      << setw(OWID) << "avg_velocity"
+	      << setw(OWID) << "avg_omga"
+	      << setw(OWID) << "avg_force"
+	      << setw(OWID) << "avg_moment"
+	      << setw(OWID) << "trans_energy"
+	      << setw(OWID) << "rotat_energy"
+	      << setw(OWID) << "kinet_energy"
 	     << endl;
   
   g_debuginf.open(debugfile);
-  if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+  if(!g_debuginf) { cout << "stream error!" << endl; exit(-1); }
   g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
   
   // pre_2. create particles from existing files.
-  createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
+  if (toRecreate) createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
   
   // pre_3. define variables used in iterations
   REAL avgNormal=0;
@@ -2929,24 +3761,24 @@ void assembly::deGravitation(int   total_steps,
       
       // 5. (2) output stress and strain info.
       if (g_iteration % interval == 0) {
-	progressinf<<setw(OWID)<<g_iteration
-		   <<setw(OWID)<<getPossCntctNum()
-		   <<setw(OWID)<<getActualCntctNum()
-		   <<setw(OWID)<<getAveragePenetration()
-		   <<setw(OWID)<<avgNormal
-		   <<setw(OWID)<<avgTangt
-		   <<setw(OWID)<<getAverageVelocity() 
-		   <<setw(OWID)<<getAverageOmga()
-		   <<setw(OWID)<<getAverageForce()   
-		   <<setw(OWID)<<getAverageMoment()
-		   <<setw(OWID)<<getTransEnergy()
-		   <<setw(OWID)<<getRotatEnergy()
-		   <<setw(OWID)<<getKinetEnergy()
-		   <<endl;
+	progressinf << setw(OWID) << g_iteration
+		    << setw(OWID) << getPossCntctNum()
+		    << setw(OWID) << getActualCntctNum()
+		    << setw(OWID) << getAveragePenetration()
+		    << setw(OWID) << avgNormal
+		    << setw(OWID) << avgTangt
+		    << setw(OWID) << getAverageVelocity() 
+		    << setw(OWID) << getAverageOmga()
+		    << setw(OWID) << getAverageForce()   
+		    << setw(OWID) << getAverageMoment()
+		    << setw(OWID) << getTransEnergy()
+		    << setw(OWID) << getRotatEnergy()
+		    << setw(OWID) << getKinetEnergy()
+		    << endl;
       }
       
       // 7. loop break conditions.
-      if (ContactList.size() == 0) break;
+      if (ContactVec.size() == 0) break;
       
     } while (++g_iteration < total_steps);
   
@@ -2980,25 +3812,25 @@ void assembly::deposit_p(int   total_steps,
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"deposit..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "deposit..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential         total           void            sample       coordination"
+	        << "       sample           sample          sample          sample          sample          sample"
+	        << "          sample          sample          sample         sample           sample         "
+	        << " sample          sample          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy            energy          ratio          porosity         number       "
+	        << "   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1); }
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
@@ -3053,25 +3885,25 @@ void assembly::deposit_p(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
-		       <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*getActualCntctNum()/TotalNum
+		        << endl;
 	}
 
 	// 7. loop break conditions.
@@ -3109,25 +3941,25 @@ void assembly::squeeze(int   total_steps,
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"deposit..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "deposit..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential         total           void            sample       coordination"
+	        << "       sample           sample          sample          sample          sample          sample"
+	        << "          sample          sample          sample         sample           sample         "
+	        << " sample          sample          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy            energy          ratio          porosity         number       "
+	        << "   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1); }
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from existing files.
@@ -3203,39 +4035,39 @@ void assembly::squeeze(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 
 	}
 
@@ -3278,43 +4110,43 @@ void assembly::isotropic(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"isotropic..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "isotropic..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"isotropic..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "isotropic..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -3429,107 +4261,107 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[5]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[5]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[5]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[5]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	}
 
 	// 8. loop break condition
 	if (   fabs(sigma1_1-sigma)/sigma < STRESS_ERROR && fabs(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabs(sigma2_1-sigma)/sigma < STRESS_ERROR && fabs(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+		        << endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    break;
 	}
 
@@ -3573,43 +4405,43 @@ void assembly::isotropic(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"isotropic..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "isotropic..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"isotropic..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "isotropic..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -3727,80 +4559,80 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[5]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[5]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[5]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[5]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	}
 
 	// 8. find the balanced status and increase confining pressure
 	if (   fabs(sigma1_1-sigma)/sigma < STRESS_ERROR && fabs(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabs(sigma2_1-sigma)/sigma < STRESS_ERROR && fabs(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    sigma += sigma_inc;
 	}
 
@@ -3808,33 +4640,33 @@ void assembly::isotropic(int   total_steps,
 	if (   fabs(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabs(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    break;
 	}
 	
@@ -3877,43 +4709,43 @@ void assembly::isotropic(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"isotropic..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "isotropic..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"isotropic..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "isotropic..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -4033,80 +4865,80 @@ void assembly::isotropic(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[5]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[5]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[5]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[5]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	}
 
 	// 8. find the balanced status and increase confining pressure
 	if (   fabs(sigma1_1-sigma)/sigma < STRESS_ERROR && fabs(sigma1_2-sigma)/sigma < STRESS_ERROR
 	    && fabs(sigma2_1-sigma)/sigma < STRESS_ERROR && fabs(sigma2_2-sigma)/sigma < STRESS_ERROR
 	    && fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    sigma += sigma_inc;
 	    if (sigma==sigma_values[i+1]) {
 		i++;
@@ -4120,33 +4952,33 @@ void assembly::isotropic(int   total_steps,
 	if (   fabs(sigma1_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma1_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma2_2-sigma_b)/sigma_b < STRESS_ERROR
 	    && fabs(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR ) {
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    break;
 	}
 	
@@ -4191,43 +5023,43 @@ void assembly::odometer(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"odometer..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "odometer..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"odometer..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "odometer..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -4319,96 +5151,96 @@ void assembly::odometer(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	}
 
 	// 8. find balanced status of odometer compression
 	if (fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    sigma += sigma_inc;
 	}
 
 	// 9. loop break condition
 	if (fabs(sigma3_1-sigma_1)/sigma_1 < STRESS_ERROR && fabs(sigma3_2-sigma_1)/sigma_1 < STRESS_ERROR) {
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    break;
 	}
     } while (++g_iteration < total_steps);
@@ -4453,43 +5285,43 @@ void assembly::odometer(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"odometer..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "odometer..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"odometer..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "odometer..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -4584,64 +5416,64 @@ void assembly::odometer(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	}
 
 	// 8. find balanced status of odometer compression
 	if (fabs(sigma3_1-sigma)/sigma < STRESS_ERROR && fabs(sigma3_2-sigma)/sigma < STRESS_ERROR ) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    sigma += sigma_inc;
 	    if (sigma==sigma_values[i+1]) {
 		i++;
@@ -4652,33 +5484,33 @@ void assembly::odometer(int   total_steps,
 
 	// 9. loop break condition
 	if (fabs(sigma3_1-sigma_b)/sigma_b < STRESS_ERROR && fabs(sigma3_2-sigma_b)/sigma_b < STRESS_ERROR) {
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    break;
 	}
     } while (++g_iteration < total_steps);
@@ -4713,23 +5545,23 @@ void assembly::unconfined(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.  
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"unconfined..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample"
-	       <<"          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "unconfined..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample"
+	        << "          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -4786,34 +5618,34 @@ void assembly::unconfined(int   total_steps,
 
 	// 7. (2) output progress info.
 	if (g_iteration % interval == 0)
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0<<setw(OWID)<<0
-		       <<setw(OWID)<<0<<setw(OWID)<<0
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0 << setw(OWID) << 0
+		        << setw(OWID) << 0 << setw(OWID) << 0
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << endl;
 /*
 	// 8. loop break condition
 	if (getAverageForce() < 1.0) {
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()<<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment() << endl;
 	    break;
 	}
 */
@@ -4832,46 +5664,47 @@ void assembly::unconfined(int   total_steps,
 }
 
 
-void assembly::iso_PtclBdry(int   total_steps,  
-			    int   snapshots, 
-			    int   interval,
-			    REAL  sigma3,
-			    rectangle& container,
-			    gradation& grad,
-			    REAL  rRadius,
-			    const char* iniptclfile, 
-			    const char* particlefile,
-			    const char* contactfile, 
-			    const char* progressfile,
-			    const char* debugfile) 
+void assembly::iso_MemBdry(int   total_steps,  
+			   int   snapshots, 
+			   int   interval,
+			   REAL  sigma3,
+			   rectangle& container,
+			   gradation& grad,
+			   REAL  rRadius,
+			   bool  toRecreate,
+			   const char* iniptclfile, 
+			   const char* particlefile,
+			   const char* contactfile, 
+			   const char* progressfile,
+			   const char* debugfile) 
 {
   // pre_1: open streams for output
   // particlefile and contactfile are used for snapshots at the end.
   progressinf.open(progressfile);
-  if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+  if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
   progressinf.setf(std::ios::scientific, std::ios::floatfield);
   progressinf.precision(OPREC);
-  progressinf<<setw(OWID)<<"iteration"
-	     <<setw(OWID)<<"poss_contact"
-	     <<setw(OWID)<<"actual_contact"
-	     <<setw(OWID)<<"penetration"
-	     <<setw(OWID)<<"avg_normal"
-	     <<setw(OWID)<<"avg_tangt"
-	     <<setw(OWID)<<"avg_velocity"
-	     <<setw(OWID)<<"avg_omga"
-	     <<setw(OWID)<<"avg_force"
-	     <<setw(OWID)<<"avg_moment"
-	     <<setw(OWID)<<"trans_energy"
-	     <<setw(OWID)<<"rotat_energy"
-	     <<setw(OWID)<<"kinet_energy"
-	     <<endl;
+  progressinf << setw(OWID) << "iteration"
+	      << setw(OWID) << "poss_contact"
+	      << setw(OWID) << "actual_contact"
+	      << setw(OWID) << "penetration"
+	      << setw(OWID) << "avg_normal"
+	      << setw(OWID) << "avg_tangt"
+	      << setw(OWID) << "avg_velocity"
+	      << setw(OWID) << "avg_omga"
+	      << setw(OWID) << "avg_force"
+	      << setw(OWID) << "avg_moment"
+	      << setw(OWID) << "trans_energy"
+	      << setw(OWID) << "rotat_energy"
+	      << setw(OWID) << "kinet_energy"
+	      << endl;
   
   g_debuginf.open(debugfile);
-  if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+  if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
   g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
   
   // pre_2. create particles from file and calculate forces caused by hydraulic pressure
-  createSample(iniptclfile);
+  if (toRecreate) createSample(iniptclfile);
   REAL radius = grad.getMinPtclRadius();
   if (grad.getSize().size() == 1 &&
       grad.getPtclRatioBA() == 1.0 && 
@@ -4884,9 +5717,9 @@ void assembly::iso_PtclBdry(int   total_steps,
   REAL x2 = container.getV2().getx();
   REAL y2 = container.getV2().gety();
   REAL z2 = container.getV2().getz();
-  std::list<particle*>::const_iterator  it;
+  std::vector<particle*>::const_iterator  it;
   vec pos;
-  for (it=ParticleList.begin();it!=ParticleList.end();++it)
+  for (it=ParticleVec.begin();it!=ParticleVec.end();++it)
     {
       pos = (*it)->getCurrPosition();
       if (pos.getx() < x1)
@@ -4916,47 +5749,54 @@ void assembly::iso_PtclBdry(int   total_steps,
     {
       // 1. find contacts between particles
       findContact();
-      
-      // 2. set particles' forces/moments as zero before each re-calculation
-      clearForce();	
+
+      // 2. set particles forces/moments to zero before each re-calculation
+      clearForce(); // const_force/moment NOT cleared by this call	
       
       // 3. calculate contact forces/moments and apply them to particles
       internalForce(avgNormal, avgTangt);
+
+      // 4. calculate and apply spring forces to boundary particles
+      springForce();
       
-      // 4. update particles' velocity/omga/position/orientation based on force/moment
+      // 5. update particles velocity/omga/position/orientation based on force/moment
       updateParticle();
       
-      // 5. (1) output particles and contacts information
+      // 6. (1) output particles and contacts information
       if (g_iteration % (total_steps/snapshots) == 0){
 	sprintf(stepsstr, "%03d", stepsnum); 
 	strcpy(stepsfp,particlefile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
 	printParticle(stepsfp);
 	cout << stepsfp;
+	strcpy(stepsfp,"iso_membrane_"); strcat(stepsfp, stepsstr);
+	printMemParticle(stepsfp);
+	strcpy(stepsfp,"iso_spring_"); strcat(stepsfp, stepsstr); strcat(stepsfp, ".dat");
+	printSpring(stepsfp);
 	
 	sprintf(stepsstr, "%03d", stepsnum); 
-	strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
+	strcpy(stepsfp, contactfile); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr); 
 	printContact(stepsfp);
 	++stepsnum;
 	time(&timeStamp);
 	cout << "  " << stepsfp << "  " << ctime(&timeStamp);
       }
       
-      // 5. (2) output stress and strain info
+      // 6. (2) output stress and strain info
 	if (g_iteration % interval == 0 ){
-	  progressinf<<setw(OWID)<<g_iteration
-		     <<setw(OWID)<<getPossCntctNum()
-		     <<setw(OWID)<<getActualCntctNum()
-		     <<setw(OWID)<<getAveragePenetration()
-		     <<setw(OWID)<<avgNormal
-		     <<setw(OWID)<<avgTangt
-		     <<setw(OWID)<<getAverageVelocity() 
-		     <<setw(OWID)<<getAverageOmga()
-		     <<setw(OWID)<<getAverageForce()   
-		     <<setw(OWID)<<getAverageMoment()
-		     <<setw(OWID)<<getTransEnergy()
-		     <<setw(OWID)<<getRotatEnergy()
-		     <<setw(OWID)<<getKinetEnergy()
-		     <<endl;
+	  progressinf << setw(OWID) << g_iteration
+		      << setw(OWID) << getPossCntctNum()
+		      << setw(OWID) << getActualCntctNum()
+		      << setw(OWID) << getAveragePenetration()
+		      << setw(OWID) << avgNormal
+		      << setw(OWID) << avgTangt
+		      << setw(OWID) << getAverageVelocity() 
+		      << setw(OWID) << getAverageOmga()
+		      << setw(OWID) << getAverageForce()   
+		      << setw(OWID) << getAverageMoment()
+		      << setw(OWID) << getTransEnergy()
+		      << setw(OWID) << getRotatEnergy()
+		      << setw(OWID) << getKinetEnergy()
+		      << endl;
 	}
 	  
     } while (++g_iteration < total_steps);
@@ -4965,7 +5805,11 @@ void assembly::iso_PtclBdry(int   total_steps,
   strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
   printParticle(stepsfp);
   cout << stepsfp;
-  
+  strcpy(stepsfp, "iso_membrane_end");
+  printMemParticle(stepsfp);
+  strcpy(stepsfp, "iso_spring_end.dat");
+  printSpring(stepsfp);  
+
   strcpy(stepsfp, contactfile); strcat(stepsfp, "_end");
   printContact(stepsfp);
   cout << "  " << stepsfp << "  " << ctime(&timeStamp);
@@ -4992,25 +5836,25 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -5083,31 +5927,31 @@ void assembly::triaxialPtclBdryIni(int   total_steps,
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<0<<setw(OWID)<<0
-		       <<setw(OWID)<<0<<setw(OWID)<<0
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<l56
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
-		       <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << 0 << setw(OWID) << 0
+		        << setw(OWID) << 0 << setw(OWID) << 0
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << 0 << setw(OWID) << 0 << setw(OWID) << l56
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0
+		        << setw(OWID) << 2.0*getActualCntctNum()/TotalNum
+		        << endl;
 
 	}
 
@@ -5150,43 +5994,43 @@ void assembly::triaxialPtclBdry(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -5253,31 +6097,31 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	l56=getApt(5).getz()-getApt(6).getz();
 	epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<0<<setw(OWID)<<0
-		       <<setw(OWID)<<0<<setw(OWID)<<0
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<l56
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<0
-		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
-		       <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << 0 << setw(OWID) << 0
+		        << setw(OWID) << 0 << setw(OWID) << 0
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << 0 << setw(OWID) << 0 << setw(OWID) << l56
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << 0
+		        << setw(OWID) << 0
+		        << setw(OWID) << 2.0*getActualCntctNum()/TotalNum
+		        << endl;
 
 	}
 
@@ -5286,27 +6130,27 @@ void assembly::triaxialPtclBdry(int   total_steps,
 	if (   fabs(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabs(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h) << endl;
 	}
 */
 	// 9. loop break condition: through displacement control mechanism
@@ -5348,145 +6192,145 @@ void assembly::triaxial(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
     progressinf.precision(OPREC);
-    progressinf<<setw(OWID)<<"iteration"
-	       <<setw(OWID)<<"possible"
-	       <<setw(OWID)<<"actual"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"void"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"coordinate"
-	       <<setw(OWID)<<"vibra"
-	       <<setw(OWID)<<"impact"
-	       <<setw(OWID)<<"wall-clock" << endl
-	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"contacts"
-	       <<setw(OWID)<<"contacts"
-	       <<setw(OWID)<<"penetration"
-	       <<setw(OWID)<<"contact_normal"
-	       <<setw(OWID)<<"contact_tangt"
-	       <<setw(OWID)<<"velocity"
-	       <<setw(OWID)<<"omga"
-	       <<setw(OWID)<<"force"
-	       <<setw(OWID)<<"moment"
-	       <<setw(OWID)<<"density"
-	       <<setw(OWID)<<"sigma1_1"
-	       <<setw(OWID)<<"sigma1_2"
-	       <<setw(OWID)<<"sigma2_1"
-	       <<setw(OWID)<<"sigma2_2"
-	       <<setw(OWID)<<"sigma3_1"
-	       <<setw(OWID)<<"sigma3_2"
-	       <<setw(OWID)<<"mean_stress"
-	       <<setw(OWID)<<"width"
-	       <<setw(OWID)<<"length"
-	       <<setw(OWID)<<"height"
-	       <<setw(OWID)<<"volume"
-	       <<setw(OWID)<<"epsilon_w"
-	       <<setw(OWID)<<"epsilon_l"
-	       <<setw(OWID)<<"epsilon_h"
-	       <<setw(OWID)<<"epsilon_v"
-	       <<setw(OWID)<<"ratio"
-	       <<setw(OWID)<<"porosity"
-	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"t_step"
-	       <<setw(OWID)<<"t_step"
-	       <<setw(OWID)<<"time" << endl;
+    progressinf << setw(OWID) << "iteration"
+	        << setw(OWID) << "possible"
+	        << setw(OWID) << "actual"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "void"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "coordinate"
+	        << setw(OWID) << "vibra"
+	        << setw(OWID) << "impact"
+	        << setw(OWID) << "wall-clock" << endl
+	        << setw(OWID) << "number"
+	        << setw(OWID) << "contacts"
+	        << setw(OWID) << "contacts"
+	        << setw(OWID) << "penetration"
+	        << setw(OWID) << "contact_normal"
+	        << setw(OWID) << "contact_tangt"
+	        << setw(OWID) << "velocity"
+	        << setw(OWID) << "omga"
+	        << setw(OWID) << "force"
+	        << setw(OWID) << "moment"
+	        << setw(OWID) << "density"
+	        << setw(OWID) << "sigma1_1"
+	        << setw(OWID) << "sigma1_2"
+	        << setw(OWID) << "sigma2_1"
+	        << setw(OWID) << "sigma2_2"
+	        << setw(OWID) << "sigma3_1"
+	        << setw(OWID) << "sigma3_2"
+	        << setw(OWID) << "mean_stress"
+	        << setw(OWID) << "width"
+	        << setw(OWID) << "length"
+	        << setw(OWID) << "height"
+	        << setw(OWID) << "volume"
+	        << setw(OWID) << "epsilon_w"
+	        << setw(OWID) << "epsilon_l"
+	        << setw(OWID) << "epsilon_h"
+	        << setw(OWID) << "epsilon_v"
+	        << setw(OWID) << "ratio"
+	        << setw(OWID) << "porosity"
+	        << setw(OWID) << "number"
+	        << setw(OWID) << "t_step"
+	        << setw(OWID) << "t_step"
+	        << setw(OWID) << "time" << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
     balancedinf.precision(OPREC);
-    balancedinf<<setw(OWID)<<"iteration"
-	       <<setw(OWID)<<"possible"
-	       <<setw(OWID)<<"actual"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"average"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"void"
-	       <<setw(OWID)<<"sample"
-	       <<setw(OWID)<<"coordinate"
-	       <<setw(OWID)<<"vibra"
-	       <<setw(OWID)<<"impact"
-	       <<setw(OWID)<<"wall-clock" << endl
-	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"contacts"
-	       <<setw(OWID)<<"contacts"
-	       <<setw(OWID)<<"penetration"
-	       <<setw(OWID)<<"contact_normal"
-	       <<setw(OWID)<<"contact_tangt"
-	       <<setw(OWID)<<"velocity"
-	       <<setw(OWID)<<"omga"
-	       <<setw(OWID)<<"force"
-	       <<setw(OWID)<<"moment"
-	       <<setw(OWID)<<"density"
-	       <<setw(OWID)<<"sigma1_1"
-	       <<setw(OWID)<<"sigma1_2"
-	       <<setw(OWID)<<"sigma2_1"
-	       <<setw(OWID)<<"sigma2_2"
-	       <<setw(OWID)<<"sigma3_1"
-	       <<setw(OWID)<<"sigma3_2"
-	       <<setw(OWID)<<"mean_stress"
-	       <<setw(OWID)<<"width"
-	       <<setw(OWID)<<"length"
-	       <<setw(OWID)<<"height"
-	       <<setw(OWID)<<"volume"
-	       <<setw(OWID)<<"epsilon_w"
-	       <<setw(OWID)<<"epsilon_l"
-	       <<setw(OWID)<<"epsilon_h"
-	       <<setw(OWID)<<"epsilon_v"
-	       <<setw(OWID)<<"ratio"
-	       <<setw(OWID)<<"porosity"
-	       <<setw(OWID)<<"number"
-	       <<setw(OWID)<<"t_step"
-	       <<setw(OWID)<<"t_step"
-	       <<setw(OWID)<<"time" << endl;
+    balancedinf << setw(OWID) << "iteration"
+	        << setw(OWID) << "possible"
+	        << setw(OWID) << "actual"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "average"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "void"
+	        << setw(OWID) << "sample"
+	        << setw(OWID) << "coordinate"
+	        << setw(OWID) << "vibra"
+	        << setw(OWID) << "impact"
+	        << setw(OWID) << "wall-clock" << endl
+	        << setw(OWID) << "number"
+	        << setw(OWID) << "contacts"
+	        << setw(OWID) << "contacts"
+	        << setw(OWID) << "penetration"
+	        << setw(OWID) << "contact_normal"
+	        << setw(OWID) << "contact_tangt"
+	        << setw(OWID) << "velocity"
+	        << setw(OWID) << "omga"
+	        << setw(OWID) << "force"
+	        << setw(OWID) << "moment"
+	        << setw(OWID) << "density"
+	        << setw(OWID) << "sigma1_1"
+	        << setw(OWID) << "sigma1_2"
+	        << setw(OWID) << "sigma2_1"
+	        << setw(OWID) << "sigma2_2"
+	        << setw(OWID) << "sigma3_1"
+	        << setw(OWID) << "sigma3_2"
+	        << setw(OWID) << "mean_stress"
+	        << setw(OWID) << "width"
+	        << setw(OWID) << "length"
+	        << setw(OWID) << "height"
+	        << setw(OWID) << "volume"
+	        << setw(OWID) << "epsilon_w"
+	        << setw(OWID) << "epsilon_l"
+	        << setw(OWID) << "epsilon_h"
+	        << setw(OWID) << "epsilon_v"
+	        << setw(OWID) << "ratio"
+	        << setw(OWID) << "porosity"
+	        << setw(OWID) << "number"
+	        << setw(OWID) << "t_step"
+	        << setw(OWID) << "t_step"
+	        << setw(OWID) << "time" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -5601,52 +6445,52 @@ void assembly::triaxial(int   total_steps,
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
 	    gettimeofday(&timew2,NULL);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(OWID)<<getVibraTimeStep()
-	               <<setw(OWID)<<getImpactTimeStep()
-		       <<setw(OWID)<<timediffsec(timew1,timew2)
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<getTransEnergy()
-		      <<setw(OWID)<<getRotatEnergy()
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[5]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[5]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+	                << setw(OWID) << getVibraTimeStep()
+	                << setw(OWID) << getImpactTimeStep()
+		        << setw(OWID) << timediffsec(timew1,timew2)
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << getTransEnergy()
+		       << setw(OWID) << getRotatEnergy()
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[5]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[5]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	}
 
 	// Most time it is balanced, so use progressinf instead.
@@ -5654,36 +6498,36 @@ void assembly::triaxial(int   total_steps,
 	if (   fabs(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabs(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-	               <<setw(OWID)<<getVibraTimeStep()
-	               <<setw(OWID)<<getImpactTimeStep()
-		       <<setw(OWID)<<timediffsec(timew1,timew2)
-		       <<endl;
+	                << setw(OWID) << getVibraTimeStep()
+	                << setw(OWID) << getImpactTimeStep()
+		        << setw(OWID) << timediffsec(timew1,timew2)
+		        << endl;
 	}
 
 	// 9. loop break condition: through displacement control mechanism
@@ -5729,43 +6573,43 @@ void assembly::triaxial(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -5893,47 +6737,47 @@ void assembly::triaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[5]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[5]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[5]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[5]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	}
 
 /*
@@ -5941,27 +6785,27 @@ void assembly::triaxial(int   total_steps,
 	if (   fabs(sigma1_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma1_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_a)/sigma_a < STRESS_ERROR && fabs(sigma2_2-sigma_a)/sigma_a < STRESS_ERROR
 	    && fabs(sigma3_1-sigma3_2)/(sigma3_1+sigma3_2)*2<=0.05) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)<<endl;
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h) << endl;
 	}
 */
 	// 9. loop break condition: through displacement control mechanism
@@ -6001,27 +6845,27 @@ void assembly::rectPile_Disp(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"pile penetrate..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential        total           sample           sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample"
-	       <<"          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy          energy          density         "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "pile penetrate..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential        total           sample           sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample"
+	        << "          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy          energy          density         "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
-    g_debuginf<<" iteration    end_bearing     side_friction   total_force"<<endl;
+    g_debuginf << " iteration    end_bearing     side_friction   total_force" << endl;
 
     // pre_2. create particles and boundaries from files
     createSample(iniptclfile); // create container and particles, velocity and omga are set zero. 
@@ -6071,11 +6915,11 @@ void assembly::rectPile_Disp(int   total_steps,
 	    REAL  f9=getShearForce( 9).getz();
 	    REAL f10=getShearForce(10).getz();
 	    REAL  fn=getNormalForce(12).getz();
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<fn
-		      <<setw(OWID)<<(f7+f8+f9+f10)
-		      <<setw(OWID)<<(fn+f7+f8+f9+f10)
-		      <<endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << fn
+		       << setw(OWID) << (f7+f8+f9+f10)
+		       << setw(OWID) << (fn+f7+f8+f9+f10)
+		       << endl;
 	}
 
 	// 7. (1) output particles and contacts information
@@ -6096,21 +6940,21 @@ void assembly::rectPile_Disp(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)<<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3) << endl;
 	}
 
 	// 8. loop break condition
@@ -6150,25 +6994,25 @@ void assembly::ellipPile_Disp(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"pile penetrate..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "pile penetrate..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential         total           void            sample       coordination"
+	        << "       sample           sample          sample          sample          sample          sample"
+	        << "          sample          sample          sample         sample           sample         "
+	        << " sample          sample          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy            energy          ratio          porosity         number       "
+	        << "   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -6223,33 +7067,33 @@ void assembly::ellipPile_Disp(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()
-		      <<setw(OWID)<<ellipPileTipZ()
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(OWID)<<l13*l24*l56
-		      <<setw(OWID)<<ellipPilePeneVol()
-		      <<setw(OWID)<<Volume
-		      <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*getActualCntctNum()/TotalNum
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << getTopFreeParticlePosition().getz()
+		       << setw(OWID) << ellipPileTipZ()
+		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << l13*l24*l56
+		       << setw(OWID) << ellipPilePeneVol()
+		       << setw(OWID) << Volume
+		       << endl;
 	}
 
 	// 7. loop break condition
@@ -6285,25 +7129,25 @@ void assembly::ellipPile_Impact(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"penetrator impact..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "penetrator impact..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential         total           void            sample       coordination"
+	        << "       sample           sample          sample          sample          sample          sample"
+	        << "          sample          sample          sample         sample           sample         "
+	        << " sample          sample          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy            energy          ratio          porosity         number       "
+	        << "   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -6367,48 +7211,48 @@ void assembly::ellipPile_Impact(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	    /*
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()
-		      <<setw(OWID)<<ellipPileTipZ()
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(OWID)<<l13*l24*l56
-		      <<setw(OWID)<<ellipPilePeneVol()
-		      <<setw(OWID)<<Volume
-		      <<endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << getTopFreeParticlePosition().getz()
+		       << setw(OWID) << ellipPileTipZ()
+		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << l13*l24*l56
+		       << setw(OWID) << ellipPilePeneVol()
+		       << setw(OWID) << Volume
+		       << endl;
 	    */
 	}
 
@@ -6444,25 +7288,25 @@ void assembly::ellipPile_Impact_p(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"penetrator impact..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "penetrator impact..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential         total           void            sample       coordination"
+	        << "       sample           sample          sample          sample          sample          sample"
+	        << "          sample          sample          sample         sample           sample         "
+	        << " sample          sample          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy            energy          ratio          porosity         number       "
+	        << "   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -6517,33 +7361,33 @@ void assembly::ellipPile_Impact_p(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()
-		      <<setw(OWID)<<ellipPileTipZ()
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(OWID)<<l13*l24*l56
-		      <<setw(OWID)<<ellipPilePeneVol()
-		      <<setw(OWID)<<Volume
-		      <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*getActualCntctNum()/TotalNum
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << getTopFreeParticlePosition().getz()
+		       << setw(OWID) << ellipPileTipZ()
+		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << l13*l24*l56
+		       << setw(OWID) << ellipPilePeneVol()
+		       << setw(OWID) << Volume
+		       << endl;
 	}
 
 	// 7. loop break condition
@@ -6583,31 +7427,31 @@ void assembly::ellipPile_Force(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile); 
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1); }
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1); }
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"pile penetrate..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average       translational    rotational       "
-	       <<"kinetic        potential         total           void            sample       coordination"
-	       <<"       sample           sample          sample          sample          sample          sample"
-	       <<"          sample          sample          sample         sample           sample         "
-	       <<" sample          sample          sample          sample          sample"<<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"         omga            force           moment         energy           energy          "
-	       <<"energy         energy            energy          ratio          porosity         number       "
-	       <<"   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       "
-	       <<"epsilon_v"<<endl;
+    progressinf << "pile penetrate..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average       translational    rotational       "
+	        << "kinetic        potential         total           void            sample       coordination"
+	        << "       sample           sample          sample          sample          sample          sample"
+	        << "          sample          sample          sample         sample           sample         "
+	        << " sample          sample          sample          sample          sample" << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "         omga            force           moment         energy           energy          "
+	        << "energy         energy            energy          ratio          porosity         number       "
+	        << "   density         sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       "
+	        << "epsilon_v" << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"pile penetrate..."<<endl
-	       <<"   iteration   apply_force    pile_tip_pos     pile_force"<<endl;
+    balancedinf << "pile penetrate..." << endl
+	        << "   iteration   apply_force    pile_tip_pos     pile_force" << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -6653,20 +7497,20 @@ void assembly::ellipPile_Force(int   total_steps,
 	    ellipPileUpdate();
 
 	if(fabs(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<zforce
-		       <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		       <<setw(OWID)<<ellipPileForce()
-		       <<endl;
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << zforce
+		        << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		        << setw(OWID) << ellipPileForce()
+		        << endl;
 	    zforce += zforce_inc;
 	}
 
 	if( g_iteration % interval == 0){
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<zforce
-		      <<setw(OWID)<<getTopFreeParticlePosition().getz()-ellipPileTipZ()
-		      <<setw(OWID)<<ellipPileForce()
-		      <<endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << zforce
+		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << ellipPileForce()
+		       << endl;
 	}
 
 	// 7. (1) output particles and contacts information
@@ -6686,25 +7530,25 @@ void assembly::ellipPile_Force(int   total_steps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<t1
-		       <<setw(OWID)<<t2
-		       <<setw(OWID)<<(t1+t2)
-		       <<setw(OWID)<<t3
-		       <<setw(OWID)<<(t1+t2+t3)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*getActualCntctNum()/TotalNum
-		       <<endl;
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << t1
+		        << setw(OWID) << t2
+		        << setw(OWID) << (t1+t2)
+		        << setw(OWID) << t3
+		        << setw(OWID) << (t1+t2+t3)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*getActualCntctNum()/TotalNum
+		        << endl;
 	}
 
 	// 8. loop break condition
@@ -6749,43 +7593,43 @@ void assembly::truetriaxial(int   total_steps,
     // pre_1: open streams for output
     // particlefile and contactfile are used for snapshots at the end.
     progressinf.open(progressfile);
-    if(!progressinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!progressinf) { cout << "stream error!" << endl; exit(-1);}
     progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf<<"true triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    progressinf << "true triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     std::ofstream balancedinf(balancedfile);
-    if(!balancedinf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!balancedinf) { cout << "stream error!" << endl; exit(-1);}
     balancedinf.setf(std::ios::scientific, std::ios::floatfield);
-    balancedinf<<"true triaxial..."<<endl
-	       <<"     iteration possible  actual      average	    average         average         average"
-	       <<"         average         average         average        sample            sample     "
-	       <<"     sample          sample          sample          sample          sample          "
-	       <<"sample          sample         sample           sample          sample          sample     "
-	       <<"     sample          sample          sample          void            sample        coordinate"
-	       <<endl
-	       <<"       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
-	       <<"          omga            force           moment        density          "
-	       <<"sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
-	       <<"sigma3_1        sigma3_2           p             width          length           "
-	       <<"height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
-	       <<"        ratio          porosity         number"
-	       <<endl;
+    balancedinf << "true triaxial..." << endl
+	        << "     iteration possible  actual      average	    average         average         average"
+	        << "         average         average         average        sample            sample     "
+	        << "     sample          sample          sample          sample          sample          "
+	        << "sample          sample         sample           sample          sample          sample     "
+	        << "     sample          sample          sample          void            sample        coordinate"
+	        << endl
+	        << "       number  contacts contacts   penetration   contact_normal  contact_tangt     velocity"
+	        << "          omga            force           moment        density          "
+	        << "sigma1_1        sigma1_2        sigma2_1        sigma2_2        "
+	        << "sigma3_1        sigma3_2           p             width          length           "
+	        << "height          volume         epsilon_w       epsilon_l       epsilon_h       epsilon_v"
+	        << "        ratio          porosity         number"
+	        << endl;
 
     g_debuginf.open(debugfile);
-    if(!g_debuginf) { cout<<"stream error!"<<endl; exit(-1);}
+    if(!g_debuginf) { cout << "stream error!" << endl; exit(-1);}
     g_debuginf.setf(std::ios::scientific, std::ios::floatfield);
 
     // pre_2. create particles and boundaries from files
@@ -6907,80 +7751,80 @@ void assembly::truetriaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()   
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()   
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
-	    g_debuginf<<setw(OWID)<<g_iteration
-		      <<setw(OWID)<<bdry_penetr[1]
-		      <<setw(OWID)<<bdry_penetr[2]
-		      <<setw(OWID)<<bdry_penetr[3]
-		      <<setw(OWID)<<bdry_penetr[4]
-		      <<setw(OWID)<<bdry_penetr[5]
-		      <<setw(OWID)<<bdry_penetr[6]
-		      <<setw(OWID)<<bdry_cntnum[1]
-		      <<setw(OWID)<<bdry_cntnum[2]
-		      <<setw(OWID)<<bdry_cntnum[3]
-		      <<setw(OWID)<<bdry_cntnum[4]
-		      <<setw(OWID)<<bdry_cntnum[5]
-		      <<setw(OWID)<<bdry_cntnum[6]
-		      <<endl;
+		        << endl;
+	    g_debuginf << setw(OWID) << g_iteration
+		       << setw(OWID) << bdry_penetr[1]
+		       << setw(OWID) << bdry_penetr[2]
+		       << setw(OWID) << bdry_penetr[3]
+		       << setw(OWID) << bdry_penetr[4]
+		       << setw(OWID) << bdry_penetr[5]
+		       << setw(OWID) << bdry_penetr[6]
+		       << setw(OWID) << bdry_cntnum[1]
+		       << setw(OWID) << bdry_cntnum[2]
+		       << setw(OWID) << bdry_cntnum[3]
+		       << setw(OWID) << bdry_cntnum[4]
+		       << setw(OWID) << bdry_cntnum[5]
+		       << setw(OWID) << bdry_cntnum[6]
+		       << endl;
 	}
 
 	// 8. find the balanced status and increase confining pressure
 	if (   fabs(sigma1_1-sigma_w1)/sigma_w1 < STRESS_ERROR && fabs(sigma1_2-sigma_w1)/sigma_w1 < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_l1)/sigma_l1 < STRESS_ERROR && fabs(sigma2_2-sigma_l1)/sigma_l1 < STRESS_ERROR
 	    && fabs(sigma3_1-sigma_h1)/sigma_h1 < STRESS_ERROR && fabs(sigma3_2-sigma_h1)/sigma_h1 < STRESS_ERROR ) {
-	    balancedinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    balancedinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    sigma_w1 += sigma_w_inc;
 	    sigma_l1 += sigma_l_inc;
 	    sigma_h1 += sigma_h_inc;
@@ -6990,33 +7834,33 @@ void assembly::truetriaxial(int   total_steps,
 	if (   fabs(sigma1_1-sigma_w)/sigma_w < STRESS_ERROR && fabs(sigma1_2-sigma_w)/sigma_w < STRESS_ERROR
 	    && fabs(sigma2_1-sigma_l)/sigma_l < STRESS_ERROR && fabs(sigma2_2-sigma_l)/sigma_l < STRESS_ERROR
 	    && fabs(sigma3_1-sigma_h)/sigma_h < STRESS_ERROR && fabs(sigma3_2-sigma_h)/sigma_h < STRESS_ERROR ) {
-	    progressinf<<setw(OWID)<<g_iteration
-		       <<setw(OWID)<<getPossCntctNum()
-		       <<setw(OWID)<<getActualCntctNum()
-		       <<setw(OWID)<<getAveragePenetration()
-		       <<setw(OWID)<<avgNormal
-		       <<setw(OWID)<<avgTangt
-		       <<setw(OWID)<<getAverageVelocity() 
-		       <<setw(OWID)<<getAverageOmga()
-		       <<setw(OWID)<<getAverageForce()    
-		       <<setw(OWID)<<getAverageMoment()
-		       <<setw(OWID)<<getDensity()
-		       <<setw(OWID)<<sigma1_1<<setw(OWID)<<sigma1_2
-		       <<setw(OWID)<<sigma2_1<<setw(OWID)<<sigma2_2
-		       <<setw(OWID)<<sigma3_1<<setw(OWID)<<sigma3_2
-		       <<setw(OWID)<<getAverageRigidPressure()  // just the mean stress p
-		       <<setw(OWID)<<l24<<setw(OWID)<<l13<<setw(OWID)<<l56
-		       <<setw(OWID)<<Volume
-		       <<setw(OWID)<<epsilon_w
-		       <<setw(OWID)<<epsilon_l
-		       <<setw(OWID)<<epsilon_h
-		       <<setw(OWID)<<(epsilon_w+epsilon_l+epsilon_h)
-		       <<setw(OWID)<<void_ratio
-		       <<setw(OWID)<<void_ratio/(1+void_ratio)
-		       <<setw(OWID)<<2.0*(getActualCntctNum()
+	    progressinf << setw(OWID) << g_iteration
+		        << setw(OWID) << getPossCntctNum()
+		        << setw(OWID) << getActualCntctNum()
+		        << setw(OWID) << getAveragePenetration()
+		        << setw(OWID) << avgNormal
+		        << setw(OWID) << avgTangt
+		        << setw(OWID) << getAverageVelocity() 
+		        << setw(OWID) << getAverageOmga()
+		        << setw(OWID) << getAverageForce()    
+		        << setw(OWID) << getAverageMoment()
+		        << setw(OWID) << getDensity()
+		        << setw(OWID) << sigma1_1 << setw(OWID) << sigma1_2
+		        << setw(OWID) << sigma2_1 << setw(OWID) << sigma2_2
+		        << setw(OWID) << sigma3_1 << setw(OWID) << sigma3_2
+		        << setw(OWID) << getAverageRigidPressure()  // just the mean stress p
+		        << setw(OWID) << l24 << setw(OWID) << l13 << setw(OWID) << l56
+		        << setw(OWID) << Volume
+		        << setw(OWID) << epsilon_w
+		        << setw(OWID) << epsilon_l
+		        << setw(OWID) << epsilon_h
+		        << setw(OWID) << (epsilon_w+epsilon_l+epsilon_h)
+		        << setw(OWID) << void_ratio
+		        << setw(OWID) << void_ratio/(1+void_ratio)
+		        << setw(OWID) << 2.0*(getActualCntctNum()
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
-		       <<endl;
+		        << endl;
 	    break;
 	}
 	
@@ -7071,7 +7915,7 @@ void assembly::dircShear(REAL rate, REAL roterate,REAL stress,const char* iniptc
 	loadctl[1]=loadctl[0];
 	loadctl[1].fixpt=getApt(4);
 
-	std::list<RGDBDRY*>::iterator rt;
+	std::vector<RGDBDRY*>::iterator rt;
 	fprintf(fprslt,"bdry_1_norm_x  bdry_1_norm_y  bdry_1_norm_z  bdry_1_shar_x  bdry_1_shar_y  bdry_1_shar_z  \
 bdry_2_norm_x  bdry_2_norm_y  bdry_2_norm_z  bdry_2_shar_x  bdry_2_shar_y  bdry_2_shar_z  \
 bdry_3_norm_x  bdry_3_norm_y  bdry_3_norm_z  bdry_3_shar_x  bdry_3_shar_y  bdry_3_shar_z  \
@@ -7090,20 +7934,20 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 	REAL avgNormal=0;
 	REAL avgTangt=0;
 
-	progressinf<<"DircShearing..."<<endl
-	         <<"iter_num   "
-                 <<"init_contact  "
-                 <<"contact  "
-	         <<"normal force      "
-                 <<"velocity        "
-	         <<"omga            "
-	         <<"force           "
-	         <<"moment"<<endl;
+	progressinf << "DircShearing..." << endl
+	          << "iter_num   "
+                  << "init_contact  "
+                  << "contact  "
+	          << "normal force      "
+                  << "velocity        "
+	          << "omga            "
+	          << "force           "
+	          << "moment" << endl;
 
 	g_iteration=0;
 	do{
-                cout<<"DircShearing..."<<g_iteration<<endl;
-		progressinf<<setw(OWID)<<g_iteration;
+                cout << "DircShearing..." << g_iteration << endl;
+		progressinf << setw(OWID) << g_iteration;
 
 		findParticleOnBoundary();
 		findContact();
@@ -7111,10 +7955,10 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		internalForce(avgNormal, avgTangt);
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(OWID)<<getAverageVelocity()
-		         <<setw(OWID)<<getAverageOmga()
-		         <<setw(OWID)<<getAverageForce()
-			 <<setw(OWID)<<getAverageMoment()<<endl;
+		progressinf << setw(OWID) << getAverageVelocity()
+		          << setw(OWID) << getAverageOmga()
+		          << setw(OWID) << getAverageForce()
+			  << setw(OWID) << getAverageMoment() << endl;
 		contactUpdate();
 		updateParticle();
 
@@ -7151,7 +7995,7 @@ bdry_6_norm_x  bdry_6_norm_y  bdry_6_norm_z  bdry_6_shar_x  bdry_6_shar_y  bdry_
 		if (1){
 			updateRB(load,loadctl,2);
 			fprintf(fprslt,"%15.6lf",lead);
-			for(rt=RBList.begin();rt!=RBList.end();++rt){
+			for(rt=RBVec.begin();rt!=RBVec.end();++rt){
 				tmpnorm=(*rt)->getNormalForce()/(*rt)->getArea()/1000;
 				tmpshar=(*rt)->getShearForce()/(*rt)->getArea()/1000;
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf",
@@ -7184,7 +8028,7 @@ void assembly::soft_tric(REAL _sigma3,REAL _b,const char* iniptclfile,
 	int snapnum=0;
 	char snapfile[80];
 
-	std::list<RGDBDRY*>::iterator rt;
+	std::vector<RGDBDRY*>::iterator rt;
 
 	int max[2]={1,2};//maximum stress acting on boundary 5 and 6
 	UPDATECTL maxctl[2];
@@ -7195,21 +8039,21 @@ void assembly::soft_tric(REAL _sigma3,REAL _b,const char* iniptclfile,
 	vec disp, tmp;
 	av=ao=af=am=adr=pre_af=0;
 
-	progressinf<<"Soft_tric..."<<endl
-	         <<"iter_num   "
-                 <<"init_contact  "
-                 <<"contact  "
-	         <<"normal force      "
-                 <<"velocity        "
-	         <<"omga            "
-	         <<"force           "
-	         <<"moment          "
-		 <<"friction"<<endl;
+	progressinf << "Soft_tric..." << endl
+	          << "iter_num   "
+                  << "init_contact  "
+                  << "contact  "
+	          << "normal force      "
+                  << "velocity        "
+	          << "omga            "
+	          << "force           "
+	          << "moment          "
+		  << "friction" << endl;
 
 	g_iteration=0;
 	do{
-                cout<<"Soft_tric..."<<g_iteration<<endl;
-		progressinf<<setw(OWID)<<g_iteration;
+                cout << "Soft_tric..." << g_iteration << endl;
+		progressinf << setw(OWID) << g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -7222,11 +8066,11 @@ void assembly::soft_tric(REAL _sigma3,REAL _b,const char* iniptclfile,
 		internalForce();
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(OWID)<<(av=getAverageVelocity())
-		         <<setw(OWID)<<(ao=getAverageOmga())
-		         <<setw(OWID)<<(af=getAverageForce())
-		         <<setw(OWID)<<(am=getAverageMoment())
-			 <<setw(OWID)<<(adr=avgDgrFric());
+		progressinf << setw(OWID) << (av=getAverageVelocity())
+		          << setw(OWID) << (ao=getAverageOmga())
+		          << setw(OWID) << (af=getAverageForce())
+		          << setw(OWID) << (am=getAverageMoment())
+			  << setw(OWID) << (adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -7243,7 +8087,7 @@ void assembly::soft_tric(REAL _sigma3,REAL _b,const char* iniptclfile,
 			    snapshot(snapfile);
 			}
 			fprintf(fprslt,"%10d%6d%10.3lf%15.6lf%15.6lf%15.6lf%15.6lf",g_iteration,ActualCntctNum,adr,af,am,av,ao);
-			for(rt=RBList.begin();rt!=RBList.end();++rt){
+			for(rt=RBVec.begin();rt!=RBVec.end();++rt){
 				disp=(*rt)->getApt();
 				tmp=(*rt)->getNormalForce()/1000/(*rt)->getArea();
 				fprintf(fprslt,"%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf",
@@ -7279,7 +8123,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 
 	clearForce();
 
-	std::list<RGDBDRY*>::iterator rt;
+	std::vector<RGDBDRY*>::iterator rt;
 
 //	int mid[2]={2,4};//intermediate stress acting on boundary 2 and 4
 //	UPDATECTL midctl[2];
@@ -7295,20 +8139,20 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 	vec disp, tmp, zbdry_velocity_0;
 	av=ao=af=am=adr=pre_af=0;
 
-	progressinf<<"Shallow Foundation..."<<endl
-	         <<"iter_num   "
-                 <<"init_contact  "
-                 <<"contact  "
-	         <<"normal force      "
-                 <<"velocity        "
-	         <<"omga            "
-	         <<"force           "
-	         <<"moment"<<endl;
+	progressinf << "Shallow Foundation..." << endl
+	          << "iter_num   "
+                  << "init_contact  "
+                  << "contact  "
+	          << "normal force      "
+                  << "velocity        "
+	          << "omga            "
+	          << "force           "
+	          << "moment" << endl;
 
 	g_iteration=0;
 	do{
-                cout<<"Shallow Foundation..."<<g_iteration<<endl;
-		progressinf<<setw(OWID)<<g_iteration;
+                cout << "Shallow Foundation..." << g_iteration << endl;
+		progressinf << setw(OWID) << g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -7322,11 +8166,11 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 		internalForce();
 		rigidBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(OWID)<<(av=getAverageVelocity())
-		         <<setw(OWID)<<(ao=getAverageOmga())
-		         <<setw(OWID)<<(af=getAverageForce())
-		         <<setw(OWID)<<(am=getAverageMoment())
-			 <<setw(OWID)<<(adr=avgDgrFric());
+		progressinf << setw(OWID) << (av=getAverageVelocity())
+		          << setw(OWID) << (ao=getAverageOmga())
+		          << setw(OWID) << (af=getAverageForce())
+		          << setw(OWID) << (am=getAverageMoment())
+			  << setw(OWID) << (adr=avgDgrFric());
 
 		contactUpdate();
 		
@@ -7347,7 +8191,7 @@ void assembly::shallowFoundation(const char* iniptclfile, const char* boundaryfi
 			    snapshot(snapfile);
 			}
 			fprintf(fprslt,"%10d%6d%10.3lf%15.6lf%15.6lf%15.6lf%15.6lf",g_iteration,ActualCntctNum,adr,af,am,av,ao);
-			for(rt=RBList.begin();rt!=RBList.end();++rt,++nbdry){
+			for(rt=RBVec.begin();rt!=RBVec.end();++rt,++nbdry){
 				disp=(*rt)->getApt();
 				tmp=(*rt)->getNormalForce()/1000;
 				tmp/=getArea(nbdry);
@@ -7385,7 +8229,7 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 	int snapnum=0;
 	char snapfile[80];
 
-	std::list<RGDBDRY*>::iterator rt;
+	std::vector<RGDBDRY*>::iterator rt;
 
 	int mid[2]={2,4};//intermediate stress acting on boundary 2 and 4
 	UPDATECTL midctl[2];
@@ -7412,21 +8256,21 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 	vec disp, angl, nm, sh;
 	av=ao=af=am=adr=pre_af=0;
 
-	progressinf<<"SimpleShearing..."<<endl
-	         <<"iter_num   "
-                 <<"init_contact  "
-                 <<"contact  "
-	         <<"normal force      "
-                 <<"velocity        "
-	         <<"omga            "
-	         <<"force           "
-	         <<"moment          "
-		 <<"friction"<<endl;
+	progressinf << "SimpleShearing..." << endl
+	          << "iter_num   "
+                  << "init_contact  "
+                  << "contact  "
+	          << "normal force      "
+                  << "velocity        "
+	          << "omga            "
+	          << "force           "
+	          << "moment          "
+		  << "friction" << endl;
 
 	g_iteration=0;
 	do{
-                cout<<"SimpleShearinging..."<<g_iteration<<endl;
-		progressinf<<setw(OWID)<<g_iteration;
+                cout << "SimpleShearinging..." << g_iteration << endl;
+		progressinf << setw(OWID) << g_iteration;
 
 		findParticleOnBoundary();
 		findContact();
@@ -7435,11 +8279,11 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 		rigidBoundaryForce();
 		flexiBoundaryForce();
 		//track(fp,5);
-		progressinf<<setw(OWID)<<(av=getAverageVelocity())
-		         <<setw(OWID)<<(ao=getAverageOmga())
-		         <<setw(OWID)<<(af=getAverageForce())
-		         <<setw(OWID)<<(am=getAverageMoment())
-			 <<setw(OWID)<<(adr=avgDgrFric());
+		progressinf << setw(OWID) << (av=getAverageVelocity())
+		          << setw(OWID) << (ao=getAverageOmga())
+		          << setw(OWID) << (af=getAverageForce())
+		          << setw(OWID) << (am=getAverageMoment())
+			  << setw(OWID) << (adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -7536,7 +8380,7 @@ void assembly::simpleShear(REAL _sigma3,REAL _b,
 			    snapshot(snapfile);
 			}
 			fprintf(fprslt,"%10d%6d%10.3lf%15.6lf%15.6lf%15.6lf%15.6lf",g_iteration,ActualCntctNum,adr,af,am,av,ao);
-			for(rt=RBList.begin();rt!=RBList.end();++rt,++nbdry){
+			for(rt=RBVec.begin();rt!=RBVec.end();++rt,++nbdry){
 				ar=(*rt)->getArea();
 				disp=(*rt)->getApt();
 				angl=(*rt)->getDirc();
@@ -7577,7 +8421,7 @@ void assembly::earthPressure(REAL pressure,bool IsPassive,
 	char snapfile[80];
 	clearForce();
 
-	std::list<RGDBDRY*>::iterator rt;
+	std::vector<RGDBDRY*>::iterator rt;
 
 	int wall[1]={1};
 	UPDATECTL wallctl[1];
@@ -7589,21 +8433,21 @@ void assembly::earthPressure(REAL pressure,bool IsPassive,
 	vec disp, tmp;
 	av=ao=af=am=adr=pre_af=0;
 
-	progressinf<<"EarthPressure..."<<endl
-	         <<"iter_num   "
-                 <<"init_contact  "
-                 <<"contact  "
-	         <<"normal force      "
-                 <<"velocity        "
-	         <<"omga            "
-	         <<"force           "
-	         <<"moment          "
-		 <<"friction"<<endl;
+	progressinf << "EarthPressure..." << endl
+	          << "iter_num   "
+                  << "init_contact  "
+                  << "contact  "
+	          << "normal force      "
+                  << "velocity        "
+	          << "omga            "
+	          << "force           "
+	          << "moment          "
+		  << "friction" << endl;
 
 	g_iteration=0;
 	do{
-	        cout<<"EarthPressure..."<<g_iteration<<endl;
-		progressinf<<setw(OWID)<<g_iteration;
+	        cout << "EarthPressure..." << g_iteration << endl;
+		progressinf << setw(OWID) << g_iteration;
 
 		findParticleOnBoundary();
 		findParticleOnLine();
@@ -7617,11 +8461,11 @@ void assembly::earthPressure(REAL pressure,bool IsPassive,
 		rigidBoundaryForce();
 		//track(fp,5);
 
-		progressinf<<setw(OWID)<<(av=getAverageVelocity())
-		         <<setw(OWID)<<(ao=getAverageOmga())
-		         <<setw(OWID)<<(af=getAverageForce())
-		         <<setw(OWID)<<(am=getAverageMoment())
-			 <<setw(OWID)<<(adr=avgDgrFric());
+		progressinf << setw(OWID) << (av=getAverageVelocity())
+		          << setw(OWID) << (ao=getAverageOmga())
+		          << setw(OWID) << (af=getAverageForce())
+		          << setw(OWID) << (am=getAverageMoment())
+			  << setw(OWID) << (adr=avgDgrFric());
 		contactUpdate();
 		
 		avgsigma=getAverageRigidPressure();
@@ -7645,7 +8489,7 @@ void assembly::earthPressure(REAL pressure,bool IsPassive,
 			    snapshot(snapfile);
 			}
 			fprintf(fprslt,"%10d%6d%10.3lf%15.6lf%15.6lf%15.6lf%15.6lf",g_iteration,ActualCntctNum,adr,af,am,av,ao);
-			for(rt=RBList.begin();rt!=RBList.end();++rt,++nbdry){
+			for(rt=RBVec.begin();rt!=RBVec.end();++rt,++nbdry){
 				if(nbdry==1)
 					disp=(*rt)->getDirc();
 				else
