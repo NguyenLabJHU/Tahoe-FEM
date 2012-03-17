@@ -1,11 +1,8 @@
-# This file can be used as a template for GCC environment, change GCC per your need.
-
-GCC         = /usr
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
-COMP_C      = $(GCC)/bin/gcc
-COMP_CC     = $(GCC)/bin/g++
-COMP_F      = $(GCC)/bin/gfortran
+COMP_C      = gcc
+COMP_CC     = g++
+COMP_F      = gfortran
 COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)  -Wunused -Wuninitialized -Wno-deprecated
@@ -14,13 +11,13 @@ CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -lpthread
-MAKEDEPEND_C         = $(GCC)/bin/gcc -MM
+MAKEDEPEND_C         = gcc -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
-MAKEDEPEND_CC        = $(GCC)/bin/g++ -MM
+MAKEDEPEND_CC        = g++ -MM
 MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = $(GCC)/bin/gfortran -MM
+MAKEDEPEND_F         = gfortran -MM
 MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
