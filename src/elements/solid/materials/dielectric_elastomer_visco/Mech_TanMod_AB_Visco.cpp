@@ -1,6 +1,6 @@
 #include "FSDEVisco_inc.h"
 
-#include <math.h>
+#include <cmath>
 
 static double z[62];
 

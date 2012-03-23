@@ -8,9 +8,9 @@
 #include "ParameterContainerT.h"
 #include "ifstreamT.h"
 #include "ExceptionT.h"
-#include <math.h>
-#include <iostream.h>
-#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
 
 #include "MooneyRivlin.h"
 #include "NeoHookean.h"
