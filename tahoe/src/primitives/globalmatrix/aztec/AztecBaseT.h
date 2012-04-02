@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.h,v 1.6 2005-04-13 21:50:27 paklein Exp $ */
+/* $Id: AztecBaseT.h,v 1.7 2012-04-02 21:35:21 bcyansfn Exp $ */
 /* created: paklein (07/28/1998) */
 
 #ifndef _AZTEC_BASE_T_H_
@@ -8,6 +8,11 @@
 
 /* library support options */
 #ifdef __AZTEC__
+
+// This line is added to compile function
+// AZ_set_proc_config(proc_config, fCommunicator); in AztecBaseT.cpp,
+// commented by Beichuan Yan
+#define AZTEC_MPI
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
