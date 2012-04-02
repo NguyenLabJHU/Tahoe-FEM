@@ -1,4 +1,4 @@
-/* $Id: AztecBaseT.cpp,v 1.10 2011-12-01 21:11:40 bcyansfn Exp $ */
+/* $Id: AztecBaseT.cpp,v 1.11 2012-04-02 21:35:21 bcyansfn Exp $ */
 /* created: paklein (07/28/1998) */
 
 #include "AztecBaseT.h"
@@ -42,7 +42,7 @@ AztecBaseT::AztecBaseT(ostream& msg, const CommunicatorT& comm):
 		
 	/* get number of processors and the name of this processor */
 #ifdef AZ_ver2_1_0_9
-	AZ_set_proc_config(proc_config, fCommunicator);
+	AZ_set_proc_config(proc_config, fCommunicator); // only work by #define AZTEC_MPI in AztecBaseT.h, commmented by Beichuan Yan.
 #else
 	AZ_processor_info(proc_config);
 #endif
