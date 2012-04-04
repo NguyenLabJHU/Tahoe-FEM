@@ -320,9 +320,11 @@ sub my_mail_notification {
 	# tag of commit
 	my $mailcmd = "";
     if ($flag_tagcmd) {
-		$mailcmd = "| mail -s 'cvs tag in $repository' @mailto";
+#		$mailcmd = "| mail -s 'cvs tag in $repository' @mailto";
+		$mailcmd = "| sendmail -s 'cvs tag in $repository' @mailto";
     } else {
-		$mailcmd = "| mail -s 'cvs commit $repository' @mailto";
+#		$mailcmd = "| mail -s 'cvs commit $repository' @mailto";
+		$mailcmd = "| sendmail -s 'cvs commit $repository' @mailto";
     }
 
 	# open stream
