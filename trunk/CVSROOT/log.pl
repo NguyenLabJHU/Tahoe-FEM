@@ -98,7 +98,8 @@ $login = $login."\@users.sourceforge.net";
 #
 #$mailcmd = "| Mail -s 'Tahoe CVS update: $modulepath'";
 #
-$mailcmd = "| mail -s 'Tahoe CVS update ($repo_short_name): $modulepath'";
+#$mailcmd = "| mail -s 'Tahoe CVS update ($repo_short_name): $modulepath'";
+$mailcmd = "| sendmail -s 'Tahoe CVS update ($repo_short_name): $modulepath'";
 
 # Initialise some date and time arrays
 #
@@ -129,7 +130,7 @@ if ($users) {
 
 if (MAIL) {
 #	print MAIL "\n";
-	print MAIL '$Id: log.pl,v 1.8 2006-05-27 01:05:57 paklein Exp $' . "\n";
+	print MAIL '$Id: log.pl,v 1.9 2012-04-04 23:38:52 regueiro Exp $' . "\n";
 	print MAIL "===================================================================\n";
 	print MAIL "  Date: $days[$wday] $mos[$mon] $mday, $year @ $hour:" . sprintf("%02d", $min) . "\n";
 	print MAIL "Author: $login\n\n";
