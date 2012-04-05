@@ -321,10 +321,12 @@ sub my_mail_notification {
 	my $mailcmd = "";
     if ($flag_tagcmd) {
 #		$mailcmd = "| mail -s 'cvs tag in $repository' @mailto";
-		$mailcmd = "| /usr/sbin/sendmail -s 'cvs tag in $repository' @mailto";
+#		$mailcmd = "| /usr/sbin/sendmail -s 'cvs tag in $repository' @mailto";
+		$mailcmd = "| /usr/sbin/sendmail";
     } else {
 #		$mailcmd = "| mail -s 'cvs commit $repository' @mailto";
-		$mailcmd = "| /usr/sbin/sendmail -s 'cvs commit $repository' @mailto";
+#		$mailcmd = "| /usr/sbin/sendmail -s 'cvs commit $repository' @mailto";
+		$mailcmd = "| /usr/sbin/sendmail";
     }
 
 	# open stream
