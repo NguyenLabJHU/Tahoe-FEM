@@ -40,11 +40,13 @@
 #include <cstring>
 #include <ctime>
 #include <cassert>
+#include <utility>
 
 #ifdef OPENMP
 #include <omp.h>
 #endif
 
+//#define BINNING
 //#define TIME_PROFILE
 
 using std::cout;
@@ -52,10 +54,12 @@ using std::setw;
 using std::endl;
 using std::flush;
 using std::vector;
+using std::pair;
 
 static time_t timeStamp; // for file timestamping
-static struct timeval timew1, timew2; // for wall-clock time record
-static struct timeval timep1, timep2; // for internal wall-clock time profiling
+static struct timeval time_w1, time_w2; // for wall-clock time record
+static struct timeval time_p1, time_p2; // for internal wall-clock time profiling, can be used on any piece of code
+static struct timeval time_r1, time_r2; // for internal wall-clock time profiling for contact resolution only (excluding space search)
 
 namespace dem {
   
@@ -589,14 +593,14 @@ void assembly::createSample(const char* str){
     ifs.close();
 }
 
-
+//start of def OPENMP 
 #ifdef OPENMP	
 void assembly::findContact(){ // OpenMP version
     ContactVec.clear();
     PossCntctNum = 0;
 
 #ifdef TIME_PROFILE
-    gettimeofday(&timep1,NULL); 
+    gettimeofday(&time_p1,NULL); 
 #endif
     int iam, nt, i, j, ipoints, npoints, rpoints;
     std::vector<particle*>::iterator ot, it, pt;
@@ -651,20 +655,24 @@ void assembly::findContact(){ // OpenMP version
     }
     
 #ifdef TIME_PROFILE
-    gettimeofday(&timep2,NULL);
-    g_debuginf << setw(OWID) << timediffsec(timep1, timep2); 
+    gettimeofday(&time_p2,NULL);
+    g_debuginf << setw(OWID) << timediffsec(time_p1, time_p2); 
 #endif
 	
     ActualCntctNum = ContactVec.size();
 }
-
+//else of def OPENMP, i.e., serial versions 
 #else
-void assembly::findContact(){ // serial version
+
+//start of ndef BINNING
+#ifndef BINNING
+void assembly::findContact(){ // serial version, O(n x n), n is the number of particles.
     ContactVec.clear();
     PossCntctNum = 0;
 
 #ifdef TIME_PROFILE
-    gettimeofday(&timep1,NULL); 
+    double time_r = 0;
+    gettimeofday(&time_p1,NULL); 
 #endif
     std::vector<particle*>::iterator it, pt;
     vec u,v;
@@ -678,19 +686,181 @@ void assembly::findContact(){ // serial version
 		&& ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
 		contact<particle> tmpct(*it, *pt); // a local and temparory object
 		++PossCntctNum;
+#ifdef TIME_PROFILE
+		gettimeofday(&time_r1,NULL); 
+#endif
 		if(tmpct.isOverlapped())
 		  ContactVec.push_back(tmpct);    // containers use value semantics, so a "copy" is pushed back.
+#ifdef TIME_PROFILE
+		gettimeofday(&time_r2,NULL); 
+		time_r += timediffsec(time_r1, time_r2);
+#endif
 	    }
 	}
     }	
 
 #ifdef TIME_PROFILE
-    gettimeofday(&timep2,NULL);
-    g_debuginf << setw(OWID) << timediffsec(timep1, timep2); 
+    gettimeofday(&time_p2,NULL);
+    g_debuginf << setw(OWID) << timediffsec(time_p1, time_p2) << setw(OWID) << time_r; 
 #endif
- 
+
     ActualCntctNum = ContactVec.size();
 }
+
+//else of ndef BINNING
+#else
+void assembly::findContact(){ // serial version, binning methods, cell slightly larger than maximum particle
+  ContactVec.clear();
+  PossCntctNum = 0;
+  
+#ifdef TIME_PROFILE
+  double time_r = 0;
+  gettimeofday(&time_p1,NULL); 
+#endif
+  REAL maxDiameter = gradInfo.getMaxPtclRadius() * 2;
+  int  nx = floor (container.getDimx() / maxDiameter);
+  int  ny = floor (container.getDimy() / maxDiameter);
+  int  nz = floor (container.getDimz() *1.5 / maxDiameter);
+  REAL dx = container.getDimx() / nx;
+  REAL dy = container.getDimx() / ny;
+  REAL dz = container.getDimx() *1.5 / nz;
+  vec  minCorner= container.getMinCorner();
+  REAL x0 = minCorner.getx();
+  REAL y0 = minCorner.gety();
+  REAL z0 = minCorner.getz();
+  
+  // 26 neighbors of each cell
+  int neighbor[26][3];
+  int count = 0;
+  for (int i = -1; i < 2; ++i)
+    for (int j = -1; j < 2; ++j)
+      for (int k = -1; k < 2; ++k) {
+	if (! (i == 0 && j == 0 && k==0 ) ) {
+	  neighbor[count][0] = i;
+	  neighbor[count][1] = j;
+	  neighbor[count][2] = k;
+	  ++count;
+	}
+      }
+ 
+  // 4-dimensional array of cellVec
+  typedef pair<bool, vector<particle*> > cellT;
+  vector< vector< vector < cellT > > > cellVec;
+  cellVec.resize(nx);
+  for (int i = 0; i < cellVec.size(); ++i) {
+    cellVec[i].resize(ny);
+    for (int j = 0; j < cellVec[i].size(); ++j)
+      cellVec[i][j].resize(nz);
+  }
+  // mark each cell as not searched
+  for (int i = 0; i < nx; ++i)
+    for (int j = 0; j < ny; ++j)
+      for (int k = 0; k < nz; ++k)
+	cellVec[i][j][k].first = false; // has not ever been searched
+
+  // find particles in each cell
+  vec center;
+  REAL x1, x2, y1, y2, z1, z2;
+  for (int i = 0; i < nx; ++i)
+    for (int j = 0; j < ny; ++j)
+      for (int k = 0; k < nz; ++k) {
+	x1 = x0 + dx * i;
+	x2 = x0 + dx * (i + 1);
+	y1 = y0 + dy * j;
+	y2 = y0 + dy * (j + 1);
+	z1 = z0 + dz * k;
+	z2 = z0 + dz * (k + 1);
+	for (int pt = 0; pt < ParticleVec.size(); ++pt) {
+	  center = ParticleVec[pt]->getCurrPosition();
+	  if (center.getx() >= x1 && center.getx() < x2 &&
+	      center.gety() >= y1 && center.gety() < y2 &&
+	      center.getz() >= z1 && center.getz() < z2)
+	    cellVec[i][j][k].second.push_back( ParticleVec[pt] );
+	}
+      }
+  
+  // for each cell:
+  particle *it, *pt;
+  vec u, v;
+  for (int i = 0; i < nx; ++i)
+    for (int j = 0; j < ny; ++j)
+      for (int k = 0; k < nz; ++k) {
+	// for particles inside the cell	  
+	for (int m = 0; m < cellVec[i][j][k].second.size(); ++m) {
+	  it = cellVec[i][j][k].second[m];
+	  u  = it->getCurrPosition();
+	  
+	  // for particles inside the cell itself   
+	  for (int n = m + 1; n < cellVec[i][j][k].second.size(); ++n) {
+	    //cout <<  i << " " << j << " " << k << " " << "m n size=" << m << " " << n << " " <<  cellVec[i][j][k].size() << endl;
+	    pt = cellVec[i][j][k].second[n];
+	    v  = pt->getCurrPosition();
+	    if ( ( vfabs(u-v) < it->getA() + pt->getA() )  &&
+		 ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
+		 ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
+		 ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
+	      contact<particle> tmpct(it, pt); // a local and temparory object
+	      ++PossCntctNum;
+#ifdef TIME_PROFILE
+		gettimeofday(&time_r1,NULL); 
+#endif
+	      if(tmpct.isOverlapped())
+		ContactVec.push_back(tmpct);   // containers use value semantics, so a "copy" is pushed back.
+#ifdef TIME_PROFILE
+		gettimeofday(&time_r2,NULL); 
+		time_r += timediffsec(time_r1, time_r2);
+#endif
+	    }
+	  }
+	  
+	  // for 26 neighboring cells
+	  for (int ncell = 0; ncell < 26; ++ncell ) {
+	    int ci = i + neighbor[ncell][0];
+	    int cj = j + neighbor[ncell][1];
+	    int ck = k + neighbor[ncell][2];
+	    if (ci > -1 && ci < nx && cj > -1 && cj < ny && ck > -1 && ck < nz && cellVec[ci][cj][ck].first == false ) {
+	      //cout << "i j k m ncell ci cj ck size contacts= " << i << " " << j << " " << k << " " << m  << " " << ncell << " " << ci << " " << cj << " " << ck << " " << cellVec[ci][cj][ck].second.size() << " "  << ContactVec.size() << endl;
+	      vector<particle*> vt = cellVec[ci][cj][ck].second;
+	      for (int n = 0; n < vt.size(); ++n) {
+		pt = vt[n];
+		v  = pt->getCurrPosition();
+		if ( ( vfabs(u-v) < it->getA() + pt->getA() )  &&
+		     ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
+		     ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
+		     ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
+		  contact<particle> tmpct(it, pt); // a local and temparory object
+		  ++PossCntctNum;
+#ifdef TIME_PROFILE
+		gettimeofday(&time_r1,NULL); 
+#endif
+		  if(tmpct.isOverlapped())
+		    ContactVec.push_back(tmpct);   // containers use value semantics, so a "copy" is pushed back.
+#ifdef TIME_PROFILE
+		gettimeofday(&time_r2,NULL); 
+		time_r += timediffsec(time_r1, time_r2);
+#endif
+		  
+		}
+	      }
+	    }
+	  }
+	}
+	cellVec[i][j][k].first = true; // searched, will not be searched again
+	
+      }
+  
+#ifdef TIME_PROFILE
+  gettimeofday(&time_p2,NULL);
+  g_debuginf << setw(OWID) << timediffsec(time_p1, time_p2) << setw(OWID) << time_r; 
+#endif
+  
+  ActualCntctNum = ContactVec.size();
+}
+
+//end of ndef BINNING
+#endif
+
+//end of def OPENMP 
 #endif
 
 /* another OpenMP version, simpler but slower
@@ -701,7 +871,7 @@ void assembly::findContact(){
     PossCntctNum = 0;
 
 #ifdef TIME_PROFILE
-    gettimeofday(&timep1,NULL); 
+    gettimeofday(&time_p1,NULL); 
 #endif
     std::vector<particle*>::iterator ot, it, pt;
     vec u,v;
@@ -727,8 +897,8 @@ void assembly::findContact(){
       }
     }
 #ifdef TIME_PROFILE
-    gettimeofday(&timep2,NULL);
-    g_debuginf << setw(OWID) << timediffsec(timep1, timep2); 
+    gettimeofday(&time_p2,NULL);
+    g_debuginf << setw(OWID) << timediffsec(time_p1, time_p2); 
 #endif
 	
     ActualCntctNum = ContactVec.size();
@@ -1047,11 +1217,11 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 	CntTgtVec.clear(); // CntTgtVec must be cleared before filling in new values.
 
 #ifdef TIME_PROFILE
-	gettimeofday(&timep1,NULL); 
+	gettimeofday(&time_p1,NULL); 
 #endif 
 	for (it=ContactVec.begin();it!=ContactVec.end();++it){
             bool exceed = false;
-	    it->contactForce(exceed);           // cannot be parallelized as it may change a particle's force simultaneously.
+	    it->contactForce(exceed);     // cannot be parallelized as it may change a particle's force simultaneously.
 	    it->checkoutTgt(CntTgtVec);   // checkout current tangential force and displacment
 	    avgnm += it->getNormalForce();
 	    avgsh += it->getTgtForce();
@@ -1070,8 +1240,8 @@ void assembly::internalForce(REAL& avgnm, REAL& avgsh){
 	avgsh /= totalcntct;
 
 #ifdef TIME_PROFILE
-	gettimeofday(&timep2,NULL);
-	g_debuginf << setw(OWID) << timediffsec(timep1, timep2) << endl; 
+	gettimeofday(&time_p2,NULL);
+	g_debuginf << setw(OWID) << timediffsec(time_p1, time_p2) << endl; 
 #endif
 
     }
@@ -1432,9 +1602,7 @@ void assembly::updateFB(int bn[], UPDATECTL fbctl[], int num){
 // create a specimen from discreate particles through floating and then gravitation,
 // file cre_particle contains the final particle information,
 // file cre_boundary contains the final boundary information.
-void assembly::deposit_RgdBdry(rectangle& container,
-			       gradation& grad,
-			       int   freetype,
+void assembly::deposit_RgdBdry(int   freetype,
 			       int   total_steps,  
 			       int   snapshots,
 			       int   interval,
@@ -1448,10 +1616,9 @@ void assembly::deposit_RgdBdry(rectangle& container,
 			       const char* trmboundary,
 			       const char* debugfile)
 {
-  this->container = container;
-  generate(container, grad, iniptclfile, freetype, rFloHeight); 
+  generate(iniptclfile, freetype, rFloHeight); 
   
-  setBoundary(5, container, inibdryfile); // container unchanged
+  setBoundary(5, inibdryfile); // container unchanged
   
   deposit(total_steps,        // total_steps
 	  snapshots,          // number of snapshots
@@ -1463,20 +1630,15 @@ void assembly::deposit_RgdBdry(rectangle& container,
 	  progressfile,       // output file, statistical info
 	  debugfile);         // output file, debug info
   
-  setBoundary(container,      // container unchanged
-	      trmboundary);   // output file, containing boundaries info
+  setBoundary(trmboundary);   // output file, containing boundaries info
   
-  trim(container,             // container unchanged
-       grad,
-       false,                 // recreate from input file or not
+  trim(false,                 // recreate from input file or not
        "dep_particle_end",    // input file, particles to be trimmed
        trmparticle);          // output file, trimmed particles
 }
 
 
-void assembly::deposit_repose(rectangle& container,
-			      gradation& grad,
-			      int   interval,
+void assembly::deposit_repose(int   interval,
 			      const char* inibdryfile,
 			      const char* particlefile, 
 			      const char* contactfile,
@@ -1485,11 +1647,9 @@ void assembly::deposit_repose(rectangle& container,
 {
   this->container = container;
   
-  setBoundary(5, container, inibdryfile); // container unchanged
+  setBoundary(5, inibdryfile); // container unchanged
   
-  angleOfRepose(container,
-		grad,
-		interval,           // print interval
+  angleOfRepose(interval,           // print interval
 		inibdryfile,        // input file, initial boundaries
 		particlefile,       // output file, resulted particles, including snapshots 
 		contactfile,        // output file, resulted contacts, including snapshots 
@@ -1497,9 +1657,7 @@ void assembly::deposit_repose(rectangle& container,
 		debugfile);         // output file, debug info
 }
 
-void assembly::angleOfRepose(rectangle& container,
-			     gradation& grad,
-			     int   interval,
+void assembly::angleOfRepose(int   interval,
 			     const char* inibdryfile,
 			     const char* particlefile, 
 			     const char* contactfile,
@@ -1567,9 +1725,9 @@ void assembly::angleOfRepose(rectangle& container,
   REAL bdry_penetr[7] = {0,0,0,0,0,0,0};
   int  bdry_cntnum[7] = {0,0,0,0,0,0,0};
 
-  REAL maxRadius = grad.getMaxPtclRadius();
+  REAL maxRadius = gradInfo.getMaxPtclRadius();
   REAL maxDiameter = maxRadius * 2.0;
-  REAL z0 = container.getV1().getz();
+  REAL z0 = container.getMinCorner().getz();
   vector<particle*> lastPtcls;
   particle *newPtcl = NULL;
   int layers = 1; // how many layers of new particles to generate each time?
@@ -1577,7 +1735,7 @@ void assembly::angleOfRepose(rectangle& container,
   g_iteration = 0; 
   TotalNum = 0;
   REAL zCurr;
-  gettimeofday(&timew1,NULL);
+  gettimeofday(&time_w1,NULL);
   // iterations starting ...
   do
     {
@@ -1586,27 +1744,27 @@ void assembly::angleOfRepose(rectangle& container,
 	zCurr = z0 + maxRadius;
 
 	for ( int i = 0; i != layers; ++i) {
-	  newPtcl = new particle(TotalNum+1, 0, vec(0, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  newPtcl = new particle(TotalNum+1, 0, vec(0, 0, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	  ParticleVec.push_back(newPtcl);
 	  ++TotalNum;
 	  lastPtcls.push_back(newPtcl);
 	  
-	  newPtcl = new particle(TotalNum+1, 0, vec(maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  newPtcl = new particle(TotalNum+1, 0, vec(maxDiameter, 0, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	  ParticleVec.push_back(newPtcl);
 	  ++TotalNum;
 	  //lastPtcls.push_back(newPtcl);
 	  
-	  newPtcl = new particle(TotalNum+1, 0, vec(-maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  newPtcl = new particle(TotalNum+1, 0, vec(-maxDiameter, 0, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	  ParticleVec.push_back(newPtcl);
 	  ++TotalNum;
 	  //lastPtcls.push_back(newPtcl);
 	  
-	  newPtcl = new particle(TotalNum+1, 0, vec(0, maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  newPtcl = new particle(TotalNum+1, 0, vec(0, maxDiameter, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	  ParticleVec.push_back(newPtcl);
 	  ++TotalNum;
 	  //lastPtcls.push_back(newPtcl);
 	  
-	  newPtcl = new particle(TotalNum+1, 0, vec(0, -maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	  newPtcl = new particle(TotalNum+1, 0, vec(0, -maxDiameter, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	  ParticleVec.push_back(newPtcl);
 	  ++TotalNum;
 	  //lastPtcls.push_back(newPtcl);
@@ -1632,27 +1790,27 @@ void assembly::angleOfRepose(rectangle& container,
 	  zCurr = getMaxCenterHeight() + maxDiameter;
 
 	  for ( int i = 0; i != layers; ++i) {
-	    newPtcl = new particle(TotalNum+1, 0, vec(0, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    newPtcl = new particle(TotalNum+1, 0, vec(0, 0, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	    ParticleVec.push_back(newPtcl);
 	    ++TotalNum;
 	    lastPtcls.push_back(newPtcl);
 	    
-	    newPtcl = new particle(TotalNum+1, 0, vec(maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    newPtcl = new particle(TotalNum+1, 0, vec(maxDiameter, 0, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	    ParticleVec.push_back(newPtcl);
 	    ++TotalNum;
 	    //lastPtcls.push_back(newPtcl);
 	    
-	    newPtcl = new particle(TotalNum+1, 0, vec(-maxDiameter, 0, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    newPtcl = new particle(TotalNum+1, 0, vec(-maxDiameter, 0, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	    ParticleVec.push_back(newPtcl);
 	    ++TotalNum;
 	    //lastPtcls.push_back(newPtcl);
 	    
-	    newPtcl = new particle(TotalNum+1, 0, vec(0, maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    newPtcl = new particle(TotalNum+1, 0, vec(0, maxDiameter, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	    ParticleVec.push_back(newPtcl);
 	    ++TotalNum;
 	    //lastPtcls.push_back(newPtcl);
 	    
-	    newPtcl = new particle(TotalNum+1, 0, vec(0, -maxDiameter, zCurr + maxDiameter * i), grad, YOUNG, POISSON);
+	    newPtcl = new particle(TotalNum+1, 0, vec(0, -maxDiameter, zCurr + maxDiameter * i), gradInfo, YOUNG, POISSON);
 	    ParticleVec.push_back(newPtcl);
 	    ++TotalNum;
 	    //lastPtcls.push_back(newPtcl);	
@@ -1695,7 +1853,7 @@ void assembly::angleOfRepose(rectangle& container,
       
       // 8. (2) output stress and strain info.
       if (g_iteration % interval == 0) {
-	gettimeofday(&timew2,NULL);
+	gettimeofday(&time_w2,NULL);
 	REAL t1=getTransEnergy();
 	REAL t2=getRotatEnergy();
 	REAL t3=getPotenEnergy(-0.025);
@@ -1737,14 +1895,14 @@ void assembly::angleOfRepose(rectangle& container,
 		    << setw(OWID) << "0"
 		    << setw(OWID) << getVibraTimeStep()
 		    << setw(OWID) << getImpactTimeStep()
-		    << setw(OWID) << timediffsec(timew1,timew2)
+		    << setw(OWID) << timediffsec(time_w1,time_w2)
 		        << endl;
       }
       
       // 7. loop break conditions.
       ++g_iteration;
       
-    } while (TotalNum < 2000); //( zCurr < container.getV2().getz() );  //(++g_iteration < total_steps);
+    } while (TotalNum < 2000); //( zCurr < container.getMaxCorner().getz() );  //(++g_iteration < total_steps);
     
     // post_1. store the final snapshot of particles & contacts.
     strcpy(stepsfp, particlefile); strcat(stepsfp, "_end");
@@ -1766,9 +1924,7 @@ void assembly::angleOfRepose(rectangle& container,
 // 1 - a horizontal layer of free particles
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
-void assembly::generate(rectangle& container,
-			gradation& grad,
-			const char* particlefile,
+void assembly::generate(const char* particlefile,
 			int freetype,
 			REAL rFloHeight)
 {
@@ -1778,37 +1934,37 @@ void assembly::generate(rectangle& container,
   REAL dimx     = container.getDimx();
   REAL dimy     = container.getDimy();
   REAL dimz     = container.getDimz();
-  REAL diameter = grad.getMaxPtclRadius()*2.0;
+  REAL diameter = gradInfo.getMaxPtclRadius()*2.0;
 
   REAL offset   = 0;
   REAL edge     = diameter;
-  if (grad.getSize().size() == 1 &&
-      grad.getPtclRatioBA() == 1.0 && 
-      grad.getPtclRatioCA() == 1.0) {
+  if (gradInfo.getSize().size() == 1 &&
+      gradInfo.getPtclRatioBA() == 1.0 && 
+      gradInfo.getPtclRatioCA() == 1.0) {
     edge   = diameter*2.0;
     offset = diameter*0.25;
   }
   
-  REAL x1 = container.getV1().getx() + edge;
-  REAL y1 = container.getV1().gety() + edge;
-  REAL x2 = container.getV2().getx() - edge;
-  REAL y2 = container.getV2().gety() - edge;
-  REAL z1 = container.getV1().getz() + diameter;
+  REAL x1 = container.getMinCorner().getx() + edge;
+  REAL y1 = container.getMinCorner().gety() + edge;
+  REAL x2 = container.getMaxCorner().getx() - edge;
+  REAL y2 = container.getMaxCorner().gety() - edge;
+  REAL z1 = container.getMinCorner().getz() + diameter;
 
   REAL x0 = container.getCenter().getx();
   REAL y0 = container.getCenter().gety();
   REAL z0 = container.getCenter().getz();
 
   if (freetype == 0) {      // just one free particle
-    newptcl = new particle(TotalNum+1, 0, vec(x0,y0,z0), grad, YOUNG, POISSON);
+    newptcl = new particle(TotalNum+1, 0, vec(x0,y0,z0), gradInfo, YOUNG, POISSON);
     ParticleVec.push_back(newptcl);
     TotalNum++;
   }
   else if (freetype == 1) { // a horizontal layer of free particles
-    z = container.getV2().getz();
+    z = container.getMaxCorner().getz();
     for (x = x1; x - x2 < EPS; x += diameter)
       for (y = y1; y - y2 < EPS; y += diameter) {
-	newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+	newptcl = new particle(TotalNum+1, 0, vec(x,y,z), gradInfo, YOUNG, POISSON);
 	ParticleVec.push_back(newptcl);
 	TotalNum++;
       }
@@ -1817,7 +1973,7 @@ void assembly::generate(rectangle& container,
     for (z = z1; z < z1 + dimz*rFloHeight; z += diameter) {
       for (x = x1 + offset; x - x2 < EPS; x += diameter)
 	for (y = y1 + offset; y - y2 < EPS; y += diameter) {
-	  newptcl = new particle(TotalNum+1, 0, vec(x,y,z), grad, YOUNG, POISSON);
+	  newptcl = new particle(TotalNum+1, 0, vec(x,y,z), gradInfo, YOUNG, POISSON);
 	  ParticleVec.push_back(newptcl);
 	  TotalNum++;
 	}	
@@ -2047,8 +2203,7 @@ void assembly::scale_PtclBdry(int   total_steps,
 
 
 // collapse a deposited specimen through gravitation
-void assembly::collapse(rectangle &container, 
-			int   total_steps,  
+void assembly::collapse(int   total_steps,  
 			int   snapshots,
 			int   interval,
 			const char* iniptclfile,
@@ -2058,8 +2213,7 @@ void assembly::collapse(rectangle &container,
 			const char* progressfile,
 			const char* debugfile)
 {
-  setBoundary(1,              // 1-only bottom boundary;5-no top boundary;6-boxed 6 boundaries
-	      container,      // specimen dimension
+  setBoundary(1,              // 1-only bottom boundary; 5-no top boundary;6-boxed 6 boundaries
 	      initboundary);  // output file, containing boundaries info
   
   deposit(total_steps,        // number of iterations
@@ -2075,18 +2229,17 @@ void assembly::collapse(rectangle &container,
 
   
 void assembly::setBoundary(int bdrynum,
-			   rectangle& container,
 			   const char* boundaryfile)
 {
   std::ofstream ofs(boundaryfile);
   if(!ofs) { cout << "stream error!" << endl; exit(-1);}
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = container.getV1().getx();
-  y1 = container.getV1().gety();
-  z1 = container.getV1().getz();
-  x2 = container.getV2().getx();
-  y2 = container.getV2().gety();
-  z2 = container.getV2().getz();
+  x1 = container.getMinCorner().getx();
+  y1 = container.getMinCorner().gety();
+  z1 = container.getMinCorner().getz();
+  x2 = container.getMaxCorner().getx();
+  y2 = container.getMaxCorner().gety();
+  z2 = container.getMaxCorner().getz();
   x0 = container.getCenter().getx();
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
@@ -2695,19 +2848,18 @@ void assembly::setBoundary(int bdrynum,
 }
 
 // bdrymum = 6 by default
-void assembly::setBoundary(rectangle& container,
-			   const char* boundaryfile)
+void assembly::setBoundary(const char* boundaryfile)
 {
   std::ofstream ofs(boundaryfile);
   if(!ofs) { cout << "stream error!" << endl; exit(-1);}
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = container.getV1().getx();
-  y1 = container.getV1().gety();
-  z1 = container.getV1().getz();
-  x2 = container.getV2().getx();
-  y2 = container.getV2().gety();
-  z2 = container.getV2().getz();
+  x1 = container.getMinCorner().getx();
+  y1 = container.getMinCorner().gety();
+  z1 = container.getMinCorner().getz();
+  x2 = container.getMaxCorner().getx();
+  y2 = container.getMaxCorner().gety();
+  z2 = container.getMaxCorner().getz();
   x0 = container.getCenter().getx();
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
@@ -3057,9 +3209,7 @@ void assembly::setBoundary(rectangle& container,
   ofs.close();
 }
 
-void assembly::trim(rectangle& container,
-		    gradation& grad,
-		    bool toRecreate,
+void assembly::trim(bool toRecreate,
 		    const char* particlefile,
 		    const char* trmparticle)
 {
@@ -3067,12 +3217,12 @@ void assembly::trim(rectangle& container,
   trimHistoryNum = TotalNum;
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = container.getV1().getx();
-  y1 = container.getV1().gety();
-  z1 = container.getV1().getz();
-  x2 = container.getV2().getx();
-  y2 = container.getV2().gety();
-  z2 = container.getV2().getz();
+  x1 = container.getMinCorner().getx();
+  y1 = container.getMinCorner().gety();
+  z1 = container.getMinCorner().getz();
+  x2 = container.getMaxCorner().getx();
+  y2 = container.getMaxCorner().gety();
+  z2 = container.getMaxCorner().getz();
   x0 = container.getCenter().getx();
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
@@ -3085,7 +3235,7 @@ void assembly::trim(rectangle& container,
     center=(*itr)->getCurrPosition();
     if(center.getx() <= x1 || center.getx() >= x2 ||
        center.gety() <= y1 || center.gety() >= y2 ||
-       center.getz() <= z1 || center.getz() + grad.getMaxPtclRadius() > z2)
+       center.getz() <= z1 || center.getz() + gradInfo.getMaxPtclRadius() > z2)
       {
 	delete (*itr); // release memory
 	itr = ParticleVec.erase(itr); 
@@ -3105,28 +3255,26 @@ void assembly::trim(rectangle& container,
 }
 
 // create boundary particles and springs connecting those boundary particles
-void assembly::createMemParticle(rectangle& container,
-				  gradation& grad,
-				  REAL rRadius,
-				  bool toRecreate,
-				  const char* particlefile,
-				  const char* allparticle)
+void assembly::createMemParticle(REAL rRadius,
+				 bool toRecreate,
+				 const char* particlefile,
+				 const char* allparticle)
 {
   if (toRecreate) createSample(particlefile);
 
-  REAL radius = grad.getMinPtclRadius();
-  if (grad.getSize().size() == 1 &&
-      grad.getPtclRatioBA() == 1.0 && 
-      grad.getPtclRatioCA() == 1.0)
+  REAL radius = gradInfo.getMinPtclRadius();
+  if (gradInfo.getSize().size() == 1 &&
+      gradInfo.getPtclRatioBA() == 1.0 && 
+      gradInfo.getPtclRatioCA() == 1.0)
     radius *= rRadius; // determine how tiny the boundary particles are
   REAL diameter = radius*2;
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = container.getV1().getx();
-  y1 = container.getV1().gety();
-  z1 = container.getV1().getz();
-  x2 = container.getV2().getx();
-  y2 = container.getV2().gety();
-  z2 = container.getV2().getz();
+  x1 = container.getMinCorner().getx();
+  y1 = container.getMinCorner().gety();
+  z1 = container.getMinCorner().getz();
+  x2 = container.getMaxCorner().getx();
+  y2 = container.getMaxCorner().gety();
+  z2 = container.getMaxCorner().getz();
   x0 = container.getCenter().getx();
   y0 = container.getCenter().gety();
   z0 = container.getCenter().getz();
@@ -3549,23 +3697,27 @@ void assembly::deposit(int   total_steps,
     REAL l13, l24, l56;
     REAL avgNormal=0;
     REAL avgTangt=0;
-    int         stepsnum=0;
-    char        stepsstr[4];
-    char        stepsfp[50];
+    int  stepsnum=0;
+    char stepsstr[4];
+    char stepsfp[50];
     REAL void_ratio=0;
     REAL bdry_penetr[7];
-    int         bdry_cntnum[7];
+    int  bdry_cntnum[7];
     for (int i=0;i<7;++i){
 	bdry_penetr[i]=0; bdry_cntnum[i]=0;
     }
 
     // iterations starting ...
     g_iteration=0; 
-    gettimeofday(&timew1,NULL);
+    gettimeofday(&time_w1,NULL);
     do
     {
 	// 1. create possible boundary particles and contacts between particles.
+        //gettimeofday(&time_w1,NULL);
         findContact();
+	//gettimeofday(&time_w2,NULL);
+	//cout << setw(OWID) << timediffsec(time_w1,time_w2);
+	//gettimeofday(&time_w1,NULL);
         findParticleOnBoundary();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
@@ -3579,6 +3731,8 @@ void assembly::deposit(int   total_steps,
 	
 	// 5. update particles' velocity/omga/position/orientation based on force/moment.
 	updateParticle();
+	//gettimeofday(&time_w2,NULL);
+	//cout << setw(OWID) << timediffsec(time_w1,time_w2) << endl;
 
 	// 6. calculate specimen void ratio.
 	l56=getTopFreeParticlePosition().getz() - getApt(6).getz();
@@ -3603,7 +3757,7 @@ void assembly::deposit(int   total_steps,
 
 	// 7. (2) output stress and strain info.
 	if (g_iteration % interval == 0) {
-	    gettimeofday(&timew2,NULL);
+	    gettimeofday(&time_w2,NULL);
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
@@ -3645,7 +3799,7 @@ void assembly::deposit(int   total_steps,
 		        << setw(OWID) << "0"
 	                << setw(OWID) << getVibraTimeStep()
 	                << setw(OWID) << getImpactTimeStep()
-		        << setw(OWID) << timediffsec(timew1,timew2)
+		        << setw(OWID) << timediffsec(time_w1,time_w2)
 		        << endl;
 
 	    /*
@@ -5668,8 +5822,6 @@ void assembly::iso_MemBdry(int   total_steps,
 			   int   snapshots, 
 			   int   interval,
 			   REAL  sigma3,
-			   rectangle& container,
-			   gradation& grad,
 			   REAL  rRadius,
 			   bool  toRecreate,
 			   const char* iniptclfile, 
@@ -5705,18 +5857,18 @@ void assembly::iso_MemBdry(int   total_steps,
   
   // pre_2. create particles from file and calculate forces caused by hydraulic pressure
   if (toRecreate) createSample(iniptclfile);
-  REAL radius = grad.getMinPtclRadius();
-  if (grad.getSize().size() == 1 &&
-      grad.getPtclRatioBA() == 1.0 && 
-      grad.getPtclRatioCA() == 1.0)
+  REAL radius = gradInfo.getMinPtclRadius();
+  if (gradInfo.getSize().size() == 1 &&
+      gradInfo.getPtclRatioBA() == 1.0 && 
+      gradInfo.getPtclRatioCA() == 1.0)
     radius *= rRadius; // determine how tiny the boundary particles are
   REAL mag  = radius*radius*4*sigma3;
-  REAL x1 = container.getV1().getx();
-  REAL y1 = container.getV1().gety();
-  REAL z1 = container.getV1().getz();
-  REAL x2 = container.getV2().getx();
-  REAL y2 = container.getV2().gety();
-  REAL z2 = container.getV2().getz();
+  REAL x1 = container.getMinCorner().getx();
+  REAL y1 = container.getMinCorner().gety();
+  REAL z1 = container.getMinCorner().getz();
+  REAL x2 = container.getMaxCorner().getx();
+  REAL y2 = container.getMaxCorner().gety();
+  REAL z2 = container.getMaxCorner().getz();
   std::vector<particle*>::const_iterator  it;
   vec pos;
   for (it=ParticleVec.begin();it!=ParticleVec.end();++it)
@@ -6365,7 +6517,7 @@ void assembly::triaxial(int   total_steps,
 
     // iterations start here...
     g_iteration=0;
-    gettimeofday(&timew1,NULL);
+    gettimeofday(&time_w1,NULL);
     do
     {
 	// 1. create possible boundary particles and contacts between particles
@@ -6444,7 +6596,7 @@ void assembly::triaxial(int   total_steps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (g_iteration % interval == 0 ){
-	    gettimeofday(&timew2,NULL);
+	    gettimeofday(&time_w2,NULL);
 	    progressinf << setw(OWID) << g_iteration
 		        << setw(OWID) << getPossCntctNum()
 		        << setw(OWID) << getActualCntctNum()
@@ -6473,7 +6625,7 @@ void assembly::triaxial(int   total_steps,
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 	                << setw(OWID) << getVibraTimeStep()
 	                << setw(OWID) << getImpactTimeStep()
-		        << setw(OWID) << timediffsec(timew1,timew2)
+		        << setw(OWID) << timediffsec(time_w1,time_w2)
 		        << endl;
 	    g_debuginf << setw(OWID) << g_iteration
 		       << setw(OWID) << getTransEnergy()
@@ -6526,7 +6678,7 @@ void assembly::triaxial(int   total_steps,
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/TotalNum
 	                << setw(OWID) << getVibraTimeStep()
 	                << setw(OWID) << getImpactTimeStep()
-		        << setw(OWID) << timediffsec(timew1,timew2)
+		        << setw(OWID) << timediffsec(time_w1,time_w2)
 		        << endl;
 	}
 
@@ -7032,7 +7184,7 @@ void assembly::ellipPile_Disp(int   total_steps,
     do
     {
 	// 1. create possible boundary particles and contacts between particles
-	findContact();
+        findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearForce();	

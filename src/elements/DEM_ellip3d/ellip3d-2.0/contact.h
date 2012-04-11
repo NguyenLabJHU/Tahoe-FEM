@@ -68,6 +68,7 @@ public:
     void print() const;
     vec NormalForceVec() const {return NormalForce;}
     vec TgtForceVec() const {return TgtForce;}
+    bool isRedundant(contact<T> other) const;
     
  private:
     T*   p1;              // particle 1
@@ -147,6 +148,19 @@ contact<T>::contact(T* t1, T* t2){
     spin_res=0;
 }
 
+template<class T>
+bool contact<T>::isRedundant(contact<T> other) const {
+  int id1 = getP1() -> getID();
+  int id2 = getP2() -> getID();
+  int oid1 = ( other.getP1() ) -> getID();
+  int oid2 = ( other.getP2() ) -> getID();
+
+  if ( (id2 == oid1 && id1 == oid2) || (id1 == oid1 && id2 == oid2 ) ) {
+    //std::cout << id1 << " " << id2 << " " << oid1 << " " << oid2 << " " << std::endl; 
+    return true;}
+  else 
+    return false;
+}
 
 template<class T>
 T* contact<T>::getP1() const {

@@ -55,7 +55,9 @@ class assembly{
     FBVec.clear();
     SpringVec.clear();
   }
-  
+ 
+  void setContainer(rectangle &cont) {container = cont;} 
+  void setGradation(gradation &grad) {gradInfo = grad;}
   void createSample(const char* str);           // create a sample with particles from an existing file
   void createRigidBoundary(std::ifstream &ifs); // create rigid boundaries from an existing file
   void createFlexiBoundary(std::ifstream &ifs); // create flxible boundaries from an existing file
@@ -127,9 +129,7 @@ class assembly{
   void printRectPile(const char* str);       // append rectangular pile info into a disk file
   
   // create a specimen by depositing particles into rigid boundaries
-  void deposit_RgdBdry(rectangle& container,
-		       gradation& grad,
-		       int   freetype,
+  void deposit_RgdBdry(int   freetype,
 		       int   total_steps,  
 		       int   snapshots,
 		       int   interval,
@@ -169,9 +169,7 @@ class assembly{
 		      const char* debugfile    ="scl_debug");      // output file, debug info
   
   // generate particles in space for rigid boundaries
-  void generate(rectangle& container,
-		gradation& grad, 
-		const char* str,
+  void generate(const char* str,
 		int freetype,
 		REAL ht);
   
@@ -207,8 +205,8 @@ class assembly{
   void deposit_p(int         total_steps  =50000,             // total_steps
 		 int         snapshots    =100,               // number of snapshots   
 		 int         interval     =10,                // print interval 
-		 REAL dimn   =0.05,                    // dimension of particle-composed-boundary
-		 REAL rsize  =1.0,                     // relative container size
+		 REAL dimn   =0.05,                           // dimension of particle-composed-boundary
+		 REAL rsize  =1.0,                            // relative container size
 		 const char* iniptclfile  ="flo_particle_end",// input file, initial particles
 		 const char* particlefile ="dep_particle",    // output file, resulted particles, including snapshots 
 		 const char* contactfile  ="dep_contact",     // output file, resulted contacts, including snapshots
@@ -229,18 +227,14 @@ class assembly{
 	       const char* progressfile ="dep_progress",      // output file, statistical info
 	       const char* debugfile    ="dep_debug");        // output file, debug info
   
-  void deposit_repose(rectangle& container,
-		      gradation& grad,
-		      int   interval,
+  void deposit_repose(int   interval,
 		      const char* inibdryfile,
 		      const char* particlefile, 
 		      const char* contactfile,
 		      const char* progressfile, 
 		      const char* debugfile);
   
-  void angleOfRepose(rectangle& container,
-		     gradation& grad,
-		     int   interval,
+  void angleOfRepose(int   interval,
 		     const char* inibdryfile,
 		     const char* particlefile, 
 		     const char* contactfile,
@@ -249,8 +243,7 @@ class assembly{
   
   REAL getMaxCenterHeight() const;
   
-  void collapse(rectangle &container, 
-		int   total_steps,  
+  void collapse(int   total_steps,  
 		int   snapshots,
 		int   interval,
 		const char* iniptclfile,
@@ -261,21 +254,15 @@ class assembly{
 		const char* debugfile);
   
   void setBoundary(int bdrynum,
-		   rectangle& container,
 		   const char* boundaryfile);
   
-  void setBoundary(rectangle& container,
-		   const char* boundaryfile);
+  void setBoundary(const char* boundaryfile);
   
-  void trim(rectangle& container,
-	    gradation& grad,
-	    bool  toRecreate,
+  void trim(bool  toRecreate,
 	    const char* particlefile,
 	    const char* trmparticle);
   
-  void createMemParticle(rectangle& container,
-			 gradation& grad,
-			 REAL rRadius,
+  void createMemParticle(REAL rRadius,
 			 bool toRecreate,
 			 const char* particlefile,
 			 const char* allparticle);
@@ -284,8 +271,6 @@ class assembly{
 		   int   snapshots, 
 		   int   interval,
 		   REAL  sigma3,
-		   rectangle& container,
-		   gradation& grad,
 		   REAL  rRadius,
 		   bool  toRecreate,
 		   const char* iniptclfile, 
@@ -593,11 +578,11 @@ class assembly{
   int  PossCntctNum;                  // possible contact number based on spherical distances
   int  ActualCntctNum;                // actual contact number based on solution of 6th order equations
   std::vector<particle*> ParticleVec; // a vector of pointers, each pointing to a particle
-  std::vector<CONTACT>   ContactVec; // a vector of contacts
+  std::vector<CONTACT>   ContactVec;  // a vector of contacts
   std::vector<cnttgt>    CntTgtVec;   // a vector to store tangential contact force and displacement
   std::vector< std::vector< std::vector<particle*>  >  >   MemBoundary;  // a vector to store six boundaries
   std::vector<spring*>   SpringVec;   // a vector to store springs;
-  gradation              Gradation;   // particles gradation
+  gradation              gradInfo;    // particles gradation
   
   // container property
   rectangle container;

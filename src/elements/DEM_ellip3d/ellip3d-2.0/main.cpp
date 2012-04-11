@@ -68,32 +68,6 @@ int main(int argc, char* argv[])
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 2: set up a simulation to run
-  /*
-  sample.deposit(10000,             // total_steps
-		 100,                // number of snapshots
-		 10,                  // print interval
-		 "flo_particle_end", // input file, initial particles
-		 "dep_boundary_ini", // input file, initial boundaries
-		 "dep_particle",     // output file, resulted particles, including snapshots 
-		 "dep_contact",      // output file, resulted contacts, including snapshots 
-		 "dep_progress",     // output file, statistical info
-		 "dep_debug");       // output file, debug info
-  */
-  
-  /*
-  sample.isotropic(100000,             // total_steps
-		   100,                // number of snapshots
-		   10,                 // print interval
-		   1.0e+3,             // a low confining pressure to achieve for initialization
-		   "trm_particle_end",     // input file, initial particles
-		   "trm_boundary_end",     // input file, initial boundaries
-		   "iso_particle",     // output file, resulted particles, including snapshots 
-		   "iso_boundary",     // output file, resulted boundaries 
-		   "iso_contact",      // output file, resulted contacts, including snapshots 
-		   "iso_progress",     // output file, statistical info
-		   "iso_balanced",     // output file, balanced status
-		   "iso_debug");       // output file, debug info
-  */
 
   ///*
   // container properties
@@ -106,16 +80,27 @@ int main(int argc, char* argv[])
   REAL ptcl_ratio_ba = 0.8;  // ratio of radius b to radius a
   REAL ptcl_ratio_ca = 0.6;  // ratio of radius c to radius a
   std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
-  std::vector<REAL> size;    // particle size
-  percent.push_back(1.00); size.push_back(2.5e-3);
-  //percent.push_back(0.80); size.push_back(2.3e-3);
-  //percent.push_back(0.60); size.push_back(2.0e-3);
-  //percent.push_back(0.30); size.push_back(1.5e-3);
-  //percent.push_back(0.10); size.push_back(1.0e-3);
-  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
-  sample.deposit_RgdBdry(container,
-			 ptclGradation,
-			 2,                  // freetype, setting of free particles 
+  std::vector<REAL> ptclsize;    // particle size
+  percent.push_back(1.00); ptclsize.push_back(2.5e-3);
+  //percent.push_back(0.80); ptclsize.push_back(2.3e-3);
+  //percent.push_back(0.60); ptclsize.push_back(2.0e-3);
+  //percent.push_back(0.30); ptclsize.push_back(1.5e-3);
+  //percent.push_back(0.10); ptclsize.push_back(1.0e-3);
+  dem::gradation ptclGradation(percent.size(), percent, ptclsize, ptcl_ratio_ba, ptcl_ratio_ca);
+  sample.setContainer(container);
+  sample.setGradation(ptclGradation);
+  /*
+  sample.deposit(1,                  // total_steps
+		 1,                  // number of snapshots
+		 1,                  // print interval
+		 "dep_particle_end", // input file, initial particles
+		 "dep_boundary_ini", // input file, initial boundaries
+		 "tst_particle",     // output file, resulted particles, including snapshots 
+		 "tst_contact",      // output file, resulted contacts, including snapshots 
+		 "tst_progress",     // output file, statistical info
+		 "tst_debug");       // output file, debug info  
+  */
+  sample.deposit_RgdBdry(2,                  // freetype, setting of free particles 
 			 100000,             // total_steps
 			 100,                // number of snapshots
 			 10,                 // print interval
@@ -128,8 +113,6 @@ int main(int argc, char* argv[])
 			 "trm_particle_end", // output file, resulted particles after trmming
 			 "trm_boundary_end", // output file, resulted boundaries after trmming
 			 "dep_debug");       // output file, debug 
-  //*/
-
   /*
   // degravitation, no boundary, quasi-static
   sample.deGravitation(1000,               // total_steps
@@ -151,25 +134,23 @@ int main(int argc, char* argv[])
   REAL ptcl_ratio_ba = 1;//0.8;  // ratio of radius b to radius a
   REAL ptcl_ratio_ca = 1;//0.6;  // ratio of radius c to radius a
   std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
-  std::vector<REAL> size;    // particle size
-  percent.push_back(1.00); size.push_back(2.5e-3);
-  //percent.push_back(0.80); size.push_back(2.3e-3);
-  //percent.push_back(0.60); size.push_back(2.0e-3);
-  //percent.push_back(0.30); size.push_back(1.5e-3);
-  //percent.push_back(0.10); size.push_back(1.0e-3);
-  dem::gradation ptclGradation(percent.size(), percent, size, ptcl_ratio_ba, ptcl_ratio_ca);
+  std::vector<REAL> ptclsize;    // particle size
+  percent.push_back(1.00); ptclsize.push_back(2.5e-3);
+  //percent.push_back(0.80); ptclsize.push_back(2.3e-3);
+  //percent.push_back(0.60); ptclsize.push_back(2.0e-3);
+  //percent.push_back(0.30); ptclsize.push_back(1.5e-3);
+  //percent.push_back(0.10); ptclsize.push_back(1.0e-3);
+  dem::gradation ptclGradation(percent.size(), percent, ptclsize, ptcl_ratio_ba, ptcl_ratio_ca);
+  sample.setContainer(container);
+  sample.setGradation(ptclGradation);
   ///////////////////////////////////////////////////////////////////////////////////
   // trim(), createMemParticle() and iso_MemBdry() must be called together because:
   // 1. trim() and createMemParticle() share variable HistoryNum.
   // 2. springs in iso_MemBdry() reference particles created in createMemParticle().
-  sample.trim(container,
-	      ptclGradation,
-	      false,               // recreate from input file or not
+  sample.trim(false,               // recreate from input file or not
 	      "dgr_particle_end",  // input
 	      "trm_particle_end"); // output
-  sample.createMemParticle(container,
-			   ptclGradation,
-			   0.25,   // size relative to minimum radius
+  sample.createMemParticle(0.25,   // size relative to minimum radius
 			   false,  // recreate from input file or not
 			   "trm_particle_end",
 			   "mem_particle_end");
@@ -177,8 +158,6 @@ int main(int argc, char* argv[])
 		     100,
 		     10,
 		     1.0e+3,
-		     container,
-		     ptclGradation,
 		     0.25,        // size relative to minimum radius
 		     false,       // recreate from input file or not, must be false
 		     "mem_particle_end",
@@ -270,33 +249,38 @@ int main(int argc, char* argv[])
 		       "tri_debug");       // output file, debug info
 
 
-    // size, shape, and gradation of particles
-    int rorc             = 1;     // rectangular = 1 or cylindrical = 0
-    REAL dimn     = 0.05;  // specimen dimension
-    REAL ratio_ba = 0.8;   // ratio of radius b to radius a
-    REAL ratio_ca = 0.6;   // ratio of radius c to radius a
-    std::vector<REAL> percent;  // mass percentage of particles smaller than a certain size
-    std::vector<REAL> ptclsize; // particle size
-    percent.push_back(1.00); ptclsize.push_back(2.5e-3);
-    //percent.push_back(0.80); ptclsize.push_back(2.3e-3);
-    //percent.push_back(0.60); ptclsize.push_back(2.0e-3);
-    //percent.push_back(0.30); ptclsize.push_back(1.5e-3);
-    //percent.push_back(0.10); ptclsize.push_back(1.0e-3);
-    dem::gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclsize);
-    sample.deposit_RgdBdry(grad,
-		      2,                  // freetype, setting of free particles 
-		      100000,             // total_steps
-		      100,                // number of snapshots
-                      10,                 // print interval
-		      3.0,                // height of floating particles relative to dimn
-		      "flo_particle_end", // output file, initial particles
-		      "dep_boundary_ini", // output file, initial boundaries
-		      "dep_particle",     // output file, resulted particles, including snapshots 
-		      "dep_contact",      // output file, resulted contacts, including snapshots 
-		      "dep_progress",     // output file, statistical info
-		      "cre_particle",     // output file, resulted particles after trmming
-		      "cre_boundary",     // output file, resulted boundaries after trmming
-		      "dep_debug");       // output file, debug info
+  // container properties
+  REAL dimx = 0.05;
+  REAL dimy = 0.05;
+  REAL dimz = 0.05;
+  dem::vec center(0, 0, 0);
+  dem::rectangle container(dimx,dimy,dimz,center);
+  // particle shape, size and percentage
+  REAL ptcl_ratio_ba = 0.8;  // ratio of radius b to radius a
+  REAL ptcl_ratio_ca = 0.6;  // ratio of radius c to radius a
+  std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
+  std::vector<REAL> ptclsize;    // particle size
+  percent.push_back(1.00); ptclsize.push_back(2.5e-3);
+  //percent.push_back(0.80); ptclsize.push_back(2.3e-3);
+  //percent.push_back(0.60); ptclsize.push_back(2.0e-3);
+  //percent.push_back(0.30); ptclsize.push_back(1.5e-3);
+  //percent.push_back(0.10); ptclsize.push_back(1.0e-3);
+  dem::gradation ptclGradation(percent.size(), percent, ptclsize, ptcl_ratio_ba, ptcl_ratio_ca);
+  sample.setContainer(container);
+  sample.setGradation(ptclGradation);
+  sample.deposit_RgdBdry(2,                  // freetype, setting of free particles 
+			 100000,             // total_steps
+			 100,                // number of snapshots
+			 10,                 // print interval
+			 3.0,                // relative height of floating particles based on container height
+			 "flo_particle_end", // output file, initial particles for depositing
+			 "dep_boundary_ini", // output file, initial boundaries for depositing
+			 "dep_particle",     // output file, resulted particles, including snapshots 
+			 "dep_contact",      // output file, resulted contacts, including snapshots 
+			 "dep_progress",     // output file, statistical info
+			 "trm_particle_end", // output file, resulted particles after trmming
+			 "trm_boundary_end", // output file, resulted boundaries after trmming
+			 "dep_debug");       // output file, debug 
 
 
     // size, shape, and gradation of particles
@@ -383,16 +367,16 @@ int main(int argc, char* argv[])
 			 "ipt_progress",     // output file, statistical info
 			 "ipt_debug");       // output file, debug info
 
-    
-    sample.deposit(5000,               // total_steps
-	      100,                // number of snapshots
-              10,                 // print interval
-	      "flo_particle_end", // input file, initial particles
-	      "dep_boundary_ini", // input file, initial boundaries
-	      "dep_particle",     // output file, resulted particles, including snapshots 
-	      "dep_contact",      // output file, resulted contacts, including snapshots 
-	      "dep_progress",     // output file, statistical info
-	      "dep_debug");       // output file, debug info
+
+  sample.deposit(100000,             // total_steps
+		 100,                // number of snapshots
+		 10,                 // print interval
+		 "flo_particle_end", // input file, initial particles
+		 "dep_boundary_ini", // input file, initial boundaries
+		 "dep_particle",     // output file, resulted particles, including snapshots 
+		 "dep_contact",      // output file, resulted contacts, including snapshots 
+		 "dep_progress",     // output file, statistical info
+		 "dep_debug");       // output file, debug info    
 
 
     sample.squeeze(300000,             // total_steps

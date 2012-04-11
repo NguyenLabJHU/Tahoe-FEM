@@ -14,6 +14,7 @@ DEBUG = -Wall -g
 
 # 1. OpenMP (macro OPENMP is defined in source code)
 OPENMP = -DOPENMP -fopenmp
+#OPENMP =
 
 # 2. GCC quadmath
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath

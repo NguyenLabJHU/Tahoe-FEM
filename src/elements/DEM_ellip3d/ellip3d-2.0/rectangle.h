@@ -39,16 +39,16 @@ namespace dem {
       dimy = rec.getDimy();
       dimz = rec.getDimz();
       center.set(rec.getCenter());
-      v1.set(rec.getV1());
-      v2.set(rec.getV2());
+      v1.set(rec.getMinCorner());
+      v2.set(rec.getMaxCorner());
     }
     
     REAL getDimx() const {return dimx;}
     REAL getDimy() const {return dimy;}
     REAL getDimz() const {return dimz;}
     vec  getCenter() const {return center;}
-    vec  getV1() const {return v1;}
-    vec  getV2() const {return v2;}
+    vec  getMinCorner() const {return v1;}
+    vec  getMaxCorner() const {return v2;}
     REAL getVolume() const {return dimx*dimy*dimz;}
     
     void setDimx(REAL dx) {dimx=dx;}
