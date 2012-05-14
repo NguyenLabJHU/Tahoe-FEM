@@ -48,6 +48,7 @@ extern const REAL memPOISSON;
 
 // other global variables
 extern std::ofstream g_debuginf;
+extern std::ofstream g_timeinf;
 extern int g_iteration;
 
 // output field width and precision

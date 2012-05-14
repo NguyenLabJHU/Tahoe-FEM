@@ -36,6 +36,7 @@ const REAL memPOISSON = 0.49;
 
 // other global variables
 std::ofstream g_debuginf;        // print debugging information
+std::ofstream g_timeinf;         // print time log
 int g_iteration;                 // iteration number
 
 // output width and precision
