@@ -58,12 +58,17 @@ class assembly{
  
   void setContainer(rectangle &cont) {container = cont;} 
   void setGradation(gradation &grad) {gradInfo = grad;}
-  void createSample(const char* str);           // create a sample with particles from an existing file
-  void createRigidBoundary(std::ifstream &ifs); // create rigid boundaries from an existing file
-  void createFlexiBoundary(std::ifstream &ifs); // create flxible boundaries from an existing file
-  void createBoundary(const char* str);         // create either rigid or flexible boundaries from an existing file
+  void setCavity(rectangle &cavi) {cavity = cavi;}
+  void readSample(const char* str);           // create a sample with particles from an existing file
+  void readRigidBoundary(std::ifstream &ifs); // create rigid boundaries from an existing file
+  void readFlexiBoundary(std::ifstream &ifs); // create flxible boundaries from an existing file
+  void readBoundary(const char* str);         // create either rigid or flexible boundaries from an existing file
+  void trimCavity(bool toRebuild, const char* particlefile, const char* cavparticle);
+  void readCavityBoundary(const char* boundaryfile);
+  void buildCavityBoundary(int existMaxId, const char* boundaryfile);
   void findContact();                           // detect and resolve contact between particles
   void findParticleOnBoundary();                // find particles on boundaries
+  void findParticleOnCavity();                  // find particle on cavity boundaries
   void findParticleOnLine();                    // find particles on lines
   void createFlbNet();
   
@@ -75,6 +80,7 @@ class assembly{
   void rigidBoundaryForce();                    // calcualte forces between rigid boundaries and particles
   void rigidBoundaryForce(REAL penetr[],int cntnum[]);
   void flexiBoundaryForce();
+  void cavityBoundaryForce();
   void updateParticle();                        // update motion of particles
   
   REAL ellipPileForce();                        // for force pile only
@@ -122,12 +128,22 @@ class assembly{
   void setTrimHistoryNum(int n) {trimHistoryNum = n;}
   void printParticle(const char* str) const; // print particles info into a disk file
   void printMemParticle(const char* str) const; // print membrane particles info into a disk file
-  void printSpring(const char *str) const;  // print springs in Tecplot format
+  void plotSpring(const char *str) const;    // print springs in Tecplot format
+  void plotBoundary(const char *str) const;
+  void plotCavity(const char *str) const;
   void checkMembrane(std::vector<REAL> &vx ) const;
   void printContact(const char* str) const;  // print contacts information
   void printBoundary(const char* str) const; // print rigid boundaries info to a disk file
   void printRectPile(const char* str);       // append rectangular pile info into a disk file
-  
+  void printCavityBoundary(const char* str) const; // print cavity boundaries
+  void printCavityParticle(int total, const char* str) const;
+
+  void expandCavityParticles(bool toRebuild,
+			     REAL percent,
+			     const char* cavityptclfile,
+			     const char* particlefile,
+			     const char* newptclfile);
+
   // create a specimen by depositing particles into rigid boundaries
   void deposit_RgdBdry(int   freetype,
 		       int   total_steps,  
@@ -143,6 +159,18 @@ class assembly{
 		       const char* creboundary,
 		       const char* debugfile);
   
+  // continue to deposit after a cavity is created inside the particle assemblage
+  void depositAfterCavity(int   total_steps,  
+			  int   snapshots,
+			  int   interval,
+			  const char* iniptclfile,   
+			  const char* inibdryfile,
+			  const char* inicavefile,
+			  const char* particlefile, 
+			  const char* contactfile,
+			  const char* progressfile, 
+			  const char* debugfile);
+
   // create a specimen by depositing particles into particle boundaries
   void deposit_PtclBdry(gradation& grad,
 			int   freetype,
@@ -194,7 +222,7 @@ class assembly{
   void deGravitation(int   total_steps,  
 		     int   snapshots,
 		     int   interval,
-		     bool  toRecreate,
+		     bool  toRebuild,
 		     const char* iniptclfile,   
 		     const char* particlefile, 
 		     const char* contactfile,
@@ -253,17 +281,16 @@ class assembly{
 		const char* progressfile,
 		const char* debugfile);
   
-  void setBoundary(int bdrynum,
-		   const char* boundaryfile);
+  void buildBoundary(int bdrynum, const char* boundaryfile);
   
-  void setBoundary(const char* boundaryfile);
+  void buildBoundary(const char* boundaryfile);
   
-  void trim(bool  toRecreate,
+  void trim(bool  toRebuild,
 	    const char* particlefile,
 	    const char* trmparticle);
   
   void createMemParticle(REAL rRadius,
-			 bool toRecreate,
+			 bool toRebuild,
 			 const char* particlefile,
 			 const char* allparticle);
   
@@ -272,7 +299,7 @@ class assembly{
 		   int   interval,
 		   REAL  sigma3,
 		   REAL  rRadius,
-		   bool  toRecreate,
+		   bool  toRebuild,
 		   const char* iniptclfile, 
 		   const char* particlefile,
 		   const char* contactfile, 
@@ -586,6 +613,7 @@ class assembly{
   
   // container property
   rectangle container;
+  rectangle cavity;
   REAL Volume;      // volume of the specimen
   REAL BulkDensity; // bulk density of specimen
   
@@ -593,8 +621,9 @@ class assembly{
   int  BdryType;               // 0 - rigid boundaries; 1 - flxible boundaries
   int  RgdBdryNum;             // rigid boundary number
   int  FlbBdryNum;             // flxible boundary number
-  std::vector<RGDBDRY*> RBVec; // a vector of pointers, each pointing to a rigid boundary
-  std::vector<FLBBDRY*> FBVec; // a vector of pointers, each pointing to a flexible boundary
+  std::vector<RGDBDRY*> RBVec; // a vector of pointers, each pointing to a rigid boundary surface
+  std::vector<RGDBDRY*> CavityRBVec; // a vector of pointers, each pointing to a rigid cavity surface
+  std::vector<FLBBDRY*> FBVec; // a vector of pointers, each pointing to a flexible boundary surface
   std::map<int,std::vector<boundarytgt>  > BdryTgtMap; // a map to store particle-boundary contacts' tangential info
 };
  

@@ -116,13 +116,13 @@ typedef struct circ{
 
 template<class T> class rgd_bdry{
 public:
-	int         bdry_id;    // the first record defines the bdry itself, the other 
+	int  bdry_id;    // the first record defines the bdry itself, the other 
 	std::vector<BdryCoef> CoefOfLimits; // limitnum records define the other lines on the bdry 
-	REAL avg_normal;             // that give limits to the first boundary.
+	REAL avg_normal; // that give limits to the first boundary.
 	REAL avg_penetr; // average penetration by particles onto this boundary
-	int         cntnum;     // contact numbers by particles onto this boundary
+	int  cntnum;     // contact numbers by particles onto this boundary
 	REAL area;       // the bounary's area
-	int         limitnum;   // how many lines the boundary have
+	int  limitnum;   // how many lines the boundary have
 public:
 	rgd_bdry(std::ifstream &ifs);
 	int getBdryID() {return bdry_id;}
@@ -313,12 +313,12 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::vector<T*>& ptcls){
 	    dist=distToBdry(posi);
 	    if(dist>=0 || fabs(dist) > (*it)->getA()) // outside to CoefOfLimits[0] or inside too much
 		continue;
-	    next=true;
 	    /*
-	    g_debuginf<<"boundary.h: g_iteration="<<g_iteration
-		      <<" boundary id="<<getBdryID()
-		      <<" particle id="<<(*it)->getID()<<std::endl;
+	    g_debuginf<<"boundary.h: g_iter="<<g_iteration
+		      <<" bdryId="<<getBdryID()
+		      <<" ptclId="<<(*it)->getID()<<std::endl;
 	    */
+	    next=true;
 	    for (bt=++this->CoefOfLimits.begin();bt!=this->CoefOfLimits.end();++bt){ // CoefOfLimits[1,2,...]
 		ndirc=normalize((*bt).dirc);
 		r=vfabs((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
@@ -333,7 +333,18 @@ void plnrgd_bdry<T>::findParticleOnBoundary(std::vector<T*>& ptcls){
 	}
     }
 
-};
+    /*
+    if (getBdryID() > 6) { // cavity boundaries
+      g_debuginf<<"boundary.h: g_iter="<<g_iteration
+		<<" bdryId="<<getBdryID()
+		<<" ptcl#="<<PBVec.size();
+      for(it = PBVec.begin(); it != PBVec.end(); ++it)
+	g_debuginf << " " << (*it)->getID();
+      g_debuginf << std::endl;
+    }
+    */
+    
+ };
 
 /*
 template<class T>

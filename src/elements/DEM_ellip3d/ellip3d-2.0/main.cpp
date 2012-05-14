@@ -22,11 +22,13 @@ int main(int argc, char* argv[])
 {
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 0: command line arguments and timestamps
+  dem::g_timeinf.open("timelog");
+  if(!dem::g_timeinf) { std::cout << "stream error!" << std::endl; exit(-1); }
   time_t time1, time2;
   time(&time1);
   if (argc == 2) {
     dem::NUM_THREADS = atoi(argv[1]);
-    std::cout << "command line: " << argv[0] << " " << argv[1] << std::endl; 
+    dem::g_timeinf << "command line: " << argv[0] << " " << argv[1] << std::endl << std::endl; 
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +36,7 @@ int main(int argc, char* argv[])
   // 1. time integration method
   // --- dynamic
   ///*
-  dem::TIMESTEP      = 5.0e-06; // time step
+  dem::TIMESTEP      = 5.0e-07; // time step
   dem::MASS_SCL      = 1;       // mass scaling
   dem::MNT_SCL       = 1;       // moment of inertial scaling
   dem::GRVT_SCL      = 1;       // gravity scaling
@@ -53,7 +55,7 @@ int main(int argc, char* argv[])
   */
 
   // 2. normal damping and tangential friciton
-  dem::DMP_CNT       = 0.20;    // normal contact damping ratio
+  dem::DMP_CNT       = 0.30;    // normal contact damping ratio
   dem::FRICTION      = 0.50;    // coefficient of friction between particles
   dem::BDRYFRIC      = 0.50;    // coefficient of friction between particle and rigid wall
   dem::COHESION      = 0;       // cohesion between particles, 5.0e+8
@@ -82,13 +84,96 @@ int main(int argc, char* argv[])
   std::vector<REAL> percent; // mass percentage of particles smaller than a certain size
   std::vector<REAL> ptclsize;    // particle size
   percent.push_back(1.00); ptclsize.push_back(2.5e-3);
-  //percent.push_back(0.80); ptclsize.push_back(2.3e-3);
-  //percent.push_back(0.60); ptclsize.push_back(2.0e-3);
-  //percent.push_back(0.30); ptclsize.push_back(1.5e-3);
-  //percent.push_back(0.10); ptclsize.push_back(1.0e-3);
+  percent.push_back(0.80); ptclsize.push_back(2.3e-3);
+  percent.push_back(0.60); ptclsize.push_back(2.0e-3);
+  percent.push_back(0.30); ptclsize.push_back(1.5e-3);
+  percent.push_back(0.10); ptclsize.push_back(1.0e-3);
   dem::gradation ptclGradation(percent.size(), percent, ptclsize, ptcl_ratio_ba, ptcl_ratio_ca);
   sample.setContainer(container);
   sample.setGradation(ptclGradation);
+
+  sample.plotBoundary("container.plot");
+  sample.deposit_RgdBdry(2,                  // freetype, setting of free particles 
+			 1000000,            // total_steps
+			 100,                // number of snapshots
+			 10,                 // print interval
+			 5.0,                // relative height of floating particles based on container height
+			 "flo_particle_end", // output file, initial particles for depositing
+			 "dep_boundary_ini", // output file, initial boundaries for depositing
+			 "dep_particle",     // output file, resulted particles, including snapshots 
+			 "dep_contact",      // output file, resulted contacts, including snapshots 
+			 "dep_progress",     // output file, statistical info
+			 "trm_particle_end", // output file, resulted particles after trmming
+			 "trm_boundary_end", // output file, resulted boundaries after trmming
+			 "dep_debug");       // output file, debug 
+  /*
+  sample.deposit(100,                // total_steps
+		 10,                  // number of snapshots
+		 10,                  // print interval
+		 "dep_particle_end", // input file, initial particles
+		 "dep_boundary_ini", // input file, initial boundaries
+		 "exp_particle",     // output file, resulted particles, including snapshots 
+		 "exp_contact",      // output file, resulted contacts, including snapshots 
+		 "exp_progress",     // output file, statistical info
+		 "exp_debug");       // output file, debug info
+  */
+  /*
+  dem::rectangle cavity(0.05*dimx, 0.05*dimy, 0.05*dimz, dem::vec(0, 0, -0.25*dimz));
+  sample.setCavity(cavity);
+  sample.plotBoundary("container.plot");
+  sample.plotCavity("cavity.plot");
+  sample.expandCavityParticles(true, 
+			       0.40,
+			       "cav_particle_ini",
+			       "dep_particle_end", 
+			       "exp_particle_ini");
+  sample.deposit(1000000,            // total_steps
+		 100,                // number of snapshots
+		 10,                 // print interval
+		 "exp_particle_ini", // input file, initial particles
+		 "dep_boundary_ini", // input file, initial boundaries
+		 "exp_particle",     // output file, resulted particles, including snapshots 
+		 "exp_contact",      // output file, resulted contacts, including snapshots 
+		 "exp_progress",     // output file, statistical info
+		 "exp_debug");       // output file, debug info  
+  */
+  /*
+  dem::rectangle cavity(0.1*dimx, 0.1*dimy, 0.1*dimz, dem::vec(0, 0, -0.25*dimz));
+  sample.setCavity(cavity);
+  sample.trimCavity(true, 
+		    "dep_particle_end",
+		    "cav_particle_ini");
+  sample.buildCavityBoundary(6, "cav_boundary_ini"); // existMaxId; output file
+  sample.deposit(250000,             // total_steps
+		 100,                // number of snapshots
+		 10,                 // print interval
+		 "cav_particle_ini", // input file, initial particles
+		 "dep_boundary_ini", // input file, initial boundaries
+		 "cav_particle",     // output file, resulted particles, including snapshots 
+		 "cav_contact",      // output file, resulted contacts, including snapshots 
+		 "cav_progress",     // output file, statistical info
+		 "cav_debug");       // output file, debug info 
+  */
+  /*
+  dem::rectangle cavity(0.1*dimx, 0.1*dimy, 0.1*dimz, dem::vec(0, 0, -0.25*dimz));
+  sample.setCavity(cavity);
+  sample.trimCavity(true, 
+		    "dep_particle_end",
+		    "cav_particle_ini");
+  sample.buildCavityBoundary(6, "cav_boundary_ini"); // existMaxId; output file
+  sample.plotBoundary("container.plot");
+  sample.plotCavity("cavity.plot");
+  sample.depositAfterCavity(250000,             // total_steps
+			    100,                // number of snapshots
+			    10,                 // print interval
+			    "cav_particle_ini", // input file, initial particles
+			    "dep_boundary_ini", // input file, initial boundaries
+			    "cav_boundary_ini", // input file, initial cavity boundaries
+			    "cav_particle",     // output file, resulted particles, including snapshots 
+			    "cav_contact",      // output file, resulted contacts, including snapshots 
+			    "cav_progress",     // output file, statistical info
+			    "cav_debug");       // output file, debug info 
+  */
   /*
   sample.deposit(1,                  // total_steps
 		 1,                  // number of snapshots
@@ -100,11 +185,12 @@ int main(int argc, char* argv[])
 		 "tst_progress",     // output file, statistical info
 		 "tst_debug");       // output file, debug info  
   */
+  /*
   sample.deposit_RgdBdry(2,                  // freetype, setting of free particles 
-			 100000,             // total_steps
+			 1000000,            // total_steps
 			 100,                // number of snapshots
 			 10,                 // print interval
-			 3.0,                // relative height of floating particles based on container height
+			 5.0,                // relative height of floating particles based on container height
 			 "flo_particle_end", // output file, initial particles for depositing
 			 "dep_boundary_ini", // output file, initial boundaries for depositing
 			 "dep_particle",     // output file, resulted particles, including snapshots 
@@ -113,6 +199,7 @@ int main(int argc, char* argv[])
 			 "trm_particle_end", // output file, resulted particles after trmming
 			 "trm_boundary_end", // output file, resulted boundaries after trmming
 			 "dep_debug");       // output file, debug 
+  */
   /*
   // degravitation, no boundary, quasi-static
   sample.deGravitation(1000,               // total_steps
@@ -170,9 +257,10 @@ int main(int argc, char* argv[])
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 3: record run time
   time(&time2);
-  std::cout << std::endl 
+  dem::g_timeinf << std::endl 
 	    << "simulation start time: " << ctime(&time1);
-  std::cout << "simulation  end  time: " << ctime(&time2);
+  dem::g_timeinf << "simulation  end  time: " << ctime(&time2);
+  dem::g_timeinf.close();
   return 0;
 }
 

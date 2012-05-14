@@ -246,11 +246,11 @@ void contact<T>::contactForce(bool &exceed){
 	E0=0.5*YOUNG/(1-POISSON*POISSON);
 	REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
-	  g_debuginf << "contact.h: g_iteration=" << g_iteration 
-		     << " particle1=" << getP1()->getID()
-		     << " particle2=" << getP2()->getID()
-		     << " penetration=" << penetration 
-		     << " allowable=" << allowedOverlap << std::endl;
+	  g_debuginf << "contact.h: g_iter=" << g_iteration 
+		     << " ptcl1=" << getP1()->getID()
+		     << " ptcl2=" << getP2()->getID()
+		     << " penetr=" << penetration 
+		     << " allow=" << allowedOverlap << std::endl;
 	  //if (penetration > 1.0e-3) exceed = true;
 	  penetration = allowedOverlap;
 	}
@@ -274,8 +274,8 @@ void contact<T>::contactForce(bool &exceed){
 	p2->addMoment( ( (point1+point2)/2-p2->getCurrPosition() ) * (-NormalForce) );	
 	
 	/*
-	g_debuginf<<"contact.h: g_iteration="<<g_iteration
-		  <<" penetration="<<penetration
+	g_debuginf<<"contact.h: g_iter="<<g_iteration
+		  <<" penetr="<<penetration
 		  <<" CohesionForce="<<vfabs(CohesionForce)
 		  <<" NormalForce="<<vfabs(NormalForce)
 		  <<" accumulated time="<<g_iteration*TIMESTEP
