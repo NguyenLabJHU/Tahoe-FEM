@@ -65,6 +65,7 @@ namespace dem {
     void setA(REAL dd){a=dd;}
     void setB(REAL dd){b=dd;}
     void setC(REAL dd){c=dd;}
+    void expand(REAL percent) {a *= (1+percent); b *= (1+percent); c *= (1+percent);}
     void setCurrPosition(vec vv){curr_position=vv;}
     void setPrevPosition(vec vv){prev_position=vv;}
     void setCurrDirecA(vec vv){curr_direction_a=vv;}

@@ -710,13 +710,11 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	// (p,q,r) are in the same direction as the outward normal vector,
 	// hence it is not necessary to provide information about which side the particle is about the plane.
 	REAL p,q,r,s;
-	int  bdry_id;
 	BdryCoef tmp1=*((plb->CoefOfLimits).begin());
 	p=tmp1.dirc.getx();
 	q=tmp1.dirc.gety();
 	r=tmp1.dirc.getz();
 	s=-tmp1.dirc%tmp1.apt;  // plane equation: p(x-x0)+q(y-y0)+r(z-z0)=0, that is, px+qy+rz+s=0
-	bdry_id=plb->bdry_id;
 
 	vec pt1;
 	if (!nearestPTOnPlane(p, q, r, s, pt1)) // the particle and the plane does not intersect
@@ -751,10 +749,11 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	REAL E0=YOUNG/(1-POISSON*POISSON); // rigid wall has infinite YOUNG's modulus
 	REAL allowedOverlap = 2.0 * R0 * MAXOVERLAP;
 	if (penetration > allowedOverlap) {
-	  g_debuginf << "particle.cpp: g_iteration=" << g_iteration 
-		     << " particle=" << getID()
-		     << " boundary penetration=" << penetration 
-		     << " allowable=" << allowedOverlap << std::endl;
+	  g_debuginf << "particle.cpp: g_iter=" << g_iteration 
+		     << " ptclId=" << getID()
+		     << " bdryId=" << plb->bdry_id
+		     << " penetr=" << penetration 
+		     << " allow=" << allowedOverlap << std::endl;
 	  penetration = allowedOverlap;
 	}
 
