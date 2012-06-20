@@ -166,7 +166,8 @@ namespace dem {
     REAL coef[10];// record particle's coefficients in global coordinates
     REAL kinetEnergy; // kinetic energy
     int  cntnum;
-    bool inContact; // in contact with other particle or boundary?
+    bool inContact; // in contact with other particle or boundary
+    void init();
     
   public:
     int IsFBP;

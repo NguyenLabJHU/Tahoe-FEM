@@ -15,9 +15,7 @@ const int START = 10000;  // at which time step to apply moment? for moment rota
 
 namespace dem {
 
-particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
-  :ID(n), type(tp), a(r), b(r), c(r), young(yng), poisson(poi) {
-
+void particle::init() {
     // generate orientation of axle a/b/c
     REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
     
@@ -42,16 +40,16 @@ particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
     int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
     n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
     m2 = - (l1*l2 + n1*n2) / m1;
+    curr_direction_a=vec(acos(l1), acos(m1), acos(n1));
     curr_direction_b=vec(acos(l2), acos(m2), acos(n2));
-
     curr_direction_c=vacos(normalize(vcos(curr_direction_a)*vcos(curr_direction_b)));
 
-    curr_position=prev_position=center;
+    prev_position=curr_position;
     prev_direction_a=curr_direction_a;
     prev_direction_b=curr_direction_b;
     prev_direction_c=curr_direction_c;
-    curr_velocity=prev_velocity=0;
-    curr_omga=prev_omga=0;
+    prev_velocity=curr_velocity=0;
+    prev_omga=curr_omga=0;
     curr_acceleration=prev_acceleration=0;
     force=pre_force=0;moment=pre_moment=0;mres=0;
     const_force=const_moment=0;
@@ -62,123 +60,41 @@ particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
     cntnum=0;
     inContact=false;
     GlobCoef();
+}
+
+particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
+  :ID(n), type(tp), curr_position(center), a(r), b(r), c(r), young(yng), poisson(poi) {
+  init ();
 }
 
 
 particle::particle(int n, int tp, vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
-  :ID(n), type(tp), a(ra), b(rb), c(rc), young(yng), poisson(poi) {
-
-    // generate orientation of axle a/b/c
-    REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
-    
-    while (1) {
-      l1 = ran(&idum)*2 - 1;
-      m1 = ran(&idum)*2 - 1;
-      n1 = ran(&idum)*2 - 1;
-      mod = sqrt(l1*l1 + m1*m1 + n1*n1);
-      l1 /= mod;
-      m1 /= mod;
-      n1 /= mod;
-      
-      l2 = ran(&idum)*2 - 1;
-      // solve n2
-      A = m1*m1 + n1*n1;
-      B = 2 * l1 * l2 * n1;
-      C = l1*l1*l2*l2 + m1*m1*l2*l2 - m1*m1;
-      if (B*B - 4*A*C > EPS)
-	break;
-    }
-
-    int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
-    n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
-    m2 = - (l1*l2 + n1*n2) / m1;
-    curr_direction_b=vec(acos(l2), acos(m2), acos(n2));
-
-    curr_direction_c=vacos(normalize(vcos(curr_direction_a)*vcos(curr_direction_b)));
-
-    curr_position=prev_position=center;
-    prev_direction_a=curr_direction_a;
-    prev_direction_b=curr_direction_b;
-    prev_direction_c=curr_direction_c;
-    curr_velocity=prev_velocity=0;
-    curr_omga=prev_omga=0;
-    curr_acceleration=prev_acceleration=0;
-    force=pre_force=0;moment=pre_moment=0;mres=0;
-    const_force=const_moment=0;
-    density=Gs*1.0e3;
-    volume=4/3.0*PI*a*b*c;
-    mass=density*volume;
-    J=vec(mass/5*(b*b+c*c),mass/5*(a*a+c*c),mass/5*(a*a+b*b));
-    cntnum=0;
-    inContact=false;
-    GlobCoef();
+  :ID(n), type(tp), curr_position(center), a(ra), b(rb), c(rc), young(yng), poisson(poi) {
+  init ();
 }
 
 
 particle::particle(int n, int tp, vec center, gradation& grad, REAL yng, REAL poi)
-  :ID(n), type(tp), young(yng), poisson(poi) {
+  :ID(n), type(tp), curr_position(center), young(yng), poisson(poi) {
 
     // generate a particle based on gradation distribution
-    REAL sievenum = grad.getSieveNum();
-    for (int k=0;k<sievenum;k++){
-      if (ran(&idum) <= grad.getPercent()[sievenum-1-k]){
-	a=grad.getSize()[sievenum-1-k];
-	    break;
-	}
+  REAL sievenum = grad.getSieveNum();
+  for (int k=0;k<sievenum;k++){
+    if (ran(&idum) <= grad.getPercent()[sievenum-1-k]){
+      a=grad.getSize()[sievenum-1-k];
+      break;
     }
-
+  }
+  
 #ifdef RANDOM_SHAPE
-    grad.setPtclRatioBA(ran(&idum));
-    grad.setPtclRatioCA(ran(&idum));
+  grad.setPtclRatioBA(ran(&idum));
+  grad.setPtclRatioCA(ran(&idum));
 #endif
-
-    b=a*grad.getPtclRatioBA();
-    c=a*grad.getPtclRatioCA();
-
-    // generate orientation of axle a/b/c
-    REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
-    
-    while (1) {
-      l1 = ran(&idum)*2 - 1;
-      m1 = ran(&idum)*2 - 1;
-      n1 = ran(&idum)*2 - 1;
-      mod = sqrt(l1*l1 + m1*m1 + n1*n1);
-      l1 /= mod;
-      m1 /= mod;
-      n1 /= mod;
-      
-      l2 = ran(&idum)*2 - 1;
-      // solve n2
-      A = m1*m1 + n1*n1;
-      B = 2 * l1 * l2 * n1;
-      C = l1*l1*l2*l2 + m1*m1*l2*l2 - m1*m1;
-      if (B*B - 4*A*C > EPS)
-	break;
-    }
-
-    int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
-    n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
-    m2 = - (l1*l2 + n1*n2) / m1;
-    curr_direction_b=vec(acos(l2), acos(m2), acos(n2));
-
-    curr_direction_c=vacos(normalize(vcos(curr_direction_a)*vcos(curr_direction_b)));
-    
-    curr_position=prev_position=center;
-    prev_direction_a=curr_direction_a;
-    prev_direction_b=curr_direction_b;
-    prev_direction_c=curr_direction_c;
-    curr_velocity=prev_velocity=0;
-    curr_omga=prev_omga=0;
-    curr_acceleration=prev_acceleration=0;
-    force=pre_force=0;moment=pre_moment=0;mres=0;
-    const_force=const_moment=0;
-    density=Gs*1.0e3;
-    volume=4/3.0*PI*a*b*c;
-    mass=density*volume;
-    J=vec(mass/5*(b*b+c*c),mass/5*(a*a+c*c),mass/5*(a*a+b*b));
-    cntnum=0;
-    inContact=false;
-    GlobCoef();
+  
+  b=a*grad.getPtclRatioBA();
+  c=a*grad.getPtclRatioCA();
+  
+  init();
 }
 
 
