@@ -17,37 +17,32 @@ namespace dem {
 
 particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
   :ID(n), type(tp), a(r), b(r), c(r), young(yng), poisson(poi) {
-    REAL tmp0=ran(&idum);
-    REAL tmp1=ran(&idum);
-    REAL tmp2=ran(&idum);
-    REAL tmp3=ran(&idum);
-    REAL tmp4=ran(&idum);
-    REAL tmp5=ran(&idum);
-    REAL tmp6=ran(&idum);
-    REAL tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
 
     // generate orientation of axle a/b/c
-    REAL l1,m1,n1,l2,m2,n2,x,y,z;
-    n1 = 2*tmp1-1;                  // (-1,1)
-    z  = acos(n1);                 
-    m1 = (2*tmp2-1)*sqrt(1-n1*n1); // (-1,1)
-    y  = acos(m1);
-    int sign = 2*tmp3-1>0?1:-1;
-    l1 = sign*sqrt(1-m1*m1-n1*n1); // (-1,1)
-    x  = acos(l1);
-    curr_direction_a=vec(x,y,z);    // axle a,b,c are in the direction of x,y,z respectively
+    REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
     
-    n2 = 2*tmp4 - 1;                // (-1,1)
-    m2 = 2*tmp5 - 1;                // (-1,1)
-    l2 = -(m1*m2+n1*n2)/l1;         // ensure a/b/c perpendicular
-    REAL mod2 = sqrt(l2*l2+m2*m2+n2*n2);
-    n2 /= mod2;
-    m2 /= mod2;
-    l2 /= mod2;
-    z  = acos(n2);
-    y  = acos(m2);
-    x  = acos(l2);
-    curr_direction_b=vec(x,y,z);
+    while (1) {
+      l1 = ran(&idum)*2 - 1;
+      m1 = ran(&idum)*2 - 1;
+      n1 = ran(&idum)*2 - 1;
+      mod = sqrt(l1*l1 + m1*m1 + n1*n1);
+      l1 /= mod;
+      m1 /= mod;
+      n1 /= mod;
+      
+      l2 = ran(&idum)*2 - 1;
+      // solve n2
+      A = m1*m1 + n1*n1;
+      B = 2 * l1 * l2 * n1;
+      C = l1*l1*l2*l2 + m1*m1*l2*l2 - m1*m1;
+      if (B*B - 4*A*C > EPS)
+	break;
+    }
+
+    int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
+    n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
+    m2 = - (l1*l2 + n1*n2) / m1;
+    curr_direction_b=vec(acos(l2), acos(m2), acos(n2));
 
     curr_direction_c=vacos(normalize(vcos(curr_direction_a)*vcos(curr_direction_b)));
 
@@ -72,37 +67,32 @@ particle::particle(int n, int tp, vec center, REAL r, REAL yng, REAL poi)
 
 particle::particle(int n, int tp, vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
   :ID(n), type(tp), a(ra), b(rb), c(rc), young(yng), poisson(poi) {
-    REAL tmp0=ran(&idum);
-    REAL tmp1=ran(&idum);
-    REAL tmp2=ran(&idum);
-    REAL tmp3=ran(&idum);
-    REAL tmp4=ran(&idum);
-    REAL tmp5=ran(&idum);
-    REAL tmp6=ran(&idum);
-    REAL tmp7=ran(&idum);  // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
 
     // generate orientation of axle a/b/c
-    REAL l1,m1,n1,l2,m2,n2,x,y,z;
-    n1 = 2*tmp1-1;                  // (-1,1)
-    z  = acos(n1);                 
-    m1 = (2*tmp2-1)*sqrt(1-n1*n1); // (-1,1)
-    y  = acos(m1);
-    int sign = 2*tmp3-1>0?1:-1;
-    l1 = sign*sqrt(1-m1*m1-n1*n1); // (-1,1)
-    x  = acos(l1);
-    curr_direction_a=vec(x,y,z);    // axle a,b,c are in the direction of x,y,z respectively
+    REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
     
-    n2 = 2*tmp4 - 1;                // (-1,1)
-    m2 = 2*tmp5 - 1;                // (-1,1)
-    l2 = -(m1*m2+n1*n2)/l1;         // ensure a/b/c perpendicular
-    REAL mod2 = sqrt(l2*l2+m2*m2+n2*n2);
-    n2 /= mod2;
-    m2 /= mod2;
-    l2 /= mod2;
-    z  = acos(n2);
-    y  = acos(m2);
-    x  = acos(l2);
-    curr_direction_b=vec(x,y,z);
+    while (1) {
+      l1 = ran(&idum)*2 - 1;
+      m1 = ran(&idum)*2 - 1;
+      n1 = ran(&idum)*2 - 1;
+      mod = sqrt(l1*l1 + m1*m1 + n1*n1);
+      l1 /= mod;
+      m1 /= mod;
+      n1 /= mod;
+      
+      l2 = ran(&idum)*2 - 1;
+      // solve n2
+      A = m1*m1 + n1*n1;
+      B = 2 * l1 * l2 * n1;
+      C = l1*l1*l2*l2 + m1*m1*l2*l2 - m1*m1;
+      if (B*B - 4*A*C > EPS)
+	break;
+    }
+
+    int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
+    n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
+    m2 = - (l1*l2 + n1*n2) / m1;
+    curr_direction_b=vec(acos(l2), acos(m2), acos(n2));
 
     curr_direction_c=vacos(normalize(vcos(curr_direction_a)*vcos(curr_direction_b)));
 
@@ -127,55 +117,49 @@ particle::particle(int n, int tp, vec center, REAL ra, REAL rb, REAL rc, REAL yn
 
 particle::particle(int n, int tp, vec center, gradation& grad, REAL yng, REAL poi)
   :ID(n), type(tp), young(yng), poisson(poi) {
-    REAL tmp0=ran(&idum);
-    REAL tmp1=ran(&idum);
-    REAL tmp2=ran(&idum);
-    REAL tmp3=ran(&idum);
-    REAL tmp4=ran(&idum);
-    REAL tmp5=ran(&idum);
-    REAL tmp6=ran(&idum);
-    REAL tmp7=ran(&idum);
-    // tmpx is between (0,1), (2*tmpx-1) is between (-1,1)
 
     // generate a particle based on gradation distribution
     REAL sievenum = grad.getSieveNum();
     for (int k=0;k<sievenum;k++){
-      if (tmp0 <= grad.getPercent()[sievenum-1-k]){
+      if (ran(&idum) <= grad.getPercent()[sievenum-1-k]){
 	a=grad.getSize()[sievenum-1-k];
 	    break;
 	}
     }
 
 #ifdef RANDOM_SHAPE
-    grad.setPtclRatioBA(tmp6);
-    grad.setPtclRatioCA(tmp7);
+    grad.setPtclRatioBA(ran(&idum));
+    grad.setPtclRatioCA(ran(&idum));
 #endif
 
     b=a*grad.getPtclRatioBA();
     c=a*grad.getPtclRatioCA();
 
     // generate orientation of axle a/b/c
-    REAL l1,m1,n1,l2,m2,n2,x,y,z;
-    n1 = 2*tmp1-1;                  // (-1,1)
-    z  = acos(n1);                 
-    m1 = (2*tmp2-1)*sqrt(1-n1*n1); // (-1,1)
-    y  = acos(m1);
-    int sign = 2*tmp3-1>0?1:-1;
-    l1 = sign*sqrt(1-m1*m1-n1*n1); // (-1,1)
-    x  = acos(l1);
-    curr_direction_a=vec(x,y,z);    // axle a,b,c are in the direction of x,y,z respectively
+    REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
     
-    n2 = 2*tmp4 - 1;                // (-1,1)
-    m2 = 2*tmp5 - 1;                // (-1,1)
-    l2 = -(m1*m2+n1*n2)/l1;         // ensure a/b/c perpendicular
-    REAL mod2 = sqrt(l2*l2+m2*m2+n2*n2);
-    n2 /= mod2;
-    m2 /= mod2;
-    l2 /= mod2;
-    z  = acos(n2);
-    y  = acos(m2);
-    x  = acos(l2);
-    curr_direction_b=vec(x,y,z);
+    while (1) {
+      l1 = ran(&idum)*2 - 1;
+      m1 = ran(&idum)*2 - 1;
+      n1 = ran(&idum)*2 - 1;
+      mod = sqrt(l1*l1 + m1*m1 + n1*n1);
+      l1 /= mod;
+      m1 /= mod;
+      n1 /= mod;
+      
+      l2 = ran(&idum)*2 - 1;
+      // solve n2
+      A = m1*m1 + n1*n1;
+      B = 2 * l1 * l2 * n1;
+      C = l1*l1*l2*l2 + m1*m1*l2*l2 - m1*m1;
+      if (B*B - 4*A*C > EPS)
+	break;
+    }
+
+    int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
+    n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
+    m2 = - (l1*l2 + n1*n2) / m1;
+    curr_direction_b=vec(acos(l2), acos(m2), acos(n2));
 
     curr_direction_c=vacos(normalize(vcos(curr_direction_a)*vcos(curr_direction_b)));
     
