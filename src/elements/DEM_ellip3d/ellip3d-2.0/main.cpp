@@ -70,14 +70,8 @@ int main(int argc, char* argv[])
   
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 2: set up a simulation to run
-
-  ///*
   // container properties
-  REAL dimx = 0.05;
-  REAL dimy = 0.05;
-  REAL dimz = 0.05;
-  dem::vec center(0, 0, 0);
-  dem::rectangle container(dimx,dimy,dimz,center);
+  dem::rectangle container(0.05, 0.05, 0.05, dem::vec(0, 0, 0), 1); // dimensions and reference corner
   // particle shape, size and percentage
   REAL ptcl_ratio_ba = 0.8;  // ratio of radius b to radius a
   REAL ptcl_ratio_ca = 0.6;  // ratio of radius c to radius a
@@ -106,6 +100,7 @@ int main(int argc, char* argv[])
 			 "trm_particle_end", // output file, resulted particles after trmming
 			 "trm_boundary_end", // output file, resulted boundaries after trmming
 			 "dep_debug");       // output file, debug 
+
   /*
   sample.deposit(100,                // total_steps
 		 10,                  // number of snapshots
