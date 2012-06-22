@@ -60,19 +60,19 @@ namespace dem {
     
     void display() const{
       cout << "order: " << order << endl;
-      cout << "dirc: " << dirc.getx() << " " << dirc.gety() << " " << dirc.getz() << endl;
-      cout << "apt: " << apt.getx() << " " << apt.gety() << " " << apt.getz() << endl;
+      cout << "dirc: " << dirc.getX() << " " << dirc.getY() << " " << dirc.getZ() << endl;
+      cout << "apt: " << apt.getX() << " " << apt.getY() << " " << apt.getZ() << endl;
       cout << "radius: " << rad << " side: " << side << endl;
     }
     
     void display(std::ofstream &ofs) const{
       ofs << setw(OWID) << order
-	  << setw(OWID) << dirc.getx()
-	  << setw(OWID) << dirc.gety()
-	  << setw(OWID) << dirc.getz()
-	  << setw(OWID) << apt.getx()
-	  << setw(OWID) << apt.gety()
-	  << setw(OWID) << apt.getz()
+	  << setw(OWID) << dirc.getX()
+	  << setw(OWID) << dirc.getY()
+	  << setw(OWID) << dirc.getZ()
+	  << setw(OWID) << apt.getX()
+	  << setw(OWID) << apt.getY()
+	  << setw(OWID) << apt.getZ()
 	  << setw(OWID) << rad
 	  << setw(OWID) << side << std::endl;
     }
@@ -88,9 +88,9 @@ namespace dem {
     updatectl() {tran=0;rote=0;fixpt=0;expnd=1;}
     
     void display() const{
-      cout << "tran: " << tran.getx() << " " << tran.gety() << " " << tran.getz() << endl;
-      cout << "rote: " << rote.getx() << " " << rote.gety() << " " << rote.getz() << endl;
-      cout << "fixpt: " << fixpt.getx() << " " << fixpt.gety() << " " << fixpt.getz() << endl;
+      cout << "tran: " << tran.getX() << " " << tran.getY() << " " << tran.getZ() << endl;
+      cout << "rote: " << rote.getX() << " " << rote.getY() << " " << rote.getZ() << endl;
+      cout << "fixpt: " << fixpt.getX() << " " << fixpt.getY() << " " << fixpt.getZ() << endl;
       cout << "expand:" << expnd << endl;
     };
     
@@ -219,7 +219,7 @@ Vec plnBoundary<T>::getDirc() const{
 template<class T>
 void plnBoundary<T>::display() const{
   Boundary<T>::display();
-  cout << "normal: " << normal.getx() << " " << normal.gety() << " " << normal.getz() << endl;
+  cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << endl;
   typename std::vector<T*>::const_iterator it;
   int i=0;
   for(it=possBdryParticle.begin();it!=possBdryParticle.end();++it){
@@ -333,7 +333,7 @@ template<class T> class cylBoundary:public Boundary<T>{
 template<class T>
 void cylBoundary<T>::display() const{
   Boundary<T>::display();
-  cout << "normal: " << normal.getx() << " " << normal.gety() << " " << normal.getz() << endl;
+  cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << endl;
   typename std::vector<T*>::const_iterator it;
   int i=0;
   for(it=possBdryParticle.begin();it!=possBdryParticle.end();++it){

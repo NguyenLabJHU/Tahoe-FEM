@@ -15,22 +15,22 @@ namespace dem {
     
     Rectangle(REAL dx, REAL dy, REAL dz, Vec c)
       :dimx(dx), dimy(dy), dimz(dz), center(c) {
-      v1.setx( c.getx() - dx/2.0);
-      v1.sety( c.gety() - dy/2.0);
-      v1.setz( c.getz() - dz/2.0);
-      v2.setx( c.getx() + dx/2.0);
-      v2.sety( c.gety() + dy/2.0);
-      v2.setz( c.getz() + dz/2.0);
+      v1.setX( c.getX() - dx/2.0);
+      v1.setY( c.getY() - dy/2.0);
+      v1.setZ( c.getZ() - dz/2.0);
+      v2.setX( c.getX() + dx/2.0);
+      v2.setY( c.getY() + dy/2.0);
+      v2.setZ( c.getZ() + dz/2.0);
     }
 		     
     Rectangle(REAL dx, REAL dy, REAL dz, Vec ref, int i)
       :dimx(dx), dimy(dy), dimz(dz), v1(ref){
-      center.setx(v1.getx() + dx/2.0);
-      center.sety(v1.gety() + dy/2.0);
-      center.setz(v1.getz() + dz/2.0);
-      v2.setx(v1.getx() + dx);
-      v2.sety(v1.gety() + dy);
-      v2.setz(v1.getz() + dz);
+      center.setX(v1.getX() + dx/2.0);
+      center.setY(v1.getY() + dy/2.0);
+      center.setZ(v1.getZ() + dz/2.0);
+      v2.setX(v1.getX() + dx);
+      v2.setY(v1.getY() + dy);
+      v2.setZ(v1.getZ() + dz);
     }
   
     Rectangle(REAL x1, REAL y1, REAL z1, REAL x2, REAL y2, REAL z2)
@@ -42,9 +42,9 @@ namespace dem {
       :v1(_v1), v2(_v2) {
       center = (v1 + v2) / 2;
       Vec vt = v2 - v1;
-      dimx = vt.getx();
-      dimy = vt.gety();
-      dimz = vt.getz();
+      dimx = vt.getX();
+      dimy = vt.getY();
+      dimz = vt.getZ();
     }
 
     REAL getDimx() const {return dimx;}
@@ -68,12 +68,12 @@ namespace dem {
       dimy = dy;
       dimz = dz;
       center = c;
-      v1.setx( c.getx() - dx/2.0);
-      v1.sety( c.gety() - dy/2.0);
-      v1.setz( c.getz() - dz/2.0);
-      v2.setx( c.getx() + dx/2.0);
-      v2.sety( c.gety() + dy/2.0);
-      v2.setz( c.getz() + dz/2.0);
+      v1.setX( c.getX() - dx/2.0);
+      v1.setY( c.getY() - dy/2.0);
+      v1.setZ( c.getZ() - dz/2.0);
+      v2.setX( c.getX() + dx/2.0);
+      v2.setY( c.getY() + dy/2.0);
+      v2.setZ( c.getZ() + dz/2.0);
     }
     
   private:

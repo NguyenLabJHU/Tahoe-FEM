@@ -144,11 +144,11 @@ void Assembly::depositIntoContainer()
 	  "dep_boundary");
 
   if (mpiRank == 0) {
-    setContainer(Rectangle(allContainer.getMinCorner().getx(),
-			   allContainer.getMinCorner().gety(),
-			   allContainer.getMinCorner().getz(),
-			   allContainer.getMaxCorner().getx(),
-			   allContainer.getMaxCorner().gety(),
+    setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			   allContainer.getMinCorner().getY(),
+			   allContainer.getMinCorner().getZ(),
+			   allContainer.getMaxCorner().getX(),
+			   allContainer.getMaxCorner().getY(),
 			   trimHeight));
     buildBoundary("trm_boundary");
     trim(false,
@@ -254,15 +254,15 @@ generateParticle(int freeType,
     offset = diameter*0.25;
   }
   
-  REAL x1 = allContainer.getMinCorner().getx() + edge;
-  REAL y1 = allContainer.getMinCorner().gety() + edge;
-  REAL z1 = allContainer.getMinCorner().getz() + diameter;
-  REAL x2 = allContainer.getMaxCorner().getx() - edge;
-  REAL y2 = allContainer.getMaxCorner().gety() - edge;
-  REAL z2 = allContainer.getMaxCorner().getz() - diameter;
-  REAL x0 = allContainer.getCenter().getx();
-  REAL y0 = allContainer.getCenter().gety();
-  REAL z0 = allContainer.getCenter().getz();
+  REAL x1 = allContainer.getMinCorner().getX() + edge;
+  REAL y1 = allContainer.getMinCorner().getY() + edge;
+  REAL z1 = allContainer.getMinCorner().getZ() + diameter;
+  REAL x2 = allContainer.getMaxCorner().getX() - edge;
+  REAL y2 = allContainer.getMaxCorner().getY() - edge;
+  REAL z2 = allContainer.getMaxCorner().getZ() - diameter;
+  REAL x0 = allContainer.getCenter().getX();
+  REAL y0 = allContainer.getCenter().getY();
+  REAL z0 = allContainer.getCenter().getZ();
 
   if (freeType == 0) {      // just one free particle
     newptcl = new Particle(particleNum+1, 0, Vec(x0,y0,z0), gradation, YOUNG, POISSON);
@@ -304,24 +304,25 @@ trim(bool toRebuild,
   Vec  v1 = allContainer.getMinCorner();
   Vec  v2 = allContainer.getMaxCorner();
   Vec  v0 = allContainer.getCenter();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
-  REAL x0 = v0.getx();
-  REAL y0 = v0.gety();
-  REAL z0 = v0.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
+  REAL x0 = v0.getX();
+  REAL y0 = v0.getY();
+  REAL z0 = v0.getZ();
+  REAL maxR = gradation.getPtclMaxRadius();
  
   std::vector<Particle*>::iterator itr;
   Vec center;
 
   for (itr = allParticleVec.begin(); itr != allParticleVec.end(); ){
     center=(*itr)->getCurrPos();
-    if(center.getx() <= x1 || center.getx() >= x2 ||
-       center.gety() <= y1 || center.gety() >= y2 ||
-       center.getz() <= z1 || center.getz() + gradation.getPtclMaxRadius() > z2)
+    if(center.getX() < x1 || center.getX() > x2 ||
+       center.getY() < y1 || center.getY() > y2 ||
+       center.getZ() < z1 || center.getZ() + maxR > z2)
       {
 	delete (*itr); // release memory
 	itr = allParticleVec.erase(itr); 
@@ -381,17 +382,17 @@ findParticleInRectangle(Rectangle &container,
 			std::vector<Particle*> &foundParticle) {
   Vec  v1 = container.getMinCorner();
   Vec  v2 = container.getMaxCorner();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
   for (int pt = 0; pt < inputParticle.size(); ++pt) {
     Vec center = inputParticle[pt]->getCurrPos();
-    if (center.getx() >= x1 && center.getx() < x2 &&
-	center.gety() >= y1 && center.gety() < y2 &&
-	center.getz() >= z1 && center.getz() < z2)
+    if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
+	center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
+	center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS)
       foundParticle.push_back(inputParticle[pt]);
   }
 }
@@ -399,10 +400,10 @@ findParticleInRectangle(Rectangle &container,
 
 REAL Assembly::getPtclMaxZ() const {
   std::vector<Particle*>::const_iterator it = allParticleVec.begin();
-  REAL z0 = (*it)->getCurrPos().getz();
+  REAL z0 = (*it)->getCurrPos().getZ();
   for (; it != allParticleVec.end(); ++it) {
-    if ( (*it)->getCurrPos().getz() > z0 )
-      z0 = (*it)->getCurrPos().getz();
+    if ( (*it)->getCurrPos().getZ() > z0 )
+      z0 = (*it)->getCurrPos().getZ();
   }
   return z0;
 }
@@ -412,11 +413,11 @@ void Assembly::partiCommuParticle() {
 
   // update allContainer dynamically due to particle motion
   if (mpiRank == 0) {
-    setContainer(Rectangle(allContainer.getMinCorner().getx(),
-			   allContainer.getMinCorner().gety(),
-			   allContainer.getMinCorner().getz(),
-			   allContainer.getMaxCorner().getx(),
-			   allContainer.getMaxCorner().gety(),
+    setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			   allContainer.getMinCorner().getY(),
+			   allContainer.getMinCorner().getZ(),
+			   allContainer.getMaxCorner().getX(),
+			   allContainer.getMaxCorner().getY(),
 			   getPtclMaxZ() + gradation.getPtclMaxRadius() ));
   }
 
@@ -435,12 +436,12 @@ void Assembly::partiCommuParticle() {
       int ndim = 3;
       int coords[3];
       MPI_Cart_coords(cartComm, iRank, ndim, coords);
-      Rectangle container(v1.getx() + vspan.getx() / NPX * coords[0],
-			  v1.gety() + vspan.gety() / NPY * coords[1],
-			  v1.getz() + vspan.getz() / NPZ * coords[2],
-			  v1.getx() + vspan.getx() / NPX * (coords[0] + 1),
-			  v1.gety() + vspan.gety() / NPY * (coords[1] + 1),
-			  v1.getz() + vspan.getz() / NPZ * (coords[2] + 1));
+      Rectangle container(v1.getX() + vspan.getX() / NPX * coords[0],
+			  v1.getY() + vspan.getY() / NPY * coords[1],
+			  v1.getZ() + vspan.getZ() / NPZ * coords[2],
+			  v1.getX() + vspan.getX() / NPX * (coords[0] + 1),
+			  v1.getY() + vspan.getY() / NPY * (coords[1] + 1),
+			  v1.getZ() + vspan.getZ() / NPZ * (coords[2] + 1));
       findParticleInRectangle(container, allParticleVec, particleVec);
       if (iRank != 0)
 	boostWorld.send(iRank, mpiTag, particleVec);
@@ -453,12 +454,12 @@ void Assembly::partiCommuParticle() {
   Vec v1 = allContainer.getMinCorner();
   Vec v2 = allContainer.getMaxCorner();
   Vec vspan = v2 - v1;
-  container = Rectangle(v1.getx() + vspan.getx() / NPX * mpiCoords[0],
-			v1.gety() + vspan.gety() / NPY * mpiCoords[1],
-			v1.getz() + vspan.getz() / NPZ * mpiCoords[2],
-			v1.getx() + vspan.getx() / NPX * (mpiCoords[0] + 1),
-			v1.gety() + vspan.gety() / NPY * (mpiCoords[1] + 1),
-			v1.getz() + vspan.getz() / NPZ * (mpiCoords[2] + 1));
+  container = Rectangle(v1.getX() + vspan.getX() / NPX * mpiCoords[0],
+			v1.getY() + vspan.getY() / NPY * mpiCoords[1],
+			v1.getZ() + vspan.getZ() / NPZ * mpiCoords[2],
+			v1.getX() + vspan.getX() / NPX * (mpiCoords[0] + 1),
+			v1.getY() + vspan.getY() / NPY * (mpiCoords[1] + 1),
+			v1.getZ() + vspan.getZ() / NPZ * (mpiCoords[2] + 1));
 
   // find neighboring blocks
   int rankX1 = -1, rankX2 = -1, rankY1 = -1, rankY2 = -1, rankZ1 = -1, rankZ2 = -1;
@@ -645,185 +646,185 @@ void Assembly::partiCommuParticle() {
   REAL cellSize = gradation.getPtclMaxRadius() * 2;
   // 6 surfaces
   if (rankX1 >= 0) { // surface x1
-    Rectangle containerX1(v1.getx(), v1.gety(), v1.getz(), 
-			  v1.getx() + cellSize, v2.gety(), v2.getz());
+    Rectangle containerX1(v1.getX(), v1.getY(), v1.getZ(), 
+			  v1.getX() + cellSize, v2.getY(), v2.getZ());
     findParticleInRectangle(containerX1, particleVec, particleX1);
     reqX1[0] = boostWorld.isend(rankX1, mpiTag,  particleX1);
     reqX1[1] = boostWorld.irecv(rankX1, mpiTag, rParticleX1);
   }
   if (rankX2 >= 0) { // surface x2
-    Rectangle containerX2(v2.getx() - cellSize, v1.gety(), v1.getz(),
-			  v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerX2(v2.getX() - cellSize, v1.getY(), v1.getZ(),
+			  v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerX2, particleVec, particleX2);
     reqX2[0] = boostWorld.isend(rankX2, mpiTag,  particleX2);
     reqX2[1] = boostWorld.irecv(rankX2, mpiTag, rParticleX2);
   }
   if (rankY1 >= 0) {  // surface y1
-    Rectangle containerY1(v1.getx(), v1.gety(), v1.getz(), 
-			  v2.getx(), v1.gety() + cellSize, v2.getz());
+    Rectangle containerY1(v1.getX(), v1.getY(), v1.getZ(), 
+			  v2.getX(), v1.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerY1, particleVec, particleY1);
     reqY1[0] = boostWorld.isend(rankY1, mpiTag,  particleY1);
     reqY1[1] = boostWorld.irecv(rankY1, mpiTag, rParticleY1);
   }
   if (rankY2 >= 0) {  // surface y2
-    Rectangle containerY2(v1.getx(), v2.gety() - cellSize, v1.getz(),
-			  v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerY2(v1.getX(), v2.getY() - cellSize, v1.getZ(),
+			  v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerY2, particleVec, particleY2);
     reqY2[0] = boostWorld.isend(rankY2, mpiTag,  particleY2);
     reqY2[1] = boostWorld.irecv(rankY2, mpiTag, rParticleY2);
   }
   if (rankZ1 >= 0) {  // surface z1
-    Rectangle containerZ1(v1.getx(), v1.gety(), v1.getz(),
-			  v2.getx(), v2.gety(), v1.getz() + cellSize);
+    Rectangle containerZ1(v1.getX(), v1.getY(), v1.getZ(),
+			  v2.getX(), v2.getY(), v1.getZ() + cellSize);
     findParticleInRectangle(containerZ1, particleVec, particleZ1);
     reqZ1[0] = boostWorld.isend(rankZ1, mpiTag,  particleZ1);
     reqZ1[1] = boostWorld.irecv(rankZ1, mpiTag, rParticleZ1);
   }
   if (rankZ2 >= 0) {  // surface z2
-    Rectangle containerZ2(v1.getx(), v1.gety(), v2.getz() - cellSize,
-			  v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
+			  v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerZ2, particleVec, particleZ2);
     reqZ2[0] = boostWorld.isend(rankZ2, mpiTag,  particleZ2);
     reqZ2[1] = boostWorld.irecv(rankZ2, mpiTag, rParticleZ2);
   }
   // 12 edges
   if (rankX1Y1 >= 0) { // edge x1y1
-    Rectangle containerX1Y1(v1.getx(), v1.gety(), v1.getz(),
-			    v1.getx() + cellSize, v1.gety() + cellSize, v2.getz());
+    Rectangle containerX1Y1(v1.getX(), v1.getY(), v1.getZ(),
+			    v1.getX() + cellSize, v1.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerX1Y1, particleVec, particleX1Y1);
     reqX1Y1[0] = boostWorld.isend(rankX1Y1, mpiTag,  particleX1Y1);
     reqX1Y1[1] = boostWorld.irecv(rankX1Y1, mpiTag, rParticleX1Y1);
   }
   if (rankX1Y2 >= 0) { // edge x1y2
-    Rectangle containerX1Y2(v1.getx(), v2.gety() - cellSize, v1.getz(),
-			    v1.getx() + cellSize, v2.gety(), v2.getz());
+    Rectangle containerX1Y2(v1.getX(), v2.getY() - cellSize, v1.getZ(),
+			    v1.getX() + cellSize, v2.getY(), v2.getZ());
     findParticleInRectangle(containerX1Y2, particleVec, particleX1Y2);
     reqX1Y2[0] = boostWorld.isend(rankX1Y2, mpiTag,  particleX1Y2);
     reqX1Y2[1] = boostWorld.irecv(rankX1Y2, mpiTag, rParticleX1Y2);
   }
   if (rankX1Z1 >= 0) { // edge x1z1
-    Rectangle containerX1Z1(v1.getx(), v1.gety(), v1.getz(),
-			    v1.getx() + cellSize, v2.gety(), v1.getz() + cellSize);
+    Rectangle containerX1Z1(v1.getX(), v1.getY(), v1.getZ(),
+			    v1.getX() + cellSize, v2.getY(), v1.getZ() + cellSize);
     findParticleInRectangle(containerX1Z1, particleVec, particleX1Z1);
     reqX1Z1[0] = boostWorld.isend(rankX1Z1, mpiTag,  particleX1Z1);
     reqX1Z1[1] = boostWorld.irecv(rankX1Z1, mpiTag, rParticleX1Z1);
   }
   if (rankX1Z2 >= 0) { // edge x1z2
-    Rectangle containerX1Z2(v1.getx(), v1.gety(), v2.getz() - cellSize,
-			    v1.getx() + cellSize, v2.gety(), v2.getz());
+    Rectangle containerX1Z2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
+			    v1.getX() + cellSize, v2.getY(), v2.getZ());
     findParticleInRectangle(containerX1Z2, particleVec, particleX1Z2);
     reqX1Z2[0] = boostWorld.isend(rankX1Z2, mpiTag,  particleX1Z2);
     reqX1Z2[1] = boostWorld.irecv(rankX1Z2, mpiTag, rParticleX1Z2);
   }
   if (rankX2Y1 >= 0) { // edge x2y1
-    Rectangle containerX2Y1(v2.getx() - cellSize, v1.gety(), v1.getz(),
-			    v2.getx(), v1.gety() + cellSize, v2.getz());
+    Rectangle containerX2Y1(v2.getX() - cellSize, v1.getY(), v1.getZ(),
+			    v2.getX(), v1.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerX2Y1, particleVec, particleX2Y1);
     reqX2Y1[0] = boostWorld.isend(rankX2Y1, mpiTag,  particleX2Y1);
     reqX2Y1[1] = boostWorld.irecv(rankX2Y1, mpiTag, rParticleX2Y1);
   }
   if (rankX2Y2 >= 0) { // edge x2y2
-    Rectangle containerX2Y2(v2.getx() - cellSize, v2.gety() - cellSize, v1.getz(),
-			    v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerX2Y2(v2.getX() - cellSize, v2.getY() - cellSize, v1.getZ(),
+			    v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerX2Y2, particleVec, particleX2Y2);
     reqX2Y2[0] = boostWorld.isend(rankX2Y2, mpiTag,  particleX2Y2);
     reqX2Y2[1] = boostWorld.irecv(rankX2Y2, mpiTag, rParticleX2Y2);
   }
   if (rankX2Z1 >= 0) { // edge x2z1
-    Rectangle containerX2Z1(v2.getx() - cellSize, v1.gety(), v1.getz(),
-			    v2.getx(), v2.gety(), v1.getz() + cellSize);
+    Rectangle containerX2Z1(v2.getX() - cellSize, v1.getY(), v1.getZ(),
+			    v2.getX(), v2.getY(), v1.getZ() + cellSize);
     findParticleInRectangle(containerX2Z1, particleVec, particleX2Z1);
     reqX2Z1[0] = boostWorld.isend(rankX2Z1, mpiTag,  particleX2Z1);
     reqX2Z1[1] = boostWorld.irecv(rankX2Z1, mpiTag, rParticleX2Z1);
   }
   if (rankX2Z2 >= 0) { // edge x2z2
-    Rectangle containerX2Z2(v2.getx() - cellSize, v1.gety(), v2.getz() - cellSize,
-			    v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerX2Z2(v2.getX() - cellSize, v1.getY(), v2.getZ() - cellSize,
+			    v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerX2Z2, particleVec, particleX2Z2);
     reqX2Z2[0] = boostWorld.isend(rankX2Z2, mpiTag,  particleX2Z2);
     reqX2Z2[1] = boostWorld.irecv(rankX2Z2, mpiTag, rParticleX2Z2);
   }
   if (rankY1Z1 >= 0) { // edge y1z1
-    Rectangle containerY1Z1(v1.getx(), v1.gety(), v1.getz(),
-			    v2.getx(), v1.gety() + cellSize, v1.getz() + cellSize);
+    Rectangle containerY1Z1(v1.getX(), v1.getY(), v1.getZ(),
+			    v2.getX(), v1.getY() + cellSize, v1.getZ() + cellSize);
     findParticleInRectangle(containerY1Z1, particleVec, particleY1Z1);
     reqY1Z1[0] = boostWorld.isend(rankY1Z1, mpiTag,  particleY1Z1);
     reqY1Z1[1] = boostWorld.irecv(rankY1Z1, mpiTag, rParticleY1Z1);
   }
   if (rankY1Z2 >= 0) { // edge y1z2
-    Rectangle containerY1Z2(v1.getx(), v1.gety(), v2.getz() - cellSize,
-			    v2.getx(), v1.gety() + cellSize, v2.getz());
+    Rectangle containerY1Z2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
+			    v2.getX(), v1.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerY1Z2, particleVec, particleY1Z2);
     reqY1Z2[0] = boostWorld.isend(rankY1Z2, mpiTag,  particleY1Z2);
     reqY1Z2[1] = boostWorld.irecv(rankY1Z2, mpiTag, rParticleY1Z2);
   }
   if (rankY2Z1 >= 0) { // edge y2z1
-    Rectangle containerY2Z1(v1.getx(), v2.gety() - cellSize, v1.getz(),
-			    v2.getx(), v2.gety(), v1.getz() + cellSize);
+    Rectangle containerY2Z1(v1.getX(), v2.getY() - cellSize, v1.getZ(),
+			    v2.getX(), v2.getY(), v1.getZ() + cellSize);
     findParticleInRectangle(containerY2Z1, particleVec, particleY2Z1);
     reqY2Z1[0] = boostWorld.isend(rankY2Z1, mpiTag,  particleY2Z1);
     reqY2Z1[1] = boostWorld.irecv(rankY2Z1, mpiTag, rParticleY2Z1);
   }
   if (rankY2Z2 >= 0) { // edge y2z2
-    Rectangle containerY2Z2(v1.getx(), v2.gety() - cellSize, v2.getz() - cellSize,
-			    v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerY2Z2(v1.getX(), v2.getY() - cellSize, v2.getZ() - cellSize,
+			    v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerY2Z2, particleVec, particleY2Z2);
     reqY2Z2[0] = boostWorld.isend(rankY2Z2, mpiTag,  particleY2Z2);
     reqY2Z2[1] = boostWorld.irecv(rankY2Z2, mpiTag, rParticleY2Z2);
   }
   // 8 vertices
   if (rankX1Y1Z1 >= 0) { // edge x1y1z1
-    Rectangle containerX1Y1Z1(v1.getx(), v1.gety(), v1.getz(),
-			      v1.getx() + cellSize, v1.gety() + cellSize, v1.getz() + cellSize);
+    Rectangle containerX1Y1Z1(v1.getX(), v1.getY(), v1.getZ(),
+			      v1.getX() + cellSize, v1.getY() + cellSize, v1.getZ() + cellSize);
     findParticleInRectangle(containerX1Y1Z1, particleVec, particleX1Y1Z1);
     reqX1Y1Z1[0] = boostWorld.isend(rankX1Y1Z1, mpiTag,  particleX1Y1Z1);
     reqX1Y1Z1[1] = boostWorld.irecv(rankX1Y1Z1, mpiTag, rParticleX1Y1Z1);
   }
   if (rankX1Y1Z2 >= 0) { // edge x1y1z2
-    Rectangle containerX1Y1Z2(v1.getx(), v1.gety(), v2.getz() - cellSize,
-			      v1.getx() + cellSize, v1.gety() + cellSize, v2.getz());
+    Rectangle containerX1Y1Z2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
+			      v1.getX() + cellSize, v1.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerX1Y1Z2, particleVec, particleX1Y1Z2);
     reqX1Y1Z2[0] = boostWorld.isend(rankX1Y1Z2, mpiTag,  particleX1Y1Z2);
     reqX1Y1Z2[1] = boostWorld.irecv(rankX1Y1Z2, mpiTag, rParticleX1Y1Z2);
   }
   if (rankX1Y2Z1 >= 0) { // edge x1y2z1
-    Rectangle containerX1Y2Z1(v1.getx(), v2.gety() - cellSize, v1.getz(),
-			      v1.getx() + cellSize, v2.gety(), v1.getz() + cellSize);
+    Rectangle containerX1Y2Z1(v1.getX(), v2.getY() - cellSize, v1.getZ(),
+			      v1.getX() + cellSize, v2.getY(), v1.getZ() + cellSize);
     findParticleInRectangle(containerX1Y2Z1, particleVec, particleX1Y2Z1);
     reqX1Y2Z1[0] = boostWorld.isend(rankX1Y2Z1, mpiTag,  particleX1Y2Z1);
     reqX1Y2Z1[1] = boostWorld.irecv(rankX1Y2Z1, mpiTag, rParticleX1Y2Z1);
   }
   if (rankX1Y2Z2 >= 0) { // edge x1y2z2
-    Rectangle containerX1Y2Z2(v1.getx(), v2.gety() - cellSize, v2.getz() - cellSize,
-			      v1.getx() + cellSize, v2.gety() + cellSize, v2.getz());
+    Rectangle containerX1Y2Z2(v1.getX(), v2.getY() - cellSize, v2.getZ() - cellSize,
+			      v1.getX() + cellSize, v2.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerX1Y2Z2, particleVec, particleX1Y2Z2);
     reqX1Y2Z2[0] = boostWorld.isend(rankX1Y2Z2, mpiTag,  particleX1Y2Z2);
     reqX1Y2Z2[1] = boostWorld.irecv(rankX1Y2Z2, mpiTag, rParticleX1Y2Z2);
   }
   if (rankX2Y1Z1 >= 0) { // edge x2y1z1
-    Rectangle containerX2Y1Z1(v2.getx() - cellSize, v1.gety(), v1.getz(),
-			      v2.getx(), v1.gety() + cellSize, v1.getz() + cellSize);
+    Rectangle containerX2Y1Z1(v2.getX() - cellSize, v1.getY(), v1.getZ(),
+			      v2.getX(), v1.getY() + cellSize, v1.getZ() + cellSize);
     findParticleInRectangle(containerX2Y1Z1, particleVec, particleX2Y1Z1);
     reqX2Y1Z1[0] = boostWorld.isend(rankX2Y1Z1, mpiTag,  particleX2Y1Z1);
     reqX2Y1Z1[1] = boostWorld.irecv(rankX2Y1Z1, mpiTag, rParticleX2Y1Z1);
   }
   if (rankX2Y1Z2 >= 0) { // edge x2y1z2
-    Rectangle containerX2Y1Z2(v2.getx() - cellSize, v1.gety(), v2.getz() - cellSize,
-			      v2.getx(), v1.gety() + cellSize, v2.getz());
+    Rectangle containerX2Y1Z2(v2.getX() - cellSize, v1.getY(), v2.getZ() - cellSize,
+			      v2.getX(), v1.getY() + cellSize, v2.getZ());
     findParticleInRectangle(containerX2Y1Z2, particleVec, particleX2Y1Z2);
     reqX2Y1Z2[0] = boostWorld.isend(rankX2Y1Z2, mpiTag,  particleX2Y1Z2);
     reqX2Y1Z2[1] = boostWorld.irecv(rankX2Y1Z2, mpiTag, rParticleX2Y1Z2);
   }
   if (rankX2Y2Z1 >= 0) { // edge x2y2z1
-    Rectangle containerX2Y2Z1(v2.getx() - cellSize, v2.gety() - cellSize, v1.getz(),
-			      v2.getx(), v2.gety(), v1.getz() + cellSize);
+    Rectangle containerX2Y2Z1(v2.getX() - cellSize, v2.getY() - cellSize, v1.getZ(),
+			      v2.getX(), v2.getY(), v1.getZ() + cellSize);
     findParticleInRectangle(containerX2Y2Z1, particleVec, particleX2Y2Z1);
     reqX2Y2Z1[0] = boostWorld.isend(rankX2Y2Z1, mpiTag,  particleX2Y2Z1);
     reqX2Y2Z1[1] = boostWorld.irecv(rankX2Y2Z1, mpiTag, rParticleX2Y2Z1);
   }
   if (rankX2Y2Z2 >= 0) { // edge x2y2z2
-    Rectangle containerX2Y2Z2(v2.getx() - cellSize, v2.gety() - cellSize, v2.getz() - cellSize,
-			      v2.getx(), v2.gety(), v2.getz());
+    Rectangle containerX2Y2Z2(v2.getX() - cellSize, v2.getY() - cellSize, v2.getZ() - cellSize,
+			      v2.getX(), v2.getY(), v2.getZ());
     findParticleInRectangle(containerX2Y2Z2, particleVec, particleX2Y2Z2);
     reqX2Y2Z2[0] = boostWorld.isend(rankX2Y2Z2, mpiTag,  particleX2Y2Z2);
     reqX2Y2Z2[1] = boostWorld.irecv(rankX2Y2Z2, mpiTag, rParticleX2Y2Z2);
@@ -891,20 +892,29 @@ void Assembly::partiCommuParticle() {
   recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
 
   ///*
-  std::cout << "iter=" << iteration << " rank=" << setw(4) << mpiRank 
-	    << " particleNum=" << setw(4) << particleVec.size() << " surface="
+  std::vector<Particle*> testParticleVec;
+  testParticleVec.insert(testParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
+  testParticleVec.insert(testParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
+  testParticleVec.insert(testParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
+  testParticleVec.insert(testParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
+  testParticleVec.insert(testParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
+  testParticleVec.insert(testParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
+  std::cout << "iter=" << setw(4) << iteration << " rank=" << setw(4) << mpiRank 
+	    << " ptclNum=" << setw(4) << particleVec.size() << " surface="
 	    << setw(4) << particleX1.size()  << setw(4) << particleX2.size()
 	    << setw(4) << particleY1.size()  << setw(4) << particleY2.size()
-	    << setw(4) << particleZ1.size()  << setw(4) << particleZ2.size()  << " recv_surface="
+	    << setw(4) << particleZ1.size()  << setw(4) << particleZ2.size()  << " recv="
 	    << setw(4) << rParticleX1.size() << setw(4) << rParticleX2.size()
 	    << setw(4) << rParticleY1.size() << setw(4) << rParticleY2.size()
 	    << setw(4) << rParticleZ1.size() << setw(4) << rParticleZ2.size() << " rNum="    
-	    << setw(4) << recvParticleVec.size()   
-	    << "\n" << std::flush;
-
-  //for (std::vector<Particle*>::const_iterator it = recvParticleVec.begin(); it != recvParticleVec.end();++it)
-  //  cout << (*it)->getId() << ' ' << flush;
-  //cout << "\n" << flush;
+	    << setw(4) << recvParticleVec.size() << ": ";   
+  //<< "\n" << std::flush;
+  //*/
+  ///*
+  for (std::vector<Particle*>::const_iterator it = testParticleVec.begin(); it != testParticleVec.end();++it)
+    cout << (*it)->getId() << ' ';
+  cout << "\n" << flush;
+  testParticleVec.clear();
   //*/
 }
 
@@ -1135,44 +1145,44 @@ void Assembly::printParticle(const char* str) const {
 	<< setw(OWID) << (*it)->getC();
     
     vObj=(*it)->getCurrPos();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getCurrDirecA();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getCurrDirecB();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getCurrDirecC();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getCurrVeloc();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getCurrOmga();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getForce();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz();
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ();
     
     vObj=(*it)->getMoment();
-    ofs << setw(OWID) << vObj.getx()
-	<< setw(OWID) << vObj.gety()
-	<< setw(OWID) << vObj.getz() << endl;
+    ofs << setw(OWID) << vObj.getX()
+	<< setw(OWID) << vObj.getY()
+	<< setw(OWID) << vObj.getZ() << endl;
   }
   
   int sieveNum = gradation.getSieveNum();
@@ -1222,12 +1232,12 @@ void Assembly::printBoundary(const char* str) const {
   
   Vec v1 = allContainer.getMinCorner();
   Vec v2 = allContainer.getMaxCorner();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
   
   ofs << setw(OWID) << x1 << setw(OWID) << y1 << setw(OWID) << z1
       << setw(OWID) << x2 << setw(OWID) << y2 << setw(OWID) << z2 << endl
@@ -1251,12 +1261,12 @@ void Assembly::plotBoundary(const char *str) const {
   ofs.precision(OPREC);
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = allContainer.getMinCorner().getx();
-  y1 = allContainer.getMinCorner().gety();
-  z1 = allContainer.getMinCorner().getz();
-  x2 = allContainer.getMaxCorner().getx();
-  y2 = allContainer.getMaxCorner().gety();
-  z2 = allContainer.getMaxCorner().getz();
+  x1 = allContainer.getMinCorner().getX();
+  y1 = allContainer.getMinCorner().getY();
+  z1 = allContainer.getMinCorner().getZ();
+  x2 = allContainer.getMaxCorner().getX();
+  y2 = allContainer.getMaxCorner().getY();
+  z2 = allContainer.getMaxCorner().getZ();
 
   ofs << "ZONE N=8, E=1, DATAPACKING=POINT, ZONETYPE=FEBRICK" << endl;
   ofs << setw(OWID) << x2 << setw(OWID) << y1 << setw(OWID) << z1 << endl;
@@ -1326,13 +1336,13 @@ void Assembly::internalForce(){
   }
   else{
     for (std::vector<CONTACT>::iterator it = contactVec.begin(); it != contactVec.end(); ++it)
-      it->checkinPreTgt(contactTgtVec); // checkin previous tangential force and displacment    
-    
-    contactTgtVec.clear(); // contactTgtVec must be cleared before filling in new values.
+      it->checkinPrevTgt(contactTgtVec); // checkin previous tangential force and displacment    
     
 #ifdef TIME_PROFILE
     gettimeofday(&time_p1,NULL); 
 #endif 
+
+    contactTgtVec.clear(); // contactTgtVec must be cleared before filling in new values.
     for (std::vector<CONTACT>::iterator it = contactVec.begin(); it != contactVec.end(); ++ it){
       it->contactForce();             // cannot be parallelized as it may change a particle's force simultaneously.
       it->checkoutTgt(contactTgtVec); // checkout current tangential force and displacment
@@ -1386,12 +1396,12 @@ void Assembly::plotCavity(const char *str) const {
   ofs.precision(OPREC);
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = cavity.getMinCorner().getx();
-  y1 = cavity.getMinCorner().gety();
-  z1 = cavity.getMinCorner().getz();
-  x2 = cavity.getMaxCorner().getx();
-  y2 = cavity.getMaxCorner().gety();
-  z2 = cavity.getMaxCorner().getz();
+  x1 = cavity.getMinCorner().getX();
+  y1 = cavity.getMinCorner().getY();
+  z1 = cavity.getMinCorner().getZ();
+  x2 = cavity.getMaxCorner().getX();
+  y2 = cavity.getMaxCorner().getY();
+  z2 = cavity.getMaxCorner().getZ();
 
   ofs << "ZONE N=8, E=1, DATAPACKING=POINT, ZONETYPE=FEBRICK" << endl;
   ofs << setw(OWID) << x2 << setw(OWID) << y1 << setw(OWID) << z1 << endl;
@@ -1429,7 +1439,7 @@ void Assembly::plotSpring(const char *str) const {
       for (int k = 0; k < memBoundary[i][j].size(); ++k) {
 	pt = memBoundary[i][j][k]; 
 	vt = pt->getCurrPos();
-	ofs << setw(OWID) << vt.getx() << setw(OWID) << vt.gety() << setw(OWID) << vt.getz() << endl;
+	ofs << setw(OWID) << vt.getX() << setw(OWID) << vt.getY() << setw(OWID) << vt.getZ() << endl;
       }
   for (int i = 0; i < springVec.size(); ++i) {
     ofs << setw(OWID) << springVec[i]->getParticleId1() - trimHistoryNum  << setw(OWID) << springVec[i]->getParticleId2() - trimHistoryNum << endl;
@@ -1453,9 +1463,9 @@ void Assembly::printMemParticle(const char* str) const  {
 	++totalMemParticle;
   
   ofs << setw(OWID) << totalMemParticle << setw(OWID) << 1 << endl;
-  ofs << setw(OWID) << container.getCenter().getx()
-      << setw(OWID) << container.getCenter().gety()
-      << setw(OWID) << container.getCenter().getz()
+  ofs << setw(OWID) << container.getCenter().getX()
+      << setw(OWID) << container.getCenter().getY()
+      << setw(OWID) << container.getCenter().getZ()
       << setw(OWID) << container.getDimx()
       << setw(OWID) << container.getDimy()
       << setw(OWID) << container.getDimz() << endl;
@@ -1504,44 +1514,44 @@ void Assembly::printMemParticle(const char* str) const  {
 	    << setw(OWID) << it->getC();
 	
 	vObj=it->getCurrPos();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getCurrDirecA();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getCurrDirecB();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getCurrDirecC();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getCurrVeloc();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getCurrOmga();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getForce();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	    << setw(OWID) << vObj.getz();
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	    << setw(OWID) << vObj.getZ();
 	
 	vObj=it->getMoment();
-	ofs << setw(OWID) << vObj.getx()
-	    << setw(OWID) << vObj.gety()
-	      << setw(OWID) << vObj.getz() << endl;
+	ofs << setw(OWID) << vObj.getX()
+	    << setw(OWID) << vObj.getY()
+	      << setw(OWID) << vObj.getZ() << endl;
       }
   ofs.close();  
 }
@@ -1563,11 +1573,11 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
 
   // surface x1
   vec2d = memBoundary[0];
-  in = vec2d[0][0]->getCurrPos().getx();
+  in = vec2d[0][0]->getCurrPos().getX();
   out= in;
   for (int i = 0; i < vec2d.size(); ++i)
     for (int j = 0; j < vec2d[i].size(); ++j) {
-      tmp = vec2d[i][j]->getCurrPos().getx();
+      tmp = vec2d[i][j]->getCurrPos().getX();
       if (tmp < out) out = tmp;
       if (tmp > in ) in  = tmp;
     }
@@ -1579,11 +1589,11 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
   // surface x2
   vec2d.clear();
   vec2d = memBoundary[1];
-  in = vec2d[0][0]->getCurrPos().getx();
+  in = vec2d[0][0]->getCurrPos().getX();
   out= in;
   for (int i = 0; i < vec2d.size(); ++i)
     for (int j = 0; j < vec2d[i].size(); ++j) {
-      tmp = vec2d[i][j]->getCurrPos().getx();
+      tmp = vec2d[i][j]->getCurrPos().getX();
       if (tmp > out) out = tmp;
       if (tmp < in ) in  = tmp;
     }
@@ -1595,11 +1605,11 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
   // surface y1
   vec2d.clear();
   vec2d = memBoundary[2];
-  in = vec2d[0][0]->getCurrPos().gety();
+  in = vec2d[0][0]->getCurrPos().getY();
   out= in;
   for (int i = 0; i < vec2d.size(); ++i)
     for (int j = 0; j < vec2d[i].size(); ++j) {
-      tmp = vec2d[i][j]->getCurrPos().gety();
+      tmp = vec2d[i][j]->getCurrPos().getY();
       if (tmp < out) out = tmp;
       if (tmp > in ) in  = tmp;
     }
@@ -1611,11 +1621,11 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
   // surface y2
   vec2d.clear();
   vec2d = memBoundary[3];
-  in = vec2d[0][0]->getCurrPos().gety();
+  in = vec2d[0][0]->getCurrPos().getY();
   out= in;
   for (int i = 0; i < vec2d.size(); ++i)
     for (int j = 0; j < vec2d[i].size(); ++j) {
-      tmp = vec2d[i][j]->getCurrPos().gety();
+      tmp = vec2d[i][j]->getCurrPos().getY();
       if (tmp > out) out = tmp;
       if (tmp < in ) in  = tmp;
     }
@@ -1627,11 +1637,11 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
   // surface z1
   vec2d.clear();
   vec2d = memBoundary[4];
-  in = vec2d[0][0]->getCurrPos().getz();
+  in = vec2d[0][0]->getCurrPos().getZ();
   out= in;
   for (int i = 0; i < vec2d.size(); ++i)
     for (int j = 0; j < vec2d[i].size(); ++j) {
-      tmp = vec2d[i][j]->getCurrPos().getz();
+      tmp = vec2d[i][j]->getCurrPos().getZ();
       if (tmp < out) out = tmp;
       if (tmp > in ) in  = tmp;
     }
@@ -1643,11 +1653,11 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
   // surface z2
   vec2d.clear();
   vec2d = memBoundary[5];
-  in = vec2d[0][0]->getCurrPos().getz();
+  in = vec2d[0][0]->getCurrPos().getZ();
   out= in;
   for (int i = 0; i < vec2d.size(); ++i)
     for (int j = 0; j < vec2d[i].size(); ++j) {
-      tmp = vec2d[i][j]->getCurrPos().getz();
+      tmp = vec2d[i][j]->getCurrPos().getZ();
       if (tmp > out) out = tmp;
       if (tmp < in ) in  = tmp;
     }
@@ -1709,12 +1719,12 @@ void Assembly::printContact(const char* str) const
     for (it=contactVec.begin();it!=contactVec.end();++it)
 	ofs << setw(OWID) << it->getP1()->getId()
 	    << setw(OWID) << it->getP2()->getId()
-	    << setw(OWID) << it->getPoint1().getx()
-	    << setw(OWID) << it->getPoint1().gety()
-	    << setw(OWID) << it->getPoint1().getz()
-	    << setw(OWID) << it->getPoint2().getx()
-	    << setw(OWID) << it->getPoint2().gety()
-	    << setw(OWID) << it->getPoint2().getz()
+	    << setw(OWID) << it->getPoint1().getX()
+	    << setw(OWID) << it->getPoint1().getY()
+	    << setw(OWID) << it->getPoint1().getZ()
+	    << setw(OWID) << it->getPoint2().getX()
+	    << setw(OWID) << it->getPoint2().getY()
+	    << setw(OWID) << it->getPoint2().getZ()
 	    << setw(OWID) << it->getRadius1()
 	    << setw(OWID) << it->getRadius2()
 	    << setw(OWID) << it->getPenetration()
@@ -1724,15 +1734,15 @@ void Assembly::printContact(const char* str) const
 	    << setw(OWID) << it->getE0()
 	    << setw(OWID) << it->getNormalForce()
 	    << setw(OWID) << it->getTgtForce()
-	    << setw(OWID) << ( it->getPoint1().getx()+it->getPoint2().getx() )/2
-	    << setw(OWID) << ( it->getPoint1().gety()+it->getPoint2().gety() )/2
-	    << setw(OWID) << ( it->getPoint1().getz()+it->getPoint2().getz() )/2
-	    << setw(OWID) << it->NormalForceVec().getx()
-	    << setw(OWID) << it->NormalForceVec().gety()
-	    << setw(OWID) << it->NormalForceVec().getz()
-	    << setw(OWID) << it->TgtForceVec().getx()
-	    << setw(OWID) << it->TgtForceVec().gety()
-	    << setw(OWID) << it->TgtForceVec().getz()
+	    << setw(OWID) << ( it->getPoint1().getX()+it->getPoint2().getX() )/2
+	    << setw(OWID) << ( it->getPoint1().getY()+it->getPoint2().getY() )/2
+	    << setw(OWID) << ( it->getPoint1().getZ()+it->getPoint2().getZ() )/2
+	    << setw(OWID) << it->NormalForceVec().getX()
+	    << setw(OWID) << it->NormalForceVec().getY()
+	    << setw(OWID) << it->NormalForceVec().getZ()
+	    << setw(OWID) << it->TgtForceVec().getX()
+	    << setw(OWID) << it->TgtForceVec().getY()
+	    << setw(OWID) << it->TgtForceVec().getZ()
 	    << setw(OWID) << it->getVibraTimeStep()
 	    << setw(OWID) << it->getImpactTimeStep()
 	    << endl;
@@ -2077,9 +2087,9 @@ void Assembly::findContact(){ // serial version, binning methods, cell slightly 
   REAL dy = container.getDimx() / ny;
   REAL dz = container.getDimx() *1.5 / nz;
   Vec  minCorner= container.getMinCorner();
-  REAL x0 = minCorner.getx();
-  REAL y0 = minCorner.gety();
-  REAL z0 = minCorner.getz();
+  REAL x0 = minCorner.getX();
+  REAL y0 = minCorner.getY();
+  REAL z0 = minCorner.getZ();
   
   // 26 neighbors of each cell
   int neighbor[26][3];
@@ -2124,9 +2134,9 @@ void Assembly::findContact(){ // serial version, binning methods, cell slightly 
 	z2 = z0 + dz * (k + 1);
 	for (int pt = 0; pt < particleVec.size(); ++pt) {
 	  center = particleVec[pt]->getCurrPos();
-	  if (center.getx() >= x1 && center.getx() < x2 &&
-	      center.gety() >= y1 && center.gety() < y2 &&
-	      center.getz() >= z1 && center.getz() < z2)
+	  if (center.getX() >= x1 && center.getX() < x2 &&
+	      center.getY() >= y1 && center.getY() < y2 &&
+	      center.getZ() >= z1 && center.getZ() < z2)
 	    cellVec[i][j][k].second.push_back( particleVec[pt] );
 	}
       }
@@ -2340,7 +2350,7 @@ Vec Assembly::getTopFreeParticlePosition() const {
     if (++kt!=particleVec.end()){ // case1: more than 2 particles; case 2: more than 1 particle
 	for(++it;it!=particleVec.end();++it){
 	    if ((*it)->getType()==0)
-		if ((*it)->getCurrPos().getz() > (*jt)->getCurrPos().getz())
+		if ((*it)->getCurrPos().getZ() > (*jt)->getCurrPos().getZ())
 		    jt=it;
 	}
 	return (*jt)->getCurrPos();
@@ -2360,7 +2370,7 @@ REAL Assembly::ellipPileForce() {
     REAL val=0;
     for(std::vector<Particle*>::iterator it=particleVec.begin();it!=particleVec.end();++it)
 	if ((*it)->getType()==3) {
-	    val = (*it)->getForce().getz();
+	    val = (*it)->getForce().getZ();
 	    break;
 	}
     return val;
@@ -2380,7 +2390,7 @@ REAL Assembly::ellipPileTipZ() {
     REAL val=0;
     for(std::vector<Particle*>::iterator it=particleVec.begin();it!=particleVec.end();++it)
 	if ((*it)->getType()==3) {
-	    val = (*it)->getCurrPos().getz()-(*it)->getA();
+	    val = (*it)->getCurrPos().getZ()-(*it)->getA();
 	    break;
 	}
     return val;
@@ -2388,14 +2398,14 @@ REAL Assembly::ellipPileTipZ() {
 
 REAL Assembly::ellipPilePeneVol() {
     REAL val=0;
-    if (getTopFreeParticlePosition().getz()-ellipPileTipZ()<=0)
+    if (getTopFreeParticlePosition().getZ()-ellipPileTipZ() <= 0)
 	val=0;
     else{
 	// low: a signed number as lower limit for volumetric integration
-	REAL low=ellipPileTipZ() + ellipPileDimn().getx() - getTopFreeParticlePosition().getz(); 
-	REAL lowint=low-pow(low,3)/3.0/pow(ellipPileDimn().getx(),2);
-	val = PI * ellipPileDimn().gety() * ellipPileDimn().getz()
-	      *(2.0/3*ellipPileDimn().getx()-lowint);
+	REAL low=ellipPileTipZ() + ellipPileDimn().getX() - getTopFreeParticlePosition().getZ(); 
+	REAL lowint=low-pow(low,3)/3.0/pow(ellipPileDimn().getX(),2);
+	val = PI * ellipPileDimn().getY() * ellipPileDimn().getZ()
+	      *(2.0/3*ellipPileDimn().getX()-lowint);
     }
     return val;
 }
@@ -2741,7 +2751,7 @@ void Assembly::angleOfRepose(int   interval,
 
   REAL maxRadius = gradation.getPtclMaxRadius();
   REAL maxDiameter = maxRadius * 2.0;
-  REAL z0 = container.getMinCorner().getz();
+  REAL z0 = container.getMinCorner().getZ();
   vector<Particle*> lastPtcls;
   Particle *newPtcl = NULL;
   int layers = 1; // how many layers of new particles to generate each time
@@ -2914,7 +2924,7 @@ void Assembly::angleOfRepose(int   interval,
       // 7. loop break conditions.
       ++iteration;
       
-    } while (particleNum < 2000); //( zCurr < container.getMaxCorner().getz() );  //(++iteration < totalSteps);
+    } while (particleNum < 2000); //( zCurr < container.getMaxCorner().getZ() );  //(++iteration < totalSteps);
     
     // post_1. store the final snapshot of particles & contacts.
     strcpy(stepsfp, ParticleFile); strcat(stepsfp, "_end");
@@ -2996,15 +3006,15 @@ void Assembly::trimCavity(bool toRebuild,
   trimHistoryNum = allParticleVec.size();
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = cavity.getMinCorner().getx();
-  y1 = cavity.getMinCorner().gety();
-  z1 = cavity.getMinCorner().getz();
-  x2 = cavity.getMaxCorner().getx();
-  y2 = cavity.getMaxCorner().gety();
-  z2 = cavity.getMaxCorner().getz();
-  x0 = cavity.getCenter().getx();
-  y0 = cavity.getCenter().gety();
-  z0 = cavity.getCenter().getz();
+  x1 = cavity.getMinCorner().getX();
+  y1 = cavity.getMinCorner().getY();
+  z1 = cavity.getMinCorner().getZ();
+  x2 = cavity.getMaxCorner().getX();
+  y2 = cavity.getMaxCorner().getY();
+  z2 = cavity.getMaxCorner().getZ();
+  x0 = cavity.getCenter().getX();
+  y0 = cavity.getCenter().getY();
+  z0 = cavity.getCenter().getZ();
  
   std::vector<Particle*>::iterator itr;
   Vec center;
@@ -3012,9 +3022,9 @@ void Assembly::trimCavity(bool toRebuild,
 
   for (itr = particleVec.begin(); itr != particleVec.end(); ){
     center=(*itr)->getCurrPos();
-    if(center.getx() + delta  >= x1 && center.getx() - delta <= x2 &&
-       center.gety() + delta  >= y1 && center.gety() - delta <= y2 &&
-       center.getz() + delta  >= z1 && center.getz() - delta <= z2 )
+    if(center.getX() + delta  >= x1 && center.getX() - delta <= x2 &&
+       center.getY() + delta  >= y1 && center.getY() - delta <= y2 &&
+       center.getZ() + delta  >= z1 && center.getZ() - delta <= z2 )
       {
 	delete (*itr); // release memory
 	itr = particleVec.erase(itr); 
@@ -3038,12 +3048,12 @@ void Assembly::expandCavityParticles(bool toRebuild,
   trimHistoryNum = allParticleVec.size();
 
   REAL x1,x2,y1,y2,z1,z2;
-  x1 = cavity.getMinCorner().getx();
-  y1 = cavity.getMinCorner().gety();
-  z1 = cavity.getMinCorner().getz();
-  x2 = cavity.getMaxCorner().getx();
-  y2 = cavity.getMaxCorner().gety();
-  z2 = cavity.getMaxCorner().getz();
+  x1 = cavity.getMinCorner().getX();
+  y1 = cavity.getMinCorner().getY();
+  z1 = cavity.getMinCorner().getZ();
+  x2 = cavity.getMaxCorner().getX();
+  y2 = cavity.getMaxCorner().getY();
+  z2 = cavity.getMaxCorner().getZ();
  
   std::vector<Particle*>::iterator itr;
   Vec center;
@@ -3051,9 +3061,9 @@ void Assembly::expandCavityParticles(bool toRebuild,
   int cavityPtclNum = 0;
   for (itr = particleVec.begin(); itr != particleVec.end(); ++itr ){
     center=(*itr)->getCurrPos();
-    if(center.getx() > x1 && center.getx() < x2 &&
-       center.gety() > y1 && center.gety() < y2 &&
-       center.getz() > z1 && center.getz() < z2 )
+    if(center.getX() > x1 && center.getX() < x2 &&
+       center.getY() > y1 && center.getY() < y2 &&
+       center.getZ() > z1 && center.getZ() < z2 )
       ++cavityPtclNum;
   }
 
@@ -3061,9 +3071,9 @@ void Assembly::expandCavityParticles(bool toRebuild,
 
   for (itr = particleVec.begin(); itr != particleVec.end(); ++itr ){
     center=(*itr)->getCurrPos();
-    if(center.getx() > x1 && center.getx() < x2 &&
-       center.gety() > y1 && center.gety() < y2 &&
-       center.getz() > z1 && center.getz() < z2 )
+    if(center.getX() > x1 && center.getX() < x2 &&
+       center.getY() > y1 && center.getY() < y2 &&
+       center.getZ() > z1 && center.getZ() < z2 )
       (*itr)->expand(percent);
   }
 
@@ -3079,9 +3089,9 @@ void Assembly::printCavityParticle(int total, const char* str) const {
   ofs.setf(std::ios::scientific, std::ios::floatfield);
   ofs.precision(OPREC);
   ofs << setw(OWID) << total << setw(OWID) << 1 << endl;
-  ofs << setw(OWID) << cavity.getCenter().getx()
-      << setw(OWID) << cavity.getCenter().gety()
-      << setw(OWID) << cavity.getCenter().getz()
+  ofs << setw(OWID) << cavity.getCenter().getX()
+      << setw(OWID) << cavity.getCenter().getY()
+      << setw(OWID) << cavity.getCenter().getZ()
       << setw(OWID) << cavity.getDimx()
       << setw(OWID) << cavity.getDimy()
       << setw(OWID) << cavity.getDimz() << endl;
@@ -3118,20 +3128,20 @@ void Assembly::printCavityParticle(int total, const char* str) const {
       << endl;
 
   REAL x1,x2,y1,y2,z1,z2;
-  x1 = cavity.getMinCorner().getx();
-  y1 = cavity.getMinCorner().gety();
-  z1 = cavity.getMinCorner().getz();
-  x2 = cavity.getMaxCorner().getx();
-  y2 = cavity.getMaxCorner().gety();
-  z2 = cavity.getMaxCorner().getz();
+  x1 = cavity.getMinCorner().getX();
+  y1 = cavity.getMinCorner().getY();
+  z1 = cavity.getMinCorner().getZ();
+  x2 = cavity.getMaxCorner().getX();
+  y2 = cavity.getMaxCorner().getY();
+  z2 = cavity.getMaxCorner().getZ();
   
   Vec tmp;
   std::vector<Particle*>::const_iterator  it;
   for (it=particleVec.begin();it!=particleVec.end();++it)  {
     Vec center=(*it)->getCurrPos();
-    if(center.getx() > x1 && center.getx() < x2 &&
-       center.gety() > y1 && center.gety() < y2 &&
-       center.getz() > z1 && center.getz() < z2 ) {
+    if(center.getX() > x1 && center.getX() < x2 &&
+       center.getY() > y1 && center.getY() < y2 &&
+       center.getZ() > z1 && center.getZ() < z2 ) {
 
     ofs << setw(OWID) << (*it)->getId()
 	<< setw(OWID) << (*it)->getType()
@@ -3140,44 +3150,44 @@ void Assembly::printCavityParticle(int total, const char* str) const {
 	<< setw(OWID) << (*it)->getC();
     
     tmp=(*it)->getCurrPos();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getCurrDirecA();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getCurrDirecB();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getCurrDirecC();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getCurrVeloc();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getCurrOmga();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getForce();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz();
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ();
     
     tmp=(*it)->getMoment();
-    ofs << setw(OWID) << tmp.getx()
-	<< setw(OWID) << tmp.gety()
-	<< setw(OWID) << tmp.getz() << endl;
+    ofs << setw(OWID) << tmp.getX()
+	<< setw(OWID) << tmp.getY()
+	<< setw(OWID) << tmp.getZ() << endl;
     }
   }
   
@@ -3194,15 +3204,15 @@ void Assembly::buildCavityBoundary(int existMaxId, const char* boundaryFile)
   if(!ofs) { cout << "stream error!" << endl; exit(-1);}
 
   REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
-  x1 = cavity.getMinCorner().getx();
-  y1 = cavity.getMinCorner().gety();
-  z1 = cavity.getMinCorner().getz();
-  x2 = cavity.getMaxCorner().getx();
-  y2 = cavity.getMaxCorner().gety();
-  z2 = cavity.getMaxCorner().getz();
-  x0 = cavity.getCenter().getx();
-  y0 = cavity.getCenter().gety();
-  z0 = cavity.getCenter().getz();
+  x1 = cavity.getMinCorner().getX();
+  y1 = cavity.getMinCorner().getY();
+  z1 = cavity.getMinCorner().getZ();
+  x2 = cavity.getMaxCorner().getX();
+  y2 = cavity.getMaxCorner().getY();
+  z2 = cavity.getMaxCorner().getZ();
+  x0 = cavity.getCenter().getX();
+  y0 = cavity.getCenter().getY();
+  z0 = cavity.getCenter().getZ();
 
   int boundaryNum = 6;
 
@@ -3567,15 +3577,15 @@ void Assembly::createMemParticle(REAL rRadius,
   Vec v1 = allContainer.getMinCorner();
   Vec v2 = allContainer.getMaxCorner();
   Vec v0 = allContainer.getCenter();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
-  REAL x0 = v0.getx();
-  REAL y0 = v0.gety();
-  REAL z0 = v0.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
+  REAL x0 = v0.getX();
+  REAL y0 = v0.getY();
+  REAL z0 = v0.getZ();
 
   Particle* newptcl = NULL;
   REAL x, y, z;
@@ -3909,7 +3919,7 @@ void Assembly::TrimPtclBdryByHeight(REAL height,
   for (itr = particleVec.begin(); itr != particleVec.end(); ){
     if ( (*itr)->getType() == 1 ) { // 1-fixed
       Vec center=(*itr)->getCurrPos();
-      if(center.getz() > height)
+      if(center.getZ() > height)
 	{
 	  delete (*itr); // release memory
 	  itr = particleVec.erase(itr); 
@@ -4022,9 +4032,9 @@ void Assembly::deposit(int   totalSteps,
 	//cout << setw(OWID) << timediffsec(time_w1,time_w2) << endl;
 
 	// 6. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx(); bulkVolume=l13*l24*l56;
+	l56=getTopFreeParticlePosition().getZ() - getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX(); bulkVolume=l13*l24*l56;
 	void_ratio=bulkVolume/getParticleVolume()-1;
 
 	// 7. (1) output particles and contacts information as snapNum.
@@ -4224,9 +4234,9 @@ void Assembly::depositAfterCavity(int   totalSteps,
 	updateParticle();
 
 	// 6. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx(); bulkVolume=l13*l24*l56;
+	l56=getTopFreeParticlePosition().getZ() - getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX(); bulkVolume=l13*l24*l56;
 	void_ratio=bulkVolume/getParticleVolume()-1;
 
 	// 7. (1) output particles and contacts information as snapNum.
@@ -4499,7 +4509,7 @@ void Assembly::deposit_p(int   totalSteps,
 	updateParticle();
 
 	// 5. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getZ() - (-dimn/2);
 	l24=dimn*rsize;
 	l13=dimn*rsize;
 	bulkVolume=l13*l24*l56;
@@ -4641,9 +4651,9 @@ void Assembly::squeeze(int   totalSteps,
 	updateParticle();
 
 	// 6. calculate sample void ratio.
-	l56=getTopFreeParticlePosition().getz() -getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx(); bulkVolume=l13*l24*l56;
+	l56=getTopFreeParticlePosition().getZ() -getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX(); bulkVolume=l13*l24*l56;
 	void_ratio=bulkVolume/getParticleVolume()-1;
 
 	// displacement control
@@ -4791,9 +4801,9 @@ void Assembly::isotropic(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -4837,9 +4847,9 @@ void Assembly::isotropic(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -5086,9 +5096,9 @@ void Assembly::isotropic(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -5135,9 +5145,9 @@ void Assembly::isotropic(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -5390,9 +5400,9 @@ void Assembly::isotropic(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3: define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -5441,9 +5451,9 @@ void Assembly::isotropic(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -5704,9 +5714,9 @@ void Assembly::odometer(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -5749,9 +5759,9 @@ void Assembly::odometer(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -5966,9 +5976,9 @@ void Assembly::odometer(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
  
     // pre_3. define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -6014,9 +6024,9 @@ void Assembly::odometer(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -6216,28 +6226,28 @@ void Assembly::iso_MemBdry(int   totalSteps,
   REAL mag  = radius*radius*4*sigma3;
   Vec v1 = allContainer.getMinCorner();
   Vec v2 = allContainer.getMaxCorner();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
   std::vector<Particle*>::const_iterator  it;
   Vec pos;
   for (it=particleVec.begin();it!=particleVec.end();++it)
     {
       pos = (*it)->getCurrPos();
-      if (pos.getx() < x1)
+      if (pos.getX() < x1)
 	(*it)->setConstForce( Vec(mag, 0, 0) );
-      else if (pos.getx() > x2)
+      else if (pos.getX() > x2)
 	(*it)->setConstForce( Vec(-mag, 0, 0) );
-      else if (pos.gety() < y1)
+      else if (pos.getY() < y1)
 	(*it)->setConstForce( Vec(0, mag, 0) );
-      else if (pos.gety() > y2)
+      else if (pos.getY() > y2)
 	(*it)->setConstForce( Vec(0, -mag, 0) );
-      else if (pos.getz() < z1)
+      else if (pos.getZ() < z1)
 	(*it)->setConstForce( Vec(0, 0, mag) );
-      else if (pos.getz() > z2)
+      else if (pos.getZ() > z2)
 	(*it)->setConstForce( Vec(0, 0, -mag) );
     }
 
@@ -6367,7 +6377,7 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l56= 0;
     REAL sigma3_1, sigma3_2;
     REAL epsilon_h;
@@ -6429,7 +6439,7 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
 	}
 
 	// 7. (2) output stress and strain info
-	l56=getApt(5).getz()-getApt(6).getz();
+	l56=getApt(5).getZ()-getApt(6).getZ();
 	epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
 	    progressinf << setw(OWID) << iteration
@@ -6543,7 +6553,7 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l56= 0;
     REAL sigma3_1, sigma3_2;
     REAL epsilon_h;
@@ -6599,7 +6609,7 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
 	}
 
 	// 7. (2) output stress and strain info
-	l56=getApt(5).getz()-getApt(6).getz();
+	l56=getApt(5).getZ()-getApt(6).getZ();
 	epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
 	    progressinf << setw(OWID) << iteration
@@ -6815,9 +6825,9 @@ void Assembly::triaxial(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -6862,9 +6872,9 @@ void Assembly::triaxial(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -7092,9 +7102,9 @@ void Assembly::triaxial(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -7139,9 +7149,9 @@ void Assembly::triaxial(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -7357,11 +7367,11 @@ void Assembly::rectPile_Disp(int   totalSteps,
 	updateBoundary(pile, pilectl, 2); 
 	updateRectPile();
 	if (iteration % interval == 0) {
-	    REAL  f7=getShearForce( 7).getz();
-	    REAL  f8=getShearForce( 8).getz();
-	    REAL  f9=getShearForce( 9).getz();
-	    REAL f10=getShearForce(10).getz();
-	    REAL  fn=getNormalForce(12).getz();
+	    REAL  f7=getShearForce( 7).getZ();
+	    REAL  f8=getShearForce( 8).getZ();
+	    REAL  f9=getShearForce( 9).getZ();
+	    REAL f10=getShearForce(10).getZ();
+	    REAL  fn=getNormalForce(12).getZ();
 	    debugInf << setw(OWID) << iteration
 		       << setw(OWID) << fn
 		       << setw(OWID) << (f7+f8+f9+f10)
@@ -7491,7 +7501,7 @@ void Assembly::ellipPile_Disp(int   totalSteps,
 	updateParticle();
 	
 	// 5. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getZ() - (-dimn/2);
 	l24=dimn*rsize;
 	l13=dimn*rsize;
 	bulkVolume=l13*l24*l56-ellipPilePeneVol();
@@ -7534,9 +7544,9 @@ void Assembly::ellipPile_Disp(int   totalSteps,
 		        << setw(OWID) << 2.0*getActualContactNum()/allParticleVec.size()
 		        << endl;
 	    debugInf << setw(OWID) << iteration
-		       << setw(OWID) << getTopFreeParticlePosition().getz()
+		       << setw(OWID) << getTopFreeParticlePosition().getZ()
 		       << setw(OWID) << ellipPileTipZ()
-		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << getTopFreeParticlePosition().getZ()-ellipPileTipZ()
 		       << setw(OWID) << l13*l24*l56
 		       << setw(OWID) << ellipPilePeneVol()
 		       << setw(OWID) << bulkVolume
@@ -7635,7 +7645,7 @@ void Assembly::ellipPile_Impact(int   totalSteps,
 	updateParticle();
 	
 	// 6. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getZ() - (-dimn/2);
 	l24=dimn;
 	l13=dimn;
 	bulkVolume=l13*l24*l56-ellipPilePeneVol();
@@ -7776,7 +7786,7 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
 	updateParticle();
 	
 	// 5. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getZ() - (-dimn/2);
 	l24=dimn;
 	l13=dimn;
 	bulkVolume=l13*l24*l56-ellipPilePeneVol();
@@ -7819,9 +7829,9 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
 		        << setw(OWID) << 2.0*getActualContactNum()/allParticleVec.size()
 		        << endl;
 	    debugInf << setw(OWID) << iteration
-		       << setw(OWID) << getTopFreeParticlePosition().getz()
+		       << setw(OWID) << getTopFreeParticlePosition().getZ()
 		       << setw(OWID) << ellipPileTipZ()
-		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << getTopFreeParticlePosition().getZ()-ellipPileTipZ()
 		       << setw(OWID) << l13*l24*l56
 		       << setw(OWID) << ellipPilePeneVol()
 		       << setw(OWID) << bulkVolume
@@ -7924,7 +7934,7 @@ void Assembly::ellipPile_Force(int   totalSteps,
 	updateParticle();
 
 	// 5. calculate specimen void ratio.
-	l56=getTopFreeParticlePosition().getz() - (-dimn/2);
+	l56=getTopFreeParticlePosition().getZ() - (-dimn/2);
 	l24=dimn;
 	l13=dimn;
 	bulkVolume=l13*l24*l56-ellipPilePeneVol();
@@ -7937,7 +7947,7 @@ void Assembly::ellipPile_Force(int   totalSteps,
 	if(fabs(ellipPileForce()-zforce)/zforce < STRESS_ERROR ){
 	    balancedinf << setw(OWID) << iteration
 		        << setw(OWID) << zforce
-		        << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		        << setw(OWID) << getTopFreeParticlePosition().getZ()-ellipPileTipZ()
 		        << setw(OWID) << ellipPileForce()
 		        << endl;
 	    zforce += zforce_inc;
@@ -7946,7 +7956,7 @@ void Assembly::ellipPile_Force(int   totalSteps,
 	if( iteration % interval == 0){
 	    debugInf << setw(OWID) << iteration
 		       << setw(OWID) << zforce
-		       << setw(OWID) << getTopFreeParticlePosition().getz()-ellipPileTipZ()
+		       << setw(OWID) << getTopFreeParticlePosition().getZ()-ellipPileTipZ()
 		       << setw(OWID) << ellipPileForce()
 		       << endl;
 	}
@@ -8075,9 +8085,9 @@ void Assembly::truetriaxial(int   totalSteps,
     readBoundary(inibdryfile);   // create boundaries
 
     // pre_3. define variables used in iterations
-    REAL W0 = getApt(2).gety()-getApt(4).gety();
-    REAL L0 = getApt(1).getx()-getApt(3).getx();
-    REAL H0 = getApt(5).getz()-getApt(6).getz();
+    REAL W0 = getApt(2).getY()-getApt(4).getY();
+    REAL L0 = getApt(1).getX()-getApt(3).getX();
+    REAL H0 = getApt(5).getZ()-getApt(6).getZ();
     REAL l13, l24, l56, min_area, mid_area, max_area;
     REAL sigma1_1, sigma1_2, sigma2_1, sigma2_2, sigma3_1, sigma3_2;
     REAL epsilon_w, epsilon_l, epsilon_h;
@@ -8128,9 +8138,9 @@ void Assembly::truetriaxial(int   totalSteps,
 	updateParticle();
 	
 	// 6. update boundaries' position and orientation
-	l56=getApt(5).getz()-getApt(6).getz();
-	l24=getApt(2).gety()-getApt(4).gety();
-	l13=getApt(1).getx()-getApt(3).getx();    bulkVolume=l13*l24*l56;
+	l56=getApt(5).getZ()-getApt(6).getZ();
+	l24=getApt(2).getY()-getApt(4).getY();
+	l13=getApt(1).getX()-getApt(3).getX();    bulkVolume=l13*l24*l56;
 	min_area=l13*l24;    mid_area=l56*l24;    max_area=l56*l13;
 	setArea(5,min_area); setArea(6,min_area); setArea(1,mid_area);
 	setArea(3,mid_area); setArea(2,max_area); setArea(4,max_area);
@@ -8334,15 +8344,15 @@ buildBoundary(int boundaryNum,
   Vec  v1 = allContainer.getMinCorner();
   Vec  v2 = allContainer.getMaxCorner();
   Vec  v0 = allContainer.getCenter();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
-  REAL x0 = v0.getx();
-  REAL y0 = v0.gety();
-  REAL z0 = v0.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
+  REAL x0 = v0.getX();
+  REAL y0 = v0.getY();
+  REAL z0 = v0.getZ();
 
   ofs << setw(OWID) << x1 << setw(OWID) << y1 << setw(OWID) << z1
       << setw(OWID) << x2 << setw(OWID) << y2 << setw(OWID) << z2 << endl
@@ -8947,15 +8957,15 @@ void Assembly::buildBoundary(const char* boundaryFile)
   Vec  v1 = allContainer.getMinCorner();
   Vec  v2 = allContainer.getMaxCorner();
   Vec  v0 = allContainer.getCenter();
-  REAL x1 = v1.getx();
-  REAL y1 = v1.gety();
-  REAL z1 = v1.getz();
-  REAL x2 = v2.getx();
-  REAL y2 = v2.gety();
-  REAL z2 = v2.getz();
-  REAL x0 = v0.getx();
-  REAL y0 = v0.gety();
-  REAL z0 = v0.getz();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
+  REAL x0 = v0.getX();
+  REAL y0 = v0.getY();
+  REAL z0 = v0.getZ();
   
   ofs << setw(OWID) << x1 << setw(OWID) << y1 << setw(OWID) << z1
       << setw(OWID) << x2 << setw(OWID) << y2 << setw(OWID) << z2 << endl
@@ -9505,9 +9515,9 @@ void Assembly::boundaryForce(){
       debugInf << setw(OWID) << iteration
 		 << setw(OWID) << (*rt)->bdry_id
 		 << setw(OWID) << boundaryTgtMap[(*rt)->bdry_id].size()
-		 << setw(OWID) << it->TgtForce.getx()
-		 << setw(OWID) << it->TgtForce.gety()
-		 << setw(OWID) << it->TgtForce.getz()
+		 << setw(OWID) << it->TgtForce.getX()
+		 << setw(OWID) << it->TgtForce.getY()
+		 << setw(OWID) << it->TgtForce.getZ()
 		 << endl;
       // << setw(OWID) << it->TgtPeak << endl;
     }

@@ -65,26 +65,26 @@ namespace dem {
   }
   
   Vec operator*(REAL d, Vec v){
-    return Vec(v.getx()*d, v.gety()*d, v.getz()*d);
+    return Vec(v.getX()*d, v.getY()*d, v.getZ()*d);
   }
 
   Vec operator/(Vec v, REAL d){
-    return Vec(v.getx()/d, v.gety()/d, v.getz()/d);
+    return Vec(v.getX()/d, v.getY()/d, v.getZ()/d);
   }
   
   REAL vfabs(Vec v){
-    REAL x = v.getx();
-    REAL y = v.gety();
-    REAL z = v.getz();
+    REAL x = v.getX();
+    REAL y = v.getY();
+    REAL z = v.getZ();
     return sqrt(x * x + y * y + z * z);
   }
   
   Vec vcos(Vec v){
-    return Vec(cos(v.getx()), cos(v.gety()), cos(v.getz()));
+    return Vec(cos(v.getX()), cos(v.getY()), cos(v.getZ()));
   }
   
   Vec vacos(Vec v){
-    return Vec(acos(v.getx()), acos(v.gety()), acos(v.getz()));
+    return Vec(acos(v.getX()), acos(v.getY()), acos(v.getZ()));
   }
   
   Vec operator-(Vec v){

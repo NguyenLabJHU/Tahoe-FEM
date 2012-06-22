@@ -12,14 +12,14 @@ namespace dem {
     Vec() : x(0), y(0), z(0) {}
     Vec(REAL d) : x(d), y(d), z(d) {}
     Vec(REAL _x, REAL _y, REAL _z) : x(_x),y(_y),z(_z) {}
-    REAL getx() const {return x;}
-    REAL gety() const {return y;}
-    REAL getz() const {return z;}
-    void setx(REAL _x) {x = _x;}
-    void sety(REAL _y) {y = _y;}
-    void setz(REAL _z) {z = _z;}
+    REAL getX() const {return x;}
+    REAL getY() const {return y;}
+    REAL getZ() const {return z;}
+    void setX(REAL _x) {x = _x;}
+    void setY(REAL _y) {y = _y;}
+    void setZ(REAL _z) {z = _z;}
     void set(REAL _x, REAL _y, REAL _z) {x = _x; y = _y; z = _z;}
-    void set(Vec v) {x = v.getx(); y = v.gety(); z = v.getz();}
+    void set(Vec v) {x = v.getX(); y = v.getY(); z = v.getZ();}
     
     bool operator==(const Vec v);
     bool operator==(const REAL d);   

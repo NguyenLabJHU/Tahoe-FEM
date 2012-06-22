@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <boost/mpi.hpp>
 
 //#define MINDLIN_ASSUMED
 //#define MINDLIN_KNOWN
@@ -29,7 +30,22 @@ namespace dem {
     Vec  tgtDispStart;
     REAL tgtPeak;
     bool tgtSlide;
-    
+
+  private:
+    friend class boost::serialization::access;
+    template<class Archive>
+      void serialize(Archive & ar, const unsigned int version) {
+      ar & ptcl1;
+      ar & ptcl2;
+      ar & tgtForce;
+      ar & tgtDisp;
+      ar & tgtLoading;
+      ar & tgtDispStart;
+      ar & tgtPeak;
+      ar & tgtSlide;
+    }    
+
+  public:
     ContactTgt()
       :ptcl1(0),
       ptcl2(0),
@@ -77,42 +93,46 @@ namespace dem {
     REAL getContactRadius() const {return contactRadius;}
     REAL gettgtDisp() const {return vfabs(tgtDisp);} // total value during a process of contact
     void checkoutTgt(std::vector<ContactTgt>& ContactTgtVec);
-    void checkinPreTgt(std::vector<ContactTgt>& ContactTgtVec);
+    void checkinPrevTgt(std::vector<ContactTgt>& ContactTgtVec);
     Vec  normalForceVec() const {return normalForce;}
     Vec  tgtForceVec() const {return tgtForce;}
     bool isRedundant(Contact<T> other) const;
     
   private:
-    T*   p1;            // particle 1
-    T*   p2;            // particle 2
-    REAL penetr;        // penetr
-    REAL contactRadius; // radius of contact surface
-    Vec  point1;        // point1 on particle 1, innermost to particle 2
-    Vec  point2;        // point2 on particle 2, innermost to particle 1
-    REAL radius1;       // radius of osculating circles at point1
-    REAL radius2;       // radius of osculating circles at point2
-    REAL E0;              
-    REAL G0;
-    REAL R0;
-    REAL vibraTimeStep;
-    REAL impactTimeStep;
-    bool isInContact;
-    bool tgtLoading;    // tangential loading or unloading
-    Vec  normalForce;   // positive when pointing to paticle 1
-    Vec  tgtForce;      // TgtrDirc points along tangential forces exerted on particle 1
-    Vec  tgtDisp;       // tangential relative displacment total vector
-    Vec  tgtDispStart;  // displacement start value for each loading-unloading loop
-    bool tgtSlide;
-    Vec  normalDirc;    
-    Vec  tgtDirc;
-    Vec  cohesionForce;  // cohesion force between particles
+    T*   p1;             // particle 1
+    T*   p2;             // particle 2
+    REAL penetr;         // penetr
+    REAL contactRadius;  // radius of contact surface
+    Vec  point1;         // point1 on particle 1, innermost to particle 2
+    Vec  point2;         // point2 on particle 2, innermost to particle 1
+    REAL radius1;        // radius of osculating circles at point1
+    REAL radius2;        // radius of osculating circles at point2
+    Vec  normalDirc;     // normal direction
+    Vec  tgtDirc;        // tangential direction
+
+    bool isInContact;    // are p1 and p1 in contact
+    bool tgtLoading;     // tangential loading or unloading
+    Vec  normalForce;    // positive when pointing to paticle 1
+    Vec  tgtForce;       // TgtrDirc points along tangential forces exerted on particle 1
+    Vec  tgtDisp;        // tangential relative displacment total vector
+    Vec  tgtDispStart;   // displacement start value for each loading-unloading loop
+    bool tgtSlide;       // tangential silde or not
+
     bool prevTgtLoading; // previous loading-unloading status
     Vec  prevNormalForce;
     Vec  prevTgtForce;
     Vec  prevTgtDisp;    // previous tangential relative displacment total vector
     bool prevTgtSlide;
     REAL tgtPeak;       
+
+    Vec  cohesionForce;  // cohesion force between particles
     Vec  spin_res;
+
+    REAL E0;              
+    REAL G0;
+    REAL R0;
+    REAL vibraTimeStep;
+    REAL impactTimeStep;
 };
 
 
@@ -120,19 +140,25 @@ namespace dem {
     Contact<T>::Contact(){
     p1 = NULL;
     p2 = NULL;
-    isInContact = false;
-    tgtLoading = prevTgtLoading = true;
-    tgtPeak = 0;
     penetr = 0;
     contactRadius = 0;
+    point1 = point2 = 0;
     radius1 = radius2 = 0;
+    normalDirc = tgtDirc = 0;
+
+    isInContact = false;
+    tgtLoading = prevTgtLoading = true;
     normalForce = prevNormalForce = 0;
     tgtForce = prevTgtForce = 0;
     tgtDisp = prevTgtDisp = 0;
     tgtDispStart = 0;
-    normalDirc = 0;
-    tgtDirc = 0;
+    tgtSlide = prevTgtSlide = false;
+    tgtPeak = 0;
+
+    cohesionForce = 0;
     spin_res = 0;
+
+    E0 = G0 = R0 = 0;
   }
   
   
@@ -140,19 +166,25 @@ namespace dem {
     Contact<T>::Contact(T* t1, T* t2){
     p1 = t1;
     p2 = t2;
-    isInContact = false;
-    tgtLoading = prevTgtLoading = true;
-    tgtPeak = 0;
     penetr = 0;
     contactRadius = 0;
+    point1 = point2 = 0;
     radius1 = radius2 = 0;
+    normalDirc = tgtDirc = 0;
+
+    isInContact = false;
+    tgtLoading = prevTgtLoading = true;
     normalForce = prevNormalForce = 0;
     tgtForce = prevTgtForce = 0;
     tgtDisp = prevTgtDisp = 0;
     tgtDispStart = 0;
-    normalDirc = 0;
-    tgtDirc = 0;
+    tgtSlide = prevTgtSlide = false;
+    tgtPeak = 0;
+
+    cohesionForce = 0;
     spin_res = 0;
+
+    E0 = G0 = R0 = 0;
   }
   
   template<class T>
@@ -208,18 +240,16 @@ namespace dem {
   
   
   template<class T>
-    void Contact<T>::checkinPreTgt(std::vector<ContactTgt>& ContactTgtVec) {
-    if (ContactTgtVec.size()>0) {
-      for(std::vector<ContactTgt>::iterator it = ContactTgtVec.begin();it != ContactTgtVec.end(); ++it) {
-	if (it->ptcl1 == p1->getId() && it->ptcl2 == p2->getId()) {
-	  prevTgtForce   = it->tgtForce;
-	  prevTgtDisp    = it->tgtDisp;
-	  prevTgtLoading = it->tgtLoading;
-	  prevTgtSlide   = it->tgtSlide;
-	  tgtDispStart   = it->tgtDispStart;
-	  tgtPeak        = it->tgtPeak;
-	  break;
-	}
+    void Contact<T>::checkinPrevTgt(std::vector<ContactTgt>& ContactTgtVec) {
+    for(std::vector<ContactTgt>::iterator it = ContactTgtVec.begin();it != ContactTgtVec.end(); ++it) {
+      if (it->ptcl1 == p1->getId() && it->ptcl2 == p2->getId()) {
+	prevTgtForce   = it->tgtForce;
+	prevTgtDisp    = it->tgtDisp;
+	prevTgtLoading = it->tgtLoading;
+	tgtDispStart   = it->tgtDispStart;
+	tgtPeak        = it->tgtPeak;
+	prevTgtSlide   = it->tgtSlide;
+	break;
       }
     }
   }
@@ -227,7 +257,8 @@ namespace dem {
   
   template<class T>
     void Contact<T>::checkoutTgt(std::vector<ContactTgt>& ContactTgtVec) {
-    ContactTgtVec.push_back(ContactTgt(p1->getId(),p2->getId(),
+    ContactTgtVec.push_back(ContactTgt(p1->getId(),
+				       p2->getId(),
 				       tgtForce,
 				       tgtDisp, 
 				       tgtLoading,
@@ -311,7 +342,7 @@ namespace dem {
 	G0 = YOUNG/2/(1+POISSON);              // RelaDispInc points along point1's displacement relative to point2
 	Vec RelaDispInc = (veloc1-veloc2)*TIMESTEP;
 	Vec tgtDispInc = RelaDispInc-(RelaDispInc%normalDirc)*normalDirc;
-	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPreTgt()
+	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPrevTgt()
 	if (vfabs(tgtDisp) == 0)
 	  tgtDirc = 0;
 	else
@@ -438,7 +469,7 @@ namespace dem {
 		 << " tgtSlide=" << tgtSlide
 		 << " val=" << val
 		 << " ks=" << ks
-		 << " tgtDispInc.x=" << tgtDispInc.getx()
+		 << " tgtDispInc.x=" << tgtDispInc.getX()
 		 << " prevTgtForce=" << vfabs(prevTgtForce)
 		 << " tgtForce" << vfabs(tgtForce)
 		 << std::endl;

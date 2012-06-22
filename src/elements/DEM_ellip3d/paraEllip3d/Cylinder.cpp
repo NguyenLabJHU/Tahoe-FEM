@@ -5,21 +5,21 @@
 namespace dem {
 
 void Cylinder::print() const{
-    std::cout<<"radius="<<radius<<std::endl;
-    std::cout<<"height="<<height<<std::endl;
-    std::cout<<"center=";
+    std::cout << "radius=" << radius << std::endl;
+    std::cout << "height=" << height << std::endl;
+    std::cout << "center=";
     center.print();
 }
 
 Vec Cylinder::randomPoint() const{
-    REAL temp1=ran(&idum);
-    REAL temp2=ran(&idum);
-    REAL temp3=ran(&idum);
-    REAL z=(center.getz()+height/2)*temp1+(center.getz()-height/2)*(1-temp1);
-    REAL theta=2*PI*temp2;
-    REAL r=radius*temp3;
-    REAL x=center.getx()+r*cos(theta);
-    REAL y=center.gety()+r*sin(theta);
+    REAL tmp1 = ran(&idum);
+    REAL tmp2 = ran(&idum);
+    REAL tmp3 = ran(&idum);
+    REAL z = (center.getZ() + height/2)*tmp1 + (center.getZ() - height/2)*(1 - tmp1);
+    REAL theta = 2*PI*tmp2;
+    REAL r = radius*tmp3;
+    REAL x = center.getX() + r*cos(theta);
+    REAL y = center.getY() + r*sin(theta);
     return Vec(x,y,z); 
 }
 
