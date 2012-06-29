@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.70 2006-11-28 22:12:29 jzimmer Exp $
+# $Id: tahoe-manager,v 1.71 2012-06-29 22:47:07 regueiro Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -12,13 +12,16 @@
 use Cwd; # $home = cwd();
 
 # tahoe server
-$tahoe = "tahoe.ca.sandia.gov"; 
+#$tahoe = "tahoe.ca.sandia.gov"; 
 
 # Sourceforge server
 $tahoe_sf = "tahoe.cvs.sourceforge.net"; 
 
 # Colorado server
-$tahoe_co = "tahoe.colorado.edu"; 
+#$tahoe_co = "tahoe.colorado.edu"; 
+
+# Codesion/Collabnet server
+$tahoe_cod = "tahoe.cvs.cvsdude.com"; 
 
 # core modules (for rebuild)
 @core_modules = (
@@ -43,13 +46,11 @@ $tahoe_co = "tahoe.colorado.edu";
 "SuperLU_DIST",
 "Trilinos",
 "toolbox",
-"qhull",
-"Sierra",
 "development",
 "tahoe",
 "contrib",
 "benchmark_XML",
-"development_benchmark_XML",
+"development_benchmark_xml",
 "bravais");
 
 # prefix on macros in the makefiles
@@ -70,11 +71,9 @@ f2c	F2C_
 CBLAS	BLAS_
 access	AX_
 development DEV_
-Sierra SIERRA_
-qhull  QHULL_
 contrib NODEFINE
 benchmark_XML NODEFINE
-development_benchmark_XML NODEFINE
+development_benchmark_xml NODEFINE
 SIMOD SIMOD_
 bravais NODEFINE
 SuperLU_CBLAS SUPERLUCBLAS_
@@ -97,11 +96,9 @@ aztec		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 f2c		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 CBLAS		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 access		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-development	tahoe.colorado.edu:/cvs/private/tahoe
-Sierra		tahoe.ca.sandia.gov:/cvs/private/tahoe
-qhull		tahoe.ca.sandia.gov:/cvs/private/tahoe
+development	tahoe.cvs.cvsdude.com:/tahoe 
 benchmark_XML	tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-development_benchmark_XML tahoe.colorado.edu:/cvs/private/tahoe
+development_benchmark_xml tahoe.cvs.cvsdude.com:/tahoe
 contrib		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 bravais		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
 SuperLU_CBLAS tahoe.cvs.sourceforge.net:/cvsroot/tahoe
@@ -127,7 +124,6 @@ Trilinos touch_TRILINOS
 # modules in the UP_TO_DATE macro
 %up_to_date_modules = qw(
 development 1
-Sierra 1
 );
 
 # modules available via http
@@ -294,9 +290,10 @@ foreach my $module (@modules) {
 # }
 
 print "*--------------------------------------------------\n";
-print "*  Sourceforge name: $tahoe_sf_name\@$tahoe_sf\n";
-print "* Tahoe server name: $tahoe_name\@$tahoe\n";
-print "* Colorado server name: $tahoe_co_name\@$tahoe_co\n";
+print "* Sourceforge name: $tahoe_sf_name\@$tahoe_sf\n";
+#print "* Tahoe server name: $tahoe_name\@$tahoe\n";
+#print "* Colorado server name: $tahoe_co_name\@$tahoe_co\n";
+print "* Codesion server name: $tahoe_cod_name\@$tahoe_cod\n";
 #print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print "*             proxy: $proxy\n";
@@ -371,15 +368,17 @@ sub read_config{
 print "* reading config file $config_file\n";
 open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
 my $type = "UNKNOWN";
-$tahoe_co_name = 'NONE';
+#$tahoe_co_name = 'NONE';
+$tahoe_cod_name = 'NONE';
 while(<CONFIG>) {
 	s/^\s+//; s/\s+$//; @list = split(/ +/);
  	if (defined($list[0])){
         	if (/^\#/ ){ 
 			if ($type  =~ /CONNECTION/) {$connection = $tmp_list[0];}
-			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
+#			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
 			elsif ($type =~ /TAHOE_SF_LOGIN/) { $tahoe_sf_name = $tmp_list[0]; }
-			elsif ($type =~ /TAHOE_CO_LOGIN/) { $tahoe_co_name = $tmp_list[0]; }
+#			elsif ($type =~ /TAHOE_CO_LOGIN/) { $tahoe_co_name = $tmp_list[0]; }
+			elsif ($type =~ /TAHOE_COD_LOGIN/) { $tahoe_cod_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
 			elsif  ($type  =~ /USE_DEFAULT/){$use_default_arch = $tmp_list[0];}
@@ -502,19 +501,27 @@ if ($connection =~ "cvs") {
 	}
 
 	# tahoe server
-	$tahoe_name = "NONE";
-	print "Tahoe server username [NONE]: ";
-	$name = <STDIN>; chomp($name);
-	if (length($name) > 0) {
-		$tahoe_name = $name;
-	}
+#	$tahoe_name = "NONE";
+#	print "Tahoe server username [NONE]: ";
+#	$name = <STDIN>; chomp($name);
+#	if (length($name) > 0) {
+#		$tahoe_name = $name;
+#	}
 
 	# colorado server
-	$tahoe_co_name = "NONE";
-	print "Colorado server username [NONE]: ";
+#	$tahoe_co_name = "NONE";
+#	print "Colorado server username [NONE]: ";
+#	$name = <STDIN>; chomp($name);
+#	if (length($name) > 0) {
+#		$tahoe_co_name = $name;
+#	}
+
+	# codesion server
+	$tahoe_cod_name = "NONE";
+	print "Codesion server username [NONE]: ";
 	$name = <STDIN>; chomp($name);
 	if (length($name) > 0) {
-		$tahoe_co_name = $name;
+		$tahoe_cod_name = $name;
 	}
 }
 
@@ -622,19 +629,24 @@ sub update_cvs {
 			print "\tchecking out $dir...";
 			my $repo = $module2repo{$dir};
 
-			if ($repo =~ /$tahoe/) { # on Tahoe server
-				if ($tahoe_name !~ /NONE/) { # must have an account
-					do_system("cvs -d $tahoe_name\@$repo -q checkout $dir > cvs.log");
-				}
-			} elsif ($repo =~ /$tahoe_sf/) { # on Sourceforge
+#			if ($repo =~ /$tahoe/) { # on Tahoe server
+#				if ($tahoe_name !~ /NONE/) { # must have an account
+#					do_system("cvs -d $tahoe_name\@$repo -q checkout $dir > cvs.log");
+#				}
+#			} elsif ($repo =~ /$tahoe_sf/) { # on Sourceforge
+			if ($repo =~ /$tahoe_sf/) { # on Sourceforge
 				if ($tahoe_sf_name =~ /anonymous/) { # anonymous access
 					do_system("cvs -z3 -d :pserver:$tahoe_sf_name\@$repo -q checkout $dir >> cvs.log");
 				} else { # developer account
 					do_system("cvs -z3 -d $tahoe_sf_name\@$repo -q checkout $dir > cvs.log");
 				}
-			} else { # on Colorado server
-				if ($tahoe_co_name !~ /NONE/) { # must have an account
-					do_system("cvs -d $tahoe_co_name\@$repo -q checkout $dir > cvs.log");
+#			} else { # on Colorado server
+#				if ($tahoe_co_name !~ /NONE/) { # must have an account
+#					do_system("cvs -d $tahoe_co_name\@$repo -q checkout $dir > cvs.log");
+#				}
+			} else { # on Codesion server
+				if ($tahoe_cod_name !~ /NONE/) { # must have an account
+					do_system("cvs -d $tahoe_cod_name\@$repo -q checkout $dir > cvs.log");
 				}
 			}
 		}
@@ -1195,9 +1207,10 @@ sub fillin_makefile{
 ##############################################################################
 sub write_config {
 	open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
-	print CONFIG  "# TAHOE_LOGIN\n$tahoe_name\n\n";
+	#print CONFIG  "# TAHOE_LOGIN\n$tahoe_name\n\n";
 	print CONFIG  "# TAHOE_SF_LOGIN\n$tahoe_sf_name\n\n";
-	print CONFIG  "# TAHOE_CO_LOGIN\n$tahoe_co_name\n\n";
+	#print CONFIG  "# TAHOE_CO_LOGIN\n$tahoe_co_name\n\n";
+	print CONFIG  "# TAHOE_COD_LOGIN\n$tahoe_cod_name\n\n";
 	print CONFIG  "# CONNECTION\n$connection\n\n";
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
