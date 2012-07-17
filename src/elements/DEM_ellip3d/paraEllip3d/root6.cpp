@@ -1,4 +1,4 @@
-//    <<Numerical Recipes in C>>
+//    Numerical Recipes in C
 //    void zrhqr(float a[], int m, float rtr[], float rti[])
 //    Find all the roots of a polynomial with real coefficients, i=0~m, a(i)x^i, given the degree m
 //    and the coefficients a[0..m]. The method is to construct an upper Hessenberg matrix whose
@@ -17,7 +17,7 @@
 //      true  - overlapped and vector point returns the deepest penetrated point.
 
 #include "root6.h"
-#include "parameter.h"
+#include "const.h"
 #include "nr.h"
 #include <iostream>
 #include <fstream>
@@ -26,54 +26,53 @@
 namespace dem {
 
 bool root6(REAL coef1[],REAL coef2[],Vec& point) {
-  if((coef1[0]==1.0&&coef1[1]==1.0&&coef1[2]==1.0&&
-      coef1[3]==0.0&&coef1[4]==0.0&&coef1[5]==0.0)&&
-     (coef2[0]==1.0&&coef2[1]==1.0&&coef2[2]==1.0&&
-      coef2[3]==0.0&&coef2[4]==0.0&&coef2[5]==0.0)){
-    REAL x1=-coef1[6]/2;
-    REAL y1=-coef1[7]/2;
-    REAL z1=-coef1[8]/2;
-    REAL R1=sqrt(x1*x1+y1*y1+z1*z1-coef1[9]);
-    REAL x2=-coef2[6]/2;
-    REAL y2=-coef2[7]/2;
-    REAL z2=-coef2[8]/2;
-    REAL R2=sqrt(x2*x2+y2*y2+z2*z2-coef2[9]);
-    Vec  dirc=Vec(x1-x2,y1-y2,z1-z2);
-    REAL dist=vfabs(dirc);
-    dirc=normalize(dirc);
-    point=Vec(x2,y2,z2)+R2*dirc;
-    Vec judge=point-Vec(x1,y1,z1);
-    if(dist < R1 + R2  &&
-       (R1-vfabs(judge)) / (2.0*fmax(R1,R2)) > MINOVERLAP ) // satisfy minimum relative overlap
+
+  if((coef1[0] == 1.0 && coef1[1] == 1.0 && coef1[2] == 1.0 && 
+      coef1[3] == 0.0 && coef1[4] == 0.0 && coef1[5] == 0.0) && 
+     (coef2[0] == 1.0 && coef2[1] == 1.0 && coef2[2] == 1.0 && 
+      coef2[3] == 0.0 && coef2[4] == 0.0 && coef2[5] == 0.0)){
+    REAL x1 = -coef1[6]/2;
+    REAL y1 = -coef1[7]/2;
+    REAL z1 = -coef1[8]/2;
+    REAL R1 = sqrt(x1*x1 + y1*y1 + z1*z1 - coef1[9]);
+    REAL x2 = -coef2[6]/2;
+    REAL y2 = -coef2[7]/2;
+    REAL z2 = -coef2[8]/2;
+    REAL R2 = sqrt(x2*x2 + y2*y2 + z2*z2 - coef2[9]);
+    Vec  dirc = Vec(x1-x2, y1-y2, z1-z2);
+    REAL dist = vfabs(dirc);
+    dirc = normalize(dirc);
+    point = Vec(x2,y2,z2) + R2*dirc;
+    if(R1 + R2 - dist > EPS)
       return true;  // overlapped
     else
       return false; // non-overlapped
   }
   
-  REAL a1=coef1[0];
-  REAL b1=coef1[1];
-  REAL c1=coef1[2];
-  REAL d1=coef1[3];
-  REAL e1=coef1[4];
-  REAL f1=coef1[5];
-  REAL g1=coef1[6];
-  REAL h1=coef1[7];
-  REAL i1=coef1[8];
-  REAL j1=coef1[9];
+  REAL a1 = coef1[0];
+  REAL b1 = coef1[1];
+  REAL c1 = coef1[2];
+  REAL d1 = coef1[3];
+  REAL e1 = coef1[4];
+  REAL f1 = coef1[5];
+  REAL g1 = coef1[6];
+  REAL h1 = coef1[7];
+  REAL i1 = coef1[8];
+  REAL j1 = coef1[9];
   
-  REAL a2=coef2[0];
-  REAL b2=coef2[1];
-  REAL c2=coef2[2];
-  REAL d2=coef2[3];
-  REAL e2=coef2[4];
-  REAL f2=coef2[5];
-  REAL g2=coef2[6];
-  REAL h2=coef2[7];
-  REAL i2=coef2[8];
-  REAL j2=coef2[9];
+  REAL a2 = coef2[0];
+  REAL b2 = coef2[1];
+  REAL c2 = coef2[2];
+  REAL d2 = coef2[3];
+  REAL e2 = coef2[4];
+  REAL f2 = coef2[5];
+  REAL g2 = coef2[6];
+  REAL h2 = coef2[7];
+  REAL i2 = coef2[8];
+  REAL j2 = coef2[9];
   REAL rtc[7], rti[7], rtr[7];
 
-  rtc[0]=
+  rtc[0] = 
     -8*b1*c1*d1*e1*f1*g1*g2 + 8*a1*c1*d1*e1*e2*g1*h1 + 
     8*a2*b1*c1*e1*f1*g1*h1 + 8*a1*b2*c1*e1*f1*g1*h1 + 
     8*a1*b1*c2*e1*f1*g1*h1 - 4*c1*d1*d2*e1*f1*g1*h1 - 
@@ -277,7 +276,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
     4*a2*pow(b1,2)*pow(f1,2)*pow(i1,2) + 
     b2*pow(d1,2)*pow(f1,2)*pow(i1,2);
 
-  rtc[1]=
+  rtc[1] = 
     -2*c2*d1*e1*g1*(-(d2*e1*g1) - d1*e2*g1 + 2*b2*f1*g1 + 
       2*b1*f2*g1 - d1*e1*g2 + 2*b1*f1*g2 + 2*a2*e1*h1 + 
       2*a1*e2*h1 - d2*f1*h1 - d1*f2*h1 + 2*a1*e1*h2 - 
@@ -716,7 +715,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
       2*a1*e2*i1 - d2*f1*i1 - d1*f2*i1 + 2*a1*e1*i2 - 
       d1*f1*i2 + h2*pow(f1,2));
 
-  rtc[2]=
+  rtc[2] = 
     -2*c2*d1*e1*g1*(-(d2*e2*g1) + 2*b2*f2*g1 - d2*e1*g2 - 
       d1*e2*g2 + 2*b2*f1*g2 + 2*b1*f2*g2 + 2*a2*e2*h1 - 
       d2*f2*h1 + 2*a2*e1*h2 + 2*a1*e2*h2 - d2*f1*h2 - 
@@ -1227,7 +1226,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
       d2*f1*i1 - d1*f2*i1 + 2*a1*e1*i2 - d1*f1*i2 + 
       h2*pow(f1,2),2);
 
-  rtc[3]=
+  rtc[3] = 
     2*c2*(-(d2*e1*g1) - d1*e2*g1 + 2*b2*f1*g1 + 2*b1*f2*g1 - 
       d1*e1*g2 + 2*b1*f1*g2 + 2*a2*e1*h1 + 2*a1*e2*h1 - 
       d2*f1*h1 - d1*f2*h1 + 2*a1*e1*h2 - d1*f1*h2 - 
@@ -1555,7 +1554,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
    2*b1*h2*pow(f1,2)*(2*c2*d2*g2 - e2*f2*g2 - 4*a2*c2*h2 + 
       2*a2*e2*i2 - d2*f2*i2 + h2*pow(f2,2));
 
-  rtc[4]=
+  rtc[4] = 
     2*c2*(-(d2*e1*g1) - d1*e2*g1 + 2*b2*f1*g1 + 2*b1*f2*g1 - 
       d1*e1*g2 + 2*b1*f1*g2 + 2*a2*e1*h1 + 2*a1*e2*h1 - 
       d2*f1*h1 - d1*f2*h1 + 2*a1*e1*h2 - d1*f1*h2 - 
@@ -1730,7 +1729,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
       d2*f2*i1 + 2*a2*e1*i2 + 2*a1*e2*i2 - d2*f1*i2 - 
       d1*f2*i2 + h1*pow(f2,2),2);
 
-  rtc[5]=
+  rtc[5] = 
     2*c2*(-(d2*e2*g1) + 2*b2*f2*g1 - d2*e1*g2 - d1*e2*g2 + 
       2*b2*f1*g2 + 2*b1*f2*g2 + 2*a2*e2*h1 - d2*f2*h1 + 
       2*a2*e1*h2 + 2*a1*e2*h2 - d2*f1*h2 - d1*f2*h2 - 
@@ -1834,7 +1833,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
       h1*pow(f2,2))*(2*c2*d2*g2 - e2*f2*g2 - 4*a2*c2*h2 + 
       2*a2*e2*i2 - d2*f2*i2 + h2*pow(f2,2));
 
-  rtc[6]=
+  rtc[6] = 
     f2*(-(d2*e2*g2) + 2*b2*f2*g2 + 2*a2*e2*h2 - d2*f2*h2 - 
       4*a2*b2*i2 + i2*pow(d2,2))*
     (-4*b2*c2*g2 + 2*c2*d2*h2 - e2*f2*h2 - d2*e2*i2 + 
@@ -1868,52 +1867,45 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
    b2*pow(2*c2*d2*g2 - e2*f2*g2 - 4*a2*c2*h2 + 
       2*a2*e2*i2 - d2*f2*i2 + h2*pow(f2,2),2);
 
-  int order=0;
-  for (int k=0;k<=6;k++){
-    if (fabs(rtc[k]) > EPS){
-      order=k;
-    }
-  }
-  if (order==0)
-    return false;
+  int order = 0;
+  for (int i = 0; i <= 6; i++)
+    if (fabs(rtc[i]) > EPS)
+      order = i;
+
+  for (int i = 0; i <= order; i++)
+    rtc[i] /= rtc[order];
   
-  for (int k=0;k<=order;k++)
-    rtc[k]/=rtc[order];
-  
-#ifndef NDEBUG  // tested: order==6 whether or not in contact
-  debugInf<<"root6.cpp: iter="<<iteration
-	    <<" order="<<order<<std::endl;
+#ifndef NDEBUG  // tested: order == 6 whether or not in contact
+  debugInf << "root6.cpp: iter=" << iteration << " order=" << order << std::endl;
 #endif
   
   if (!zrhqr(rtc, order, rtr, rti)) // find roots for a polynomial using eigenvalues method
     return false;
   
 #ifndef NDEBUG
-  for (int k=1;k<=order;k++){
-    debugInf<<"root6.cpp: rtr="<<rtr[k]<<" rti="<<rti[k]<<std::endl;
-  }
+  for (int i = 1; i <= order; i++)
+    debugInf << " rtr=" << std::setw(16) << rtr[i] << " rti=" << std::setw(16) << rti[i] << std::endl;
 #endif
   
   REAL lamda[6];
-  int jj=0;
-  for (int k=1;k<=order;k++){
-    if(fabs(rti[k]) < EPS)
-      lamda[jj++]=rtr[k];
-  }
+  int nlamda = 0;
+  for (int i = 1; i <= order; i++)
+    if(fabs(rti[i]) < EPS)
+      lamda[nlamda++] = rtr[i];
   
 #ifndef NDEBUG
-  debugInf<<"root6.cpp: jj="<<jj<<std::endl;
+  debugInf << " nlamda=" << nlamda << std::endl;
 #endif
   
   REAL x, y, z, det, within, itself;
-  bool found=false;
+  bool found = false;
   REAL deepest = 0;
-  for (int k=0;k<jj;k++) {
-    x=0;
-    y=0;
-    z=0;
-    within=0;
-    det=
+  for (int k = 0; k < nlamda; k++) {
+    x = 0;
+    y = 0;
+    z = 0;
+    within = 0;
+    det = 
       8*a1*b1*c1 + 2*d1*e1*f1 - 2*c1*pow(d1,2) - 
       2*a1*pow(e1,2) - 2*b1*pow(f1,2) + 
       lamda[k]*(8*a2*b1*c1 + 8*a1*b2*c1 + 8*a1*b1*c2 - 
@@ -1929,8 +1921,8 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
       pow(lamda[k],3);
 
     if(fabs(det) > EPS){ // if determinant is zero, there are infinite solutions
-      // it is necessary to skip this case, otherwise computatation will fail.
-      x=
+      // it is necessary to skip this case, otherwise computation will fail.
+      x = 
 	((-4*b1*c1*g1 + 2*c1*d1*h1 - e1*f1*h1 - d1*e1*i1 + 
 	  2*b1*f1*i1 + g1*pow(e1,2) + 
 	  lamda[k]*(-4*b2*c1*g1 - 4*b1*c2*g1 + 2*e1*e2*g1 - 
@@ -1945,7 +1937,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
 	   g1*pow(e2,2))*pow(lamda[k],2) + 
 	  (-4*b2*c2*g2 + 2*c2*d2*h2 - e2*f2*h2 - d2*e2*i2 + 
 	   2*b2*f2*i2 + g2*pow(e2,2))*pow(lamda[k],3)) )/det;
-      y=
+      y = 
 	((2*c1*d1*g1 - e1*f1*g1 - 4*a1*c1*h1 + 2*a1*e1*i1 - 
 	  d1*f1*i1 + h1*pow(f1,2) + 
 	  lamda[k]*(2*c2*d1*g1 + 2*c1*d2*g1 - e2*f1*g1 - 
@@ -1960,7 +1952,7 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
 	   h1*pow(f2,2))*pow(lamda[k],2) + 
 	  (2*c2*d2*g2 - e2*f2*g2 - 4*a2*c2*h2 + 2*a2*e2*i2 - 
 	   d2*f2*i2 + h2*pow(f2,2))*pow(lamda[k],3)) )/det;
-      z=
+      z = 
 	((-(d1*e1*g1) + 2*b1*f1*g1 + 2*a1*e1*h1 - d1*f1*h1 - 
 	  4*a1*b1*i1 + i1*pow(d1,2) + 
 	  lamda[k]*(-(d2*e1*g1) - d1*e2*g1 + 2*b2*f1*g1 + 
@@ -1980,29 +1972,29 @@ bool root6(REAL coef1[],REAL coef2[],Vec& point) {
       itself = a2*x*x+b2*y*y+c2*z*z+d2*x*y+e2*y*z+f2*z*x+g2*x+h2*y+i2*z+j2;
       
 #ifndef NDEBUG
-      debugInf<<"root6.cpp: k="<<k
-		<<" det="<<det
-		<<" x="<< x <<" y="<< y <<" z="<< z
-		<<" within="<<within
-		<<" itself="<<itself<<std::endl;
+      debugInf << " k=" << k
+	       << " det=" << std::setw(16) << det
+	       << " x=" << std::setw(16) << x << " y=" << std::setw(16) << y << " z=" << std::setw(16) <<  z
+	       << " within=" << std::setw(16) << within
+	       << " itself=" << std::setw(16) << itself << std::endl;
 #endif
       
       // first, the found point must be on the surface of particle 2, i.e., itself < EPS
       // second, the point must penetrate deepest into particle 1, i.e., smallest negative within 
-      if(itself < EPS && within < deepest){
+      if(fabs(itself) < EPS && within < deepest){
 	deepest = within;
-	point=Vec(x,y,z);
-	found=true;
+	point = Vec(x,y,z);
+	found = true;
 #ifndef NDEBUG
-	debugInf<<"root6.cpp: selected within="<<deepest<<std::endl;
+	debugInf << " within selected=" << std::setw(16) << deepest << std::endl;
 #endif
       }
     }
     else {
 #ifndef NDEBUG
-      debugInf<<"root6: k="<<k
-		<<" det="<<det
-		<<" determinant is 0!" <<std::endl;
+      debugInf << " k=" << k
+	       << " det=" << det
+	       << " determinant is 0!"  << std::endl;
 #endif
     }
   }
