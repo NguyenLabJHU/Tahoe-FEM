@@ -1981,7 +1981,7 @@ bool root6(REAL coef1[],REAL coef2[],vec& point){
 
 		// first, the found point must be on the surface of particle 2, i.e., itself < EPS
 		// second, the point must penetrate deepest into particle 1, i.e., smallest negative within 
-		if(itself < EPS && within < deepest){
+		if(fabs(itself) < EPS && within < deepest){
 		  deepest = within;
 		  point=vec(x,y,z);
 		  found=true;
