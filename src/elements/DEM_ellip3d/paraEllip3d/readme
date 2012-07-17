@@ -2,18 +2,30 @@ How to use paraEllip3d
 
 1. compile
 
-   1) edit main.cpp for your specific simulation type and parameters.
-   2) edit parameter.cpp to change more parameters if necessary.
-   3) edit makefile to toggle on/off OPENMP (on by default).
-   4) make
-   5) copy paraEllip3d, main.cpp, parameter.cpp to your simulation directory.
+   1) make
+   2) copy paraEllip3d to your simulation directory
 
 2. run
 
-   serial mode: ./paraEllip3d &
+   1) single-thread mode
 
-   openmp mode: mpirun -np 64 ./paraEllip3d 4 4 4 & 
-   where n is the number of threads. It is recommended that n=4, 6 or 12 
-   depending on your platform. This command line argument bypasses the 
-   need of environment variable OMP_NUM_THREADS, which is usually set by 
-   command export OMP_NUM_THREADS=n.
+      ./paraEllip3d input.txt &
+      where ompThreads = 1 specified in input.txt.
+
+   2) multi-thread OpenMP mode
+
+      ./paraEllip3d input.txt & 
+      where ompThreads > 1 specified in input.txt.
+
+   3) MPI mode
+
+      mpirun -np 64 ./paraEllip3d input.txt & 
+      where number of processes, i.e., 64, is specified, and 
+      it must satisfys np = mpiProcX * mpiProcY * mpiProcZ, 
+      which are specified in input.txt.
+
+   4) MPI/OpenMP hybrid mode
+
+      mpirun -np 64 -npernode 1 ./paraEllip3d input.txt &
+      where number of nodes, i.e., 64, is specified. Each node
+      run ompThreads threads, say, 12, specified in input.txt.

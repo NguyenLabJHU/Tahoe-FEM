@@ -27,8 +27,8 @@ namespace dem {
     int  id;
     int  type;            
     REAL a, b, c;    // three semi-axle length, a >= b >= c
-    REAL Young;
-    REAL Poisson;
+    REAL young;
+    REAL poisson;
     Vec  currPos;    // particle center
     Vec  prevPos;
     Vec  currDirecA, currDirecB, currDirecC; // the direction of the three axles, in radian
@@ -54,18 +54,18 @@ namespace dem {
 
   public:
     Particle();
-    Particle(int n, int type, Vec center, REAL r, REAL young, REAL Poisson);
-    Particle(int n, int type, Vec center, REAL a, REAL b, REAL c, REAL young, REAL Poisson);
-    Particle(int n, int type, Vec center, Gradation& grad, REAL young, REAL Poisson);
-    Particle(int id,int type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL Poisson);
+    Particle(int n, int type, Vec center, REAL r, REAL young, REAL poisson);
+    Particle(int n, int type, Vec center, REAL a, REAL b, REAL c, REAL young, REAL poisson);
+    Particle(int n, int type, Vec center, Gradation& grad, REAL young, REAL poisson);
+    Particle(int id,int type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
     
     int  getId() const {return id;}
     int  getType() const {return type;}
     REAL getA() const {return a;}
     REAL getB() const {return b;}
     REAL getC() const {return c;}
-    REAL getYoung() const {return Young;}
-    REAL getPoisson() const {return Poisson;};
+    REAL getYoung() const {return young;}
+    REAL getPoisson() const {return poisson;};
     REAL getVolume() const {return volume;}
     REAL getMass() const {return mass;}
     REAL getDensity() const {return density;}
@@ -166,8 +166,8 @@ namespace dem {
       ar & id;
       ar & type;
       ar & a & b & c;
-      ar & Young;
-      ar & Poisson;
+      ar & young;
+      ar & poisson;
       ar & currPos;
       ar & prevPos;
       ar & currDirecA & currDirecB & currDirecC;

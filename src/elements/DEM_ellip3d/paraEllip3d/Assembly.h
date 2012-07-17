@@ -2,6 +2,7 @@
 #define ASSEMBLY_H
 
 #include "realtypes.h"
+#include "Parameter.h"
 #include "Vec.h"
 #include "Gradation.h"
 #include "Particle.h"
@@ -23,6 +24,7 @@ namespace dem {
     typedef Boundary<Particle> BOUNDARY;
     
   private:
+
     // particles property
     int  trimHistoryNum;                     // historical maximum numbering before trimming
     int  possContactNum;                     // possible contact number based on spherical distances
@@ -49,13 +51,11 @@ namespace dem {
     std::vector<BOUNDARY*> cavityBoundaryVec; // rigid cavity boundaries
     std::map<int,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
     
-    // MPI communicator
+    // MPI data
     boost::mpi::communicator boostWorld;
     MPI_Comm mpiWorld, cartComm;
-    int mpiRank;
-    int mpiSize;
-    int mpiCoords[3];
-    int mpiTag;
+    int mpiProcX, mpiProcY, mpiProcZ;
+    int mpiRank, mpiSize, mpiTag, mpiCoords[3];
     std::vector<Particle*> rParticleX1, rParticleX2; // r stands for received
     std::vector<Particle*> rParticleY1, rParticleY2; 
     std::vector<Particle*> rParticleZ1, rParticleZ2; 
@@ -98,7 +98,7 @@ namespace dem {
     void setGradation(Gradation grad) {gradation = grad;}
 
     void depositIntoContainer(); 
-    void generateParticle(int freeType,
+    void generateParticle(int particleLayers,
 			  const char *genParticle);
     void buildBoundary(int boundaryNum,
 		       const char* boundaryFile);
@@ -108,16 +108,9 @@ namespace dem {
 	      const char* trmParticle);
     void deposit(int totalSteps,  
 		 int snapNum,
-		 int statInterval,
-		 const char *inputParticle,
-		 const char *inputBoundary);
-      
-    void readParameter(int  &simuType,
-		       int  &freeType,
-		       REAL &trimHeight,
-		       int  &totalSteps,
-		       int  &snapNum,
-		       int  &statInterval);
+		 int statInterv,
+		 const char *inputBoundary,
+		 const char *inputParticle);
     
     void setCavity(Rectangle cavi) {cavity = cavi;}
 
@@ -179,7 +172,8 @@ namespace dem {
     REAL getAvgPressure() const;
     void setArea(int bdry,REAL a);             // set the area of the bdry-th rigid boundary be a
     void setTrimHistoryNum(int n) {trimHistoryNum = n;}
-    void printParticle(const char* str) const; // print particles info into a disk file
+    void printParticle(const char* str) const; // print all particles info into a disk file
+    void printParticle(const char* str, std::vector<Particle*>  &particleVec) const; // print particles info into a disk file
     void printMemParticle(const char* str) const; // print membrane particles info into a disk file
     void plotSpring(const char *str) const;    // print springs in Tecplot format
     void plotBoundary(const char *str) const;
@@ -591,7 +585,6 @@ namespace dem {
     }
     
     void mpiTest2() {
-      int tag = 0;
       if (boostWorld.rank() == 0) {
 	readParticle("test_particle_ini");
 	printParticle("test_particle_0");

@@ -13,7 +13,6 @@
 
 #include "realtypes.h"
 #include "Vec.h"
-#include "parameter.h"
 #include "Cylinder.h"
 #include <map>
 #include <vector>
@@ -22,10 +21,6 @@
 #include <fstream>
 #include <iomanip>
 #include <cstdlib>
-
-using std::cout;
-using std::setw;
-using std::endl;
 
 namespace dem {
   
@@ -59,22 +54,22 @@ namespace dem {
     int  side;  // zero if plane; side=1, particles are outside the cylinder; =-1, inside the cylinder
     
     void display() const{
-      cout << "order: " << order << endl;
-      cout << "dirc: " << dirc.getX() << " " << dirc.getY() << " " << dirc.getZ() << endl;
-      cout << "apt: " << apt.getX() << " " << apt.getY() << " " << apt.getZ() << endl;
-      cout << "radius: " << rad << " side: " << side << endl;
+      std::cout << "order: " << order << std::endl;
+      std::cout << "dirc: " << dirc.getX() << " " << dirc.getY() << " " << dirc.getZ() << std::endl;
+      std::cout << "apt: " << apt.getX() << " " << apt.getY() << " " << apt.getZ() << std::endl;
+      std::cout << "radius: " << rad << " side: " << side << std::endl;
     }
     
     void display(std::ofstream &ofs) const{
-      ofs << setw(OWID) << order
-	  << setw(OWID) << dirc.getX()
-	  << setw(OWID) << dirc.getY()
-	  << setw(OWID) << dirc.getZ()
-	  << setw(OWID) << apt.getX()
-	  << setw(OWID) << apt.getY()
-	  << setw(OWID) << apt.getZ()
-	  << setw(OWID) << rad
-	  << setw(OWID) << side << std::endl;
+      ofs << std::setw(OWID) << order
+	  << std::setw(OWID) << dirc.getX()
+	  << std::setw(OWID) << dirc.getY()
+	  << std::setw(OWID) << dirc.getZ()
+	  << std::setw(OWID) << apt.getX()
+	  << std::setw(OWID) << apt.getY()
+	  << std::setw(OWID) << apt.getZ()
+	  << std::setw(OWID) << rad
+	  << std::setw(OWID) << side << std::endl;
     }
   } BdryCoef;
   
@@ -88,10 +83,10 @@ namespace dem {
     updatectl() {tran=0;rote=0;fixpt=0;expnd=1;}
     
     void display() const{
-      cout << "tran: " << tran.getX() << " " << tran.getY() << " " << tran.getZ() << endl;
-      cout << "rote: " << rote.getX() << " " << rote.getY() << " " << rote.getZ() << endl;
-      cout << "fixpt: " << fixpt.getX() << " " << fixpt.getY() << " " << fixpt.getZ() << endl;
-      cout << "expand:" << expnd << endl;
+      std::cout << "tran: " << tran.getX() << " " << tran.getY() << " " << tran.getZ() << std::endl;
+      std::cout << "rote: " << rote.getX() << " " << rote.getY() << " " << rote.getZ() << std::endl;
+      std::cout << "fixpt: " << fixpt.getX() << " " << fixpt.getY() << " " << fixpt.getZ() << std::endl;
+      std::cout << "expand:" << expnd << std::endl;
     };
     
   } UPDATECTL;
@@ -113,7 +108,7 @@ namespace dem {
   int getBdryID() {return boundaryId;}
   virtual ~Boundary() {} // base class needs a virtual destructor.
   virtual void display() const{
-    cout << "area: " << area << " limitNum: " << limitNum << endl;
+    std::cout << "area: " << area << " limitNum: " << limitNum << std::endl;
     std::vector<BdryCoef>::const_iterator it;
     for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
       (*it).display();
@@ -121,9 +116,9 @@ namespace dem {
   virtual void display(std::ofstream &ofs) const{
     std::vector<BdryCoef>::const_iterator it;
     ofs << std::endl
-	<< setw(OWID) << (*CoefOfLimits.begin()).order << std::endl;
-    ofs << setw(OWID) << boundaryId
-	<< setw(OWID) << limitNum << std::endl;
+	<< std::setw(OWID) << (*CoefOfLimits.begin()).order << std::endl;
+    ofs << std::setw(OWID) << boundaryId
+	<< std::setw(OWID) << limitNum << std::endl;
     for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
       (*it).display(ofs);
   }
@@ -219,15 +214,15 @@ Vec plnBoundary<T>::getDirc() const{
 template<class T>
 void plnBoundary<T>::display() const{
   Boundary<T>::display();
-  cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << endl;
+  std::cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << std::endl;
   typename std::vector<T*>::const_iterator it;
   int i=0;
   for(it=possBdryParticle.begin();it!=possBdryParticle.end();++it){
     if(i++<10)
-      cout << (*it)->getId();
+      std::cout << (*it)->getId();
     else{
       i=0;
-      cout << (*it)->getId() << endl;
+      std::cout << (*it)->getId() << std::endl;
     }
   }
 };
@@ -333,15 +328,15 @@ template<class T> class cylBoundary:public Boundary<T>{
 template<class T>
 void cylBoundary<T>::display() const{
   Boundary<T>::display();
-  cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << endl;
+  std::cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << std::endl;
   typename std::vector<T*>::const_iterator it;
   int i=0;
   for(it=possBdryParticle.begin();it!=possBdryParticle.end();++it){
     if(i++<10)
-      cout << (*it)->getId();
+      std::cout << (*it)->getId();
     else{
       i=0;
-      cout << (*it)->getId() << endl;
+      std::cout << (*it)->getId() << std::endl;
     }
   }
 };

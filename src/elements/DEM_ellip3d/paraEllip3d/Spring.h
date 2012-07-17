@@ -24,7 +24,7 @@ namespace dem{
   private:
     Particle &p1;
     Particle &p2;
-    REAL Young;   // Young's modulus
+    REAL young;   // Young's modulus
     REAL ks;      // stiffness
     REAL length0; // equilibrium length
     
@@ -32,7 +32,7 @@ namespace dem{
       length0 = vfabs( p2.getCurrPos() - p1.getCurrPos() );
       REAL radius = p1.getA();
       assert (radius == p2.getA() );
-      ks = Young * 4 * radius * radius / length0;
+      ks = young * 4 * radius * radius / length0;
     } 
 
   };

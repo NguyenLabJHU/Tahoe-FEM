@@ -1,5 +1,6 @@
 #include "realtypes.h"
-#include "parameter.h"
+#include "const.h"
+#include "Parameter.h"
 #include "Gradation.h"
 #include "Rectangle.h"
 #include "Assembly.h"
@@ -16,19 +17,46 @@ BOOST_IS_MPI_DATATYPE(dem::Particle)
 
 int main(int argc, char* argv[]) {
 
-  boost::mpi::environment  bEnv(argc, argv);
-  boost::mpi::communicator bWorld;
-  
-  if (argc == 4) {
-    dem::NPX = atoi(argv[1]);
-    dem::NPY = atoi(argv[2]);
-    dem::NPZ = atoi(argv[3]);
+  boost::mpi::environment  boostEnv(argc, argv);
+  boost::mpi::communicator boostWorld;
+
+  if (argc != 2) {
+    if (boostWorld.rank() == 0) 
+      std::cout << "please specify data file in the form: paraEllip3d input.txt" << std::endl;
+    return -1;    
   }
-  
+
+  if (boostWorld.rank() == 0) {
+    dem::Parameter::getSingleton().readIn(argv[1]);
+    //dem::Parameter::getSingleton().writeOut();
+  }
+  broadcast(boostWorld, dem::Parameter::getSingleton(), 0);
+  int mpiProcX = dem::Parameter::getSingleton().parameter["mpiProcX"];
+  int mpiProcY = dem::Parameter::getSingleton().parameter["mpiProcY"];
+  int mpiProcZ = dem::Parameter::getSingleton().parameter["mpiProcZ"];
+  if (mpiProcX * mpiProcY * mpiProcZ != boostWorld.size() ) {
+    if (boostWorld.rank() == 0) 
+      std::cout << "number of MPI processes does match grids in data file!" << std::endl;
+    return -1;
+  }
+
+  dem::debugInf.open("debugInf");
+  if(!dem::debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+  dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
+
   dem::Assembly assemb;
-  assemb.setCommunicator(bWorld);
-  assemb.depositIntoContainer();
+  assemb.setCommunicator(boostWorld);
+  if ((int) dem::Parameter::getSingleton().parameter["simuType"] == 0)
+    assemb.depositIntoContainer();
+  else if ((int) dem::Parameter::getSingleton().parameter["simuType"] == 1)
+    assemb.deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
+		   (int) dem::Parameter::getSingleton().parameter["snapNum"],
+		   (int) dem::Parameter::getSingleton().parameter["statInterv"],
+		   dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
+		   dem::Parameter::getSingleton().datafile["particleFile"].c_str());
   
+  dem::debugInf.close();
+
   ///////////////////////////////////////////////////////////////////////////////
   // Part 0: command line arguments and timestamps
   /*
@@ -37,7 +65,7 @@ int main(int argc, char* argv[]) {
   time_t time1, time2;
   time(&time1);
   if (argc == 2) {
-    dem::NUM_THREADS = atoi(argv[1]);
+    dem::nThreads = atoi(argv[1]);
     dem::g_timeinf << "command line: " << argv[0] << " " << argv[1] << std::endl << std::endl; 
   }
   */
@@ -67,7 +95,7 @@ int main(int argc, char* argv[]) {
   /*
   assemb.plotBoundary("container.plot");
   assemb.depositIntoContainer
-    (2,                  // freeType, setting of free particles 
+    (2,                  // particleLayers, setting of free particles 
      1000000,            // total_steps
      100,                // number of snapshots
      10,                 // print interval
@@ -163,7 +191,7 @@ int main(int argc, char* argv[]) {
   */
   /*
   assemb.depositIntoContainer
-    (2,                  // freeType, setting of free particles 
+    (2,                  // particleLayers, setting of free particles 
      1000000,            // total_steps
      100,                // number of snapshots
      10,                 // print interval
@@ -244,7 +272,7 @@ int main(int argc, char* argv[]) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notes:
 //
-// freeType (settings for free particles):
+// particleLayers (settings for free particles):
 //  0 - a single free particle
 //  1 - a layer of free particles
 //  2 - multiple layers of free particles
@@ -328,7 +356,7 @@ int main(int argc, char* argv[]) {
   dem::Gradation ptclGradation(percent.size(), percent, ptclSize, ptcl_ratio_ba, ptcl_ratio_ca);
   assemb.setContainer(container);
   assemb.setGradation(ptclGradation);
-  assemb.depositIntoContainer(2,                  // freeType, setting of free particles 
+  assemb.depositIntoContainer(2,                  // particleLayers, setting of free particles 
 			 100000,             // total_steps
 			 100,                // number of snapshots
 			 10,                 // print interval
@@ -357,7 +385,7 @@ int main(int argc, char* argv[]) {
     //percent.push_back(0.10); ptclSize.push_back(0.5e-3);
     dem::Gradation grad(rorc, dimn, ratio_ba, ratio_ca, percent.size(), percent, ptclSize);
     assemb.deposit_PtclBdry(grad,
-		       2,                  // freeType, setting of free particles
+		       2,                  // particleLayers, setting of free particles
 		       1.0,                // relative container size, 0.8/1.0/1.2---small/medium/large
 		       100000,             // total_steps
 		       100,                // number of snapshots

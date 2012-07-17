@@ -2,7 +2,7 @@
 #define CYLINDER_H
 
 #include "realtypes.h"
-#include "parameter.h"
+#include "const.h"
 #include "Vec.h"
 
 namespace dem {
@@ -26,7 +26,7 @@ namespace dem {
     
     REAL getRadius() const {return radius;}
     REAL getHeight() const {return height;}
-    REAL getVolume() const {return PI*radius*radius*height;}
+    REAL getVolume() const {return Pi*radius*radius*height;}
     Vec  getCenter() const {return center;}
     
     void setRadius(REAL r) {radius = r;}

@@ -1,5 +1,5 @@
 #include "Vec.h"
-#include "parameter.h"
+#include "const.h"
 #include <iostream>
 
 namespace dem {
@@ -93,14 +93,14 @@ namespace dem {
   
   Vec normalize(Vec v){
     REAL alf = vfabs(v);
-    if (alf < EPS) // important, otherwise my cause numerical instability
+    if (alf < EPS) // important, otherwise may cause numerical instability
       return v;
     return v/(vfabs(v));
   }
   
   Vec rotateVec(Vec v, Vec ang){
     REAL alf = vfabs(ang);
-    if (alf < EPS) // important, otherwise my cause numerical instability
+    if (alf < EPS) // important, otherwise may cause numerical instability
       return v;
     
     Vec nx = ang/alf;
@@ -108,11 +108,13 @@ namespace dem {
     Vec vv = v - vp;
     
     REAL theta = atan(vfabs(vv) / vfabs(vp));
+
 #ifndef NDEBUG
-    debugInf<<"Vec.cpp: iter="<<iteration 
-	      <<" alf="<<alf
-	      <<" theta="<<theta<<std::endl;
+    debugInf << "Vec.cpp: iter=" << iteration 
+	     << " alf=" << alf
+	     << " theta=" << theta << std::endl;
 #endif
+
     if (theta < EPS) // important, otherwise my cause numerical instability
       return v;    
     
@@ -124,21 +126,21 @@ namespace dem {
   
   REAL angle(Vec v1, Vec v2, Vec norm){
     //calculate the angle between v1 and v2 if rotating v1 in the plane
-    //composed of v1 and v2 from itself to v2, the angle could be 0<alf<360
+    //composed of v1 and v2 from itself to v2, the angle could be 0 < alf < 360.
     //norm specify that the rotation must be around norm according to right hand rule,
-    //even if the 180<alf<360
+    //even if the 180 < alf < 360
     REAL alf;
     Vec crs = v1 * v2;
-    alf=asin(vfabs(crs) / vfabs(v1) / vfabs(v2) ); //0<alf<90;
-    if(crs % norm > 0){ //0<=alf<=180
-      if(v1 % v2 < 0)   //90<alf<180
-	alf = PI-alf;
+    alf = asin( vfabs(crs) / vfabs(v1) / vfabs(v2) ); // 0 < alf < 90
+    if(crs % norm > 0) { //0 <= alf <= 180
+      if(v1 % v2 < 0)   //90 < alf < 180
+	alf = Pi - alf;
     }
-    else{//180<alf<360
-      if(v1 % v2 > 0)   //270<alf<360
-	alf = 2 *PI - alf;
+    else { // 180 < alf < 360
+      if(v1 % v2 > 0)   // 270 < alf < 360
+	alf = 2*Pi - alf;
       else
-	alf = PI + alf;
+	alf = Pi + alf;
     }
     return alf;
   }

@@ -6,7 +6,8 @@
 #define CONTACT_H
 
 #include "realtypes.h"
-#include "parameter.h"
+#include "Parameter.h"
+#include "const.h"
 #include "root6.h"
 #include <vector>
 #include <iostream>
@@ -43,7 +44,7 @@ namespace dem {
       ar & tgtDispStart;
       ar & tgtPeak;
       ar & tgtSlide;
-    }    
+    }
 
   public:
     ContactTgt()
@@ -67,6 +68,7 @@ namespace dem {
       tgtPeak(_tp),
       tgtSlide(_ts)
       {}
+
   };
 
   template <class T> class Contact {
@@ -92,8 +94,8 @@ namespace dem {
     REAL getPenetration() const {return penetr;}
     REAL getContactRadius() const {return contactRadius;}
     REAL gettgtDisp() const {return vfabs(tgtDisp);} // total value during a process of contact
-    void checkoutTgt(std::vector<ContactTgt>& ContactTgtVec);
-    void checkinPrevTgt(std::vector<ContactTgt>& ContactTgtVec);
+    void checkoutTgt(std::vector<ContactTgt>& contactTgtVec);
+    void checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec);
     Vec  normalForceVec() const {return normalForce;}
     Vec  tgtForceVec() const {return tgtForce;}
     bool isRedundant(Contact<T> other) const;
@@ -226,9 +228,8 @@ namespace dem {
     radius1 = p1->getRadius(point1);
     radius2 = p2->getRadius(point2);
     penetr = vfabs(point1-point2);
-    REAL minRelOverlap = penetr/(2.0*fmax(radius1,radius2));
 
-    if (b1 && b2 && minRelOverlap > MINOVERLAP) { // a strict detection method
+    if (b1 && b2 && penetr/(2.0*fmax(radius1,radius2)) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]) { // a strict detection method
         isInContact = true;
         return true;
     }
@@ -240,8 +241,8 @@ namespace dem {
   
   
   template<class T>
-    void Contact<T>::checkinPrevTgt(std::vector<ContactTgt>& ContactTgtVec) {
-    for(std::vector<ContactTgt>::iterator it = ContactTgtVec.begin();it != ContactTgtVec.end(); ++it) {
+    void Contact<T>::checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec) {
+    for(std::vector<ContactTgt>::iterator it = contactTgtVec.begin();it != contactTgtVec.end(); ++it) {
       if (it->ptcl1 == p1->getId() && it->ptcl2 == p2->getId()) {
 	prevTgtForce   = it->tgtForce;
 	prevTgtDisp    = it->tgtDisp;
@@ -256,8 +257,8 @@ namespace dem {
   
   
   template<class T>
-    void Contact<T>::checkoutTgt(std::vector<ContactTgt>& ContactTgtVec) {
-    ContactTgtVec.push_back(ContactTgt(p1->getId(),
+    void Contact<T>::checkoutTgt(std::vector<ContactTgt>& contactTgtVec) {
+    contactTgtVec.push_back(ContactTgt(p1->getId(),
 				       p2->getId(),
 				       tgtForce,
 				       tgtDisp, 
@@ -274,6 +275,16 @@ namespace dem {
     // now this function is called by internalForce() in assembly.cpp.
     
     if (isInContact) {
+
+      REAL young = dem::Parameter::getSingleton().parameter["young"];
+      REAL poisson = dem::Parameter::getSingleton().parameter["poisson"];
+      REAL maxRelaOverlap = dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
+      REAL measureOverlap = dem::Parameter::getSingleton().parameter["measureOverlap"];
+      REAL contactCohesion = dem::Parameter::getSingleton().parameter["contactCohesion"];
+      REAL contactDamp = dem::Parameter::getSingleton().parameter["contactDamp"];
+      REAL contactFric = dem::Parameter::getSingleton().parameter["contactFric"];
+      REAL timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
+
       // obtain normal force, using absolute equation instead of stiffness method
       p1->setContactNum(p1->getContactNum() + 1);
       p2->setContactNum(p2->getContactNum() + 1);
@@ -281,8 +292,8 @@ namespace dem {
       p2->setInContact(true);
       
       R0 = radius1*radius2/(radius1+radius2);
-      E0 = 0.5*YOUNG/(1-POISSON*POISSON);
-      REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * MAXOVERLAP;
+      E0 = 0.5*young/(1-poisson*poisson);
+      REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * maxRelaOverlap;
       if (penetr > allowedOverlap) {
 	debugInf << "Contact.h: iter=" << iteration 
 		 << " ptcl1=" << getP1()->getId()
@@ -291,16 +302,15 @@ namespace dem {
 		 << " allow=" << allowedOverlap << std::endl;
 	penetr = allowedOverlap;
       }
-#ifdef MEASURE_EPS
-      penetr = nearbyint (penetr/MEPS) * MEPS;
-#endif
+
+      penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
       contactRadius = sqrt(penetr*R0);
       normalDirc = normalize(point1-point2);         // normalDirc points out of particle 1
       normalForce = -sqrt(penetr*penetr*penetr)*sqrt(R0)*4*E0/3* normalDirc; // normalForce pointing to particle 1
       // pow(penetr, 1.5)
       
       // apply cohesion force
-      cohesionForce = PI*(penetr*R0)*COHESION*normalDirc;
+      cohesionForce = Pi * (penetr*R0) * contactCohesion * normalDirc;
       p1->addForce(cohesionForce);
       p2->addForce(-cohesionForce);
       
@@ -315,7 +325,7 @@ namespace dem {
 	       << " penetr=" << penetr
 	       << " cohesionForce=" << vfabs(cohesionForce)
 	       << " normalForce=" << vfabs(normalForce)
-	       << " accumulated time=" << iteration*TIMESTEP
+	       << " accumulated time=" << iteration*timeStep
 	       << std::endl;
       */
       
@@ -326,21 +336,21 @@ namespace dem {
       REAL m1 = getP1()->getMass();
       REAL m2 = getP2()->getMass();
       REAL kn = pow(6*vfabs(normalForce)*R0*pow(E0,2),1.0/3.0);
-      REAL DMP_CRTC = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
-      Vec CntDampingForce = DMP_CNT * DMP_CRTC * ((veloc1-veloc2)%normalDirc)*normalDirc;
+      REAL dampCritical = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
+      Vec cntDampingForce = contactDamp * dampCritical * ((veloc1-veloc2)%normalDirc)*normalDirc;
       vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
       impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) % normalDirc);
       
       // apply normal damping force
-      p1->addForce(-CntDampingForce);
-      p2->addForce(CntDampingForce);
-      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) * (-CntDampingForce) );
-      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) * CntDampingForce );
+      p1->addForce(-cntDampingForce);
+      p2->addForce(cntDampingForce);
+      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) * (-cntDampingForce) );
+      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) * cntDampingForce );
       
-      if (FRICTION != 0) {
+      if (contactFric != 0) {
 	// obtain tangential force
-	G0 = YOUNG/2/(1+POISSON);              // RelaDispInc points along point1's displacement relative to point2
-	Vec RelaDispInc = (veloc1-veloc2)*TIMESTEP;
+	G0 = young/2/(1+poisson);              // RelaDispInc points along point1's displacement relative to point2
+	Vec RelaDispInc = (veloc1-veloc2)*timeStep;
 	Vec tgtDispInc = RelaDispInc-(RelaDispInc%normalDirc)*normalDirc;
 	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPrevTgt()
 	if (vfabs(tgtDisp) == 0)
@@ -353,8 +363,8 @@ namespace dem {
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// linear friction model
-	fP = FRICTION*vfabs(normalForce);
-	ks = 4*G0*contactRadius/(2-POISSON);
+	fP = contactFric*vfabs(normalForce);
+	ks = 4*G0*contactRadius/(2-poisson);
 	tgtForce = prevTgtForce + ks*(-tgtDispInc); // prevTgtForce read by CheckinPreTgt()
 	if (vfabs(tgtForce) > fP)
 	  tgtForce = fP*tgtDirc;
@@ -366,21 +376,21 @@ namespace dem {
 	// unless load is known (the case of pure moment rotation).
 #ifdef MINDLIN_ASSUMED
 	REAL val = 0;
-	fP = FRICTION*vfabs(normalForce);
+	fP = contactFric*vfabs(normalForce);
 	tgtLoading = (prevTgtDisp%tgtDispInc >= 0); 
 	
 	if (tgtLoading) {              // loading
 	  if (!prevTgtLoading) {      // pre-step is unloading
-	    val = 8*G0*contactRadius*vfabs(tgtDispInc)/(3*(2-POISSON)*fP);
+	    val = 8*G0*contactRadius*vfabs(tgtDispInc)/(3*(2-poisson)*fP);
 	    tgtDispStart = prevTgtDisp;
 	  }
 	  else                       // pre-step is loading
-	    val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-POISSON)*fP);
+	    val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-poisson)*fP);
 	  
 	  if (val > 1.0)              
 	    tgtForce = fP*tgtDirc;
 	  else {
-	    ks = 4*G0*contactRadius/(2-POISSON)*sqrt(1-val);
+	    ks = 4*G0*contactRadius/(2-poisson)*sqrt(1-val);
 	    //incremental method
 	    tgtForce = prevTgtForce + ks*(-tgtDispInc); // tgtDispInc determines signs
 	    //total value method: tgtForce = fP*(1-pow(1-val, 1.5))*tgtDirc;
@@ -388,16 +398,16 @@ namespace dem {
 	}
 	else {                         // unloading
 	  if (prevTgtLoading) {       // pre-step is loading
-	    val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-POISSON)*fP);
+	    val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-poisson)*fP);
 	    tgtPeak = vfabs(prevTgtForce);
 	  }
 	  else                       // pre-step is unloading
-	    val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-POISSON)*fP);
+	    val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-poisson)*fP);
 	  
 	  if (val > 1.0 || tgtPeak > fP)  
 	    tgtForce = fP*tgtDirc;
 	  else {
-	    ks = 2*sqrt(2)*G0*contactRadius/(2-POISSON) * sqrt(1+pow(1-tgtPeak/fP,2.0/3.0)+val);
+	    ks = 2*sqrt(2)*G0*contactRadius/(2-poisson) * sqrt(1+pow(1-tgtPeak/fP,2.0/3.0)+val);
 	    //incremental method
 	    tgtForce = prevTgtForce + ks*(-tgtDispInc); // tgtDispInc determines signs
 	    //total value method: tgtForce = (tgtPeak-2*fP*(1-sqrt(2)/4*pow(1+ pow(1-tgtPeak/fP,2.0/3.0) + val,1.5)))*tgtDirc;
@@ -415,11 +425,11 @@ namespace dem {
 	// Herein sliding history is incorporated.
 #ifdef MINDLIN_KNOWN
 	REAL val = 0;
-	fP = FRICTION*vfabs(normalForce);
+	fP = contactFric*vfabs(normalForce);
 	if (prevTgtSlide)
-	  val = 8*G0*contactRadius*vfabs(tgtDispInc)/(3*(2-POISSON)*fP);
+	  val = 8*G0*contactRadius*vfabs(tgtDispInc)/(3*(2-poisson)*fP);
 	else
-	  val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-POISSON)*fP);
+	  val = 8*G0*contactRadius*vfabs(tgtDisp-tgtDispStart)/(3*(2-poisson)*fP);
 	
 	if (iteration > 10000 && iteration < 11000) { // loading (and possible sliding)
 	  if (val > 1.0) {
@@ -428,7 +438,7 @@ namespace dem {
 	  }
 	  else {
 	    if (!prevTgtSlide) {
-	      ks = 4*G0*contactRadius/(2-POISSON)*sqrt(1-val);
+	      ks = 4*G0*contactRadius/(2-poisson)*sqrt(1-val);
 	      tgtForce = prevTgtForce + ks*(-tgtDispInc); // tgtDispInc determines signs
 	      tgtSlide = false;
 	    }
@@ -448,7 +458,7 @@ namespace dem {
 	  }
 	  else {
 	    if (!prevTgtSlide) {
-	      ks = 2*sqrt(2)*G0*contactRadius/(2-POISSON) * sqrt(1+pow(1-tgtPeak/fP,2.0/3.0)+val);
+	      ks = 2*sqrt(2)*G0*contactRadius/(2-poisson) * sqrt(1+pow(1-tgtPeak/fP,2.0/3.0)+val);
 	      tgtForce = prevTgtForce + ks*(-tgtDispInc); // tgtDispInc determines signs
 	      tgtSlide = false;
 	    }

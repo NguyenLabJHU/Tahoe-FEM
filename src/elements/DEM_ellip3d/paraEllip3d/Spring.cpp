@@ -1,15 +1,14 @@
 #include "Spring.h"
-#include "parameter.h"
 
-namespace dem{
+namespace dem {
 
 Spring::Spring(Particle &ptcl1, Particle &ptcl2, REAL modulus)
-  :p1(ptcl1), p2(ptcl2), Young(modulus) {
+  :p1(ptcl1), p2(ptcl2), young(modulus) {
   init(p1, p2);
 }
 
 Spring::Spring(std::vector<Particle*> &ParticleVec, int id1, int id2, REAL modulus)
-  :p1(*ParticleVec[id1]), p2(*ParticleVec[id2]), Young(modulus) {
+  :p1(*ParticleVec[id1]), p2(*ParticleVec[id2]), young(modulus) {
   init(p1, p2);
 }
 

@@ -12,12 +12,12 @@ void Cylinder::print() const{
 }
 
 Vec Cylinder::randomPoint() const{
-    REAL tmp1 = ran(&idum);
-    REAL tmp2 = ran(&idum);
-    REAL tmp3 = ran(&idum);
-    REAL z = (center.getZ() + height/2)*tmp1 + (center.getZ() - height/2)*(1 - tmp1);
-    REAL theta = 2*PI*tmp2;
-    REAL r = radius*tmp3;
+    REAL rand1 = ran(&idum);
+    REAL rand2 = ran(&idum);
+    REAL rand3 = ran(&idum);
+    REAL z = (center.getZ() + height/2)*rand1 + (center.getZ() - height/2)*(1 - rand1);
+    REAL theta = 2*Pi*rand2;
+    REAL r = radius*rand3;
     REAL x = center.getX() + r*cos(theta);
     REAL y = center.getY() + r*sin(theta);
     return Vec(x,y,z); 
