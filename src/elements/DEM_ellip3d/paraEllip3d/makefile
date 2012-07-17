@@ -1,7 +1,6 @@
 # options available in this makefile:
-# 1. option to toggle on/off OpenMP (default on)
-# 2. option to toggle on/off GCC quadmath (default off)
-# 3. option to switch between optimization/debug mode (default optimization)
+# 1. option to toggle on/off GCC quadmath (default off)
+# 2. option to switch between optimization/debug mode (default optimization)
 
 # C++ compiler
 MPICXX=mpic++
@@ -12,18 +11,25 @@ OPTIMIZE = -O3 -DNDEBUG
 # debugging options
 DEBUG = -Wall -g
 
-# 1. OpenMP (macro OPENMP is defined in source code)
-#OPENMP = -DOPENMP -fopenmp
-OPENMP =
+# OpenMP
+OPENMP = -fopenmp
 
-# 2. GCC quadmath
+# 1. GCC quadmath
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
-# 3. Optimize or debug
+# 2. Optimize or debug
 CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 #CXXFLAGS = $(DEBUG) $(OPENMP) $(QUADMATH)
 
-# 4. Boost
+# 3. Boost
+# 3a. only for Janus
+#BOOST_ROOT=/home/yanb/local/boost-1.49.0
+#BOOST_INCLUDE=-I$(BOOST_ROOT)/include
+#BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
+#BOOST_LIBS=-lboost_mpi -lboost_serialization
+#BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
+
+# 3b. only for soilblast
 BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
 BOOST_LIBS=-lboost_mpi -lboost_serialization
 BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
@@ -33,6 +39,7 @@ LIB_DIR=$(BOOST_LIB_DIR)
 LIBS=$(BOOST_LIBS)
 RUN_LIB_DIR=$(BOOST_RUN_LIB_DIR)
 
+# 4. general
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 #OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
