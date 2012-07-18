@@ -294,7 +294,7 @@ deposit(int totalSteps,
     time1 = MPI_Wtime();
     partiCommuParticle(); // processing particles with boundary forces
     time2 = MPI_Wtime();
-    if (mpiRank == 0 && iteration % 100 == 0) debugInf << "iter=" << iteration << " commu=" << std::setw(12) << time2 - time1;
+    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " commu=" << time2 - time1;
 
     findContact();
     internalForce();
@@ -303,11 +303,11 @@ deposit(int totalSteps,
     time1 = MPI_Wtime();
     gatherParticle();
     time2 = MPI_Wtime();
-    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " gather="<< std::setw(12) << time2 - time1 << " total=" << std::setw(12) << time2 - time0 << std::endl;
+    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " gather=" << time2 - time1 << " total=" << time2 - time0 << std::endl;
     
   } while (++iteration < totalSteps);
 
-  printParticle("dep_particle_end");
+  if (mpiRank == 0) printParticle("dep_particle_end");
 
 }
 
@@ -364,6 +364,7 @@ void Assembly::partiCommuParticle() {
 
   // partition particles and send to each process
   if (mpiRank == 0) { // process 0
+    double time1 = MPI_Wtime();
     Vec v1 = allContainer.getMinCorner();
     Vec v2 = allContainer.getMaxCorner();
     Vec vspan = v2 - v1;
@@ -386,6 +387,8 @@ void Assembly::partiCommuParticle() {
     }
     boost::mpi::wait_all(reqs, reqs + mpiSize - 1);
     delete [] reqs;
+    double time2 =  MPI_Wtime();
+    if (iteration % 100 == 0) debugInf << "iter=" << std::setw(8) << iteration << " distr=" << time2 - time1;
   } else { // other processes except 0
     boostWorld.recv(0, mpiTag, particleVec); // need to release memory
   }
