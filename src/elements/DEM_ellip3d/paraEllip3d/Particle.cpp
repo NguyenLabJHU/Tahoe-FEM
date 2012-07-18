@@ -382,7 +382,7 @@ REAL Particle::getRadius(Vec v) const {
 }
   
   
-void Particle::clearForce() {
+void Particle::clearContactForce() {
 
   REAL gravAccel = dem::Parameter::getSingleton().parameter["gravAccel"];
   REAL gravScale = dem::Parameter::getSingleton().parameter["gravScale"];

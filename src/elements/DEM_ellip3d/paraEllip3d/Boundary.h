@@ -122,7 +122,7 @@ namespace dem {
     for(it=CoefOfLimits.begin();it!=CoefOfLimits.end();++it)
       (*it).display(ofs);
   }
-  virtual void findParticleOnBoundary(std::vector<T*>& ptcls){};
+  virtual void findBoundaryContact(std::vector<T*>& ptcls){};
 
   // calculate for each boundary particles the rigid boundary force
   virtual void boundaryForce(std::map<int,std::vector<BoundaryTgt> >& boundaryTgtMap) {}
@@ -187,7 +187,7 @@ template<class T> class plnBoundary:public Boundary<T>{
   int getBdryID() {return this->boundaryId;}
   void display() const;
   REAL distToBdry(Vec posi) const;
-  void findParticleOnBoundary(std::vector<T*>& ptcls);
+  void findBoundaryContact(std::vector<T*>& ptcls);
   Vec getApt() const;
   Vec getDirc() const;
   plnBoundary<T>* getBdry(int bdryid) const{
@@ -236,7 +236,7 @@ REAL plnBoundary<T>::distToBdry(Vec posi) const{
 };
 
 template<class T>
-void plnBoundary<T>::findParticleOnBoundary(std::vector<T*>& ptcls){
+void plnBoundary<T>::findBoundaryContact(std::vector<T*>& ptcls){
   typename std::vector<T*>::iterator it;
   std::vector<BdryCoef>::iterator bt;
   bool next;
@@ -320,7 +320,7 @@ template<class T> class cylBoundary:public Boundary<T>{
  cylBoundary(std::ifstream &ifs):Boundary<T>(ifs){normal=0;}
   void display() const;
   REAL distToBdry(Vec posi) const;
-  void findParticleOnBoundary(std::vector<T*>& ptcls);
+  void findBoundaryContact(std::vector<T*>& ptcls);
   void boundaryForce();
   Vec getNormalForce() const{return normal;};
 };
@@ -351,7 +351,7 @@ REAL cylBoundary<T>::distToBdry(Vec posi) const{
 };
 
 template<class T>
-void cylBoundary<T>::findParticleOnBoundary(std::vector<T*> &ptcls){
+void cylBoundary<T>::findBoundaryContact(std::vector<T*> &ptcls){
   typename std::vector<T*>::iterator it;
   std::vector<BdryCoef>::iterator bt;
   bool next;

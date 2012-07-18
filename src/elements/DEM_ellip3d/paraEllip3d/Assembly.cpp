@@ -285,8 +285,8 @@ deposit(int totalSteps,
 	printParticle(combineString("dep_particle_", iterSnap));
 	++iterSnap;
       }
-      clearForce();
-      findParticleOnBoundary();
+      clearContactForce();
+      findBoundaryContact();
       boundaryForce();
       //std::cout << "\n" << std::flush;
     }
@@ -1445,15 +1445,15 @@ void Assembly::updateParticle() {
 }
 
 
-void Assembly::clearForce() {
+void Assembly::clearContactForce() {
   for(std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
-    (*it)->clearForce();
+    (*it)->clearContactForce();
 }
 
 
-void Assembly::findParticleOnBoundary() {
+void Assembly::findBoundaryContact() {
   for(std::vector<BOUNDARY*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-    (*rt)->findParticleOnBoundary(allParticleVec);
+    (*rt)->findBoundaryContact(allParticleVec);
 }
 
 
@@ -2582,7 +2582,7 @@ void Assembly::printCavityBoundary(const char* str) const {
 void Assembly::findParticleOnCavity(){
   std::vector<BOUNDARY*>::iterator rt;
   for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
-    (*rt)->findParticleOnBoundary(allParticleVec);
+    (*rt)->findBoundaryContact(allParticleVec);
 }
 
 
@@ -2917,10 +2917,10 @@ void Assembly::angleOfRepose(int   interval,
       }
       // 2. create possible boundary particles and contacts between particles.
       findContact();
-      findParticleOnBoundary();
+      findBoundaryContact();
       
       // 3. set particle forces/moments as zero before each re-calculation,
-      clearForce();	
+      clearContactForce();	
       
       // 4. calculate contact forces/moments and apply them to particles.
       internalForce(avgNormal, avgTangt);
@@ -4082,10 +4082,10 @@ void Assembly::deposit(int   totalSteps,
 	//gettimeofday(&time_w2,NULL);
 	//std::cout << std::setw(OWID) << timediffsec(time_w1,time_w2);
 	//gettimeofday(&time_w1,NULL);
-        findParticleOnBoundary();
+        findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internalForce(avgNormal, avgTangt);
@@ -4284,11 +4284,11 @@ void Assembly::depositAfterCavity(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles.
         findContact();
-        findParticleOnBoundary();
+        findBoundaryContact();
 	findParticleOnCavity();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internalForce(avgNormal, avgTangt);
@@ -4452,7 +4452,7 @@ void Assembly::deGravitation(int   totalSteps,
       findContact();
       
       // 2. set particles' forces/moments as zero before each re-calculation,
-      clearForce();	
+      clearContactForce();	
       
       // 3. calculate contact forces/moments and apply them to particles.
       internalForce(avgNormal, avgTangt);
@@ -4567,7 +4567,7 @@ void Assembly::deposit_p(int   totalSteps,
 	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internalForce(avgNormal, avgTangt);
@@ -4703,10 +4703,10 @@ void Assembly::squeeze(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles.
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles.
 	internalForce(avgNormal, avgTangt);
@@ -4899,10 +4899,10 @@ void Assembly::isotropic(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -5197,10 +5197,10 @@ void Assembly::isotropic(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -5503,10 +5503,10 @@ void Assembly::isotropic(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 	
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -5811,10 +5811,10 @@ void Assembly::odometer(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 	
 	// 2. set particles' forces and moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces and moments
 	internalForce(avgNormal, avgTangt);
@@ -6076,10 +6076,10 @@ void Assembly::odometer(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces and moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces and moments
 	internalForce(avgNormal, avgTangt);
@@ -6333,7 +6333,7 @@ void Assembly::iso_MemBdry(int   totalSteps,
       findContact();
 
       // 2. set particles forces/moments to zero before each re-calculation
-      clearForce(); // const_force/moment NOT cleared by this call	
+      clearContactForce(); // const_force/moment NOT cleared by this call	
       
       // 3. calculate contact forces/moments and apply them to particles
       internalForce(avgNormal, avgTangt);
@@ -6463,10 +6463,10 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -6639,10 +6639,10 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -6924,10 +6924,10 @@ void Assembly::triaxial(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -7201,10 +7201,10 @@ void Assembly::triaxial(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 	
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -7411,10 +7411,10 @@ void Assembly::rectPile_Disp(int   totalSteps,
     {
       // 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 	
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -7559,7 +7559,7 @@ void Assembly::ellipPile_Disp(int   totalSteps,
         findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -7700,7 +7700,7 @@ void Assembly::ellipPile_Impact(int   totalSteps,
 	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -7844,7 +7844,7 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
 	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -7992,7 +7992,7 @@ void Assembly::ellipPile_Force(int   totalSteps,
 	findContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);
@@ -8190,10 +8190,10 @@ void Assembly::truetriaxial(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findParticleOnBoundary();
+	findBoundaryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
-	clearForce();	
+	clearContactForce();	
 
 	// 3. calculate contact forces/moments and apply them to particles
 	internalForce(avgNormal, avgTangt);

@@ -123,7 +123,7 @@ namespace dem {
     void setInContact(bool value) {inContact = value;}
     void setContactNum(int num) {contactNum = num;}
 
-    void clearForce();
+    void clearContactForce();
     void addForce(Vec vv) {force += vv;}
     void addMoment(Vec vv) {moment += vv;}
     void update();

@@ -123,10 +123,10 @@ namespace dem {
     void readCavityBoundary(const char* boundaryfile);
     void buildCavityBoundary(int existMaxId, const char* boundaryfile);
     void findContact();                           // detect and resolve contact between particles
-    void findParticleOnBoundary();                // find particles on boundaries
+    void findBoundaryContact();                   // find particles on boundaries
     void findParticleOnCavity();                  // find particle on cavity boundaries
     
-    void clearForce();                            // clear forces and moments for all particles
+    void clearContactForce();                     // clear forces and moments for all particles
     void internalForce();                         // calculate inter-particle forces
     void springForce();
     void boundaryForce();                         // calcualte forces between rigid boundaries and particles
