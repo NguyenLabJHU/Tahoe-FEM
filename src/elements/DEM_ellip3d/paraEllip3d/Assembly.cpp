@@ -276,7 +276,7 @@ deposit(int totalSteps,
 
   iteration = 0;
   int iterSnap = 0;
-  double time0, time1, time2;
+  double time0, time1, time2, tcommu, tgather, ttotal;
   do {
     time0 = MPI_Wtime();
     
@@ -294,7 +294,7 @@ deposit(int totalSteps,
     time1 = MPI_Wtime();
     partiCommuParticle(); // processing particles with boundary forces
     time2 = MPI_Wtime();
-    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " commu=" << time2 - time1;
+    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " commu=" << (tcommu =time2 - time1);
 
     findContact();
     internalForce();
@@ -303,7 +303,10 @@ deposit(int totalSteps,
     time1 = MPI_Wtime();
     gatherParticle();
     time2 = MPI_Wtime();
-    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " gather=" << time2 - time1 << " total=" << time2 - time0 << std::endl;
+    if (mpiRank == 0 && iteration % 100 == 0) 
+      debugInf << " gather=" << (tgather = time2 - time1) 
+	       << " total=" << (ttotal = time2 - time0) 
+	       << " compu=" << (ttotal - tcommu - tgather) << std::endl;
     
   } while (++iteration < totalSteps);
 
