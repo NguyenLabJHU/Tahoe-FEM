@@ -82,19 +82,19 @@ void Particle::init () {
 
 
 Particle::Particle(int n, int tp, Vec center, REAL r, REAL yng, REAL poi)
- :id(n), type(tp), currPos(center), a(r), b(r), c(r), young(yng), poisson(poi) {
+ :id(n), type(tp), a(r), b(r), c(r), young(yng), poisson(poi), currPos(center) {
   init();
 }
 
 
 Particle::Particle(int n, int tp, Vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
- :id(n), type(tp), currPos(center), a(ra), b(rb), c(rc), young(yng), poisson(poi) {
+ :id(n), type(tp), a(ra), b(rb), c(rc), young(yng), poisson(poi), currPos(center) {
   init();
 }
 
 
 Particle::Particle(int n, int tp, Vec center, Gradation& grad, REAL yng, REAL poi)
- :id(n), type(tp), currPos(center), young(yng), poisson(poi) {
+ :id(n), type(tp), young(yng), poisson(poi), currPos(center)  {
   // generate particle size in terms of gradation distribution
   REAL sievenum = grad.getSieveNum();
   for (int k = 0; k < sievenum; ++k){
@@ -618,7 +618,7 @@ void Particle::planeRBForce(plnBoundary<Particle>* plb,
   // (p, q, r) are in the same direction as the outward normal vector,
   // hence it is not necessary to provide information about which side the particle is about the plane.
   REAL p,q,r,s;
-  BdryCoef tmp = *((plb->CoefOfLimits).begin());
+  BdryCoef tmp = *((plb->coefOfLimits).begin());
   p = tmp.dirc.getX();
   q = tmp.dirc.getY();
   r = tmp.dirc.getZ();
