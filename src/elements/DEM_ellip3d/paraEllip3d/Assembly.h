@@ -8,6 +8,7 @@
 #include "Particle.h"
 #include "Contact.h"
 #include "Boundary.h"
+#include "Particle.h"
 #include "Rectangle.h"
 #include "Cylinder.h"
 #include "Spring.h"
@@ -32,13 +33,12 @@ namespace dem {
     Gradation               gradation;       // particles gradation
     std::vector<Particle*>  allParticleVec;  // all particles
     std::vector<Particle*>  particleVec;     // particles per process
-    std::vector<Particle*>  recvParticleVec; // received particles
     
     std::vector<CONTACT>    contactVec;      // contacts per process
     std::vector<ContactTgt> allContactTgtVec;// all tangential contact force and displacement
     std::vector<ContactTgt> contactTgtVec;   // tangential contact force and displacement per process
     
-    std::vector< std::vector< std::vector<Particle*> > > memBoundary;  // membrane particle boundaries
+    std::vector< std::vector< std::vector<Particle*> > > memBoundary; // membrane particle boundaries
     std::vector<Spring*>    springVec;       // springs connecting membrane particles
     
     // container property
@@ -47,7 +47,7 @@ namespace dem {
     Rectangle cavity;      // cavity inside container
     
     // boundaries property
-    std::vector<BOUNDARY*> boundaryVec; // rigid boundaries
+    std::vector<BOUNDARY*> boundaryVec;       // rigid boundaries
     std::vector<BOUNDARY*> cavityBoundaryVec; // rigid cavity boundaries
     std::map<int,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
     
@@ -56,6 +56,12 @@ namespace dem {
     MPI_Comm mpiWorld, cartComm;
     int mpiProcX, mpiProcY, mpiProcZ;
     int mpiRank, mpiSize, mpiTag, mpiCoords[3];
+    int rankX1, rankX2, rankY1, rankY2, rankZ1, rankZ2;
+    int rankX1Y1, rankX1Y2, rankX1Z1, rankX1Z2; 
+    int rankX2Y1, rankX2Y2, rankX2Z1, rankX2Z2; 
+    int rankY1Z1, rankY1Z2, rankY2Z1, rankY2Z2; 
+    int rankX1Y1Z1, rankX1Y1Z2, rankX1Y2Z1, rankX1Y2Z2; 
+    int rankX2Y1Z1, rankX2Y1Z2, rankX2Y2Z1, rankX2Y2Z2;
     std::vector<Particle*> rParticleX1, rParticleX2; // r stands for received
     std::vector<Particle*> rParticleY1, rParticleY2; 
     std::vector<Particle*> rParticleZ1, rParticleZ2; 
@@ -64,6 +70,9 @@ namespace dem {
     std::vector<Particle*> rParticleY1Z1, rParticleY1Z2, rParticleY2Z1, rParticleY2Z2; 
     std::vector<Particle*> rParticleX1Y1Z1, rParticleX1Y1Z2, rParticleX1Y2Z1, rParticleX1Y2Z2; 
     std::vector<Particle*> rParticleX2Y1Z1, rParticleX2Y1Z2, rParticleX2Y2Z1, rParticleX2Y2Z2; 
+    std::vector<Particle*> recvParticleVec;  // received particles per process
+    std::vector<Particle*> mergeParticleVec; // merged particles per process
+    
     
   public:
     Assembly()
@@ -116,14 +125,20 @@ namespace dem {
 
     void readParticle(const char* str);
     void readBoundary(const char* str);
-    void partiCommuParticle();
+    void scatterParticle();
+    void commuParticle();
+    bool isBdryProcess();
+    void releaseRecvParticle();
+    void transferParticle();
+    void removeParticleOutRectangle();
     void gatherParticle();
+    
 
     void trimCavity(bool toRebuild, const char* Particlefile, const char* cavParticle);
     void readCavityBoundary(const char* boundaryfile);
     void buildCavityBoundary(int existMaxId, const char* boundaryfile);
     void findContact();                           // detect and resolve contact between particles
-    void findBoundaryContact();                   // find particles on boundaries
+    void findBdryContact();                       // find particles on boundaries
     void findParticleOnCavity();                  // find particle on cavity boundaries
     
     void clearContactForce();                     // clear forces and moments for all particles
@@ -564,8 +579,8 @@ namespace dem {
 		    const char*  debugfile     ="tru_debug");
 
   public:
-    void findParticleInRectangle(Rectangle &container,
-				 std::vector<Particle*> &allParticle,
+    void findParticleInRectangle(const Rectangle &container,
+				 const std::vector<Particle*> &allParticle,
 				 std::vector<Particle*> &foundParticle);
     void mpiTest0();
     

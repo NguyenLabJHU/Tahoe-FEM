@@ -136,7 +136,7 @@ void Assembly::depositIntoContainer()
 
     generateParticle(particleLayers, "float_particle"); 
   }
-  
+
   deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
 	  (int) dem::Parameter::getSingleton().parameter["snapNum"],
 	  (int) dem::Parameter::getSingleton().parameter["statInterv"],
@@ -233,7 +233,6 @@ trim(bool toRebuild,
 
   Vec  v1 = allContainer.getMinCorner();
   Vec  v2 = allContainer.getMaxCorner();
-  Vec  v0 = allContainer.getCenter();
   REAL x1 = v1.getX();
   REAL y1 = v1.getY();
   REAL z1 = v1.getZ();
@@ -245,7 +244,7 @@ trim(bool toRebuild,
   std::vector<Particle*>::iterator itr;
   Vec center;
 
-  for (itr = allParticleVec.begin(); itr != allParticleVec.end(); ){
+  for (itr = allParticleVec.begin(); itr != allParticleVec.end(); ) {
     center=(*itr)->getCurrPos();
     if(center.getX() < x1 || center.getX() > x2 ||
        center.getY() < y1 || center.getY() > y2 ||
@@ -273,51 +272,61 @@ deposit(int totalSteps,
     readBoundary(inputBoundary);
     readParticle(inputParticle); 
   }
+  scatterParticle();
 
   iteration = 0;
   int iterSnap = 0;
-  double time0, time1, time2, tcommu, tgather, ttotal;
+  double time0, time1, time2, commuT, transT, gatherT, totalT;
   do {
+    commuT = transT = gatherT = totalT = 0;
     time0 = MPI_Wtime();
-    
-    if (mpiRank == 0) {
-      if (iteration % (totalSteps / snapNum) == 0) {
-	printParticle(combineString("dep_particle_", iterSnap));
-	++iterSnap;
-      }
-      clearContactForce();
-      findBoundaryContact();
-      boundaryForce();
-      //std::cout << "\n" << std::flush;
-    }
 
     time1 = MPI_Wtime();
-    partiCommuParticle(); // processing particles with boundary forces
-    time2 = MPI_Wtime();
-    if (mpiRank == 0 && iteration % 100 == 0) debugInf << " commu=" << (tcommu =time2 - time1);
-
+    commuParticle();
+    time2 = MPI_Wtime(); commuT = time2 - time1;
     findContact();
+    if (isBdryProcess()) findBdryContact();
+    releaseRecvParticle();
+
+    clearContactForce();
     internalForce();
+    if (isBdryProcess()) boundaryForce();
     updateParticle();
 
     time1 = MPI_Wtime();
-    gatherParticle();
-    time2 = MPI_Wtime();
-    if (mpiRank == 0 && iteration % 100 == 0) 
-      debugInf << " gather=" << (tgather = time2 - time1) 
-	       << " total=" << (ttotal = time2 - time0) 
-	       << " compu=" << (ttotal - tcommu - tgather) << std::endl;
+    transferParticle();
+    time2 = MPI_Wtime(); transT = time2 - time1;
+
+    if (iteration % (totalSteps / snapNum) == 0) {
+      time1 = MPI_Wtime();
+      gatherParticle();
+      time2 = MPI_Wtime(); gatherT = time2 - time1;
+      if (mpiRank == 0) 
+	printParticle(combineString("dep_particle_", ++iterSnap));
+    }
     
+    time2 = MPI_Wtime(); totalT = time2 - time0;
+
+    if (mpiRank == 0 && iteration % 100 == 0)
+      debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	       << " commu=" << commuT
+	       << " trans=" << transT
+	       << " gather=" << gatherT
+	       << " total=" << totalT 
+	       << " overhead=" << std::fixed << std::right << (commuT + transT + gatherT)/totalT*100 << '%' 
+	       << std::scientific << std::setprecision(6) << std::endl;
+
   } while (++iteration < totalSteps);
 
+  gatherParticle();
   if (mpiRank == 0) printParticle("dep_particle_end");
 
 }
 
 
 void Assembly::
-findParticleInRectangle(Rectangle &container,
-			std::vector<Particle*> &inputParticle,
+findParticleInRectangle(const Rectangle &container,
+			const std::vector<Particle*> &inputParticle,
 			std::vector<Particle*> &foundParticle) {
   Vec  v1 = container.getMinCorner();
   Vec  v2 = container.getMaxCorner();
@@ -338,6 +347,50 @@ findParticleInRectangle(Rectangle &container,
 }
 
 
+void Assembly::removeParticleOutRectangle() {
+  Vec  v1 = container.getMinCorner();
+  Vec  v2 = container.getMaxCorner();
+  REAL x1 = v1.getX();
+  REAL y1 = v1.getY();
+  REAL z1 = v1.getZ();
+  REAL x2 = v2.getX();
+  REAL y2 = v2.getY();
+  REAL z2 = v2.getZ();
+
+  std::vector<Particle*>::iterator itr;
+  Vec center;
+  //int flag = 0;
+
+  for (itr = particleVec.begin(); itr != particleVec.end(); ) {
+    center=(*itr)->getCurrPos();
+    // it is critical to use EPS
+    if ( !(center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
+	   center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
+	   center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) )
+      {
+	/*
+	std::cout << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank
+		  << " removed=" << std::setw(3) << (*itr)->getId();	
+	flag = 1;
+	*/
+	delete (*itr); // release memory
+	itr = particleVec.erase(itr); 
+      }
+    else
+      ++itr;
+  }
+  /*
+  if (flag == 1) {
+    std::cout << " now " << particleVec.size() << ": ";
+    for (std::vector<Particle*>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      std::cout << std::setw(3) << (*it)->getId();
+    std::cout << std::endl;
+  }
+  */
+
+}
+
+
 REAL Assembly::getPtclMaxZ() const {
   std::vector<Particle*>::const_iterator it = allParticleVec.begin();
   REAL z0 = (*it)->getCurrPos().getZ();
@@ -349,32 +402,17 @@ REAL Assembly::getPtclMaxZ() const {
 }
 
 
-void Assembly::partiCommuParticle() {
-
-  // update allContainer dynamically due to particle motion
-  if (mpiRank == 0) {
-    setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			   allContainer.getMinCorner().getY(),
-			   allContainer.getMinCorner().getZ(),
-			   allContainer.getMaxCorner().getX(),
-			   allContainer.getMaxCorner().getY(),
-			   getPtclMaxZ() + gradation.getPtclMaxRadius() ));
-  }
-
-  // broadcast
-  broadcast(boostWorld, allContainer, 0);
-  broadcast(boostWorld, gradation, 0);
-
+void Assembly::scatterParticle() {
   // partition particles and send to each process
   if (mpiRank == 0) { // process 0
-    double time1 = MPI_Wtime();
     Vec v1 = allContainer.getMinCorner();
     Vec v2 = allContainer.getMaxCorner();
     Vec vspan = v2 - v1;
 
     boost::mpi::request *reqs = new boost::mpi::request [mpiSize - 1];
+    std::vector<Particle*> tmpParticleVec;
     for (int iRank = mpiSize - 1; iRank >= 0; --iRank) {
-      particleVec.clear(); // do not release memory!
+      tmpParticleVec.clear(); // do not release memory!
       int ndim = 3;
       int coords[3];
       MPI_Cart_coords(cartComm, iRank, ndim, coords);
@@ -384,17 +422,52 @@ void Assembly::partiCommuParticle() {
 			  v1.getX() + vspan.getX() / mpiProcX * (coords[0] + 1),
 			  v1.getY() + vspan.getY() / mpiProcY * (coords[1] + 1),
 			  v1.getZ() + vspan.getZ() / mpiProcZ * (coords[2] + 1));
-      findParticleInRectangle(container, allParticleVec, particleVec);
+      findParticleInRectangle(container, allParticleVec, tmpParticleVec);
       if (iRank != 0)
-	reqs[iRank - 1] = boostWorld.isend(iRank, mpiTag, particleVec);
+	reqs[iRank - 1] = boostWorld.isend(iRank, mpiTag, tmpParticleVec);
+      if (iRank == 0) {
+	particleVec.resize(tmpParticleVec.size());
+	for (int i = 0; i < particleVec.size(); ++i)
+	  particleVec[i] = new Particle(*tmpParticleVec[i]);
+      } // now particleVec do not share memeory with allParticleVec
     }
     boost::mpi::wait_all(reqs, reqs + mpiSize - 1);
     delete [] reqs;
-    double time2 =  MPI_Wtime();
-    if (iteration % 100 == 0) debugInf << "iter=" << std::setw(8) << iteration << " distr=" << time2 - time1;
+
   } else { // other processes except 0
-    boostWorld.recv(0, mpiTag, particleVec); // need to release memory
+    boostWorld.recv(0, mpiTag, particleVec);
   }
+
+  // broadcast necessary info
+  broadcast(boostWorld, gradation, 0);
+  broadcast(boostWorld, boundaryVec, 0);
+
+  broadcast(boostWorld, allContainer, 0);
+}
+
+
+bool Assembly::isBdryProcess() {
+  return (mpiCoords[0] == 0 || mpiCoords[0] == mpiProcX - 1 ||
+	  mpiCoords[1] == 0 || mpiCoords[1] == mpiProcY - 1 ||
+	  mpiCoords[2] == 0 || mpiCoords[2] == mpiProcZ - 1);
+}
+
+void Assembly::commuParticle() 
+{
+  // update allContainer dynamically due to particle motion
+  /*
+  if (mpiRank == 0) {
+    if (iteration != 0)
+    setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			   allContainer.getMinCorner().getY(),
+			   allContainer.getMinCorner().getZ(),
+			   allContainer.getMaxCorner().getX(),
+			   allContainer.getMaxCorner().getY(),
+			   getPtclMaxZ() + gradation.getPtclMaxRadius() ));
+  }
+  // broadcast allContainer
+  broadcast(boostWorld, allContainer, 0);
+  */
 
   // determine container of each process
   Vec v1 = allContainer.getMinCorner();
@@ -408,12 +481,12 @@ void Assembly::partiCommuParticle() {
 			v1.getZ() + vspan.getZ() / mpiProcZ * (mpiCoords[2] + 1));
 
   // find neighboring blocks
-  int rankX1 = -1, rankX2 = -1, rankY1 = -1, rankY2 = -1, rankZ1 = -1, rankZ2 = -1;
-  int rankX1Y1 = -1, rankX1Y2 = -1, rankX1Z1 = -1, rankX1Z2 = -1; 
-  int rankX2Y1 = -1, rankX2Y2 = -1, rankX2Z1 = -1, rankX2Z2 = -1; 
-  int rankY1Z1 = -1, rankY1Z2 = -1, rankY2Z1 = -1, rankY2Z2 = -1; 
-  int rankX1Y1Z1 = -1, rankX1Y1Z2 = -1, rankX1Y2Z1 = -1, rankX1Y2Z2 = -1; 
-  int rankX2Y1Z1 = -1, rankX2Y1Z2 = -1, rankX2Y2Z1 = -1, rankX2Y2Z2 = -1;
+  rankX1 = -1; rankX2 = -1; rankY1 = -1; rankY2 = -1; rankZ1 = -1; rankZ2 = -1;
+  rankX1Y1 = -1; rankX1Y2 = -1; rankX1Z1 = -1; rankX1Z2 = -1; 
+  rankX2Y1 = -1; rankX2Y2 = -1; rankX2Z1 = -1; rankX2Z2 = -1; 
+  rankY1Z1 = -1; rankY1Z2 = -1; rankY2Z1 = -1; rankY2Z2 = -1; 
+  rankX1Y1Z1 = -1; rankX1Y1Z2 = -1; rankX1Y2Z1 = -1; rankX1Y2Z2 = -1; 
+  rankX2Y1Z1 = -1; rankX2Y1Z2 = -1; rankX2Y2Z1 = -1; rankX2Y2Z2 = -1;
   // x1: -x direction
   int neighborCoords[3] = {mpiCoords[0], mpiCoords[1], mpiCoords[2]};
   --neighborCoords[0];
@@ -586,10 +659,9 @@ void Assembly::partiCommuParticle() {
   boost::mpi::request reqY1Z1[2], reqY1Z2[2], reqY2Z1[2], reqY2Z2[2];
   boost::mpi::request reqX1Y1Z1[2], reqX1Y1Z2[2], reqX1Y2Z1[2], reqX1Y2Z2[2];
   boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
-  v1 = container.getMinCorner(); // redefine v1, v2, vspan in terms of process
+  v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
   v2 = container.getMaxCorner();   
   //std::cout << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
-  vspan = v2 - v1;
   REAL cellSize = gradation.getPtclMaxRadius() * 2;
   // 6 surfaces
   if (rankX1 >= 0) { // surface x1
@@ -776,6 +848,7 @@ void Assembly::partiCommuParticle() {
     reqX2Y2Z2[0] = boostWorld.isend(rankX2Y2Z2, mpiTag,  particleX2Y2Z2);
     reqX2Y2Z2[1] = boostWorld.irecv(rankX2Y2Z2, mpiTag, rParticleX2Y2Z2);
   }
+
   // 6 surfaces
   if (rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
   if (rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
@@ -807,36 +880,40 @@ void Assembly::partiCommuParticle() {
   if (rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);  
 
   // merge: particles inside container (at front) + particles from neighoring blocks (at end)
-  recvParticleVec.insert(recvParticleVec.end(), particleVec.begin(), particleVec.end());
+  recvParticleVec.clear();
   // 6 surfaces
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
+  if (rankX1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
+  if (rankX2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
+  if (rankY1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
+  if (rankY2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
+  if (rankZ1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
+  if (rankZ2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
   // 12 edges
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
+  if (rankX1Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
+  if (rankX1Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
+  if (rankX1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
+  if (rankX1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
+  if (rankX2Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
+  if (rankX2Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
+  if (rankX2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
+  if (rankX2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
+  if (rankY1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
+  if (rankY1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
+  if (rankY2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
+  if (rankY2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
   // 8 vertices
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
-  recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
+  if (rankX1Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
+  if (rankX1Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
+  if (rankX1Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
+  if (rankX1Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
+  if (rankX2Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
+  if (rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
+  if (rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
+  if (rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
+
+  mergeParticleVec.clear();
+  mergeParticleVec = particleVec; // duplicate pointers, pointing to the same memory
+  mergeParticleVec.insert(mergeParticleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
 
   /*
   std::vector<Particle*> testParticleVec;
@@ -867,64 +944,335 @@ void Assembly::partiCommuParticle() {
 }
 
 
-void Assembly::gatherParticle() {
-  // release memory
+void Assembly::releaseRecvParticle() {
+  // release memory of received particles
+  for (std::vector<Particle*>::iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
+    delete (*it);
+  recvParticleVec.clear();
   // 6 surfaces
-  std::vector<Particle*>::iterator it;
-  for (it = rParticleX1.begin(); it != rParticleX1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2.begin(); it != rParticleX2.end(); ++it)
-    delete (*it);
-  for (it = rParticleY1.begin(); it != rParticleY1.end(); ++it)
-    delete (*it);
-  for (it = rParticleY2.begin(); it != rParticleY2.end(); ++it)
-    delete (*it);
-  for (it = rParticleZ1.begin(); it != rParticleZ1.end(); ++it)
-    delete (*it);
-  for (it = rParticleZ2.begin(); it != rParticleZ2.end(); ++it)
-    delete (*it);
+  rParticleX1.clear();
+  rParticleX2.clear();
+  rParticleY1.clear();
+  rParticleY2.clear();
+  rParticleZ1.clear();
+  rParticleZ2.clear();
   // 12 edges
-  for (it = rParticleX1Y1.begin(); it != rParticleX1Y1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX1Y2.begin(); it != rParticleX1Y2.end(); ++it)
-    delete (*it);
-  for (it = rParticleX1Z1.begin(); it != rParticleX1Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX1Z2.begin(); it != rParticleX1Z2.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Y1.begin(); it != rParticleX2Y1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Y2.begin(); it != rParticleX2Y2.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Z1.begin(); it != rParticleX2Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Z2.begin(); it != rParticleX2Z2.end(); ++it)
-    delete (*it);
-  for (it = rParticleY1Z1.begin(); it != rParticleY1Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleY1Z2.begin(); it != rParticleY1Z2.end(); ++it)
-    delete (*it);
-  for (it = rParticleY2Z1.begin(); it != rParticleY2Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleY2Z2.begin(); it != rParticleY2Z2.end(); ++it)
-    delete (*it);
+  rParticleX1Y1.clear();
+  rParticleX1Y2.clear();
+  rParticleX1Z1.clear();
+  rParticleX1Z2.clear();
+  rParticleX2Y1.clear();
+  rParticleX2Y2.clear();
+  rParticleX2Z1.clear();
+  rParticleX2Z2.clear();
+  rParticleY1Z1.clear();
+  rParticleY1Z2.clear();
+  rParticleY2Z1.clear();
+  rParticleY2Z2.clear();
   // 8 vertices
-  for (it = rParticleX1Y1Z1.begin(); it != rParticleX1Y1Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX1Y1Z2.begin(); it != rParticleX1Y1Z2.end(); ++it)
-    delete (*it);
-  for (it = rParticleX1Y2Z1.begin(); it != rParticleX1Y2Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX1Y2Z2.begin(); it != rParticleX1Y2Z2.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Y1Z1.begin(); it != rParticleX2Y1Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Y1Z2.begin(); it != rParticleX2Y1Z2.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Y2Z1.begin(); it != rParticleX2Y2Z1.end(); ++it)
-    delete (*it);
-  for (it = rParticleX2Y2Z2.begin(); it != rParticleX2Y2Z2.end(); ++it)
-    delete (*it);
+  rParticleX1Y1Z1.clear();
+  rParticleX1Y1Z2.clear();
+  rParticleX1Y2Z1.clear();
+  rParticleX1Y2Z2.clear();
+  rParticleX2Y1Z1.clear();
+  rParticleX2Y1Z2.clear();
+  rParticleX2Y2Z1.clear();
+  rParticleX2Y2Z2.clear();
+}
+
+
+void Assembly::transferParticle() {
+  // if a neighbor exists, transfer particles crossing the boundary in between.
+  std::vector<Particle*> particleX1, particleX2;
+  std::vector<Particle*> particleY1, particleY2;
+  std::vector<Particle*> particleZ1, particleZ2;
+  std::vector<Particle*> particleX1Y1, particleX1Y2, particleX1Z1, particleX1Z2; 
+  std::vector<Particle*> particleX2Y1, particleX2Y2, particleX2Z1, particleX2Z2; 
+  std::vector<Particle*> particleY1Z1, particleY1Z2, particleY2Z1, particleY2Z2; 
+  std::vector<Particle*> particleX1Y1Z1, particleX1Y1Z2, particleX1Y2Z1, particleX1Y2Z2; 
+  std::vector<Particle*> particleX2Y1Z1, particleX2Y1Z2, particleX2Y2Z1, particleX2Y2Z2; 
+  boost::mpi::request reqX1[2], reqX2[2];
+  boost::mpi::request reqY1[2], reqY2[2];
+  boost::mpi::request reqZ1[2], reqZ2[2];
+  boost::mpi::request reqX1Y1[2], reqX1Y2[2], reqX1Z1[2], reqX1Z2[2];
+  boost::mpi::request reqX2Y1[2], reqX2Y2[2], reqX2Z1[2], reqX2Z2[2];
+  boost::mpi::request reqY1Z1[2], reqY1Z2[2], reqY2Z1[2], reqY2Z2[2];
+  boost::mpi::request reqX1Y1Z1[2], reqX1Y1Z2[2], reqX1Y2Z1[2], reqX1Y2Z2[2];
+  boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
+
+  Vec vspan = allContainer.getMaxCorner() - allContainer.getMinCorner();
+  double segX = vspan.getX() / mpiProcX;
+  double segY = vspan.getY() / mpiProcY;
+  double segZ = vspan.getZ() / mpiProcZ;
+  Vec v1 = container.getMinCorner(); //v1, v2 in terms of process
+  Vec v2 = container.getMaxCorner();   
+
+  // 6 surfaces
+  if (rankX1 >= 0) { // surface x1
+    Rectangle containerX1(v1.getX() - segX, v1.getY(), v1.getZ(), 
+			  v1.getX(), v2.getY(), v2.getZ());
+    findParticleInRectangle(containerX1, particleVec, particleX1);
+    reqX1[0] = boostWorld.isend(rankX1, mpiTag,  particleX1);
+    reqX1[1] = boostWorld.irecv(rankX1, mpiTag, rParticleX1);
+  }
+  if (rankX2 >= 0) { // surface x2
+    Rectangle containerX2(v2.getX(), v1.getY(), v1.getZ(),
+			  v2.getX() + segX, v2.getY(), v2.getZ());
+    findParticleInRectangle(containerX2, particleVec, particleX2);
+    reqX2[0] = boostWorld.isend(rankX2, mpiTag,  particleX2);
+    reqX2[1] = boostWorld.irecv(rankX2, mpiTag, rParticleX2);
+  }
+  if (rankY1 >= 0) {  // surface y1
+    Rectangle containerY1(v1.getX(), v1.getY() - segY, v1.getZ(), 
+			  v2.getX(), v1.getY(), v2.getZ());
+    findParticleInRectangle(containerY1, particleVec, particleY1);
+    reqY1[0] = boostWorld.isend(rankY1, mpiTag,  particleY1);
+    reqY1[1] = boostWorld.irecv(rankY1, mpiTag, rParticleY1);
+  }
+  if (rankY2 >= 0) {  // surface y2
+    Rectangle containerY2(v1.getX(), v2.getY(), v1.getZ(),
+			  v2.getX(), v2.getY() + segY, v2.getZ());
+    findParticleInRectangle(containerY2, particleVec, particleY2);
+    reqY2[0] = boostWorld.isend(rankY2, mpiTag,  particleY2);
+    reqY2[1] = boostWorld.irecv(rankY2, mpiTag, rParticleY2);
+  }
+  if (rankZ1 >= 0) {  // surface z1
+    Rectangle containerZ1(v1.getX(), v1.getY(), v1.getZ() - segZ,
+			  v2.getX(), v2.getY(), v1.getZ());
+    findParticleInRectangle(containerZ1, particleVec, particleZ1);
+    reqZ1[0] = boostWorld.isend(rankZ1, mpiTag,  particleZ1);
+    reqZ1[1] = boostWorld.irecv(rankZ1, mpiTag, rParticleZ1);
+  }
+  if (rankZ2 >= 0) {  // surface z2
+    Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ(),
+			  v2.getX(), v2.getY(), v2.getZ() + segZ);
+    findParticleInRectangle(containerZ2, particleVec, particleZ2);
+    reqZ2[0] = boostWorld.isend(rankZ2, mpiTag,  particleZ2);
+    reqZ2[1] = boostWorld.irecv(rankZ2, mpiTag, rParticleZ2);
+  }
+  // 12 edges
+  if (rankX1Y1 >= 0) { // edge x1y1
+    Rectangle containerX1Y1(v1.getX() - segX, v1.getY() - segY, v1.getZ(),
+			    v1.getX(), v1.getY(), v2.getZ());
+    findParticleInRectangle(containerX1Y1, particleVec, particleX1Y1);
+    reqX1Y1[0] = boostWorld.isend(rankX1Y1, mpiTag,  particleX1Y1);
+    reqX1Y1[1] = boostWorld.irecv(rankX1Y1, mpiTag, rParticleX1Y1);
+  }
+  if (rankX1Y2 >= 0) { // edge x1y2
+    Rectangle containerX1Y2(v1.getX() - segX, v2.getY(), v1.getZ(),
+			    v1.getX(), v2.getY() + segY, v2.getZ());
+    findParticleInRectangle(containerX1Y2, particleVec, particleX1Y2);
+    reqX1Y2[0] = boostWorld.isend(rankX1Y2, mpiTag,  particleX1Y2);
+    reqX1Y2[1] = boostWorld.irecv(rankX1Y2, mpiTag, rParticleX1Y2);
+  }
+  if (rankX1Z1 >= 0) { // edge x1z1
+    Rectangle containerX1Z1(v1.getX() - segX, v1.getY(), v1.getZ() -segZ,
+			    v1.getX(), v2.getY(), v1.getZ());
+    findParticleInRectangle(containerX1Z1, particleVec, particleX1Z1);
+    reqX1Z1[0] = boostWorld.isend(rankX1Z1, mpiTag,  particleX1Z1);
+    reqX1Z1[1] = boostWorld.irecv(rankX1Z1, mpiTag, rParticleX1Z1);
+  }
+  if (rankX1Z2 >= 0) { // edge x1z2
+    Rectangle containerX1Z2(v1.getX() - segX, v1.getY(), v2.getZ(),
+			    v1.getX(), v2.getY(), v2.getZ() + segZ);
+    findParticleInRectangle(containerX1Z2, particleVec, particleX1Z2);
+    reqX1Z2[0] = boostWorld.isend(rankX1Z2, mpiTag,  particleX1Z2);
+    reqX1Z2[1] = boostWorld.irecv(rankX1Z2, mpiTag, rParticleX1Z2);
+  }
+  if (rankX2Y1 >= 0) { // edge x2y1
+    Rectangle containerX2Y1(v2.getX(), v1.getY() - segY, v1.getZ(),
+			    v2.getX() + segX, v1.getY(), v2.getZ());
+    findParticleInRectangle(containerX2Y1, particleVec, particleX2Y1);
+    reqX2Y1[0] = boostWorld.isend(rankX2Y1, mpiTag,  particleX2Y1);
+    reqX2Y1[1] = boostWorld.irecv(rankX2Y1, mpiTag, rParticleX2Y1);
+  }
+  if (rankX2Y2 >= 0) { // edge x2y2
+    Rectangle containerX2Y2(v2.getX(), v2.getY(), v1.getZ(),
+			    v2.getX() + segX, v2.getY() + segY, v2.getZ());
+    findParticleInRectangle(containerX2Y2, particleVec, particleX2Y2);
+    reqX2Y2[0] = boostWorld.isend(rankX2Y2, mpiTag,  particleX2Y2);
+    reqX2Y2[1] = boostWorld.irecv(rankX2Y2, mpiTag, rParticleX2Y2);
+  }
+  if (rankX2Z1 >= 0) { // edge x2z1
+    Rectangle containerX2Z1(v2.getX(), v1.getY(), v1.getZ() - segZ,
+			    v2.getX() + segX, v2.getY(), v1.getZ());
+    findParticleInRectangle(containerX2Z1, particleVec, particleX2Z1);
+    reqX2Z1[0] = boostWorld.isend(rankX2Z1, mpiTag,  particleX2Z1);
+    reqX2Z1[1] = boostWorld.irecv(rankX2Z1, mpiTag, rParticleX2Z1);
+  }
+  if (rankX2Z2 >= 0) { // edge x2z2
+    Rectangle containerX2Z2(v2.getX(), v1.getY(), v2.getZ(),
+			    v2.getX() + segX, v2.getY(), v2.getZ() + segZ);
+    findParticleInRectangle(containerX2Z2, particleVec, particleX2Z2);
+    reqX2Z2[0] = boostWorld.isend(rankX2Z2, mpiTag,  particleX2Z2);
+    reqX2Z2[1] = boostWorld.irecv(rankX2Z2, mpiTag, rParticleX2Z2);
+  }
+  if (rankY1Z1 >= 0) { // edge y1z1
+    Rectangle containerY1Z1(v1.getX(), v1.getY() - segY, v1.getZ() - segZ,
+			    v2.getX(), v1.getY(), v1.getZ());
+    findParticleInRectangle(containerY1Z1, particleVec, particleY1Z1);
+    reqY1Z1[0] = boostWorld.isend(rankY1Z1, mpiTag,  particleY1Z1);
+    reqY1Z1[1] = boostWorld.irecv(rankY1Z1, mpiTag, rParticleY1Z1);
+  }
+  if (rankY1Z2 >= 0) { // edge y1z2
+    Rectangle containerY1Z2(v1.getX(), v1.getY() - segY, v2.getZ(),
+			    v2.getX(), v1.getY(), v2.getZ() + segZ);
+    findParticleInRectangle(containerY1Z2, particleVec, particleY1Z2);
+    reqY1Z2[0] = boostWorld.isend(rankY1Z2, mpiTag,  particleY1Z2);
+    reqY1Z2[1] = boostWorld.irecv(rankY1Z2, mpiTag, rParticleY1Z2);
+  }
+  if (rankY2Z1 >= 0) { // edge y2z1
+    Rectangle containerY2Z1(v1.getX(), v2.getY(), v1.getZ() - segZ,
+			    v2.getX(), v2.getY() + segY, v1.getZ());
+    findParticleInRectangle(containerY2Z1, particleVec, particleY2Z1);
+    reqY2Z1[0] = boostWorld.isend(rankY2Z1, mpiTag,  particleY2Z1);
+    reqY2Z1[1] = boostWorld.irecv(rankY2Z1, mpiTag, rParticleY2Z1);
+  }
+  if (rankY2Z2 >= 0) { // edge y2z2
+    Rectangle containerY2Z2(v1.getX(), v2.getY(), v2.getZ(),
+			    v2.getX(), v2.getY() + segY, v2.getZ() + segZ);
+    findParticleInRectangle(containerY2Z2, particleVec, particleY2Z2);
+    reqY2Z2[0] = boostWorld.isend(rankY2Z2, mpiTag,  particleY2Z2);
+    reqY2Z2[1] = boostWorld.irecv(rankY2Z2, mpiTag, rParticleY2Z2);
+  }
+  // 8 vertices
+  if (rankX1Y1Z1 >= 0) { // edge x1y1z1
+    Rectangle containerX1Y1Z1(v1.getX() - segX, v1.getY() - segY, v1.getZ() - segZ,
+			      v1.getX(), v1.getY(), v1.getZ());
+    findParticleInRectangle(containerX1Y1Z1, particleVec, particleX1Y1Z1);
+    reqX1Y1Z1[0] = boostWorld.isend(rankX1Y1Z1, mpiTag,  particleX1Y1Z1);
+    reqX1Y1Z1[1] = boostWorld.irecv(rankX1Y1Z1, mpiTag, rParticleX1Y1Z1);
+  }
+  if (rankX1Y1Z2 >= 0) { // edge x1y1z2
+    Rectangle containerX1Y1Z2(v1.getX() - segX, v1.getY() - segY, v2.getZ(),
+			      v1.getX(), v1.getY(), v2.getZ() + segZ);
+    findParticleInRectangle(containerX1Y1Z2, particleVec, particleX1Y1Z2);
+    reqX1Y1Z2[0] = boostWorld.isend(rankX1Y1Z2, mpiTag,  particleX1Y1Z2);
+    reqX1Y1Z2[1] = boostWorld.irecv(rankX1Y1Z2, mpiTag, rParticleX1Y1Z2);
+  }
+  if (rankX1Y2Z1 >= 0) { // edge x1y2z1
+    Rectangle containerX1Y2Z1(v1.getX() - segX, v2.getY(), v1.getZ() - segZ,
+			      v1.getX(), v2.getY() + segY, v1.getZ());
+    findParticleInRectangle(containerX1Y2Z1, particleVec, particleX1Y2Z1);
+    reqX1Y2Z1[0] = boostWorld.isend(rankX1Y2Z1, mpiTag,  particleX1Y2Z1);
+    reqX1Y2Z1[1] = boostWorld.irecv(rankX1Y2Z1, mpiTag, rParticleX1Y2Z1);
+  }
+  if (rankX1Y2Z2 >= 0) { // edge x1y2z2
+    Rectangle containerX1Y2Z2(v1.getX() - segX, v2.getY(), v2.getZ(),
+			      v1.getX(), v2.getY() + segY, v2.getZ() + segZ);
+    findParticleInRectangle(containerX1Y2Z2, particleVec, particleX1Y2Z2);
+    reqX1Y2Z2[0] = boostWorld.isend(rankX1Y2Z2, mpiTag,  particleX1Y2Z2);
+    reqX1Y2Z2[1] = boostWorld.irecv(rankX1Y2Z2, mpiTag, rParticleX1Y2Z2);
+  }
+  if (rankX2Y1Z1 >= 0) { // edge x2y1z1
+    Rectangle containerX2Y1Z1(v2.getX(), v1.getY() - segY, v1.getZ() - segZ,
+			      v2.getX() + segX, v1.getY(), v1.getZ());
+    findParticleInRectangle(containerX2Y1Z1, particleVec, particleX2Y1Z1);
+    reqX2Y1Z1[0] = boostWorld.isend(rankX2Y1Z1, mpiTag,  particleX2Y1Z1);
+    reqX2Y1Z1[1] = boostWorld.irecv(rankX2Y1Z1, mpiTag, rParticleX2Y1Z1);
+  }
+  if (rankX2Y1Z2 >= 0) { // edge x2y1z2
+    Rectangle containerX2Y1Z2(v2.getX(), v1.getY() - segY, v2.getZ(),
+			      v2.getX() + segX, v1.getY(), v2.getZ() + segZ);
+    findParticleInRectangle(containerX2Y1Z2, particleVec, particleX2Y1Z2);
+    reqX2Y1Z2[0] = boostWorld.isend(rankX2Y1Z2, mpiTag,  particleX2Y1Z2);
+    reqX2Y1Z2[1] = boostWorld.irecv(rankX2Y1Z2, mpiTag, rParticleX2Y1Z2);
+  }
+  if (rankX2Y2Z1 >= 0) { // edge x2y2z1
+    Rectangle containerX2Y2Z1(v2.getX(), v2.getY(), v1.getZ() - segZ,
+			      v2.getX() + segX, v2.getY() + segY, v1.getZ());
+    findParticleInRectangle(containerX2Y2Z1, particleVec, particleX2Y2Z1);
+    reqX2Y2Z1[0] = boostWorld.isend(rankX2Y2Z1, mpiTag,  particleX2Y2Z1);
+    reqX2Y2Z1[1] = boostWorld.irecv(rankX2Y2Z1, mpiTag, rParticleX2Y2Z1);
+  }
+  if (rankX2Y2Z2 >= 0) { // edge x2y2z2
+    Rectangle containerX2Y2Z2(v2.getX(), v2.getY(), v2.getZ(),
+			      v2.getX() + segX, v2.getY() + segY, v2.getZ() + segZ);
+    findParticleInRectangle(containerX2Y2Z2, particleVec, particleX2Y2Z2);
+    reqX2Y2Z2[0] = boostWorld.isend(rankX2Y2Z2, mpiTag,  particleX2Y2Z2);
+    reqX2Y2Z2[1] = boostWorld.irecv(rankX2Y2Z2, mpiTag, rParticleX2Y2Z2);
+  }
+  // 6 surfaces
+  if (rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
+  if (rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
+  if (rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
+  if (rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
+  if (rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
+  if (rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
+  // 12 edges
+  if (rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
+  if (rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
+  if (rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
+  if (rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
+  if (rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
+  if (rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
+  if (rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
+  if (rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
+  if (rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
+  if (rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
+  if (rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
+  if (rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
+  // 8 vertices
+  if (rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
+  if (rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
+  if (rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
+  if (rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
+  if (rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
+  if (rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
+  if (rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
+  if (rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);  
+
+  // delete outgoing particles
+  removeParticleOutRectangle();
+
+  // add incoming particles
+  recvParticleVec.clear(); // new use of recvParticleVec
+  // 6 surfaces
+  if (rankX1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
+  if (rankX2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
+  if (rankY1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
+  if (rankY2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
+  if (rankZ1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
+  if (rankZ2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
+  // 12 edges
+  if (rankX1Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
+  if (rankX1Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
+  if (rankX1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
+  if (rankX1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
+  if (rankX2Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
+  if (rankX2Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
+  if (rankX2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
+  if (rankX2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
+  if (rankY1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
+  if (rankY1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
+  if (rankY2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
+  if (rankY2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
+  // 8 vertices
+  if (rankX1Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
+  if (rankX1Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
+  if (rankX1Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
+  if (rankX1Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
+  if (rankX2Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
+  if (rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
+  if (rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
+  if (rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
+
+  particleVec.insert(particleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
+
+  /*
+  if (recvParticleVec.size() > 0) {    
+    std::cout << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank 
+	     << "   added=";
+    for (std::vector<Particle*>::const_iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
+      std::cout << std::setw(3) << (*it)->getId();
+    std::cout << " now " << particleVec.size() << ": ";
+    for (std::vector<Particle*>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      std::cout << std::setw(3) << (*it)->getId();
+    std::cout << std::endl;
+  }
+  */
+
+  // do not release memory of received particles because they are part of and managed by particleVec
   // 6 surfaces
   rParticleX1.clear();
   rParticleX2.clear();
@@ -956,36 +1304,40 @@ void Assembly::gatherParticle() {
   rParticleX2Y2Z2.clear();
 
   recvParticleVec.clear();
+}
 
-  // update allParticleVec: process 0 collects all updated particles from each process  
-  if (mpiRank != 0) { // each process except 0
+
+void Assembly::gatherParticle() {
+
+  // update allParticleVec: process 0 collects all updated particles from each other process  
+  if (mpiRank != 0) {// each process except 0
     boostWorld.send(0, mpiTag, particleVec);
-    // release memory
-    for (it = particleVec.begin(); it != particleVec.end(); ++it)
-      delete (*it);
-    particleVec.clear();
-  } else { // process 0
+  }
+  else { // process 0
 
-    // copy particleVec
-    std::vector<Particle*> copyParticleVec;
-    for (int i = 0; i < particleVec.size(); ++i)
-      copyParticleVec.push_back( new Particle(*particleVec[i]) );
-
-    // clear allParticleVec
     std::vector<Particle*>::iterator it;
-    for(it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    // clear allParticleVec
+    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
 
-    // fill allParticleVec with copyparticleVec and received particles
-    allParticleVec.insert(allParticleVec.end(), copyParticleVec.begin(), copyParticleVec.end());
-    copyParticleVec.clear();  // do not release memory!
+    // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration,
+    // otherwise it causes memory error.
+    std::vector<Particle*> dupParticleVec(particleVec.size());
+    for (int i = 0; i < dupParticleVec.size(); ++i)
+      dupParticleVec[i] = new Particle(*particleVec[i]);
+
+    // fill allParticleVec with dupParticleVec and received particles
+    allParticleVec.insert(allParticleVec.end(), dupParticleVec.begin(), dupParticleVec.end());
+
+    std::vector<Particle*> tmpParticleVec;
     for (int iRank = 1; iRank < mpiSize; ++iRank) {
-      recvParticleVec.clear();// do not release memory!
-      boostWorld.recv(iRank, mpiTag, recvParticleVec); // new use of recvParticleVec
-      allParticleVec.insert(allParticleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
+
+      tmpParticleVec.clear();// do not release memory!
+      boostWorld.recv(iRank, mpiTag, tmpParticleVec);
+      allParticleVec.insert(allParticleVec.end(), tmpParticleVec.begin(), tmpParticleVec.end());
+
     }
-    recvParticleVec.clear();  // do not release memory!
 
   }
   
@@ -1281,7 +1633,7 @@ void Assembly::printBoundary(const char* str) const {
       << std::setw(OWID) << boundaryVec.size() << std::endl;
   
   std::vector<BOUNDARY*>::const_iterator rt;
-  for(rt=boundaryVec.begin();rt!=boundaryVec.end();++rt)
+  for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
     (*rt)->display(ofs);
   ofs << std::endl;
   
@@ -1331,17 +1683,17 @@ void Assembly::findContact() { // various implementations
     gettimeofday(&time_p1, NULL); 
 #endif
     
-    int num1 = particleVec.size();     // particles inside container
-    int num2 = recvParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
-    for (int i = 0; i < num1; ++i) {   // NOT (num1 - 1), in parallel situation where one particle could contact received particles!
+    int num1 = particleVec.size();      // particles inside container
+    int num2 = mergeParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
+    for (int i = 0; i < num1; ++i) {    // NOT (num1 - 1), in parallel situation where one particle could contact received particles!
       Vec u = particleVec[i]->getCurrPos();
       for (int j = i + 1; j < num2; ++j){
-	Vec v = recvParticleVec[j]->getCurrPos();
-	if ( ( vfabs(v - u) < particleVec[i]->getA() + recvParticleVec[j]->getA())
-	     && ( particleVec[i]->getType() !=  1 || recvParticleVec[j]->getType() != 1  )      // not both are fixed particles
-	     && ( particleVec[i]->getType() !=  5 || recvParticleVec[j]->getType() != 5  )      // not both are free boundary particles
-	     && ( particleVec[i]->getType() != 10 || recvParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	  Contact<Particle> tmpContact(particleVec[i], recvParticleVec[j]); // a local and temparory object
+	Vec v = mergeParticleVec[j]->getCurrPos();
+	if ( ( vfabs(v - u) < particleVec[i]->getA() + mergeParticleVec[j]->getA())
+	     && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
+	     && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
+	     && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
+	  Contact<Particle> tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
 	  ++possContactNum;
 #ifdef TIME_PROFILE
 	  gettimeofday(&time_r1, NULL); 
@@ -1375,19 +1727,19 @@ void Assembly::findContact() { // various implementations
     int i, j;
     Vec u, v;
     int num1 = particleVec.size();
-    int num2 = recvParticleVec.size();  
+    int num2 = mergeParticleVec.size();  
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
     
 #pragma omp parallel for num_threads(ompThreads) private(i, j, u, v) shared(num1, num2) reduction(+: possContact) schedule(dynamic)
     for (i = 0; i < num1; ++i) { 
       u = particleVec[i]->getCurrPos();
       for (j = i + 1; j < num2; ++j) {
-	v = recvParticleVec[j]->getCurrPos();
-	if ( ( vfabs(v - u) < particleVec[i]->getA() + recvParticleVec[j]->getA() )
-	     && ( particleVec[i]->getType() !=  1 || recvParticleVec[j]->getType() != 1  )      // not both are fixed particles
-	     && ( particleVec[i]->getType() !=  5 || recvParticleVec[j]->getType() != 5  )      // not both are free boundary particles
-	     && ( particleVec[i]->getType() != 10 || recvParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	  Contact<Particle> tmpContact(particleVec[i], recvParticleVec[j]); // a local and temparory object
+	v = mergeParticleVec[j]->getCurrPos();
+	if ( ( vfabs(v - u) < particleVec[i]->getA() + mergeParticleVec[j]->getA() )
+	     && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
+	     && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
+	     && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
+	  Contact<Particle> tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
 	  ++possContact;
 	  if(tmpContact.isOverlapped())
 #pragma omp critical
@@ -1449,19 +1801,19 @@ void Assembly::updateParticle() {
 
 
 void Assembly::clearContactForce() {
-  for(std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+  for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
     (*it)->clearContactForce();
 }
 
 
-void Assembly::findBoundaryContact() {
+void Assembly::findBdryContact() {
   for(std::vector<BOUNDARY*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-    (*rt)->findBoundaryContact(allParticleVec);
+    (*rt)->findBdryContact(particleVec);
 }
 
 
 void Assembly::boundaryForce() {
-  for(std::vector<BOUNDARY*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt)
+  for(std::vector<BOUNDARY*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
     (*rt)->boundaryForce(boundaryTgtMap);
 }
 
@@ -2117,16 +2469,16 @@ void Assembly::findContact(){ // serial version, O(n x n), n is the number of pa
 #endif
     
     int num1 = particleVec.size();  // particles inside container
-    int num2 = recvParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
+    int num2 = mergeParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
     for (int i = 0; i < num1 - 1; ++i) {
       Vec u = particleVec[i]->getCurrPos();
       for (int j = i + 1; j < num2; ++j){
-	Vec v = recvParticleVec[j]->getCurrPos();
-	if (   ( vfabs(v - u) < particleVec[i]->getA() + recvParticleVec[j]->getA())
-	    && ( particleVec[i]->getType() !=  1 || recvParticleVec[j]->getType() != 1  )      // not both are fixed particles
-	    && ( particleVec[i]->getType() !=  5 || recvParticleVec[j]->getType() != 5  )      // not both are free boundary particles
-	    && ( particleVec[i]->getType() != 10 || recvParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	  Contact<Particle> tmpContact(particleVec[i], recvParticleVec[j]); // a local and temparory object
+	Vec v = mergeParticleVec[j]->getCurrPos();
+	if (   ( vfabs(v - u) < particleVec[i]->getA() + mergeParticleVec[j]->getA())
+	    && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
+	    && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
+	    && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
+	  Contact<Particle> tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
 	  ++possContactNum;
 #ifdef TIME_PROFILE
 	  gettimeofday(&time_r1,NULL); 
@@ -2582,10 +2934,10 @@ void Assembly::printCavityBoundary(const char* str) const {
 
 
 
-void Assembly::findParticleOnCavity(){
+void Assembly::findCavityContact(){
   std::vector<BOUNDARY*>::iterator rt;
   for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
-    (*rt)->findBoundaryContact(allParticleVec);
+    (*rt)->findBdryContact(allParticleVec);
 }
 
 
@@ -2920,7 +3272,7 @@ void Assembly::angleOfRepose(int   interval,
       }
       // 2. create possible boundary particles and contacts between particles.
       findContact();
-      findBoundaryContact();
+      findBdryContact();
       
       // 3. set particle forces/moments as zero before each re-calculation,
       clearContactForce();	
@@ -4085,7 +4437,7 @@ void Assembly::deposit(int   totalSteps,
 	//gettimeofday(&time_w2,NULL);
 	//std::cout << std::setw(OWID) << timediffsec(time_w1,time_w2);
 	//gettimeofday(&time_w1,NULL);
-        findBoundaryContact();
+        findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	clearContactForce();	
@@ -4287,8 +4639,8 @@ void Assembly::depositAfterCavity(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles.
         findContact();
-        findBoundaryContact();
-	findParticleOnCavity();
+        findBdryContact();
+	findCavityContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	clearContactForce();	
@@ -4706,7 +5058,7 @@ void Assembly::squeeze(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles.
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation,
 	clearContactForce();	
@@ -4902,7 +5254,7 @@ void Assembly::isotropic(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -5200,7 +5552,7 @@ void Assembly::isotropic(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -5506,7 +5858,7 @@ void Assembly::isotropic(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 	
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -5814,7 +6166,7 @@ void Assembly::odometer(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 	
 	// 2. set particles' forces and moments as zero before each re-calculation
 	clearContactForce();	
@@ -6079,7 +6431,7 @@ void Assembly::odometer(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces and moments as zero before each re-calculation
 	clearContactForce();	
@@ -6466,7 +6818,7 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -6642,7 +6994,7 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -6927,7 +7279,7 @@ void Assembly::triaxial(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -7204,7 +7556,7 @@ void Assembly::triaxial(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 	
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -7414,7 +7766,7 @@ void Assembly::rectPile_Disp(int   totalSteps,
     {
       // 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 	
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
@@ -8193,7 +8545,7 @@ void Assembly::truetriaxial(int   totalSteps,
     {
 	// 1. create possible boundary particles and contacts between particles
 	findContact();
-	findBoundaryContact();
+	findBdryContact();
 
 	// 2. set particles' forces/moments as zero before each re-calculation
 	clearContactForce();	
