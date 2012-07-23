@@ -86,17 +86,25 @@ namespace dem {
       std::vector<Particle*>::iterator pt;
       std::vector<BOUNDARY*>::iterator rt;
       std::vector<Spring*>::iterator   st;
+
       for(pt = allParticleVec.begin(); pt != allParticleVec.end(); ++pt)
 	delete (*pt);
+
+      for(pt = particleVec.begin(); pt != particleVec.end(); ++pt)
+	delete (*pt);
+
       for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
 	delete (*rt);
+
       for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
 	delete (*rt);
+
       for(st = springVec.begin(); st != springVec.end(); ++st)
 	delete (*st);    
 
       // in case of consecutive simulations
       allParticleVec.clear();
+      particleVec.clear();
       boundaryVec.clear();
       cavityBoundaryVec.clear();
       springVec.clear();
