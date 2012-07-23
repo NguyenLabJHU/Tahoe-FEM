@@ -1,9 +1,10 @@
 How to use paraEllip3d
 
-1. compile
+1. build
 
-   1) make
-   2) copy paraEllip3d to your simulation directory
+   1) make sure boost.mpi is installed and configured in makefile
+   2) make
+   3) copy paraEllip3d to your simulation directory
 
 2. run
 
