@@ -292,6 +292,7 @@ deposit(int totalSteps,
     internalForce();
     if (isBdryProcess()) boundaryForce();
     updateParticle();
+    updateContainerMaxZ();
 
     time1 = MPI_Wtime();
     transferParticle();
@@ -306,7 +307,6 @@ deposit(int totalSteps,
     }
     
     time2 = MPI_Wtime(); totalT = time2 - time0;
-
     if (mpiRank == 0 && iteration % 100 == 0)
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
@@ -391,11 +391,66 @@ void Assembly::removeParticleOutRectangle() {
 }
 
 
-REAL Assembly::getPtclMaxZ() const {
-  std::vector<Particle*>::const_iterator it = allParticleVec.begin();
+REAL Assembly::getPtclMaxX(const std::vector<Particle*> &inputParticle) const {
+  std::vector<Particle*>::const_iterator it = inputParticle.begin();
+  REAL x0 = (*it)->getCurrPos().getX();
+  for (; it != inputParticle.end(); ++it) {
+    if ( (*it)->getCurrPos().getX() > x0 )
+      x0 = (*it)->getCurrPos().getX();
+  }
+  return x0;
+}
+
+
+REAL Assembly::getPtclMinX(const std::vector<Particle*> &inputParticle) const {
+  std::vector<Particle*>::const_iterator it = inputParticle.begin();
+  REAL x0 = (*it)->getCurrPos().getX();
+  for (; it != inputParticle.end(); ++it) {
+    if ( (*it)->getCurrPos().getX() < x0 )
+      x0 = (*it)->getCurrPos().getX();
+  }
+  return x0;
+}
+
+
+REAL Assembly::getPtclMaxY(const std::vector<Particle*> &inputParticle) const {
+  std::vector<Particle*>::const_iterator it = inputParticle.begin();
+  REAL y0 = (*it)->getCurrPos().getY();
+  for (; it != inputParticle.end(); ++it) {
+    if ( (*it)->getCurrPos().getY() > y0 )
+      y0 = (*it)->getCurrPos().getY();
+  }
+  return y0;
+}
+
+
+REAL Assembly::getPtclMinY(const std::vector<Particle*> &inputParticle) const {
+  std::vector<Particle*>::const_iterator it = inputParticle.begin();
+  REAL y0 = (*it)->getCurrPos().getY();
+  for (; it != inputParticle.end(); ++it) {
+    if ( (*it)->getCurrPos().getY() < y0 )
+      y0 = (*it)->getCurrPos().getY();
+  }
+  return y0;
+}
+
+
+REAL Assembly::getPtclMaxZ(const std::vector<Particle*> &inputParticle) const {
+  std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL z0 = (*it)->getCurrPos().getZ();
-  for (; it != allParticleVec.end(); ++it) {
+  for (; it != inputParticle.end(); ++it) {
     if ( (*it)->getCurrPos().getZ() > z0 )
+      z0 = (*it)->getCurrPos().getZ();
+  }
+  return z0;
+}
+
+
+REAL Assembly::getPtclMinZ(const std::vector<Particle*> &inputParticle) const {
+  std::vector<Particle*>::const_iterator it = inputParticle.begin();
+  REAL z0 = (*it)->getCurrPos().getZ();
+  for (; it != inputParticle.end(); ++it) {
+    if ( (*it)->getCurrPos().getZ() < z0 )
       z0 = (*it)->getCurrPos().getZ();
   }
   return z0;
@@ -441,7 +496,6 @@ void Assembly::scatterParticle() {
   // broadcast necessary info
   broadcast(boostWorld, gradation, 0);
   broadcast(boostWorld, boundaryVec, 0);
-
   broadcast(boostWorld, allContainer, 0);
 }
 
@@ -454,21 +508,6 @@ bool Assembly::isBdryProcess() {
 
 void Assembly::commuParticle() 
 {
-  // update allContainer dynamically due to particle motion
-  /*
-  if (mpiRank == 0) {
-    if (iteration != 0)
-    setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			   allContainer.getMinCorner().getY(),
-			   allContainer.getMinCorner().getZ(),
-			   allContainer.getMaxCorner().getX(),
-			   allContainer.getMaxCorner().getY(),
-			   getPtclMaxZ() + gradation.getPtclMaxRadius() ));
-  }
-  // broadcast allContainer
-  broadcast(boostWorld, allContainer, 0);
-  */
-
   // determine container of each process
   Vec v1 = allContainer.getMinCorner();
   Vec v2 = allContainer.getMaxCorner();
@@ -981,7 +1020,138 @@ void Assembly::releaseRecvParticle() {
 }
 
 
-void Assembly::transferParticle() {
+void Assembly::updateContainerMinX() {
+  REAL pMinX = getPtclMinX(particleVec);
+  REAL minX = 0;
+  MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  setContainer(Rectangle(minX - gradation.getPtclMaxRadius(),
+			 allContainer.getMinCorner().getY(),
+			 allContainer.getMinCorner().getZ(),
+			 allContainer.getMaxCorner().getX(),
+			 allContainer.getMaxCorner().getY(),
+			 allContainer.getMaxCorner().getZ() ));
+}
+
+
+void Assembly::updateContainerMaxX() {
+  REAL pMaxX = getPtclMaxX(particleVec);
+  REAL maxX = 0;
+  MPI_Allreduce(&pMaxX, &maxX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			 allContainer.getMinCorner().getY(),
+			 allContainer.getMinCorner().getZ(),
+			 maxX + gradation.getPtclMaxRadius(),
+			 allContainer.getMaxCorner().getY(),
+			 allContainer.getMaxCorner().getZ() ));
+}
+
+
+void Assembly::updateContainerMinY() {
+  REAL pMinY = getPtclMinY(particleVec);
+  REAL minY = 0;
+  MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			 minY - gradation.getPtclMaxRadius(),
+			 allContainer.getMinCorner().getZ(),
+			 allContainer.getMaxCorner().getX(),
+			 allContainer.getMaxCorner().getY(),
+			 allContainer.getMaxCorner().getZ() ));
+}
+
+
+void Assembly::updateContainerMaxY() {
+  REAL pMaxY = getPtclMaxY(particleVec);
+  REAL maxY = 0;
+  MPI_Allreduce(&pMaxY, &maxY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			 allContainer.getMinCorner().getY(),
+			 allContainer.getMinCorner().getZ(),
+			 allContainer.getMaxCorner().getX(),
+			 maxY + gradation.getPtclMaxRadius(),
+			 allContainer.getMaxCorner().getZ() ));
+}
+
+
+void Assembly::updateContainerMinZ() {
+  REAL pMinZ = getPtclMinZ(particleVec);
+  REAL minZ = 0;
+  MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			 allContainer.getMinCorner().getY(),
+			 minZ - gradation.getPtclMaxRadius(),
+			 allContainer.getMaxCorner().getX(),
+			 allContainer.getMaxCorner().getY(),
+			 allContainer.getMaxCorner().getZ() ));
+}
+
+
+void Assembly::updateContainerMaxZ() {
+  // update allContainer dynamically due to particle motion
+  REAL pMaxZ = getPtclMaxZ(particleVec);
+  REAL maxZ = 0;
+  MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  // no need to broadcast allContainer
+  setContainer(Rectangle(allContainer.getMinCorner().getX(),
+			 allContainer.getMinCorner().getY(),
+			 allContainer.getMinCorner().getZ(),
+			 allContainer.getMaxCorner().getX(),
+			 allContainer.getMaxCorner().getY(),
+			 maxZ + gradation.getPtclMaxRadius() ));
+  /*
+  std::vector<int> procGroup;
+  for (int iRank = 0; iRank < mpiSize; ++iRank) {
+    int ndim = 3;
+    int coords[3];
+    MPI_Cart_coords(cartComm, iRank, ndim, coords);
+    if (coords[2] == mpiProcZ - 1) // process at top level
+      procGroup.push_back(iRank);
+  }
+
+  int size = procGroup.size();
+  int *ranks = new int[size];
+  for (int i = 0; i < size; ++i)
+    ranks[i] = procGroup[i];
+  
+  MPI_Group groupWorld, groupWorker;
+  MPI_Comm commWorker;
+  MPI_Comm_group(mpiWorld, &groupWorld);
+  MPI_Group_incl(groupWorld, size, ranks, &groupWorker);
+  MPI_Comm_create(mpiWorld, groupWorker, &commWorker);
+
+  REAL pMaxZ = getPtclMaxZ(particleVec);
+  REAL maxZ = 0;
+  MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, commWorker);
+
+  std::vector<int>::iterator it;
+  it = find(procGroup.begin(), procGroup.end(), mpiRank);
+  if (it != procGroup.end())
+  std::cout << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank
+	    << " pNum=" << particleVec.size() << " topProc=" << size
+	    << " maxZ=" << std::scientific << std::setprecision(10) << pMaxZ << std::fixed << std::endl;
+
+  MPI_Group_free(&groupWorld);
+  MPI_Group_free(&groupWorker);
+  MPI_Comm_free(&commWorker);
+  delete [] ranks;
+  */
+}
+
+
+void Assembly::transferParticle() 
+{
+  Vec vspan = allContainer.getMaxCorner() - allContainer.getMinCorner();
+  double segX = vspan.getX() / mpiProcX;
+  double segY = vspan.getY() / mpiProcY;
+  double segZ = vspan.getZ() / mpiProcZ;
+  Vec v1 = container.getMinCorner(); // v1, v2 in terms of process
+  Vec v2 = container.getMaxCorner();  
+
   // if a neighbor exists, transfer particles crossing the boundary in between.
   std::vector<Particle*> particleX1, particleX2;
   std::vector<Particle*> particleY1, particleY2;
@@ -999,13 +1169,6 @@ void Assembly::transferParticle() {
   boost::mpi::request reqY1Z1[2], reqY1Z2[2], reqY2Z1[2], reqY2Z2[2];
   boost::mpi::request reqX1Y1Z1[2], reqX1Y1Z2[2], reqX1Y2Z1[2], reqX1Y2Z2[2];
   boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
-
-  Vec vspan = allContainer.getMaxCorner() - allContainer.getMinCorner();
-  double segX = vspan.getX() / mpiProcX;
-  double segY = vspan.getY() / mpiProcY;
-  double segZ = vspan.getZ() / mpiProcZ;
-  Vec v1 = container.getMinCorner(); //v1, v2 in terms of process
-  Vec v2 = container.getMaxCorner();   
 
   // 6 surfaces
   if (rankX1 >= 0) { // surface x1
@@ -3239,7 +3402,7 @@ void Assembly::angleOfRepose(int   interval,
 	if ( allInContact ) {
 
 	  lastPtcls.clear(); // do not delete those pointers to release memory; particleVec will do it.
-	  zCurr = getPtclMaxZ() + maxDiameter;
+	  zCurr = getPtclMaxZ(allParticleVec) + maxDiameter;
 
 	  for ( int i = 0; i != layers; ++i) {
 	    newPtcl = new Particle(particleNum+1, 0, Vec(0, 0, zCurr + maxDiameter * i), gradation, young, poisson);

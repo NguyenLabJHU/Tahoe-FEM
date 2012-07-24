@@ -111,8 +111,8 @@ namespace dem {
     }
    
     void setCommunicator(boost::mpi::communicator &comm);
-    void setContainer(Rectangle cont) {allContainer = cont;} 
-    void setGradation(Gradation grad) {gradation = grad;}
+    void setContainer(Rectangle cont) { allContainer = cont; } 
+    void setGradation(Gradation grad) { gradation = grad; }
 
     void depositIntoContainer(); 
     void generateParticle(int particleLayers,
@@ -140,7 +140,12 @@ namespace dem {
     void transferParticle();
     void removeParticleOutRectangle();
     void gatherParticle();
-    
+    void updateContainerMinX();
+    void updateContainerMaxX();
+    void updateContainerMinY();
+    void updateContainerMaxY();
+    void updateContainerMinZ();
+    void updateContainerMaxZ();    
 
     void trimCavity(bool toRebuild, const char* Particlefile, const char* cavParticle);
     void readCavityBoundary(const char* boundaryfile);
@@ -309,7 +314,12 @@ namespace dem {
 		     const char* progressfile, 
 		     const char* debugfile);
   
-  REAL getPtclMaxZ() const;
+  REAL getPtclMinX(const std::vector<Particle*> &particleVec) const;
+  REAL getPtclMaxX(const std::vector<Particle*> &particleVec) const;
+  REAL getPtclMinY(const std::vector<Particle*> &particleVec) const;
+  REAL getPtclMaxY(const std::vector<Particle*> &particleVec) const;
+  REAL getPtclMinZ(const std::vector<Particle*> &particleVec) const;
+  REAL getPtclMaxZ(const std::vector<Particle*> &particleVec) const;
   
   void collapse(int   total_steps,  
 		int   snapNum,
