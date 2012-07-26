@@ -205,6 +205,7 @@ namespace dem {
     void printMemParticle(const char* str) const; // print membrane particles info into a disk file
     void plotSpring(const char *str) const;    // print springs in Tecplot format
     void plotBoundary(const char *str) const;
+    void plotGrid(const char *str) const;
     void plotCavity(const char *str) const;
     void checkMembrane(std::vector<REAL> &vx ) const;
     void printContact(const char* str) const;  // print contacts information

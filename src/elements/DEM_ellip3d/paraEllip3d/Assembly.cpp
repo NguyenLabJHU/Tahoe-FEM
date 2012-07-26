@@ -302,8 +302,11 @@ deposit(int totalSteps,
       time1 = MPI_Wtime();
       gatherParticle();
       time2 = MPI_Wtime(); gatherT = time2 - time1;
-      if (mpiRank == 0) 
+      if (mpiRank == 0) {
 	printParticle(combineString("dep_particle_", ++iterSnap));
+	plotBoundary(combineString("dep_bdryplot_", iterSnap));
+	plotGrid(combineString("dep_gridplot_", iterSnap));
+      }
     }
     
     time2 = MPI_Wtime(); totalT = time2 - time0;
@@ -1828,6 +1831,55 @@ void Assembly::plotBoundary(const char *str) const {
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl;
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z2 << std::endl;
   ofs << "1 2 3 4 5 6 7 8" << std::endl;
+
+  ofs.close();
+}
+
+
+void Assembly::plotGrid(const char *str) const {
+  std::ofstream ofs(str);
+  if(!ofs) { std::cout << "stream error: plotGrid" << std::endl; exit(-1); }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+
+  Vec v1 = allContainer.getMinCorner();
+  Vec v2 = allContainer.getMaxCorner();
+  Vec vspan = v2 - v1;
+
+  ofs << "ZONE N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
+      << ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=POINT, ZONETYPE=FEBRICK" << std::endl;
+
+  std::vector<Vec> coords((mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1));
+  int index = 0;
+  for (int i = 0; i < mpiProcX + 1; ++i)
+    for (int j = 0; j < mpiProcY + 1; ++j)
+      for (int k = 0; k < mpiProcZ + 1; ++k)
+	coords[index++] = Vec(v1.getX() + vspan.getX() / mpiProcX * i,
+			      v1.getY() + vspan.getY() / mpiProcY * j,
+			      v1.getZ() + vspan.getZ() / mpiProcZ * k);
+
+  for (int i = 0; i < (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1); ++i)
+    ofs << std::setw(OWID) << coords[i].getX() 
+	<< std::setw(OWID) << coords[i].getY() 
+	<< std::setw(OWID) << coords[i].getZ() << std::endl;
+
+  for (int iRank = 0; iRank < mpiSize; ++iRank) {
+      int coords[3];
+      MPI_Cart_coords(cartComm, iRank, 3, coords);
+
+      int id4 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
+      int id1 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
+      int id3 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
+      int id2 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
+
+      int id8 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
+      int id5 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
+      int id7 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
+      int id6 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
+
+      ofs << std::setw(8) << id1 << std::setw(8) << id2 << std::setw(8) << id3 << std::setw(8) << id4 
+	  << std::setw(8) << id5 << std::setw(8) << id6 << std::setw(8) << id7 << std::setw(8) << id8 << std::endl;
+  }
 
   ofs.close();
 }
