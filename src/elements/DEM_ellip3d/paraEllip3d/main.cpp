@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
 		   (int) dem::Parameter::getSingleton().parameter["statInterv"],
 		   dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 		   dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+  else if ((int) dem::Parameter::getSingleton().parameter["simuType"] == 2)
+    assemb.expandCavityParticle();
   
   dem::debugInf.close();
 
