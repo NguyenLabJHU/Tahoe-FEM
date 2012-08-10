@@ -6,8 +6,12 @@
 PLATFORM = soilblast
 
 ifeq ($(PLATFORM), janus)
- OPENMPI = 1.4.3
- #OPENMPI = 1.6
+ BOOST = boost-1.50.0_openmpi-1.4.3
+endif
+
+ifeq ($(PLATFORM), soilblast)
+ BOOST = boost-1.50.0
+ #BOOST = default
 endif
 
 # C++ compiler
@@ -32,34 +36,29 @@ CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 # 3. Boost
 ifeq ($(PLATFORM), janus)
 
- ifeq ($(OPENMPI), 1.4.3)
+ BOOST_ROOT=/home/yanb/local/$(BOOST)
+ BOOST_INCLUDE=-I$(BOOST_ROOT)/include
+ BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
+ BOOST_LIBS=-lboost_mpi -lboost_serialization
+ BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 
-  BOOST_ROOT=/home/yanb/local/boost-1.49.0_openmpi-1.4.3
-  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
-  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib -L/curc/tools/free/redhat_5_x86_64/openmpi-1.4.3_gcc-4.5.2_torque-2.5.8_ib/lib
-  BOOST_LIBS=-lboost_mpi -lboost_serialization
-  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib:/curc/tools/free/redhat_5_x86_64/openmpi-1.4.3_gcc-4.5.2_torque-2.5.8_ib/lib
+endif
 
- else 
-  ifeq ($(OPENMPI), 1.6)
+ifeq ($(PLATFORM), soilblast)
 
-  BOOST_ROOT=/home/yanb/local/boost-1.49.0_openmpi-1.6
-  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
-  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib -L/curc/tools/x_86_64/rh5/openmpi/1.6/gcc/4.7.1/torque/2.5.11/ib/lib
-  BOOST_LIBS=-lboost_mpi -lboost_serialization
-  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib:/curc/tools/x_86_64/rh5/openmpi/1.6/gcc/4.7.1/torque/2.5.11/ib/lib
-
+  ifeq ($(BOOST), default)
+   BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
+   BOOST_LIBS=-lboost_mpi -lboost_serialization
+   BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
   endif
-
- endif
-
-else
- ifeq ($(PLATFORM), soilblast)
-
-  BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
-  BOOST_LIBS=-lboost_mpi -lboost_serialization
-  BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
- endif
+  
+  ifeq ($(BOOST), boost-1.50.0)
+   BOOST_ROOT=/usr/local/$(BOOST)
+   BOOST_INCLUDE=-I$(BOOST_ROOT)/include
+   BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
+   BOOST_LIBS=-lboost_mpi -lboost_serialization
+   BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
+  endif
 
 endif
 
