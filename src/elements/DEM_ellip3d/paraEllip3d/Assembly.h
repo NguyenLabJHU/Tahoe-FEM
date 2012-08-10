@@ -33,9 +33,9 @@ namespace dem {
     Gradation               gradation;       // particles gradation
     std::vector<Particle*>  allParticleVec;  // all particles
     std::vector<Particle*>  particleVec;     // particles per process
-    
+
+    std::vector<CONTACT>    allContactVec;   // contacts per process    
     std::vector<CONTACT>    contactVec;      // contacts per process
-    std::vector<ContactTgt> allContactTgtVec;// all tangential contact force and displacement
     std::vector<ContactTgt> contactTgtVec;   // tangential contact force and displacement per process
     
     std::vector< std::vector< std::vector<Particle*> > > memBoundary; // membrane particle boundaries
@@ -45,6 +45,7 @@ namespace dem {
     Rectangle allContainer;// whole container
     Rectangle container;   // container per process
     Rectangle cavity;      // cavity inside container
+    Rectangle grid;        // adaptive compute grid
     
     // boundaries property
     std::vector<BOUNDARY*> boundaryVec;       // rigid boundaries
@@ -112,6 +113,7 @@ namespace dem {
    
     void setCommunicator(boost::mpi::communicator &comm);
     void setContainer(Rectangle cont) { allContainer = cont; } 
+    void setGrid(Rectangle cont) { grid = cont; } 
     void setGradation(Gradation grad) { gradation = grad; }
 
     void depositIntoContainer(); 
@@ -129,7 +131,7 @@ namespace dem {
 		 const char *inputBoundary,
 		 const char *inputParticle);
     
-    void setCavity(Rectangle cavi) {cavity = cavi;}
+    void setCavity(Rectangle cav) { cavity = cav; }
 
     void readParticle(const char* str);
     void readBoundary(const char* str);
@@ -137,15 +139,25 @@ namespace dem {
     void commuParticle();
     bool isBdryProcess();
     void releaseRecvParticle();
-    void transferParticle();
+    void migrateParticle();
     void removeParticleOutRectangle();
     void gatherParticle();
+    void gatherContact();
+
     void updateContainerMinX();
     void updateContainerMaxX();
     void updateContainerMinY();
     void updateContainerMaxY();
     void updateContainerMinZ();
     void updateContainerMaxZ();    
+
+    void updateGridMinX();
+    void updateGridMaxX();
+    void updateGridMinY();
+    void updateGridMaxY();
+    void updateGridMinZ();
+    void updateGridMaxZ();    
+
 
     void trimCavity(bool toRebuild, const char* Particlefile, const char* cavParticle);
     void readCavityBoundary(const char* boundaryfile);
@@ -199,7 +211,7 @@ namespace dem {
     REAL getArea(int bdry) const;
     REAL getAvgPressure() const;
     void setArea(int bdry,REAL a);             // set the area of the bdry-th rigid boundary be a
-    void setTrimHistoryNum(int n) {trimHistoryNum = n;}
+    void setTrimHistoryNum(int n) { trimHistoryNum = n; }
     void printParticle(const char* str) const; // print all particles info into a disk file
     void printParticle(const char* str, std::vector<Particle*>  &particleVec) const; // print particles info into a disk file
     void printMemParticle(const char* str) const; // print membrane particles info into a disk file
@@ -213,11 +225,7 @@ namespace dem {
     void printCavityBoundary(const char* str) const; // print cavity boundaries
     void printCavityParticle(int total, const char* str) const;
     
-    void expandCavityParticles(bool toRebuild,
-			       REAL percent,
-			       const char* cavityptclfile,
-			       const char* Particlefile,
-			       const char* newptclfile);
+    void expandCavityParticle();
     
   // continue to deposit after a cavity is created inside the particle assemblage
   void depositAfterCavity(int   total_steps,  

@@ -159,6 +159,47 @@ void Assembly::depositIntoContainer()
 }
 
 
+void Assembly::expandCavityParticle() 
+{
+  if (mpiRank == 0) {
+    const char *inputParticle = dem::Parameter::getSingleton().datafile["particleFile"].c_str();
+    REAL percent = dem::Parameter::getSingleton().parameter["expandPercent"];
+    readParticle(inputParticle); 
+    
+    REAL x1 = dem::Parameter::getSingleton().parameter["cavityMinX"];
+    REAL y1 = dem::Parameter::getSingleton().parameter["cavityMinY"];
+    REAL z1 = dem::Parameter::getSingleton().parameter["cavityMinZ"];
+    REAL x2 = dem::Parameter::getSingleton().parameter["cavityMaxX"];
+    REAL y2 = dem::Parameter::getSingleton().parameter["cavityMaxY"];
+    REAL z2 = dem::Parameter::getSingleton().parameter["cavityMaxZ"];
+    
+    std::vector<Particle*> cavityParticleVec;
+    std::vector<Particle*>::iterator it;
+    Vec center;
+    
+    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it ){
+      center=(*it)->getCurrPos();
+      if(center.getX() > x1 && center.getX() < x2 &&
+	 center.getY() > y1 && center.getY() < y2 &&
+	 center.getZ() > z1 && center.getZ() < z2 ) {
+	(*it)->expand(percent);
+	cavityParticleVec.push_back(*it);
+      }
+    }
+    
+    printParticle("cav_particle", cavityParticleVec);
+    printParticle("exp_particle");
+  }
+  
+  deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
+	  (int) dem::Parameter::getSingleton().parameter["snapNum"],
+	  (int) dem::Parameter::getSingleton().parameter["statInterv"],
+	  dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
+	  "exp_particle");
+
+}
+
+
 // particleLayers:
 // 0 - one free particle
 // 1 - a horizontal layer of free particles
@@ -272,7 +313,7 @@ deposit(int totalSteps,
     readBoundary(inputBoundary);
     readParticle(inputParticle); 
   }
-  scatterParticle();
+  scatterParticle(); // it also updates grid for the first time
 
   iteration = 0;
   int iterSnap = 0;
@@ -284,39 +325,42 @@ deposit(int totalSteps,
     time1 = MPI_Wtime();
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
+
     findContact();
     if (isBdryProcess()) findBdryContact();
-    releaseRecvParticle();
 
     clearContactForce();
     internalForce();
     if (isBdryProcess()) boundaryForce();
     updateParticle();
-    updateContainerMaxZ();
-
-    time1 = MPI_Wtime();
-    transferParticle();
-    time2 = MPI_Wtime(); transT = time2 - time1;
+    updateGridMaxZ();
 
     if (iteration % (totalSteps / snapNum) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
+      gatherContact();
       time2 = MPI_Wtime(); gatherT = time2 - time1;
       if (mpiRank == 0) {
 	printParticle(combineString("dep_particle_", ++iterSnap));
+	printContact(combineString("dep_contact_", iterSnap));
 	plotBoundary(combineString("dep_bdryplot_", iterSnap));
 	plotGrid(combineString("dep_gridplot_", iterSnap));
       }
     }
-    
+   
+    releaseRecvParticle(); // late release because printContact refers to received particles
+    time1 = MPI_Wtime();
+    migrateParticle();
+    time2 = MPI_Wtime(); transT = time2 - time1;
+ 
     time2 = MPI_Wtime(); totalT = time2 - time0;
     if (mpiRank == 0 && iteration % 100 == 0)
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
-	       << " trans=" << transT
 	       << " gather=" << gatherT
+	       << " trans=" << transT
 	       << " total=" << totalT 
-	       << " overhead=" << std::fixed << std::right << (commuT + transT + gatherT)/totalT*100 << '%' 
+	       << " overhead=" << std::fixed << std::right << (commuT + gatherT + transT)/totalT*100 << '%' 
 	       << std::scientific << std::setprecision(6) << std::endl;
 
   } while (++iteration < totalSteps);
@@ -463,8 +507,16 @@ REAL Assembly::getPtclMinZ(const std::vector<Particle*> &inputParticle) const {
 void Assembly::scatterParticle() {
   // partition particles and send to each process
   if (mpiRank == 0) { // process 0
-    Vec v1 = allContainer.getMinCorner();
-    Vec v2 = allContainer.getMaxCorner();
+    
+    setGrid(Rectangle(grid.getMinCorner().getX(),
+		      grid.getMinCorner().getY(),
+		      grid.getMinCorner().getZ(),
+		      grid.getMaxCorner().getX(),
+		      grid.getMaxCorner().getY(),
+		      getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius() ));
+    
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
 
     boost::mpi::request *reqs = new boost::mpi::request [mpiSize - 1];
@@ -500,6 +552,7 @@ void Assembly::scatterParticle() {
   broadcast(boostWorld, gradation, 0);
   broadcast(boostWorld, boundaryVec, 0);
   broadcast(boostWorld, allContainer, 0);
+  broadcast(boostWorld, grid, 0);
 }
 
 
@@ -509,11 +562,12 @@ bool Assembly::isBdryProcess() {
 	  mpiCoords[2] == 0 || mpiCoords[2] == mpiProcZ - 1);
 }
 
+
 void Assembly::commuParticle() 
 {
   // determine container of each process
-  Vec v1 = allContainer.getMinCorner();
-  Vec v2 = allContainer.getMaxCorner();
+  Vec v1 = grid.getMinCorner();
+  Vec v2 = grid.getMaxCorner();
   Vec vspan = v2 - v1;
   container = Rectangle(v1.getX() + vspan.getX() / mpiProcX * mpiCoords[0],
 			v1.getY() + vspan.getY() / mpiProcY * mpiCoords[1],
@@ -980,7 +1034,7 @@ void Assembly::commuParticle()
 
   for (std::vector<Particle*>::const_iterator it = testParticleVec.begin(); it != testParticleVec.end();++it)
     std::cout << (*it)->getId() << ' ';
-  std::cout << "\n" << std::flush;
+  std::cout << std::endl;
   testParticleVec.clear();
   */
 }
@@ -1026,7 +1080,7 @@ void Assembly::releaseRecvParticle() {
 void Assembly::updateContainerMinX() {
   REAL pMinX = getPtclMinX(particleVec);
   REAL minX = 0;
-  MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+  MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
 
   setContainer(Rectangle(minX - gradation.getPtclMaxRadius(),
 			 allContainer.getMinCorner().getY(),
@@ -1054,7 +1108,7 @@ void Assembly::updateContainerMaxX() {
 void Assembly::updateContainerMinY() {
   REAL pMinY = getPtclMinY(particleVec);
   REAL minY = 0;
-  MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+  MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
 
   setContainer(Rectangle(allContainer.getMinCorner().getX(),
 			 minY - gradation.getPtclMaxRadius(),
@@ -1082,7 +1136,7 @@ void Assembly::updateContainerMaxY() {
 void Assembly::updateContainerMinZ() {
   REAL pMinZ = getPtclMinZ(particleVec);
   REAL minZ = 0;
-  MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+  MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
 
   setContainer(Rectangle(allContainer.getMinCorner().getX(),
 			 allContainer.getMinCorner().getY(),
@@ -1094,12 +1148,12 @@ void Assembly::updateContainerMinZ() {
 
 
 void Assembly::updateContainerMaxZ() {
-  // update allContainer dynamically due to particle motion
+  // update allContainer adaptively due to particle motion
   REAL pMaxZ = getPtclMaxZ(particleVec);
   REAL maxZ = 0;
   MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
 
-  // no need to broadcast allContainer
+  // no need to broadcast allContainer as it is updated in each process
   setContainer(Rectangle(allContainer.getMinCorner().getX(),
 			 allContainer.getMinCorner().getY(),
 			 allContainer.getMinCorner().getZ(),
@@ -1146,9 +1200,25 @@ void Assembly::updateContainerMaxZ() {
 }
 
 
-void Assembly::transferParticle() 
+void Assembly::updateGridMaxZ() {
+  // update compute grids adaptively due to particle motion
+  REAL pMaxZ = getPtclMaxZ(particleVec);
+  REAL maxZ = 0;
+  MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+
+  // no need to broadcast grid as it is updated in each process
+  setGrid(Rectangle(grid.getMinCorner().getX(),
+		    grid.getMinCorner().getY(),
+		    grid.getMinCorner().getZ(),
+		    grid.getMaxCorner().getX(),
+		    grid.getMaxCorner().getY(),
+		    maxZ + gradation.getPtclMaxRadius() ));
+}
+
+
+void Assembly::migrateParticle() 
 {
-  Vec vspan = allContainer.getMaxCorner() - allContainer.getMinCorner();
+  Vec vspan = grid.getMaxCorner() - grid.getMinCorner();
   double segX = vspan.getX() / mpiProcX;
   double segY = vspan.getY() / mpiProcY;
   double segZ = vspan.getZ() / mpiProcZ;
@@ -1510,6 +1580,26 @@ void Assembly::gatherParticle() {
 }
 
 
+void Assembly::gatherContact() {
+
+  // update allContactVec: process 0 collects all updated contacts from each other process
+  if (mpiRank != 0) {// each process except 0
+    boostWorld.send(0, mpiTag, contactVec);
+  }
+  else { // process 0
+    allContactVec.clear();
+    allContactVec.insert(allContactVec.end(), contactVec.begin(), contactVec.end());
+
+    std::vector<CONTACT> tmpContactVec;
+    for (int iRank = 1; iRank < mpiSize; ++iRank) {
+      tmpContactVec.clear();
+      boostWorld.recv(iRank, mpiTag, tmpContactVec);
+      allContactVec.insert(allContactVec.end(), tmpContactVec.begin(), tmpContactVec.end());
+    }
+  }  
+}
+
+
 void Assembly::readParticle(const char *inputParticle) {
 
   REAL young = dem::Parameter::getSingleton().parameter["young"];
@@ -1761,6 +1851,8 @@ void Assembly::readBoundary(const char* str) {
   REAL x1, y1, z1, x2, y2, z2;
   ifs >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
   setContainer(Rectangle(x1, y1, z1, x2, y2, z2));
+  // compute grid assumed to be the same as container, change in scatterParticle() if necessary.
+  setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
 
   Boundary<Particle>* rbptr;
   int type;
@@ -1842,8 +1934,8 @@ void Assembly::plotGrid(const char *str) const {
   ofs.setf(std::ios::scientific, std::ios::floatfield);
   ofs.precision(OPREC);
 
-  Vec v1 = allContainer.getMinCorner();
-  Vec v2 = allContainer.getMaxCorner();
+  Vec v1 = grid.getMinCorner();
+  Vec v2 = grid.getMaxCorner();
   Vec vspan = v2 - v1;
 
   ofs << "ZONE N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
@@ -1899,7 +1991,7 @@ void Assembly::findContact() { // various implementations
 #endif
     
     int num1 = particleVec.size();      // particles inside container
-    int num2 = mergeParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
+    int num2 = mergeParticleVec.size(); // paticles inside container (at front) + particles from neighboring blocks (at end)
     for (int i = 0; i < num1; ++i) {    // NOT (num1 - 1), in parallel situation where one particle could contact received particles!
       Vec u = particleVec[i]->getCurrPos();
       for (int j = i + 1; j < num2; ++j){
@@ -2030,6 +2122,79 @@ void Assembly::findBdryContact() {
 void Assembly::boundaryForce() {
   for(std::vector<BOUNDARY*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
     (*rt)->boundaryForce(boundaryTgtMap);
+}
+
+
+void Assembly::printContact(const char* str) const
+{
+    std::ofstream ofs(str);
+    if(!ofs) { std::cout << "stream error: printContact" << std::endl; exit(-1); }
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
+    ofs.precision(OPREC);
+
+    ofs << std::setw(OWID) << allContactVec.size() << std::endl;
+    ofs << std::setw(OWID) << "ptcl_1"
+        << std::setw(OWID) << "ptcl_2"
+        << std::setw(OWID) << "point1_x"
+        << std::setw(OWID) << "point1_y"
+        << std::setw(OWID) << "point1_z"
+        << std::setw(OWID) << "point2_x"
+        << std::setw(OWID) << "point2_y"
+        << std::setw(OWID) << "point2_z"
+        << std::setw(OWID) << "radius_1"
+        << std::setw(OWID) << "radius_2"
+        << std::setw(OWID) << "penetration"
+        << std::setw(OWID) << "tangt_disp"
+        << std::setw(OWID) << "contact_radius"
+        << std::setw(OWID) << "R0"
+        << std::setw(OWID) << "E0"
+        << std::setw(OWID) << "normal_force"
+        << std::setw(OWID) << "tangt_force"
+        << std::setw(OWID) << "contact_x"
+        << std::setw(OWID) << "contact_y"
+        << std::setw(OWID) << "contact_z"
+        << std::setw(OWID) << "normal_x"
+        << std::setw(OWID) << "normal_y"
+        << std::setw(OWID) << "normal_z"
+        << std::setw(OWID) << "tangt_x"
+        << std::setw(OWID) << "tangt_y"
+        << std::setw(OWID) << "tangt_z"
+        << std::setw(OWID) << "vibra_t_step"
+        << std::setw(OWID) << "impact_t_step"
+        << std::endl;
+
+   std::vector<CONTACT>::const_iterator it;
+    for (it = allContactVec.begin(); it != allContactVec.end(); ++it)
+	ofs << std::setw(OWID) << it->getP1()->getId()
+	    << std::setw(OWID) << it->getP2()->getId()
+	    << std::setw(OWID) << it->getPoint1().getX()
+	    << std::setw(OWID) << it->getPoint1().getY()
+	    << std::setw(OWID) << it->getPoint1().getZ()
+	    << std::setw(OWID) << it->getPoint2().getX()
+	    << std::setw(OWID) << it->getPoint2().getY()
+	    << std::setw(OWID) << it->getPoint2().getZ()
+	    << std::setw(OWID) << it->getRadius1()
+	    << std::setw(OWID) << it->getRadius2()
+	    << std::setw(OWID) << it->getPenetration()
+	    << std::setw(OWID) << it->getTgtDisp()
+	    << std::setw(OWID) << it->getContactRadius()
+	    << std::setw(OWID) << it->getR0()
+	    << std::setw(OWID) << it->getE0()
+	    << std::setw(OWID) << it->getNormalForce()
+	    << std::setw(OWID) << it->getTgtForce()
+	    << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
+	    << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
+	    << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
+	    << std::setw(OWID) << it->normalForceVec().getX()
+	    << std::setw(OWID) << it->normalForceVec().getY()
+	    << std::setw(OWID) << it->normalForceVec().getZ()
+	    << std::setw(OWID) << it->tgtForceVec().getX()
+	    << std::setw(OWID) << it->tgtForceVec().getY()
+	    << std::setw(OWID) << it->tgtForceVec().getZ()
+	    << std::setw(OWID) << it->getVibraTimeStep()
+	    << std::setw(OWID) << it->getImpactTimeStep()
+	    << std::endl;
+    ofs.close();
 }
 
 
@@ -2319,75 +2484,6 @@ void Assembly::checkMembrane(vector<REAL> &vx ) const {
 //  4. a const_iterator such as it also guarantees that (*it) will NOT
 //     change any data. if (*it) call a modification function, the 
 //     compiler will give errors.
-void Assembly::printContact(const char* str) const
-{
-    std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printContact" << std::endl; exit(-1); }
-    ofs.setf(std::ios::scientific, std::ios::floatfield);
-    ofs.precision(OPREC);
-    ofs << std::setw(OWID) << actualContactNum << std::endl;
-    ofs << std::setw(OWID) << "ptcl_1"
-        << std::setw(OWID) << "ptcl_2"
-        << std::setw(OWID) << "point1_x"
-        << std::setw(OWID) << "point1_y"
-        << std::setw(OWID) << "point1_z"
-        << std::setw(OWID) << "point2_x"
-        << std::setw(OWID) << "point2_y"
-        << std::setw(OWID) << "point2_z"
-        << std::setw(OWID) << "radius_1"
-        << std::setw(OWID) << "radius_2"
-        << std::setw(OWID) << "penetration"
-        << std::setw(OWID) << "tangt_dispmt"
-        << std::setw(OWID) << "contact_radius"
-        << std::setw(OWID) << "R0"
-        << std::setw(OWID) << "E0"
-        << std::setw(OWID) << "normal_force"
-        << std::setw(OWID) << "tangt_force"
-        << std::setw(OWID) << "contact_x"
-        << std::setw(OWID) << "contact_y"
-        << std::setw(OWID) << "contact_z"
-        << std::setw(OWID) << "normal_x"
-        << std::setw(OWID) << "normal_y"
-        << std::setw(OWID) << "normal_z"
-        << std::setw(OWID) << "tangt_x"
-        << std::setw(OWID) << "tangt_y"
-        << std::setw(OWID) << "tangt_z"
-        << std::setw(OWID) << "vibra_t_step"
-        << std::setw(OWID) << "impact_t_step"
-        << std::endl;
-   std::vector<CONTACT>::const_iterator it;
-    for (it=contactVec.begin();it!=contactVec.end();++it)
-	ofs << std::setw(OWID) << it->getP1()->getId()
-	    << std::setw(OWID) << it->getP2()->getId()
-	    << std::setw(OWID) << it->getPoint1().getX()
-	    << std::setw(OWID) << it->getPoint1().getY()
-	    << std::setw(OWID) << it->getPoint1().getZ()
-	    << std::setw(OWID) << it->getPoint2().getX()
-	    << std::setw(OWID) << it->getPoint2().getY()
-	    << std::setw(OWID) << it->getPoint2().getZ()
-	    << std::setw(OWID) << it->getRadius1()
-	    << std::setw(OWID) << it->getRadius2()
-	    << std::setw(OWID) << it->getPenetration()
-	    << std::setw(OWID) << it->getTgtDisp()
-	    << std::setw(OWID) << it->getContactRadius()
-	    << std::setw(OWID) << it->getR0()
-	    << std::setw(OWID) << it->getE0()
-	    << std::setw(OWID) << it->getNormalForce()
-	    << std::setw(OWID) << it->getTgtForce()
-	    << std::setw(OWID) << ( it->getPoint1().getX()+it->getPoint2().getX() )/2
-	    << std::setw(OWID) << ( it->getPoint1().getY()+it->getPoint2().getY() )/2
-	    << std::setw(OWID) << ( it->getPoint1().getZ()+it->getPoint2().getZ() )/2
-	    << std::setw(OWID) << it->NormalForceVec().getX()
-	    << std::setw(OWID) << it->NormalForceVec().getY()
-	    << std::setw(OWID) << it->NormalForceVec().getZ()
-	    << std::setw(OWID) << it->TgtForceVec().getX()
-	    << std::setw(OWID) << it->TgtForceVec().getY()
-	    << std::setw(OWID) << it->TgtForceVec().getZ()
-	    << std::setw(OWID) << it->getVibraTimeStep()
-	    << std::setw(OWID) << it->getImpactTimeStep()
-	    << std::endl;
-    ofs.close();
-}
 
 // OPENMP_IMPL: 
 // 0: implementation 0, ts partitions, based on linked list
@@ -3681,11 +3777,11 @@ void Assembly::trimCavity(bool toRebuild,
 
 
 // expand partcile size by some percentage for particles inside cavity
-void Assembly::expandCavityParticles(bool toRebuild,
-				     REAL percent,
-				     const char* cavityptclfile,
-				     const char* ParticleFile,
-				     const char* newptclfile)
+void Assembly::expandCavityParticle(bool toRebuild,
+				    REAL percent,
+				    const char* cavityptclfile,
+				    const char* ParticleFile,
+				    const char* newptclfile)
 {
   if (toRebuild) readParticle(ParticleFile);
   trimHistoryNum = allParticleVec.size();
