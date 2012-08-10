@@ -93,7 +93,7 @@ namespace dem {
     REAL getTgtForce()  const {return vfabs(tgtForce);}
     REAL getPenetration() const {return penetr;}
     REAL getContactRadius() const {return contactRadius;}
-    REAL gettgtDisp() const {return vfabs(tgtDisp);} // total value during a process of contact
+    REAL getTgtDisp() const {return vfabs(tgtDisp);} // total value during a process of contact
     void checkoutTgt(std::vector<ContactTgt>& contactTgtVec);
     void checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec);
     Vec  normalForceVec() const {return normalForce;}
@@ -128,13 +128,49 @@ namespace dem {
     REAL tgtPeak;       
 
     Vec  cohesionForce;  // cohesion force between particles
-    Vec  spin_res;
+    Vec  spinResist;
 
     REAL E0;              
     REAL G0;
     REAL R0;
     REAL vibraTimeStep;
     REAL impactTimeStep;
+
+  private:
+    friend class boost::serialization::access;
+    template<class Archive>
+      void serialize(Archive & ar, const unsigned int version) {
+      ar & p1;
+      ar & p2;
+      ar & penetr;
+      ar & contactRadius;
+      ar & point1;
+      ar & point2;
+      ar & radius1;
+      ar & radius2;
+      ar & normalDirc;
+      ar & tgtDirc;
+      ar & isInContact;
+      ar & tgtLoading;
+      ar & normalForce;
+      ar & tgtForce;
+      ar & tgtDisp;
+      ar & tgtDispStart;
+      ar & tgtSlide;
+      ar & prevTgtLoading;
+      ar & prevNormalForce;
+      ar & prevTgtForce;
+      ar & prevTgtDisp;
+      ar & prevTgtSlide;
+      ar & tgtPeak;
+      ar & cohesionForce;
+      ar & spinResist;
+      ar & E0;
+      ar & G0;
+      ar & R0;
+      ar & vibraTimeStep;
+      ar & impactTimeStep;
+    }
 };
 
 
@@ -158,7 +194,7 @@ namespace dem {
     tgtPeak = 0;
 
     cohesionForce = 0;
-    spin_res = 0;
+    spinResist = 0;
 
     E0 = G0 = R0 = 0;
   }
@@ -184,7 +220,7 @@ namespace dem {
     tgtPeak = 0;
 
     cohesionForce = 0;
-    spin_res = 0;
+    spinResist = 0;
 
     E0 = G0 = R0 = 0;
   }
@@ -351,7 +387,7 @@ namespace dem {
 	// obtain tangential force
 	G0 = young/2/(1+poisson);              // RelaDispInc points along point1's displacement relative to point2
 	Vec RelaDispInc = (veloc1-veloc2)*timeStep;
-	Vec tgtDispInc = RelaDispInc-(RelaDispInc%normalDirc)*normalDirc;
+	Vec tgtDispInc = RelaDispInc - (RelaDispInc%normalDirc)*normalDirc;
 	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPrevTgt()
 	if (vfabs(tgtDisp) == 0)
 	  tgtDirc = 0;
@@ -511,7 +547,7 @@ namespace dem {
       penetr = 0;
       contactRadius = 0;
       radius1 = radius2 = 0;
-      spin_res = 0;
+      spinResist = 0;
     }   
     
   }
