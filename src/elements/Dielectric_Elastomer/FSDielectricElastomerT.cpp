@@ -6,24 +6,19 @@
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 
-/* REMAINING ISSUES (NOVEMBER 7, 2010):
-2.  Shape function gradients in LHS
-3.  Shape function gradients in RHS
-4.  Check stress, stiffness, electric displacement and electromechanical coupling 
-5.  SetGlobalShape:  calculating Efield from gradient of Psi?
-6.  Related to 6:  why can't call fShapes->Derivatives_X in SetGlobalShape?
-7.  Some reasonable boundary value problems (2D/3D)?
-8.  External "forces" (i.e. charges) in electrical system:
-	does this need to be applied here or at an element level?
-9.  IP weight has different signs in FormStiffness and FormKd 
-*/
-
 // materials lists (3D only)
 #include "FSSolidMatList2DT.h"
 #include "FSSolidMatList3DT.h"
 
 namespace Tahoe {
 
+  FSDielectricElastomerT::FSDielectricElastomerT(
+      const ElementSupportT& support) :
+    FiniteStrainT(support), fFSDEMatSupport(0), fCurrMaterial(0),
+    fLocScalarPotential(LocalArrayT::kESP), fElectricScalarPotentialField(0)
+  {
+    SetName("dielectric_elastomer");
+  }
 
 /* Destructor */
   FSDielectricElastomerT::~FSDielectricElastomerT()
@@ -318,6 +313,27 @@ GlobalT::SystemTypeT FSDielectricElastomerT::TangentType(void) const
     ElementBaseT::Equations(eq_1, eq_2);
   }
 
+  //
+  int FSDielectricElastomerT::TotalNumDOF() const
+  {
+ 	int mechdof = 3;
+ 	int elecdof = 1;
+    return (mechdof+elecdof);
+  }
+
+  const dArrayT&
+  FSDielectricElastomerT::ElectricField() const
+  {
+    return fE_List[CurrIP()];
+  }
+
+  //
+  const dArrayT&
+  FSDielectricElastomerT::ElectricField(int ip) const
+  {
+    return fE_List[ip];
+  }
+
 /* accumulate the residual force on the specified node */
 void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
@@ -384,6 +400,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 			/* loop over nodes (double-noding OK) */
 			int dex = 0;
 			int dex2 = 0;
+			int whichdof;	// new
 			for (int i = 0; i < nodes_u.Length(); i++)
 			{
 				if (nodes_u[i] == node)
@@ -393,6 +410,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 					{
 						er1 = fRHS[dex2+3*NumElementNodes()];
 						react[0] = er1;
+						whichdof = 1;
 					}
 					else	// otherwise do mechanical
 					{
@@ -402,14 +420,17 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 						react[0] = mr1;
 						react[1] = mr2;
 						react[2] = mr3;
+						whichdof = NumDOF();
 					}
 					
 					/* components for node - mechanical + electrical DOFs */
-					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
+//					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
+					nodalforce.Set(whichdof, react.Pointer(0));
 
 					/* accumulate */
 					force += nodalforce;
 				}
+
 				dex += NumDOF();
 				dex2 += 1;
 			}
@@ -535,11 +556,11 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
       	dSymMatrixT SIJ = fCurrMaterial->S_IJ();
       	dMatrixT BIJ = fCurrMaterial->B_IJ();
       	dMatrixT EIJK = fCurrMaterial->E_IJK();
-      	dMatrixT EIJK1 = fCurrMaterial->E_IJK();
+//      	dMatrixT EIJK1 = fCurrMaterial->E_IJK();
       	CIJKL *= (0.25*w1);
-      	// EIJK1 by HSP 12/8/2011 - weight by w instead of w1
-        EIJK *= (0.5*w);
-        EIJK1 *= (0.5*w1);
+      	// EIJK1 by HSP 12/8/2011 - weight by w instead of w1:  0.5 also in original formulation
+        EIJK *= (0.5*w1);
+//        EIJK1 *= (0.5*w1);
 	  	BIJ *= w;
         SIJ *= w1;
 
@@ -562,7 +583,7 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
   
        	/* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
        	// NEW by HSP 12/8/2011
-       	fAem.MultATBC(B_C, EIJK1, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate);   
+//       	fAem.MultATBC(B_C, EIJK1, GradShape, dMatrixT::kWhole, dMatrixT::kAccumulate);   
   
  	 	/* electrical-electrical stiffness (8 x 8 matrix for 8-node 3D element) */
   		fAee.MultQTBQ(GradShape, BIJ, format, dMatrixT::kAccumulate);
@@ -570,8 +591,6 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 
 	/* Expand 24x24 geometric stiffness into material stiffness matrix */
 	fAmm_mat.Expand(fAmm_geo, 1, dMatrixT::kAccumulate);
-//	fAme*=-1.0;
-//	fAee*=-1.0;
 	fAem.Transpose();
 	
 	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
@@ -591,6 +610,58 @@ void FSDielectricElastomerT::AddNodalForce(const FieldT& field, int node, dArray
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
   }
 
+/* Compute RHS, or residual of element equations */
+  void FSDielectricElastomerT::FormKd(double constK)
+  {  	
+	/* element preliminaries */
+    const int nsd = NumSD();
+    const int nen = NumElementNodes();
+    
+    /* Define mechanical and electrical residuals */
+	dArrayT Rtotal((nsd+1)*nen);
+	Rtotal = 0.0;
+	dArrayT Rmech(nen*nsd);
+	Rmech = 0.0;
+	dArrayT Relec(nen);
+	Relec = 0.0;
+	dMatrixT GradShape(nsd, nen);
+
+    fShapes->TopIP();
+    while (fShapes->NextIP() != 0) 
+    {
+
+	  /* integration weight */
+      const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
+      const double w1 = fShapes->IPDet() * fShapes->IPWeight();
+      const dArray2DT& DNaX = fShapes->Derivatives_X();
+      
+      /* Now convert DNaX to a matrix instead of dArray2DT */
+	  fShapes->GradNa(DNaX, GradShape);	
+	  
+	  /* Mechanical stress */
+	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
+	  SIJ *= (0.5*w);
+	  dMatrixT B_C;
+	  Set_B_C(DNaX, B_C);
+	  B_C.MultTx(SIJ, Rmech, 1.0, dMatrixT::kAccumulate);
+	  
+	  /* electrical stress */
+	  dArrayT DI = fCurrMaterial->D_I();
+	  DI *= w;
+	  
+	  /* 3x1 vector of shape function gradient * D */
+	  GradShape.MultTx(DI, Relec, 1.0, dMatrixT::kAccumulate);	
+	  
+	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
+	  surface traction term, electrical body force (charge), electrical surface 
+	  traction not accounted for here */
+	  
+	}
+  	Relec *= -1.0;	// need for right sign for residual - CHECK
+ 	Rtotal.CopyIn(0, Rmech);
+ 	Rtotal.CopyIn(Rmech.Length(), Relec);
+ 	fRHS += Rtotal; 	
+  }
 
 /* Dummy mass matrix for dynamic calculations */
 void FSDielectricElastomerT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
@@ -690,59 +761,6 @@ void FSDielectricElastomerT::MassMatrix()
 	}
 
 }
-
-/* Compute RHS, or residual of element equations */
-  void FSDielectricElastomerT::FormKd(double constK)
-  {  	
-	/* element preliminaries */
-    const int nsd = NumSD();
-    const int nen = NumElementNodes();
-    
-    /* Define mechanical and electrical residuals */
-	dArrayT Rtotal((nsd+1)*nen);
-	Rtotal = 0.0;
-	dArrayT Rmech(nen*nsd);
-	Rmech = 0.0;
-	dArrayT Relec(nen);
-	Relec = 0.0;
-	dMatrixT GradShape(nsd, nen);
-
-    fShapes->TopIP();
-    while (fShapes->NextIP() != 0) 
-    {
-
-	  /* integration weight */
-      const double w = constK * fShapes->IPDet() * fShapes->IPWeight();
-      const double w1 = fShapes->IPDet() * fShapes->IPWeight();
-      const dArray2DT& DNaX = fShapes->Derivatives_X();
-      
-      /* Now convert DNaX to a matrix instead of dArray2DT */
-	  fShapes->GradNa(DNaX, GradShape);	
-	  
-	  /* Mechanical stress */
-	  dSymMatrixT SIJ = fCurrMaterial->S_IJ();
-	  SIJ *= (0.5*w);
-	  dMatrixT B_C;
-	  Set_B_C(DNaX, B_C);
-	  B_C.MultTx(SIJ, Rmech, 1.0, dMatrixT::kAccumulate);
-	  
-	  /* electrical stress */
-	  dArrayT DI = fCurrMaterial->D_I();
-	  DI *= w;
-	  
-	  /* 3x1 vector of shape function gradient * D */
-	  GradShape.MultTx(DI, Relec, 1.0, dMatrixT::kAccumulate);	
-	  
-	  /* NOTE:  mechanical inertia term, mechanical body force term, mechanical
-	  surface traction term, electrical body force (charge), electrical surface 
-	  traction not accounted for here */
-	  
-	}
-  	Relec *= -1.0;	// need for right sign for residual - CHECK
- 	Rtotal.CopyIn(0, Rmech);
- 	Rtotal.CopyIn(Rmech.Length(), Relec);
- 	fRHS += Rtotal; 	
-  }
 
   //
   // extrapolate from integration points and compute output nodal/element

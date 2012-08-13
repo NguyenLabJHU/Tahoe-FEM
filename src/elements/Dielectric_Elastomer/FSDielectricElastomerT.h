@@ -139,7 +139,6 @@ namespace Tahoe {
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
-    dMatrixT fRiks_Penalty;	// penalty matrix from Riks
     dMatrixT fMassMatrix;	// mass matrix for LHS
     
     /* Electric potential */
@@ -149,5 +148,5 @@ namespace Tahoe {
 
 } // namespace Tahoe
 
-#include "FSDielectricElastomerT.i.h"
+//#include "FSDielectricElastomerT.i.h"
 #endif // _FSDielectricElastomerT_

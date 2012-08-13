@@ -68,7 +68,6 @@ HDR = \
 	FSDEMatSupportT.h \
 	FSDEMatSupportT.i.h \
 	FSDEMatT.h \
-	FSDEMatT.i.h \
 	FSDE_common_defines.h \
 	FSDE_inc.h 
 

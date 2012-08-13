@@ -51,8 +51,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	FSDielectricElastomerT.h \
-	FSDielectricElastomerT.i.h 
+	FSDielectricElastomerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
