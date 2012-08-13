@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.86 2011-12-01 21:11:37 bcyansfn Exp $ */
+/* $Id: SolidElementT.cpp,v 1.87 2012-08-13 19:29:54 hspark Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream>
@@ -678,7 +678,7 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
     if (flags[ND_ELEC_DISP] == mode) 
 	    counts[ND_ELEC_DISP] = NumSD();
     if (flags[ND_ELEC_FLD] == mode) 
- 	    counts[ND_ELEC_FLD] = NumSD();
+ 	    counts[ND_ELEC_FLD] = NumSD()+1;
 	if (flags[ND_ELEC_POT_SCALAR] == mode) 
 		counts[ND_ELEC_POT_SCALAR] = 1;	// HSP:  scalar electric potential field
 }
@@ -1900,8 +1900,8 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 
   // Electric field
   if (n_codes[ND_ELEC_FLD]) {
-    const char* labels[] = {"E1", "E2", "E3"};
-    for (int i = 0; i < NumSD(); i++) {
+    const char* labels[] = {"E1", "E2", "E3", "EMag"};
+    for (int i = 0; i < NumSD() + 1; i++) {
       n_labels[count++] = labels[i];
     }
   }
@@ -2048,13 +2048,13 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	
 	if (e_codes[IP_ELEC_FLD]) {
 		
-		const char* labels[] = {"E1", "E2", "E3"};
+		const char* labels[] = {"E1", "E2", "E3", "Emag"};
 		
 		for (int j = 0; j < NumIP(); j++) {
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
 			
-			for (int i = 0; i < NumSD(); i++) {
+			for (int i = 0; i < NumSD() + 1; i++) {
 				e_labels[count].Clear();
 				e_labels[count].Append(ip_label, ".", labels[i]);
 				count++;
