@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.214 2011-11-23 22:55:22 isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.215 2012-08-29 22:49:34 tahoe.isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -122,11 +122,15 @@ public:
         kinvdevM,
         kinvPhi,
         kinvGPhi,
-        kGc_chi1,
+        ktreps,
+        kdeveps,
+	kinvtrgammastn,
+	kinvdevgammastn,
+/*        kGc_chi1,
         kGc_chi2,
         kGc_chi3,
         kDelgammaGchi,
-        khGc_chi,
+        khGc_chi,*/
 //        kF11,
 //        kF12,
 //        kF13,
@@ -744,8 +748,11 @@ private:
     dMatrixT Elastic_LagrangianStn_tr;
 
     dMatrixT MicroStnTensor;//Micro-strain tensor
+    dMatrixT eps;// Micro strain tensor in current config.
+    dMatrixT psi;// micro-deformation tensor in current config.
     dMatrixT PSI;//deformation measure PSI=Transpose(F).chi
     dMatrixT ChiM; //Micro-deformation tensor Chi ( used a different tensor this time )
+    dMatrixT ChiM_Inverse; //Micro-deformation tensor Chi ( used a different tensor this time )
     dMatrixT I1_1;
     dMatrixT I1_2;
     dMatrixT I1_3;
@@ -981,6 +988,11 @@ private:
     dMatrixT fN1;
     dMatrixT fD1;
 
+    dMatrixT Predictor;
+    dMatrixT fCn1;
+    dMatrixT fCn1_inv;
+    dMatrixT fFp_tr;
+    dMatrixT fdGdS_n1;
 
     int PlasticityCheck,MicroScaleGradient_check;
     double fF_tr_fact;
@@ -1001,6 +1013,8 @@ private:
     double dPchidDelgammachi,dcchidDelgammachi,ddevSIGMA_SdDelgammachi_inv;
     double dPchidDelgamma,ddevSIGMA_SdDelgamma_inv;
     int iter_count, global_iteration;
+    int iteration_num;
+    double predictor_norm, Fp_norm;
     double Aphi,Bphi,Apsi,Bpsi;
     double Aphi_chi,Bphi_chi,Apsi_chi,Bpsi_chi;
     double Beta;
@@ -2192,13 +2206,19 @@ private:
  double temp_inv;
  double invPhi;
  double invGPhi;
-
+ double deveps; // ||deveps||
+ double treps;//trace of epsilon
+ double invtrgammastn;
+ double invdevgammastn;
 
  dMatrixT devsigma;
  dMatrixT devRelsts;
  dTensor3DT  devmklm;
  dMatrixT s_sigma_temp;
- dTensor3DT fmklm;
+ dTensor3DT fmklm; 
+ dTensor3DT gammastn;
+ dTensor3DT devgammastn;
+ dArrayT trgammastn;
 
 
 //////////////////////////////////////////////////
@@ -2497,7 +2517,8 @@ private:
     void Calculate_fmklm(void);
     void Calculate_PHI_GPHI_matrices_INV(void);
     void Caculate_invdevpart_of_Matrix(const dMatrixT &fMatrix,dMatrixT &fdevfMatrix,double devinvariant);
-
+    void Calculate_relative_strain_INV(void);
+    void Calculate_HOST_INV(void);
 
 /* Plasticity functions */
     void  Form_fV1p(void);
