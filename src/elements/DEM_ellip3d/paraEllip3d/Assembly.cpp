@@ -317,9 +317,9 @@ deposit(int totalSteps,
 
   iteration = 0;
   int iterSnap = 0;
-  double time0, time1, time2, commuT, transT, gatherT, totalT;
+  double time0, time1, time2, commuT, migraT, gatherT, totalT;
   do {
-    commuT = transT = gatherT = totalT = 0;
+    commuT = migraT = gatherT = totalT = 0;
     time0 = MPI_Wtime();
 
     time1 = MPI_Wtime();
@@ -351,16 +351,16 @@ deposit(int totalSteps,
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
     migrateParticle();
-    time2 = MPI_Wtime(); transT = time2 - time1;
+    time2 = MPI_Wtime(); migraT = time2 - time1;
  
     time2 = MPI_Wtime(); totalT = time2 - time0;
     if (mpiRank == 0 && iteration % 100 == 0)
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
 	       << " gather=" << gatherT
-	       << " trans=" << transT
+	       << " migra=" << migraT
 	       << " total=" << totalT 
-	       << " overhead=" << std::fixed << std::right << (commuT + gatherT + transT)/totalT*100 << '%' 
+	       << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 	       << std::scientific << std::setprecision(6) << std::endl;
 
   } while (++iteration < totalSteps);
@@ -1582,6 +1582,28 @@ void Assembly::gatherParticle() {
 
 void Assembly::gatherContact() {
 
+  // update allContact: process 0 collects all updated contacts from each other process
+  if (mpiRank != 0) {// each process except 0
+    boostWorld.send(0, mpiTag, contactVec);
+  }
+  else { // process 0
+    allContact.clear();
+    allContact.insert(contactVec.begin(), contactVec.end());
+
+    std::vector<CONTACT> tmpContactVec;
+    for (int iRank = 1; iRank < mpiSize; ++iRank) {
+      tmpContactVec.clear();
+      boostWorld.recv(iRank, mpiTag, tmpContactVec);
+      allContact.insert(tmpContactVec.begin(), tmpContactVec.end());
+    }
+
+  }  
+}
+
+
+/*
+void Assembly::gatherContact() {
+
   // update allContactVec: process 0 collects all updated contacts from each other process
   if (mpiRank != 0) {// each process except 0
     boostWorld.send(0, mpiTag, contactVec);
@@ -1598,6 +1620,7 @@ void Assembly::gatherContact() {
     }
   }  
 }
+*/
 
 
 void Assembly::readParticle(const char *inputParticle) {
@@ -2132,7 +2155,7 @@ void Assembly::printContact(const char* str) const
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
-    ofs << std::setw(OWID) << allContactVec.size() << std::endl;
+    ofs << std::setw(OWID) << allContact.size() << std::endl;
     ofs << std::setw(OWID) << "ptcl_1"
         << std::setw(OWID) << "ptcl_2"
         << std::setw(OWID) << "point1_x"
@@ -2163,37 +2186,38 @@ void Assembly::printContact(const char* str) const
         << std::setw(OWID) << "impact_t_step"
         << std::endl;
 
-   std::vector<CONTACT>::const_iterator it;
-    for (it = allContactVec.begin(); it != allContactVec.end(); ++it)
-	ofs << std::setw(OWID) << it->getP1()->getId()
-	    << std::setw(OWID) << it->getP2()->getId()
-	    << std::setw(OWID) << it->getPoint1().getX()
-	    << std::setw(OWID) << it->getPoint1().getY()
-	    << std::setw(OWID) << it->getPoint1().getZ()
-	    << std::setw(OWID) << it->getPoint2().getX()
-	    << std::setw(OWID) << it->getPoint2().getY()
-	    << std::setw(OWID) << it->getPoint2().getZ()
-	    << std::setw(OWID) << it->getRadius1()
-	    << std::setw(OWID) << it->getRadius2()
-	    << std::setw(OWID) << it->getPenetration()
-	    << std::setw(OWID) << it->getTgtDisp()
-	    << std::setw(OWID) << it->getContactRadius()
-	    << std::setw(OWID) << it->getR0()
-	    << std::setw(OWID) << it->getE0()
-	    << std::setw(OWID) << it->getNormalForce()
-	    << std::setw(OWID) << it->getTgtForce()
-	    << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
-	    << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
-	    << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
-	    << std::setw(OWID) << it->normalForceVec().getX()
-	    << std::setw(OWID) << it->normalForceVec().getY()
-	    << std::setw(OWID) << it->normalForceVec().getZ()
-	    << std::setw(OWID) << it->tgtForceVec().getX()
-	    << std::setw(OWID) << it->tgtForceVec().getY()
-	    << std::setw(OWID) << it->tgtForceVec().getZ()
-	    << std::setw(OWID) << it->getVibraTimeStep()
-	    << std::setw(OWID) << it->getImpactTimeStep()
-	    << std::endl;
+    //std::vector<CONTACT>::const_iterator it;
+    boost::unordered_set<CONTACT>::const_iterator it;
+    for (it = allContact.begin(); it != allContact.end(); ++it)
+      ofs << std::setw(OWID) << it->getP1()->getId()
+	  << std::setw(OWID) << it->getP2()->getId()
+	  << std::setw(OWID) << it->getPoint1().getX()
+	  << std::setw(OWID) << it->getPoint1().getY()
+	  << std::setw(OWID) << it->getPoint1().getZ()
+	  << std::setw(OWID) << it->getPoint2().getX()
+	  << std::setw(OWID) << it->getPoint2().getY()
+	  << std::setw(OWID) << it->getPoint2().getZ()
+	  << std::setw(OWID) << it->getRadius1()
+	  << std::setw(OWID) << it->getRadius2()
+	  << std::setw(OWID) << it->getPenetration()
+	  << std::setw(OWID) << it->getTgtDisp()
+	  << std::setw(OWID) << it->getContactRadius()
+	  << std::setw(OWID) << it->getR0()
+	  << std::setw(OWID) << it->getE0()
+	  << std::setw(OWID) << it->getNormalForce()
+	  << std::setw(OWID) << it->getTgtForce()
+	  << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
+	  << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
+	  << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
+	  << std::setw(OWID) << it->normalForceVec().getX()
+	  << std::setw(OWID) << it->normalForceVec().getY()
+	  << std::setw(OWID) << it->normalForceVec().getZ()
+	  << std::setw(OWID) << it->tgtForceVec().getX()
+	  << std::setw(OWID) << it->tgtForceVec().getY()
+	  << std::setw(OWID) << it->tgtForceVec().getZ()
+	  << std::setw(OWID) << it->getVibraTimeStep()
+	  << std::setw(OWID) << it->getImpactTimeStep()
+	  << std::endl;
     ofs.close();
 }
 

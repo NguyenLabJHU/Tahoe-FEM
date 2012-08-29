@@ -17,6 +17,7 @@
 #include <fstream>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/unordered_set.hpp>
 
 namespace dem {
   
@@ -34,7 +35,7 @@ namespace dem {
     std::vector<Particle*>  allParticleVec;  // all particles
     std::vector<Particle*>  particleVec;     // particles per process
 
-    std::vector<CONTACT>    allContactVec;   // contacts per process    
+    boost::unordered_set<CONTACT> allContact;// all contacts, no redundance
     std::vector<CONTACT>    contactVec;      // contacts per process
     std::vector<ContactTgt> contactTgtVec;   // tangential contact force and displacement per process
     
