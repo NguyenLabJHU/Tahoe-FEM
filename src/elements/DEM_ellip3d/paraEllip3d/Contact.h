@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iomanip>
 #include <boost/mpi.hpp>
+#include <boost/functional/hash.hpp>
 
 //#define MINDLIN_ASSUMED
 //#define MINDLIN_KNOWN
@@ -98,7 +99,8 @@ namespace dem {
     void checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec);
     Vec  normalForceVec() const {return normalForce;}
     Vec  tgtForceVec() const {return tgtForce;}
-    bool isRedundant(Contact<T> other) const;
+    bool isRedundant(const Contact<T> &other) const;
+    bool operator==(const Contact<T> &other) const;
     
   private:
     T*   p1;             // particle 1
@@ -171,7 +173,14 @@ namespace dem {
       ar & vibraTimeStep;
       ar & impactTimeStep;
     }
-};
+
+  public:
+    friend std::size_t hash_value(const Contact<T> &c) {
+      boost::hash<int> hasher;
+      return hasher(c.getP1()->getId() * c.getP2()->getId());
+    }
+
+  };
 
 
   template <class T>
@@ -226,18 +235,26 @@ namespace dem {
   }
   
   template<class T>
-    bool Contact<T>::isRedundant(Contact<T> other) const {
+    bool Contact<T>::isRedundant(const Contact<T> &other) const {
     int id1 = getP1() -> getId();
     int id2 = getP2() -> getId();
-    int oid1 = ( other.getP1() ) -> getId();
-    int oid2 = ( other.getP2() ) -> getId();
+    int oId1 = ( other.getP1() ) -> getId();
+    int oId2 = ( other.getP2() ) -> getId();
     
-    if ( (id2 == oid1 && id1 == oid2) || (id1 == oid1 && id2 == oid2 ) ) {
-      //std::cout << id1 << " " << id2 << " " << oid1 << " " << oid2 << " " << std::endl; 
-      return true;}
-    else 
-      return false;
+    return ( (id2 == oId1 && id1 == oId2) || (id1 == oId1 && id2 == oId2) );
   }
+
+
+  template<class T>
+    bool Contact<T>::operator==(const Contact<T> &other) const {
+    int id1 = getP1() -> getId();
+    int id2 = getP2() -> getId();
+    int oId1 = ( other.getP1() ) -> getId();
+    int oId2 = ( other.getP2() ) -> getId();
+    
+    return ( (id2 == oId1 && id1 == oId2) || (id1 == oId1 && id2 == oId2) );
+  }
+
   
   template<class T>
     T* Contact<T>::getP1() const {
