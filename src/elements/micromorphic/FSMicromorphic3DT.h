@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.215 2012-08-29 22:49:34 tahoe.isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.216 2012-10-05 21:27:09 tahoe.isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1007,6 +1007,7 @@ private:
     double devfSPKinv,devfSPKinv_tr;
     double devSIGMA_S_inv,devSIGMA_S_inv_tr;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,dFYdDelgammachi;
+    double kgamma,kcc;
     double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi,dFYchidDelgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,InvddevSdDelgamma;
     double dPdDelgammachi,ddevSdDelgamma_inv,ddevSdDelgammachi_inv;
@@ -2107,6 +2108,10 @@ private:
     dArray2DT   fFp_n_IPs;
     dArray2DT   fFp_n_Elements_IPs;
 
+    //for implicit local iteration
+    dMatrixT    fCe;
+    dMatrixT    fCe_inverse;
+    //
     dArray2DT   fCe_IPs;
     dArray2DT   fCe_Elements_IPs;
 
@@ -2116,6 +2121,14 @@ private:
     dArray2DT   fCe_n_IPs;
     dArray2DT   fCe_n_Elements_IPs;
 
+    //for implicit local iteration
+    dMatrixT    fdGdS_transpose;
+    dMatrixT 	flocalnewTangent;
+    dMatrixT    flocalnewTangentInverse;
+    dArrayT     flocalRHS;
+    dArrayT     flocalSol;
+    //
+ 
     dArray2DT   fdGdS_IPs;
     dArray2DT   fdGdS_n_IPs;
 
@@ -3134,7 +3147,7 @@ private:
 
 
     /////////////////////////////////////////////////////////
-
+    void FindYieldFunctionValue();
 
 
     //////////////////////////////////////////////////////////
