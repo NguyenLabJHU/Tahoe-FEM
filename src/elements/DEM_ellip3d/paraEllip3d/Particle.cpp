@@ -34,6 +34,52 @@ Particle::Particle()
   
 
 void Particle::init () {
+  // generate orientation of axle a/b/c using Euler angles
+
+  REAL angle1, angle2, angle3; // angle1=[0,Pi], angle2=[0,2*Pi), angle3=[0,2*Pi]
+  angle1 = ran(&idum)*Pi;
+  angle2 = ran(&idum)*Pi*2;
+  angle3 = ran(&idum)*Pi*2;
+
+  REAL c1, c2, c3, s1, s2, s3;
+  c1 = cos(angle1);
+  c2 = cos(angle2);
+  c3 = cos(angle3);
+  s1 = sin(angle1);
+  s2 = sin(angle2);
+  s3 = sin(angle3);
+
+  REAL l1, m1, n1, l2, m2, n2, l3, m3, n3;
+  l1 = c2*c3-c1*s2*s3;  m1 = s2*c3+c1*c2*s3;  n1 = s1*s3;
+  l2 = -c2*s3-c1*s2*c3; m2 = -s2*s3+c1*c2*c3; n2 = s1*c3;
+  l3 = s1*s2;           m3 = -s1*c2;          n3 = c1;
+
+  currDirecA = Vec(acos(l1), acos(m1), acos(n1));
+  currDirecB = Vec(acos(l2), acos(m2), acos(n2));
+  currDirecC = Vec(acos(l3), acos(m3), acos(n3));
+  //currDirecC = vacos(normalize(vcos(currDirecA) * vcos(currDirecB)));
+
+  prevPos = currPos;
+  prevDirecA = currDirecA;
+  prevDirecB = currDirecB;
+  prevDirecC = currDirecC;
+  prevVeloc = currVeloc = 0;
+  prevOmga = currOmga = 0;
+  force = prevForce = 0;
+  moment = prevMoment = 0;
+  constForce = constMoment = 0;
+  density = dem::Parameter::getSingleton().parameter["specificG"] * 1.0e3;
+  volume = 4/3.0*Pi*a*b*c;
+  mass = density*volume;
+  momentJ = Vec(mass/5*(b*b+c*c), mass/5*(a*a+c*c), mass/5*(a*a+b*b));
+  contactNum = 0;
+  inContact = false;
+  globalCoef();
+}
+
+
+/*
+void Particle::init () {
   // generate orientation of axle a/b/c
   REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
 
@@ -79,6 +125,7 @@ void Particle::init () {
   inContact = false;
   globalCoef();
 }
+*/
 
 
 Particle::Particle(int n, int tp, Vec center, REAL r, REAL yng, REAL poi)
@@ -555,7 +602,7 @@ Vec Particle::globalVec(Vec v) const {
 
   
 bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const {
-  if(a == b&&b == c){
+  if(a == b && b == c) {
     Vec tnm = Vec(p,q,r) / sqrt(p * p + q * q + r * r);
     // signed distance from particle center to plane
     REAL l_nm = (currPos.getX() * p + currPos.getY() * q + currPos.getZ() * r + s) / sqrt(p * p + q * q + r * r); 
@@ -576,12 +623,14 @@ bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const
   REAL h = coef[7];
   REAL i = coef[8];
   REAL j = coef[9];
+
   REAL domi = 
     e*e*p*p + 4*c*d*p*q - 4*a*c*q*q + 
     f*f*q*q - 2*d*f*q*r + 
     d*d*r*r - 
     2*e*(f*p*q + d*p*r - 2*a*q*r) - 
     4*b*(c*p*p + r*(-f*p + a*r));
+
   REAL x = 
     (-(f*i*q*q) - 2*b*i*p*r + f*h*q*r + d*i*q*r + 
      2*b*g*r*r - d*h*r*r - e*e*p*s - 
@@ -594,12 +643,14 @@ bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const
      f*f*q*s + d*f*r*s + 
      2*c*(h*p*p - g*p*q - d*p*s + 2*a*q*s) + 
      e*(-i*p*p + g*p*r + f*p*s - 2*a*r*s))/domi;
+
   REAL z = 
     (f*h*p*q - 2*d*i*p*q - f*g*q*q + 
      2*a*i*q*q + d*h*p*r + d*g*q*r - 2*a*h*q*r + 
      d*f*q*s - d*d*r*s + 
      e*(-h*p*p + g*p*q + d*p*s - 2*a*q*s) + 
      2*b*(i*p*p - g*p*r - f*p*s + 2*a*r*s))/domi;
+
   ptnp = Vec(x, y, z);
   
   REAL val = a*x*x + b*y*y + c*z*z + d*x*y + e*y*z + f*x*z + g*x + h*y + i*z + j;
