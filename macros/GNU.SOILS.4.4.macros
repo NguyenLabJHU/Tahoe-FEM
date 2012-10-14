@@ -1,4 +1,4 @@
-# $Id: GNU.SOILS.4.4.macros,v 1.1 2011-12-02 17:31:55 regueiro Exp $
+# $Id: GNU.SOILS.4.4.macros,v 1.2 2012-10-14 19:58:52 regueiro Exp $
 # GNU
 #
 #builds 64-bit
@@ -16,13 +16,13 @@ CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -lpthread
-MAKEDEPEND_C         = $(COMP_DIR)/bin/gcc -MM
+MAKEDEPEND_C         = $(COMP_DIR)/bin/gcc44 -MM
 MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
-MAKEDEPEND_CC        = $(COMP_DIR)/bin/g++ -MM
+MAKEDEPEND_CC        = $(COMP_DIR)/bin/g++44 -MM
 MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES) -Wno-deprecated
 MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = $(COMP_DIR)/bin/gfortran -MM
+MAKEDEPEND_F         = $(COMP_DIR)/bin/gfortran44 -MM
 MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
