@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.216 2012-10-05 21:27:09 tahoe.isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.217 2012-10-16 17:34:51 tahoe.regueiro Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -25,7 +25,6 @@
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
-
 
 namespace Tahoe {
 
@@ -1007,7 +1006,7 @@ private:
     double devfSPKinv,devfSPKinv_tr;
     double devSIGMA_S_inv,devSIGMA_S_inv_tr;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,dFYdDelgammachi;
-    double kgamma,kcc;
+    double kgamma,kcc,cohesion;
     double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi,dFYchidDelgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,InvddevSdDelgamma;
     double dPdDelgammachi,ddevSdDelgamma_inv,ddevSdDelgammachi_inv;
