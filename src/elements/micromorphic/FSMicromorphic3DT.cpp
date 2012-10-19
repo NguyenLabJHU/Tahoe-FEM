@@ -4831,31 +4831,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
                                  }
 
 
-//                                       alpha1=0.0;
-//                                       alpha2=0.0;
-//                                       alphai=0.0;
-//                                       incr=0.0;
-//                                       incrx=0.0;
-//                                       for(int i=0;i<100;i++)
-//                                          {
-//
-//                                              LocalConsistentTangent.Multx(fdelDelgammaVector,Temp_vec1);
-//                                              Temp_vec1*=-1;
-//                                              Temp_vec1+=LocalRHSVector;
-//
-//                                              alpha1=Temp_vec1[0]*Temp_vec1[0]+Temp_vec1[1]*Temp_vec1[1];
-//
-//                                              LocalConsistentTangent.Multx(Temp_vec1,Temp_vec2);
-//                                              alpha2=Temp_vec1[0]*Temp_vec2[0]+Temp_vec1[1]*Temp_vec2[1];
-//
-//                                              alphai=alpha1/alpha2;
-//
-//                                              incr=alphai*Temp_vec1[0];
-//                                              incrx=alphai*Temp_vec1[1];
-//
-//
-//                                          }
-
+                                 fDelgamma+=fdelDelgamma;
+                                 fDelgammachi+=fdelDelgammachi;
 
 
                                  if (fDelgamma < 0.0) fDelgamma = 0.0;
