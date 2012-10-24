@@ -4366,7 +4366,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				//only update ISVs, Fp, dGdS, dFYdS if converged
 				//search for "fFp_IPs.SetRow(IP,fFp)" for where tensors are updated
-/*				if (abs(fYield_function) > 1e-6 &&  iter_count >= iIterationMax)
+				if (abs(fYield_function) > 1e-6 &&  iter_count >= iIterationMax)
 				{
 					fState_variables_IPs(IP,kDelgamma) = fState_variables_n_IPs(IP,kDelgamma);
 					fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc);
@@ -4374,13 +4374,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 					fdGdS = fdGdS_n;
 					fdFYdS = fdFYdS_n;
 					fRight_Elastic_Cauchy_Green_tensor = fCe_n;
+					fs_micromorph3D_out << "Local Delgamma Newton-Raphson algorithm did not converge" << endl;
+					ExceptionT::GeneralFail(caller,"Local Delgamma Newton-Raphson algorithm did not converge after %d iterations.", iIterationMax);
 				}
 				else
 				{
 					fState_variables_IPs(IP,kDelgamma) = fDelgamma;
 					fState_variables_IPs(IP,kc) = cohesion;
 				}
-*/
 
                          }//end of the Macro-plasticity, micro-elasticity loop
 
@@ -5395,7 +5396,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 						fYield_function=devfSPKinv-(Aphi*(fState_variables_IPs(IP,kc))-Bphi*mean_stress);
 					}
 
-					if (iPlasticityCheck==0 && abs(fYield_function) > 1e-6 &&  iter_count >= iIterationMax)
+/*					if (iPlasticityCheck==0 && abs(fYield_function) > 1e-6 &&  iter_count >= iIterationMax)
 					{
 						fs_micromorph3D_out<< "Yield function= "<< fYield_function <<endl;
 						fs_micromorph3D_out<< "APPLYING BISECTION "<< endl;
@@ -5530,6 +5531,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 					    	fState_variables_IPs(IP,kc)= cohesion;
 
 					}
+*/
 
 
 
