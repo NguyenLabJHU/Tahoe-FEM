@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.217 2012-10-16 17:34:51 tahoe.regueiro Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.218 2012-10-29 19:06:32 tahoe.isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -926,6 +926,14 @@ private:
     dMatrixT ddevSIGMA_SdDelgamma;
     dMatrixT ddevSIGMA_SdDelgammachi;
 
+    //For line search algorithm
+    dMatrixT dSds;
+    dMatrixT ddevSds;
+    dMatrixT dEeds;
+    dMatrixT dEpsiloneds;
+    dMatrixT dFeds;
+    //////
+
 
     dMatrixT LocalConsistentTangent;
     dMatrixT LocalConsistentTangentInverse;
@@ -1042,6 +1050,13 @@ private:
    double fConst2,fConst3;
    double Comp11,Comp12,Comp21,Comp22;
    //double Comp1,Comp2,Comp3,Comp4;
+
+   // For line search algorithm
+   double dcds;
+   double dPds;
+   double InvddevSds;
+   double dFYds;
+   ///////////
 
     dMatrixT IJp_1;
     dMatrixT fKu_IJp_1;
@@ -2127,7 +2142,7 @@ private:
     dArrayT     flocalRHS;
     dArrayT     flocalSol;
     //
- 
+
     dArray2DT   fdGdS_IPs;
     dArray2DT   fdGdS_n_IPs;
 
@@ -2227,7 +2242,7 @@ private:
  dMatrixT devRelsts;
  dTensor3DT  devmklm;
  dMatrixT s_sigma_temp;
- dTensor3DT fmklm; 
+ dTensor3DT fmklm;
  dTensor3DT gammastn;
  dTensor3DT devgammastn;
  dArrayT trgammastn;
