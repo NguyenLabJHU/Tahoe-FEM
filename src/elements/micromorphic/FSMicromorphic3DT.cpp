@@ -14496,8 +14496,8 @@ void FSMicromorphic3DT::TakeParameterList(const ParameterListT& list)
      Bpsi=2*sqrt(6)*sin(fMaterial_Params[kDpsi])/(3+Beta*sin(fMaterial_Params[kDpsi]));
 
 
-    fdGdS_n.SetToScaled(Bpsi*1/3,fIdentity_matrix);
-    // fdGdS_n=0.0;
+    //fdGdS_n.SetToScaled(Bpsi*1/3,fIdentity_matrix);// When I turned this on, it caused non-homogenous stress and gamma results in column example.
+     fdGdS_n=0.0;
 
      Aphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
      Bphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFphi_chi])/(3+Beta*sin(fMaterial_Params[kFphi_chi]));
