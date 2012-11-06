@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.218 2012-10-29 19:06:32 tahoe.isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.219 2012-11-06 23:08:39 tahoe.isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -1056,6 +1056,8 @@ private:
    double dPds;
    double InvddevSds;
    double dFYds;
+   double Gsi;
+   double Gs0;
    ///////////
 
     dMatrixT IJp_1;

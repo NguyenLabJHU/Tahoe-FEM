@@ -4486,13 +4486,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 						double si=0.0;
 						double deltas=0.0;
 
-						double Gs0=fdelDelgamma*fYield_function;
-						double Gsi=Gs0*2;
+						Gs0=fdelDelgamma*fYield_function;
+						Gsi=Gs0*2;
 
 						int newcounter=0;
 						fs_micromorph3D_out  << "Current  G0 =" << Gs0 << endl;
 
-						while(abs(Gsi)>=0.5*abs(Gs0) && newcounter<5 )
+						while(abs(Gsi)>=0.2*abs(Gs0) && newcounter<10 )
 						{
 							newcounter++;
 							//Form  dFe/ds
@@ -4656,14 +4656,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 							// Calculate yield function with updated parameters
 							fYield_function=devfSPKinv-(Aphi*cohesion-Bphi*mean_stress);
 							Gsi=fdelDelgamma*fYield_function;
-							fs_micromorph3D_out  << "Relative   Gsi/Gs0 =" << Gsi/Gs0 << endl;
-                            fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+
 
 						}
-
-
-
+						//fs_micromorph3D_out  << "Relative   Gsi/Gs0 =" << Gsi/Gs0 << endl;
+                        fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 					}
+					fs_micromorph3D_out  << "Relative   Gsi/Gs0 =" << Gsi/Gs0 << endl;
+                    fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
 				//}
 				if (abs(fYield_function) > 1e-6 &&  iter_count >= iIterationMax)
 				{
