@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DT.h,v 1.219 2012-11-06 23:08:39 tahoe.isbuga Exp $ */
+/* $Id: FSMicromorphic3DT.h,v 1.220 2012-11-15 19:49:59 tahoe.isbuga Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_T_H_
 #define _FS_MICROMORPHIC_3D_T_H_
@@ -932,7 +932,13 @@ private:
     dMatrixT dEeds;
     dMatrixT dEpsiloneds;
     dMatrixT dFeds;
-    //////
+
+    // For line search algortihm for combined plasticity
+    dMatrixT dChipds;
+    dMatrixT dChieds;
+    dMatrixT dSIGMA_Sds;
+    dMatrixT ddevSIGMA_Sds;
+
 
 
     dMatrixT LocalConsistentTangent;
@@ -1055,6 +1061,8 @@ private:
    double dcds;
    double dPds;
    double InvddevSds;
+   double dPchids;
+   double dcchids;
    double dFYds;
    double Gsi;
    double Gs0;
