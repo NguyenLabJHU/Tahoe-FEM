@@ -1773,6 +1773,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
      fKMphiu_II12p_15 = 0.0;
      fKMphiphi_II12p_16 = 0.0;
 
+
     ////////////////////////////////////////////////////////////////
     //////////////FINITE STRAIN MATRICES INITIALIZE/////////////////
     ////////////////////////////////////////////////////////////////
@@ -2951,7 +2952,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 
 				//if(fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
 //				if(iPlasticityCheck==1 && fF_tr_fact>dYieldTrialTol)//Combined Plasticity
-//					//if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol)//Combined Plasticity
+//			     //if(iPlasticityCheck==1 && fCombinedYield_function_tr>dYieldTrialTol)//Combined Plasticity
 //				{
 //
 //					//fs_micromorph3D_out<<"COMBINED-PLASTICITY "<<endl;
@@ -3017,16 +3018,16 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //									fChip_inverse.Inverse(fChip);
 //
 //
-//                                      Form dChip/dDelgamma
+//                                    // Form dChip/dDelgamma
 //									fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
 //									dChipdDelgamma.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
 //
-//                                      Forming dChie/dDgamma
+//                                   //   Forming dChie/dDgamma
 //									dChiedDelgamma.MultABC(fChie,dChipdDelgamma,fChip_inverse);
 //									dChiedDelgamma*=-1;
 //
 //
-//									 Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor
+//									// Forming  dEpsilon^e/dDgamma  Epsilone^e: Elastic micro strain tensor
 //									dEpsilonedDelgamma.MultATB(dFedDelgamma,fChie);
 //									fTemp_matrix_nsd_x_nsd.MultATB(fFe,dChiedDelgamma);
 //									dEpsilonedDelgamma+=fTemp_matrix_nsd_x_nsd;
@@ -3065,7 +3066,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                     ddevSdDelgamma*=-1;
 //                                     ddevSdDelgamma+=dSdDelgamma;
 //
-//                                      Forming  d(SIGMA-S)/dDgamma tensor
+//                                    //  Forming  d(SIGMA-S)/dDgamma tensor
 //                                     dSIGMA_SdDelgamma=0.0;
 //                                     Temp_inv=dEedDelgamma.Trace();
 //                                     dSIGMA_SdDelgamma.SetToScaled(fMaterial_Params[kTau]*Temp_inv,fIdentity_matrix);
@@ -3084,14 +3085,13 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                     fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
 //                                     dSIGMA_SdDelgamma+=fTemp_matrix_nsd_x_nsd;
 //
-//                                     Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/
-//                                        dDgammachi
+//                                    // Forming  dPchi/dDgammachi (scalar) Pchi: pressure for micro-scale  dPchi/dDgammachi= (1/3)1:dSIGMA_S/dDgammachi
 //                                     dPchidDelgamma=dSIGMA_SdDelgamma.Trace()/3;
 //
-//                                      Forming  dc/dDgamma  c: cohesion
+//                                     // Forming  dc/dDgamma  c: cohesion
 //                                     dcchidDelgamma=fState_variables_n_IPs(IP,khc_chi)*fMaterial_Params[kHc_chi];
 //
-//                                      Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor
+//                                     // Forming  d(dev(SIGMA_S))/dDgammachi  dev(SIGMA_S): dev. part of SIGMA-S (relative stress) tensor
 //                                     ddevSIGMA_SdDelgamma.SetToScaled(dPchidDelgamma,fIdentity_matrix);
 //                                     ddevSIGMA_SdDelgamma*=-1;
 //                                     ddevSIGMA_SdDelgamma+=dSIGMA_SdDelgamma;
@@ -3165,7 +3165,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                         fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
 //
 //
-//                                      update fChip
+//                                     // update fChip
 //                                     fTemp_matrix_nsd_x_nsd.MultATBC(PSIe_n_inverse,fCchie_n,fChip_n);
 //                                     fTemp_matrix_nsd_x_nsd2.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_n_transpose,fTemp_matrix_nsd_x_nsd);
 //                                     fChip.SetToScaled(fDelgamma,fTemp_matrix_nsd_x_nsd2);
@@ -3177,14 +3177,14 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                     //////////////////////////////////////////////
 //                                     //////////////////////////////////////////////
 //
-//                                      Form inverse of Chi^p
+//                                     // Form inverse of Chi^p
 //                                     fChip_inverse.Inverse(fChip);
 //
-//                                      Calculate Chie
+//                                    //  Calculate Chie
 //                                     fChie.MultAB(ChiM,fChip_inverse);
 //
 //
-//                                      [fMicroElastic_Right_Cauchy_Green_tensor] will be formed
+//                                     // [fMicroElastic_Right_Cauchy_Green_tensor] will be formed
 //                                     fMicroRight_Elastic_Cauchy_Green_tensor.MultATB(fChie,fChie);
 //                                     if (fMicroRight_Elastic_Cauchy_Green_tensor.Det()==0)
 //                                    	 fMicroRight_Elastic_Cauchy_Green_tensor = fIdentity_matrix;
@@ -3193,7 +3193,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                     //Update fCchie
 //                                     fCchie.MultATB(fChie,fChie);
 //
-//                                      Update PSIe
+//                                     // Update PSIe
 //                                     PSIe.MultATB(fFe,fChie);
 //
 //
@@ -3255,7 +3255,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //                                     devSPK*=-1;
 //                                     devSPK+=SPK;
 //
-//                                      Form the deviatoric SIGMA-S
+//                                    //  Form the deviatoric SIGMA-S
 //                                     Pchibar=SIGMA_S.Trace()/3;//Calculating the pressure term
 //                                     devSIGMA_S.SetToScaled(Pchibar,fIdentity_matrix);
 //                                     devSIGMA_S*=-1;
@@ -3263,7 +3263,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 //
 //
 //
-//                                      Calculate ||devS:devS+devR:devR||
+//                                    //  Calculate ||devS:devS+devR:devR||
 //                                     Temp_inv= devSPK.ScalarProduct();
 //                                     Stress_Norm=Temp_inv;
 //                                     Temp_inv= devSIGMA_S.ScalarProduct();
@@ -3300,18 +3300,7 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 ////
 ////                                     }
 //
-//								} //        end of the local fDelgamma while loop
-//
-//
-//
-//
-
-
-
-
-
-
-
+//							//} //        end of the local fDelgamma while loop
 
 
 
@@ -3642,10 +3631,6 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 		                                    	 cohesion = 0.0;
 		                                    	 fState_variables_IPs(IP,kc)= fState_variables_n_IPs(IP,kc);
 		                                     }
-		                                     //solve for fdels deltas = -fYield_function/dFYds;
-
-
-
 
 		         							// update cx (c_chi) ISVs
 											fState_variables_IPs(IP,kc_chi)= fState_variables_n_IPs(IP,kc_chi)
@@ -3793,8 +3778,8 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	         					}
 								 fs_micromorph3D_out  << "Relative   Gsi/Gs0 =" << Gsi/Gs0 << endl;
 	                             fs_micromorph3D_out  << "Current relative residual = " << fabs(fCombinedYield_function/fCombinedYield_function_tr)<< endl;
-	         				//}
-	 	         				if (abs(fCombinedYield_function) > 1e-6 &&  iter_count >= iIterationMax)
+
+	                 				if (abs(fCombinedYield_function) > 1e-6 &&  iter_count >= iIterationMax)
 	 	         				{
 	 	         //					fState_variables_IPs(IP,kDelgamma) = fState_variables_n_IPs(IP,kDelgamma);
 	 	         //					fState_variables_IPs(IP,kc) = fState_variables_n_IPs(IP,kc);
@@ -3811,251 +3796,249 @@ void FSMicromorphic3DT::RHSDriver_monolithic(void)
 	 	         					fState_variables_IPs(IP,kc) = cohesion;
 	 	         				}
 
+					//}
 
-//                                 fs_micromorph3D_out  << "iter_count = " << iter_count << endl;
-//                                 fs_micromorph3D_out  << "fDelgamma = " << fDelgamma << endl;
-//                                 fs_micromorph3D_out  << "fCombinedYield_function = " << fCombinedYield_function << endl;
-
-
-//                                 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
 //
-//                                 /*Calculating PSIe inverse*/
-//                                 PSIe_inverse.Inverse(PSIe);
 //
-//                                 /* Micro Scale Gradient check setting default not yileded; if =0 not yield, if =1 yield */
-//                                 /* Forming Gradient of fChie (=Gradient of Xe) */
-//                                 MicroScaleGradient_check=0;
+////                                 fs_micromorph3D_out << "Current  Combined Yield function = " << fCombinedYield_function << endl;
+////
+////                                 /*Calculating PSIe inverse*/
+////                                 PSIe_inverse.Inverse(PSIe);
+////
+////                                 /* Micro Scale Gradient check setting default not yileded; if =0 not yield, if =1 yield */
+////                                 /* Forming Gradient of fChie (=Gradient of Xe) */
+////                                 MicroScaleGradient_check=0;
+////
+////
+////                                 /* Form Gradient of Xe trial value */
+////                                 Form_GXe_tr();
+////                                 fs_micromorph3D_out<<"GXe_tr= "<<GXe_tr<<endl;
+////
+////
+////                                 /* Form GAMMAe trial tensor */
+////                                 Form_GAMMAe_tr();
+////                                 fs_micromorph3D_out<<"GAMMAe_tr= "<<GAMMAe_tr<<endl;
+////
+////
+////
+////                                 /* Forming Mbar trial tensor */
+////                                 Form_fMeKLM_tr();
+////
+////                                 fs_micromorph3D_out<<"fMeKLM_tr= "<<fMeKLM_tr<<endl;
+////
+////                                 /* Calculation of Micro Gradient Pressure term */
+////                                 Form_PGchivar_tr();
+////
+////                                 fs_micromorph3D_out<<"PGchivar_tr= "<<PGchivar_tr<<endl;
+////
+////
+////                                 /* Forming deviatoric part of Mbar trial and invariant of Mbar trial */
+////                                 Form_devMeKLM_tr();// and its invariant
+////
+////                                 fs_micromorph3D_out<<"devMeKLM_tr= "<<devMeKLM_tr<<endl;
+////
+////
+////                                 /*Calculating magnitude of micro gradient cohesion */
+////                                 Temp_inv=0.0;
+////                                 fcG_chi_n[0]=fState_variables_n_IPs(IP,kGc_chi1);
+////                                 fcG_chi_n[1]=fState_variables_n_IPs(IP,kGc_chi2);
+////                                 fcG_chi_n[2]=fState_variables_n_IPs(IP,kGc_chi3);
+////
+////                                 Temp_inv=fcG_chi_n[0]*fcG_chi_n[0]+fcG_chi_n[1]*fcG_chi_n[1]+fcG_chi_n[2]*fcG_chi_n[2];
+////                                 invGc_n=sqrt(Temp_inv);
+////
+////
+////
+////                                 /* Micro Gradient Yield Function trial value*/
+////                                 fMicroScaleGradientYield_function_tr=invdevMeKLM_tr-(AGphi_chi*invGc_n-BGphi_chi*invPGchivar_tr);
+////
+////
+////
+////
+////                               if(fMicroScaleGradientYield_function_tr >dYieldTrialTol)
+////                                 {
+////                                     fs_micromorph3D_out<<"MICRO SCALE GRADIENT "<<endl;
+////
+////                                     /* Setting Micro Gradient check to 1 */
+////                                     MicroScaleGradient_check=1;
+////
+////                                     /* initilizing the values */
+////                                     fMicroScaleGradientYield_function=fMicroScaleGradientYield_function_tr;
+////                                     GAMMAe=GAMMAe_tr;
+////                                     fMeKLM=fMeKLM_tr;
+////                                     devMeKLM=devMeKLM_tr;
+////                                     invdevMeKLM=invdevMeKLM_tr;
+////
+////                                     PGchivar=PGchivar_tr;
+////                                     invPGchivar=invPGchivar_tr;
+////                                     //invPGchivar=invPGchivar_tr;
+////
+////                                             fdelDelgammaGchi = 0.0;
+////                                             fDelgammaGchi = 0.0;
+////
+////                                             // iterate using Newton-Raphson to solve for fDelgamma
+////                                             iter_count = 0;
+////
+////                                             while (fabs(fMicroScaleGradientYield_function) > dAbsTol && fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) > dRelTol && iter_count < iIterationMax)
+////                                             {
+////                                                     iter_count += 1;
+////
+////                                                     /* Form dG^(Gchi)/dMKLM */
+////                                                     //Form_dGGchidMKLM();
+////                                         fs_micromorph3D_out<<"dGGchidMKLM= "<<dGGchidMKLM<<endl;
+////                                         /* Form dGXp/dDelgamma*/
+////                                         Form_dGXpdDelgammaGchi();
+////                                         fs_micromorph3D_out<<"dGXpdDelgammaGchi= "<<dGXpdDelgammaGchi<<endl;
+////
+////
+////                                         /* Form dGXe/dDelgamma*/
+////                                         Form_dGXedDelgammaGchi();
+////                                         fs_micromorph3D_out<<"dGXedDelgammaGchi= "<<dGXedDelgammaGchi<<endl;
+////
+////
+////                                         /* Form dGammae/dDelgamma*/
+////                                         Form_dGammaedDelgammaGchi();
+////                                         fs_micromorph3D_out<<"dGammaedDelgammaGchi= "<<dGammaedDelgammaGchi<<endl;
+////
+////
+////                                         /* Form  dMKLM/dDelgamma*/
+////                                         Form_dMKLMdDelgammaGchi();
+////
+////                                         fs_micromorph3D_out<<"dMKLMdDelgammaGchi= "<<dMKLMdDelgammaGchi<<endl;
+////
+////                                         /* Form_dinvPGchivar/dDelgamma and its invariant*/
+////                                         Form_dPGchivardDelgammaGchi();
+////                                         fs_micromorph3D_out<<"dPGchivardDelgammaGchi= "<<dPGchivardDelgammaGchi<<endl;
+////
+////                                         /* Form_ddevMKLM/dDelgamma */
+////                                         Form_ddevMKLMdDelgammaGchi();
+////                                         fs_micromorph3D_out<<"ddevMKLMdDelgammaGchi= "<<ddevMKLMdDelgammaGchi<<endl;
+////
+////
+////                                         /* Calculate dInvddevMKLM/dDelgamma */
+////                                         Calculate_dInvddevMKLMdDelgammaGchi();
+////
+////                                         fs_micromorph3D_out<<"dInvddevMKLMdDelgammaGchi= "<<dInvddevMKLMdDelgammaGchi<<endl;
+////
+////                                         /* Form dinvPGchivardDelgammaGchi */
+////                                         dinvPGchivardDelgammaGchi=BGphi_chi*(1/invPGchivar)
+////                                         *(dPGchivardDelgammaGchi[0]+PGchivar[0]+dPGchivardDelgammaGchi[1]+PGchivar[1]+dPGchivardDelgammaGchi[2]+PGchivar[2]);
+////
+////
+////                                         fs_micromorph3D_out<<"dinvPGchivardDelgammaGchi= "<<dinvPGchivardDelgammaGchi<<endl;
+////
+////
+////
+////                                         /* Calculate dcGchi/dDelgamma */
+////                                         dcGchidDelgammaGchi=0.0;
+////                                         for(int Kbar=0;Kbar<3;Kbar++)
+////                                         { dcGchidDelgammaGchi[Kbar]=(1/invGc_n)*AGpsi_chi*fState_variables_IPs(IP,kHGc_chi)*fcG_chi[Kbar];}
+////
+////                                         fs_micromorph3D_out<<"dcGchidDelgammaGchi= "<<dcGchidDelgammaGchi<<endl;
+////
+////                                         dInvcGchidDelgammaGchi=0.0;
+////                                         for(int Kbar=0;Kbar<3;Kbar++)
+////                                         {dInvcGchidDelgammaGchi+=(1/invGc_n)*dcGchidDelgammaGchi[Kbar]*fcG_chi_n[Kbar];}
+////
+////                                         fs_micromorph3D_out<<"dInvcGchidDelgammaGchi= "<<dInvcGchidDelgammaGchi<<endl;
+////
+////                                         dFGYdDelgammaGchi=dInvddevMKLMdDelgammaGchi-(AGphi_chi*dInvcGchidDelgammaGchi-BGphi_chi*dinvPGchivardDelgammaGchi);
+////                                         fs_micromorph3D_out<<"dFGYdDelgammaGchi= "<<dFGYdDelgammaGchi<<endl;
+////
+////
+////                                                     //solve for fdelDelgamma
+////                                                     if (dFGYdDelgammaGchi != 0.0) fdelDelgammaGchi = -fMicroScaleGradientYield_function/dFGYdDelgammaGchi;
+////                                                     else fdelDelgammaGchi = 0.0;
+////
+////
+////
+////
+////                                                     //update fDelgamma
+////                                                     fDelgammaGchi += fdelDelgammaGchi;
+////
+////
+////                                                     if (fDelgammaGchi < 0.0) fDelgammaGchi = 0.0;
+////                                                     fState_variables_IPs(IP,kDelgammaGchi) = fDelgammaGchi;
+////
+////
+////
+////
+////                                                     fState_variables_IPs(IP,kGc_chi1)= fState_variables_n_IPs(IP,kGc_chi1)
+////                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
+////                                                     if (fState_variables_IPs(IP,kGc_chi1) < 0.0) fState_variables_IPs(IP,kGc_chi1) = 0.0;
+////
+////                                                     fState_variables_IPs(IP,kGc_chi2)= fState_variables_n_IPs(IP,kGc_chi2)
+////                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
+////                                                     if (fState_variables_IPs(IP,kGc_chi2) < 0.0) fState_variables_IPs(IP,kGc_chi2) = 0.0;
+////
+////                                                     fState_variables_IPs(IP,kGc_chi3)= fState_variables_n_IPs(IP,kGc_chi3)
+////                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
+////                                                     if (fState_variables_IPs(IP,kGc_chi3) < 0.0) fState_variables_IPs(IP,kGc_chi3) = 0.0;
+////
+////                                         fcG_chi[0]=fState_variables_IPs(IP,kGc_chi1);
+////                                         fcG_chi[1]=fState_variables_IPs(IP,kGc_chi2);
+////                                         fcG_chi[2]=fState_variables_IPs(IP,kGc_chi3);
+////
+////                                         Temp_inv=fcG_chi[0]*fcG_chi[0]+fcG_chi[1]*fcG_chi[1]+fcG_chi[2]*fcG_chi[2];
+////                                         invGc=sqrt(Temp_inv);
+////
+////
+////                                         /*Forming MicroScale velocity Gradient like integrated tensor DeltaL^{x,p} */
+////                                         fTemp_matrix_nsd_x_nsd=fChip_n;
+////                                         fTemp_matrix_nsd_x_nsd*=-1;
+////                                         fTemp_matrix_nsd_x_nsd+=fChip;
+////                                         DLXp.MultAB(fTemp_matrix_nsd_x_nsd,fChip_inverse);
+////                                         fs_micromorph3D_out<<"DLXp= "<<DLXp<<endl;
+////
+////
+////                                         /*Forming Velocity Gradient L=FdotFp^-1 integrated tensor DeltaL^p */
+////                                         fTemp_matrix_nsd_x_nsd=fFp_n;
+////                                         fTemp_matrix_nsd_x_nsd*=-1;
+////                                         fTemp_matrix_nsd_x_nsd+=fFp;
+////                                         DLp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_inverse);
+////                                         fs_micromorph3D_out<<"DLp= "<<DLp<<endl;
+////
+////	        //if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
+////                                                     //update GXp
+////                                         Form_GXp();
+////
+////                                         fs_micromorph3D_out<<"GXp= "<<GXp<<endl;
+////
+////
+////                                         //Calculate GXe
+////                                         Form_GXe();
+////                                         fs_micromorph3D_out<<"GXe= "<<GXe<<endl;
+////                                         // Form GAMMAe tensor
+////                                         Form_GAMMAe();
+////                                         fs_micromorph3D_out<<"GAMMAe= "<<GAMMAe<<endl;
+////
+////
+////                                         // Form MeKLM
+////                                         Form_fMeKLM();
+////                                         fs_micromorph3D_out<<"fMeKLM= "<<fMeKLM<<endl;
+////
+////
+////                                         //Form micro scale gradient pressure invariant
+////                                         Form_PGchivar();
+////                                         fs_micromorph3D_out<<"PGchivar= "<<PGchivar<<endl;
+////
+////
+////                                         // Form dev. form of MeKLM and its invariant
+////                                         Form_devMeKLM();
+////                                         fs_micromorph3D_out<<"devMeKLM= "<<devMeKLM<<endl;
+////
+////
+////
+////                                         fMicroScaleGradientYield_function=invdevMeKLM-(AGphi_chi*invGc-BGphi_chi*invPGchivar);
+////                                         fs_micromorph3D_out  << "Current Micro Scale Gradient relative residual = " << fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) << endl;
+////                                         fs_micromorph3D_out<<"fMicroScaleGradientYield_function= "<<fMicroScaleGradientYield_function<<endl;
+////
+////
+////                                             }
+//
+//
+////                                }
 //
-//
-//                                 /* Form Gradient of Xe trial value */
-//                                 Form_GXe_tr();
-//                                 fs_micromorph3D_out<<"GXe_tr= "<<GXe_tr<<endl;
-//
-//
-//                                 /* Form GAMMAe trial tensor */
-//                                 Form_GAMMAe_tr();
-//                                 fs_micromorph3D_out<<"GAMMAe_tr= "<<GAMMAe_tr<<endl;
-//
-//
-//
-//                                 /* Forming Mbar trial tensor */
-//                                 Form_fMeKLM_tr();
-//
-//                                 fs_micromorph3D_out<<"fMeKLM_tr= "<<fMeKLM_tr<<endl;
-//
-//                                 /* Calculation of Micro Gradient Pressure term */
-//                                 Form_PGchivar_tr();
-//
-//                                 fs_micromorph3D_out<<"PGchivar_tr= "<<PGchivar_tr<<endl;
-//
-//
-//                                 /* Forming deviatoric part of Mbar trial and invariant of Mbar trial */
-//                                 Form_devMeKLM_tr();// and its invariant
-//
-//                                 fs_micromorph3D_out<<"devMeKLM_tr= "<<devMeKLM_tr<<endl;
-//
-//
-//                                 /*Calculating magnitude of micro gradient cohesion */
-//                                 Temp_inv=0.0;
-//                                 fcG_chi_n[0]=fState_variables_n_IPs(IP,kGc_chi1);
-//                                 fcG_chi_n[1]=fState_variables_n_IPs(IP,kGc_chi2);
-//                                 fcG_chi_n[2]=fState_variables_n_IPs(IP,kGc_chi3);
-//
-//                                 Temp_inv=fcG_chi_n[0]*fcG_chi_n[0]+fcG_chi_n[1]*fcG_chi_n[1]+fcG_chi_n[2]*fcG_chi_n[2];
-//                                 invGc_n=sqrt(Temp_inv);
-//
-//
-//
-//                                 /* Micro Gradient Yield Function trial value*/
-//                                 fMicroScaleGradientYield_function_tr=invdevMeKLM_tr-(AGphi_chi*invGc_n-BGphi_chi*invPGchivar_tr);
-//
-//
-//
-//
-//                               if(fMicroScaleGradientYield_function_tr >dYieldTrialTol)
-//                                 {
-//                                     fs_micromorph3D_out<<"MICRO SCALE GRADIENT "<<endl;
-//
-//                                     /* Setting Micro Gradient check to 1 */
-//                                     MicroScaleGradient_check=1;
-//
-//                                     /* initilizing the values */
-//                                     fMicroScaleGradientYield_function=fMicroScaleGradientYield_function_tr;
-//                                     GAMMAe=GAMMAe_tr;
-//                                     fMeKLM=fMeKLM_tr;
-//                                     devMeKLM=devMeKLM_tr;
-//                                     invdevMeKLM=invdevMeKLM_tr;
-//
-//                                     PGchivar=PGchivar_tr;
-//                                     invPGchivar=invPGchivar_tr;
-//                                     //invPGchivar=invPGchivar_tr;
-//
-//                                             fdelDelgammaGchi = 0.0;
-//                                             fDelgammaGchi = 0.0;
-//
-//                                             // iterate using Newton-Raphson to solve for fDelgamma
-//                                             iter_count = 0;
-//
-//                                             while (fabs(fMicroScaleGradientYield_function) > dAbsTol && fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) > dRelTol && iter_count < iIterationMax)
-//                                             {
-//                                                     iter_count += 1;
-//
-//                                                     /* Form dG^(Gchi)/dMKLM */
-//                                                     //Form_dGGchidMKLM();
-//                                         fs_micromorph3D_out<<"dGGchidMKLM= "<<dGGchidMKLM<<endl;
-//                                         /* Form dGXp/dDelgamma*/
-//                                         Form_dGXpdDelgammaGchi();
-//                                         fs_micromorph3D_out<<"dGXpdDelgammaGchi= "<<dGXpdDelgammaGchi<<endl;
-//
-//
-//                                         /* Form dGXe/dDelgamma*/
-//                                         Form_dGXedDelgammaGchi();
-//                                         fs_micromorph3D_out<<"dGXedDelgammaGchi= "<<dGXedDelgammaGchi<<endl;
-//
-//
-//                                         /* Form dGammae/dDelgamma*/
-//                                         Form_dGammaedDelgammaGchi();
-//                                         fs_micromorph3D_out<<"dGammaedDelgammaGchi= "<<dGammaedDelgammaGchi<<endl;
-//
-//
-//                                         /* Form  dMKLM/dDelgamma*/
-//                                         Form_dMKLMdDelgammaGchi();
-//
-//                                         fs_micromorph3D_out<<"dMKLMdDelgammaGchi= "<<dMKLMdDelgammaGchi<<endl;
-//
-//                                         /* Form_dinvPGchivar/dDelgamma and its invariant*/
-//                                         Form_dPGchivardDelgammaGchi();
-//                                         fs_micromorph3D_out<<"dPGchivardDelgammaGchi= "<<dPGchivardDelgammaGchi<<endl;
-//
-//                                         /* Form_ddevMKLM/dDelgamma */
-//                                         Form_ddevMKLMdDelgammaGchi();
-//                                         fs_micromorph3D_out<<"ddevMKLMdDelgammaGchi= "<<ddevMKLMdDelgammaGchi<<endl;
-//
-//
-//                                         /* Calculate dInvddevMKLM/dDelgamma */
-//                                         Calculate_dInvddevMKLMdDelgammaGchi();
-//
-//                                         fs_micromorph3D_out<<"dInvddevMKLMdDelgammaGchi= "<<dInvddevMKLMdDelgammaGchi<<endl;
-//
-//                                         /* Form dinvPGchivardDelgammaGchi */
-//                                         dinvPGchivardDelgammaGchi=BGphi_chi*(1/invPGchivar)
-//                                         *(dPGchivardDelgammaGchi[0]+PGchivar[0]+dPGchivardDelgammaGchi[1]+PGchivar[1]+dPGchivardDelgammaGchi[2]+PGchivar[2]);
-//
-//
-//                                         fs_micromorph3D_out<<"dinvPGchivardDelgammaGchi= "<<dinvPGchivardDelgammaGchi<<endl;
-//
-//
-//
-//                                         /* Calculate dcGchi/dDelgamma */
-//                                         dcGchidDelgammaGchi=0.0;
-//                                         for(int Kbar=0;Kbar<3;Kbar++)
-//                                         { dcGchidDelgammaGchi[Kbar]=(1/invGc_n)*AGpsi_chi*fState_variables_IPs(IP,kHGc_chi)*fcG_chi[Kbar];}
-//
-//                                         fs_micromorph3D_out<<"dcGchidDelgammaGchi= "<<dcGchidDelgammaGchi<<endl;
-//
-//                                         dInvcGchidDelgammaGchi=0.0;
-//                                         for(int Kbar=0;Kbar<3;Kbar++)
-//                                         {dInvcGchidDelgammaGchi+=(1/invGc_n)*dcGchidDelgammaGchi[Kbar]*fcG_chi_n[Kbar];}
-//
-//                                         fs_micromorph3D_out<<"dInvcGchidDelgammaGchi= "<<dInvcGchidDelgammaGchi<<endl;
-//
-//                                         dFGYdDelgammaGchi=dInvddevMKLMdDelgammaGchi-(AGphi_chi*dInvcGchidDelgammaGchi-BGphi_chi*dinvPGchivardDelgammaGchi);
-//                                         fs_micromorph3D_out<<"dFGYdDelgammaGchi= "<<dFGYdDelgammaGchi<<endl;
-//
-//
-//                                                     //solve for fdelDelgamma
-//                                                     if (dFGYdDelgammaGchi != 0.0) fdelDelgammaGchi = -fMicroScaleGradientYield_function/dFGYdDelgammaGchi;
-//                                                     else fdelDelgammaGchi = 0.0;
-//
-//
-//
-//
-//                                                     //update fDelgamma
-//                                                     fDelgammaGchi += fdelDelgammaGchi;
-//
-//
-//                                                     if (fDelgammaGchi < 0.0) fDelgammaGchi = 0.0;
-//                                                     fState_variables_IPs(IP,kDelgammaGchi) = fDelgammaGchi;
-//
-//
-//
-//
-//                                                     fState_variables_IPs(IP,kGc_chi1)= fState_variables_n_IPs(IP,kGc_chi1)
-//                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
-//                                                     if (fState_variables_IPs(IP,kGc_chi1) < 0.0) fState_variables_IPs(IP,kGc_chi1) = 0.0;
-//
-//                                                     fState_variables_IPs(IP,kGc_chi2)= fState_variables_n_IPs(IP,kGc_chi2)
-//                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
-//                                                     if (fState_variables_IPs(IP,kGc_chi2) < 0.0) fState_variables_IPs(IP,kGc_chi2) = 0.0;
-//
-//                                                     fState_variables_IPs(IP,kGc_chi3)= fState_variables_n_IPs(IP,kGc_chi3)
-//                                                     + fDelgammaGchi*fState_variables_n_IPs(IP,khGc_chi)*fMaterial_Params[kHGc_chi];
-//                                                     if (fState_variables_IPs(IP,kGc_chi3) < 0.0) fState_variables_IPs(IP,kGc_chi3) = 0.0;
-//
-//                                         fcG_chi[0]=fState_variables_IPs(IP,kGc_chi1);
-//                                         fcG_chi[1]=fState_variables_IPs(IP,kGc_chi2);
-//                                         fcG_chi[2]=fState_variables_IPs(IP,kGc_chi3);
-//
-//                                         Temp_inv=fcG_chi[0]*fcG_chi[0]+fcG_chi[1]*fcG_chi[1]+fcG_chi[2]*fcG_chi[2];
-//                                         invGc=sqrt(Temp_inv);
-//
-//
-//                                         /*Forming MicroScale velocity Gradient like integrated tensor DeltaL^{x,p} */
-//                                         fTemp_matrix_nsd_x_nsd=fChip_n;
-//                                         fTemp_matrix_nsd_x_nsd*=-1;
-//                                         fTemp_matrix_nsd_x_nsd+=fChip;
-//                                         DLXp.MultAB(fTemp_matrix_nsd_x_nsd,fChip_inverse);
-//                                         fs_micromorph3D_out<<"DLXp= "<<DLXp<<endl;
-//
-//
-//                                         /*Forming Velocity Gradient L=FdotFp^-1 integrated tensor DeltaL^p */
-//                                         fTemp_matrix_nsd_x_nsd=fFp_n;
-//                                         fTemp_matrix_nsd_x_nsd*=-1;
-//                                         fTemp_matrix_nsd_x_nsd+=fFp;
-//                                         DLp.MultAB(fTemp_matrix_nsd_x_nsd,fFp_inverse);
-//                                         fs_micromorph3D_out<<"DLp= "<<DLp<<endl;
-//
-//	        //if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
-//                                                     //update GXp
-//                                         Form_GXp();
-//
-//                                         fs_micromorph3D_out<<"GXp= "<<GXp<<endl;
-//
-//
-//                                         //Calculate GXe
-//                                         Form_GXe();
-//                                         fs_micromorph3D_out<<"GXe= "<<GXe<<endl;
-//                                         // Form GAMMAe tensor
-//                                         Form_GAMMAe();
-//                                         fs_micromorph3D_out<<"GAMMAe= "<<GAMMAe<<endl;
-//
-//
-//                                         // Form MeKLM
-//                                         Form_fMeKLM();
-//                                         fs_micromorph3D_out<<"fMeKLM= "<<fMeKLM<<endl;
-//
-//
-//                                         //Form micro scale gradient pressure invariant
-//                                         Form_PGchivar();
-//                                         fs_micromorph3D_out<<"PGchivar= "<<PGchivar<<endl;
-//
-//
-//                                         // Form dev. form of MeKLM and its invariant
-//                                         Form_devMeKLM();
-//                                         fs_micromorph3D_out<<"devMeKLM= "<<devMeKLM<<endl;
-//
-//
-//
-//                                         fMicroScaleGradientYield_function=invdevMeKLM-(AGphi_chi*invGc-BGphi_chi*invPGchivar);
-//                                         fs_micromorph3D_out  << "Current Micro Scale Gradient relative residual = " << fabs(fMicroScaleGradientYield_function/fMicroScaleGradientYield_function_tr) << endl;
-//                                         fs_micromorph3D_out<<"fMicroScaleGradientYield_function= "<<fMicroScaleGradientYield_function<<endl;
-//
-//
-//                                             }
-
-
-//                                }
-
 				}// end of combined plasticity
                 //
 				//if(iPlasticityCheck==0 && fYield_function_tr>dYieldTrialTol && fMicroYield_function_tr<= dYieldTrialTol)//Macro-plastic, Micro-elastic
