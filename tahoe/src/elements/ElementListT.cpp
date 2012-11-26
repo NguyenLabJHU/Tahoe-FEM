@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.151 2012-09-10 23:33:46 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.152 2012-11-26 23:21:31 regueiro Exp $ */
 
 /* Revision 1.148  2011/11/28 15:26:08  hspark
 /* correct 2D DE visco
@@ -250,6 +250,7 @@
 
 #ifdef SOLID_FLUID_MIX_DEV
 #include "FSSolidFluidMixT.h"
+#include "FSSolidFluidMixQ8P8T.h"
 #endif
 
 #ifdef SOLID_OPTIMIZATION_DEV
@@ -539,6 +540,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef SOLID_FLUID_MIX_DEV
 		sub_lists.AddSub("total_lagrangian_solid_fluid_mix");
+		sub_lists.AddSub("total_lagrangian_solid_fluid_mix_q8p8");
 #endif
 
 #ifdef SOLID_OPTIMIZATION_DEV
@@ -873,6 +875,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef SOLID_FLUID_MIX_DEV
 	else if (name == "total_lagrangian_solid_fluid_mix")
 	  return new FSSolidFluidMixT(fSupport);
+	else if (name == "total_lagrangian_solid_fluid_mix_q8p8")
+	  return new FSSolidFluidMixQ8P8T(fSupport);
 #endif
 
 #ifdef SOLID_OPTIMIZATION_DEV
