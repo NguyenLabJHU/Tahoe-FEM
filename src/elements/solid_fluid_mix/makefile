@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2006-09-22 23:16:18 regueiro Exp $
+# $Id: makefile,v 1.2 2012-11-30 22:04:29 tahoe.regueiro Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-FSSolidFluidMixT.o
+FSSolidFluidMixT.o \
+FSSolidFluidMixQ8P8T.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +42,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-FSSolidFluidMixT.cpp
+FSSolidFluidMixT.cpp \
+FSSolidFluidMixQ8P8T.cpp
 
 ##################### (3) headers
 #
@@ -53,7 +55,8 @@ FSSolidFluidMixT.cpp
 # HDR and HDR_LINK macro   
 #
 HDR = \
-FSSolidFluidMixT.h
+FSSolidFluidMixT.h \
+FSSolidFluidMixQ8P8T.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
