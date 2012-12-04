@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2009-05-11 15:18:50 regueiro Exp $
+# $Id: makefile,v 1.3 2012-12-04 19:31:57 tahoe.regueiro Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 FSMicromorphic2DT.o \
-FSMicromorphic3DT.o
+FSMicromorphic3DT.o \
+FSMicromorphic3DCurrConfigT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -43,7 +44,8 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 FSMicromorphic2DT.cpp \
-FSMicromorphic3DT.cpp
+FSMicromorphic3DT.cpp \
+FSMicromorphic3DCurrConfigT.cpp
 
 ##################### (3) headers
 #
@@ -56,7 +58,8 @@ FSMicromorphic3DT.cpp
 #
 HDR = \
 FSMicromorphic2DT.h \
-FSMicromorphic3DT.h
+FSMicromorphic3DT.h \
+FSMicromorphic3DCurrConfigT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
