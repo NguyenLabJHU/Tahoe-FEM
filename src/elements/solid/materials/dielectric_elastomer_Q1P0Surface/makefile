@@ -27,7 +27,8 @@ OBJ = \
 	ME_MixedModulus_Q1P0spatialSurface.o \
 	ME_PK2_Q1P0Surface.o \
 	ME_TanMod_Q1P0Surface.o \
-	Elec_PK2_Q1P0Surface.o
+	Elec_PK2_Q1P0Surface.o \
+	FCCLatticeT_Q1P0Surf.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -55,7 +56,8 @@ SRC = \
 	ME_MixedModulus_Q1P0spatialSurface.cpp \
 	ME_PK2_Q1P0Surface.cpp \
 	ME_TanMod_Q1P0Surface.cpp \
-	Elec_PK2_Q1P0Surface.cpp
+	Elec_PK2_Q1P0Surface.cpp \
+	FCCLatticeT_Q1P0Surf.cpp
 
 ##################### (3) headers
 #
@@ -70,9 +72,9 @@ HDR = \
 	FSDEMatSupportQ1P0SurfaceT.h \
 	FSDEMatSupportQ1P0SurfaceT.i.h \
 	FSDEMatQ1P0SurfaceT.h \
-	FSDEMatQ1P0SurfaceT.i.h \
 	FSDE_common_definesQ1P0Surface.h \
-	FSDE_incQ1P0Surface.h 
+	FSDE_incQ1P0Surface.h \
+	FCCLatticeT_Q1P0Surf.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
