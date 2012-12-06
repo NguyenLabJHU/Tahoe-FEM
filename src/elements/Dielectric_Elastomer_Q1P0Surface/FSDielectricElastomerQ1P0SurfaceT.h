@@ -12,7 +12,7 @@ namespace Tahoe {
 
   /* Forward declarations */
   class FSDEMatSupportQ1P0SurfaceT;
-
+  class FSDEMatQ1P0SurfaceT;
   // interface for finite deformation dielectric elastomers 
   // based on 2008 JMPS paper of Suo et al.
   
@@ -74,6 +74,9 @@ namespace Tahoe {
 	/** write restart information from stream */
 	virtual void WriteRestart(ostream& out) const;
 
+	/* TLCBSurfaceT stuff */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
   protected:
 
     // \param p an existing MaterialSupportT to be initialized. If
@@ -122,6 +125,12 @@ namespace Tahoe {
 		const LocalArrayT* nodal_values,
 		const dArray2DT* ip_values,
 		const double* ip_weight);
+
+	/* TLCBSurface Stuff */
+	/** reduce the coordinates to a surface layer on the given face
+	 *\param coords should enter with the coordinates of entire element and
+	 *       returns with the coordinates defining the surface layer */
+	void SurfaceLayer(LocalArrayT& coords, int face, double thickness) const;	
 
   private:
 
@@ -186,6 +195,46 @@ namespace Tahoe {
 	dMatrixT fCauchyStress;	/**< matrix for Cauchy stress tensor: [nsd] x [nsd] */
 	dMatrixT fStressStiff;	/**< "compact" stress stiffness contribution: [nen] x [nen] */
 	dMatrixT fGradNa;       /**< shape function gradients matrix: [nsd] x [nen] */
+	/*@}*/
+
+	/* TLCBSurfaceT Stuff */
+	/** list of elements on the surface */
+	iArrayT fSurfaceElements;
+
+	/** elements neighbors */
+	iArray2DT fSurfaceElementNeighbors;
+
+	/** surface model number */
+	iArray2DT fSurfaceElementFacesType;
+
+	/** surface normals */
+	ArrayT<dArrayT> fNormal;
+
+	/** surface Cauchy-Born models */
+	ArrayT<FSDEMatQ1P0SurfaceT*> fSurfaceCB;
+
+	/** support for the surface models */
+	FSMatSupportT* fSurfaceCBSupport;
+
+	/** deformation gradients at the surface integration points */
+	ArrayT<dMatrixT> fF_Surf_List;
+
+	/** indicator for EAM_CB or FCC_CB */
+	StringT fIndicator;
+
+	/** \name split integration */
+	/*@{*/
+	LocalArrayT fSplitInitCoords;
+	ShapeFunctionT* fSplitShapes;
+	/*@}*/
+	
+	/** \name surface output */
+	/*@{*/
+	/** ID obtained during ElementBaseT::RegisterOutput. Each surface type has its own output. */
+	iArrayT fSurfaceOutputID;
+
+	/** list of nodes on each surface type (by normal) */
+	ArrayT<iArrayT> fSurfaceNodes;
 	/*@}*/
 
   private:
