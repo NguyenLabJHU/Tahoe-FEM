@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.154 2012-12-06 15:31:09 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.155 2012-12-14 23:01:38 regueiro Exp $ */
 
 /* Revision 1.148  2011/11/28 15:26:08  hspark
 /* correct 2D DE visco
@@ -268,6 +268,9 @@
 #ifdef MICROMORPHIC_DEV
 #include "FSMicromorphic2DT.h"
 #include "FSMicromorphic3DT.h"
+#endif
+
+#ifdef MICROMORPHIC_CURR_CONFIG_DEV
 #include "FSMicromorphic3DCurrConfigT.h"
 #endif
 
@@ -562,6 +565,9 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef MICROMORPHIC_DEV
 		sub_lists.AddSub("micromorphic_FS_2D");
 		sub_lists.AddSub("micromorphic_FS_3D");
+#endif
+
+#ifdef MICROMORPHIC_CURR_CONFIG_DEV
 		sub_lists.AddSub("micromorphic_FS_3D_inc_curr_config");
 #endif
 
@@ -909,11 +915,15 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	else if (name == "uplag_fiber_opt_ns")
 	  return new FSFiber_OptNS(fSupport);
 #endif
+
 #ifdef MICROMORPHIC_DEV
 	else if (name == "micromorphic_FS_2D")
 	  return new FSMicromorphic2DT(fSupport);
 	else if (name == "micromorphic_FS_3D")
 	  return new FSMicromorphic3DT(fSupport);
+#endif
+
+#ifdef MICROMORPHIC_CURR_CONFIG_DEV
 	else if (name == "micromorphic_FS_3D_inc_curr_config")
 	  return new FSMicromorphic3DCurrConfigT(fSupport);
 #endif
