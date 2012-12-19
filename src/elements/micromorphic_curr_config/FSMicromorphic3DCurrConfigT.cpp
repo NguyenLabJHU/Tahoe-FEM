@@ -1306,12 +1306,14 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 
         while (fShapes_displ->NextIP() && fShapes_micro->NextIP())
         {
+
                 double scale_const = (*Weight++)*(*Det++);
 
                 const int IP = fShapes_displ->CurrIP();
                 dArrayT DisplIPCoordinate(n_sd), MicroIPCoordinate(n_sd);
                 fShapes_displ->IPCoords(DisplIPCoordinate);
                 fShapes_micro->IPCoords(MicroIPCoordinate);
+
 
                 const double* shapes_displ_X = fShapes_displ->IPShapeX();
                 /* [fShapeDispl] will be formed */
@@ -1324,9 +1326,11 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);//output:fShapeDisplGrad in Reference config.
                 Form_GRAD_Nuw_matrix(fShapeDisplGrad_temp) ;//output:GRAD_Nuw
 
+
                 const double* shapes_micro_X = fShapes_micro->IPShapeX();
                 //  {fShapeMicro} will be formed
                 Form_micro_shape_functions(shapes_micro_X);//output:fShapeMicro
+
 
                 //[fShapeMicro_row_matrix] will be formed
                 //need?
@@ -1335,6 +1339,8 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 
                 //  [fShapeMicroGrad] will be formed
                 fShapes_micro->GradNa(fShapeMicroGrad_temp);
+
+
 
                 //the correct name should be NPHI, NCHI is not a proper name!
                 Form_NCHI_matrix(fShapeMicro_row_matrix); //output: NCHI matrix
@@ -1359,7 +1365,7 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 Form_micro_deformation_tensor_Chi();//output: Chi[i][j]
                 ChiM_Inverse=0.0;
                 ChiM_Inverse.Inverse(ChiM);
-                //Form_ChiM();//It is also micro-deformation gradient tensor but defined as dMatrixT
+                Form_ChiM();//It is also micro-deformation gradient tensor but defined as dMatrixT
                 Form_Chi_inv_matrix();//output: ChiInv
 
                 SigN_IPs_n.RowCopy(IP,SigN_ar);
@@ -1375,19 +1381,16 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 Form_deformation_tensors_arrays(-1);
 
 
+
+
                 /* KroneckerDelta matrix is formed*/
                 Form_KroneckerDelta_matrix();//output: KrDelta
                 Form_CCof_tensor();//output: Coeff tensor
-
-
                 Form_double_Finv_from_Deformation_tensor_inverse();// output: Finv
-                Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][J][K] AND GRAD_CHIM which is the dTensor3DT form
+                //Form_GRAD_Chi_matrix();////CHI=1+PHI ==> GRAD_CHI=GRAD_PHI output: GRAD_Chi[i][J][K] AND GRAD_CHIM which is the dTensor3DT form
                 Form_Gamma_tensor3D();
-
                 Form_Finv_w_matrix();//output: Finv_w
                 Form_Finv_eta_matrix();//output: Finv_eta
-
-
 
                 /* [fDefGradInv_Grad_grad] will be formed */
                 Form_Grad_grad_transformation_matrix();//output:fDefGradInv_Grad_grad
@@ -1430,6 +1433,7 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 fIota_eta_temp_matrix.MultATBT(GRAD_NCHI,Finv_eta);
 
 
+
                 //fShapeDisplGrad--> [GRAD(Ns,e)] so it in reference configuration
 
 
@@ -1437,7 +1441,9 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 //fShapes_displ->Grad_GradNa(fShapeDisplGradGrad);
 
 
-                double scale = scale_const;
+               double scale = scale_const;
+
+
 
                 if(iConstitutiveModelType==1)
                 {
@@ -1447,7 +1453,6 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 }
                 if(iConstitutiveModelType==3)
                 {
-
 
 
 
@@ -1473,11 +1478,14 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                         Pint_1_temp*=scale;
                         Pint_1+=Pint_1_temp;
 
+
                         Form_H2_matrix();//output: H2 vector & s_sigma matrix
                         NCHI.MultTx(H2,Pint_2_temp);
                         scale=scale_const*J;
                         Pint_2_temp*=scale;//the sign is taken into account when forming H2 vector.
                         Pint_2+=Pint_2_temp;
+
+
 
                         Form_H3_matrix();//output H3 vector
                         NCHI.MultTx(H3,Pint_3_temp);
@@ -1485,23 +1493,30 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                         Pint_3_temp*=scale;
                         Pint_3+=Pint_3_temp;
 
+
+
                         SPK.MultABCT(fDeformation_Gradient_Inverse,Sigma,fDeformation_Gradient_Inverse);
                         SPK*=J;
                         // fCauchy_stress_tensor_current_IP=SPK;
                         fCauchy_stress_tensor_current_IP=Sigma;
 
+
+
+
                         // extract six values of stress from symmetric cauchy stress tensor
                         Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
                         // Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_six_values);
+
 
                         //Save Cauchy effective stress tensor of the current IP
                         //fCauchy_stress_IPs.SetRow(IP,fTemp_six_values);
                         fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
 
+
+
    ////////////////////////////////////////////////////////////////////////////////
    /////////////////Micromorphic Internal force vectors finish here////////////////////////
    ///////////////////////////////////////////////////////////////////////////////////////
-
    ////////////////Micromorphic 3-D Matrices are being formed coming from linearization process//////////////////////////
                         Form_CapitalLambda_matrix();//output:CapitalLambda
                         Form_Var_F_tensor();
@@ -1557,7 +1572,6 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 
                         Form_Rs_sigma_matrix();//output:Rs_sigma
                         Form_R_Capital_Lambda_Chi_matrix();//output:R_Capital_Gamma_Chi
-
 
    ////////////////////////Finished here///////////////////////////////////////////
    ////////////////////////////////////////////////////////////////////////////////
@@ -1897,28 +1911,25 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                         // accumulate
                         fH3_1 += fTemp_matrix_nchidof_x_nchidof;
 
-
    /////////////////fH_ matrices finish here////////////////////////////////////////
 
 
 
                         /////////////////////saving matrices at Gauss Points////////////
-
                         Form_deformation_gradient_tensor();
                         Form_micro_deformation_tensor_Chi();
-                        Form_GRAD_Chi_matrix();
-
+                        //Form_GRAD_Chi_matrix();
                         Mapping_double_and_Array(1);
                         GammaN_IPs.SetRow(IP,GammaN_ar);
                         SigN_IPs.SetRow(IP,Sigma);
                         sn_sigman_IPs.SetRow(IP,s_sigma);
                         mn_IPs.SetRow(IP,mn_ar);
-
                         Form_deformation_tensors_arrays(1);
                         F_ar_IPs.SetRow(IP,fDeformation_Gradient);
                         FInv_ar_IPs.SetRow(IP,fDeformation_Gradient_Inverse);
                         Chi_ar_IPs.SetRow(IP,Chi_ar);
                         GRAD_Chi_ar_IPs.SetRow(IP,GRAD_Chi_ar);
+
                 }//constitutive loop ends here
 
                // Calculate_Cauchy_INV();
@@ -1954,18 +1965,18 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 fState_variables_IPs(IP,kinvtrgammastn)=invtrgammastn;
                 fState_variables_IPs(IP,kinvdevgammastn)=invdevgammastn;
 
+
 //
         } //end Gauss integration loop
 
 
         /* saving eulerian strain for each IPs of the current element */
         fEulerian_strain_Elements_IPs.SetRow(e,fEulerian_strain_IPs);
-
         /* saving cauchy stress for each IPs of the current element */
         fCauchy_stress_Elements_IPs.SetRow(e,fCauchy_stress_IPs);
-
        // saving state variables for each IPs of the current element //
         fState_variables_Elements_IPs.SetRow(e,fState_variables_IPs);
+
 
         if(iConstitutiveModelType==2)
         {
@@ -2498,6 +2509,9 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
     fiState_new.Dimension(n_el, num_ip*knum_i_state);
     fiState.Dimension(n_el, num_ip*knum_i_state);
 
+
+    fShapeMicro_row_matrix.Dimension (1,n_en_micro);
+
     /* initialize equations */
     fEqnos_displ.Alias(fEqnos_displ);
     fEqnos_micro.Dimension(fConnectivities_micro.Length());
@@ -2557,6 +2571,11 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
     fMicroRight_Cauchy_Green_tensor_tr.Dimension (n_sd,n_sd);
 
 
+
+    fEulerian_strain_tensor_current_IP.Dimension (n_sd,n_sd);
+    fCauchy_stress_tensor_current_IP.Dimension (n_sd,n_sd);
+    fTemp_nine_values.Dimension(9);
+    fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
 
 
 
@@ -2874,8 +2893,31 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
     trgammastn.Dimension(n_sd);
     devgammastn.Dimension(n_sd,n_sd,n_sd);
 
-//    GAMMA.Dimension(n_sd,n_sd,n_sd);
+    fEulerian_strain_tensor_current_IP.Dimension (n_sd,n_sd);
+    fCauchy_stress_tensor_current_IP.Dimension (n_sd,n_sd);
+    //
+    fDisplacements_current_IPs.Dimension(n_sd);
+    fEulerian_strain_IPs.Dimension (fNumIP_displ,knumstrain);
+    fCauchy_stress_IPs.Dimension (fNumIP_displ,knumstress);
 
+   //
+ //   fDisplacement_IPs.Dimension(fNumIP_displ,knumdispl);
+    fTemp_nine_values.Dimension(9);
+    fTemp_six_values.Dimension(6);
+    fEulerian_strain_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstrain);
+    fCauchy_stress_Elements_IPs.Dimension (NumElements(),fNumIP_displ*knumstress);
+
+
+
+//    GAMMA.Dimension(n_sd,n_sd,n_sd);
+    fState_variables_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_IPs=0.0;
+    fState_variables_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_Elements_IPs=0.0;
+    fState_variables_n_IPs.Dimension (fNumIP_displ,kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_n_IPs=0.0;
+    fState_variables_n_Elements_IPs.Dimension (NumElements(),fNumIP_displ*kNUM_FMATERIAL_STATE_TERMS);
+    fState_variables_n_Elements_IPs=0.0;
 
 
     ////////////////stress measures/////////////////
@@ -2888,6 +2930,8 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
     trvecmklm.Dimension(n_sd);
 
    Top();
+
+
 
      while (NextElement())
      {
@@ -2929,8 +2973,6 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kdeveps)=0.0;
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvtrgammastn)=0.0;
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvdevgammastn)=0.0;
-
-
 
          }
 
