@@ -12,11 +12,6 @@
 
 namespace Tahoe {
 
-/* From FCC3D_Surf */
-class FCCLatticeT_Q1P0Surf;
-class PairPropertyT;
-class BondLatticeT;
-
   class FSDEMatQ1P0SurfaceT: public FSSolidMatT
   {
 
@@ -73,46 +68,9 @@ class BondLatticeT;
 
     void SetFSDEMatSupportQ1P0Surface(const FSDEMatSupportQ1P0SurfaceT* support);
 
-	/* FCC3D_Surf */
-	/** destructor */
-	~FSDEMatQ1P0SurfaceT(void);
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-		SubListT& sub_lists) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** \name Cauchy-Born parameters */
-	/*@{*/
-	/** return a reference to the bond lattice */
-	const BondLatticeT& BondLattice(void) const;
-
-	/** reference volume */
-	double CellVolume(void) const { return fAtomicVolume; };
-
-	/** nearest neighbor distance */
-	double NearestNeighbor(void) const { return fNearestNeighbor; };
-	/*@}*/
-
-	/** thickness of surface layer to subtract off of bulk */
-	double SurfaceThickness(void) const { return fSurfaceThickness; };
-
-	/** compute the symetric Cij reduced index matrix */
-	virtual void ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli);	
-	
-	/** symmetric 2nd Piola-Kirchhoff stress */
-	virtual void ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2);
-
   protected:
 
     const FSDEMatSupportQ1P0SurfaceT* fFSDEMatSupportQ1P0Surface;
-
-	/* FCC3D_Surf */
-	/** return the equi-axed stretch at which the stress is zero. This method
-	 * assumes the material is isotropic when subject to equi-axed stretch. */
-	double ZeroStressStretch(void);	
 
   private:
 
@@ -121,6 +79,11 @@ class BondLatticeT;
     const dMatrixT RightCauchyGreenDeformation();
     const dArrayT ElectricField();
     const dArrayT ElectricField(int ip);
+
+	/** return true if material implementation supports imposed thermal
+	 * strains. This material does support multiplicative thermal
+	 * strains. */
+	virtual bool SupportsThermalStrain(void) const { return true; };
 
   public:
 
@@ -137,6 +100,10 @@ class BondLatticeT;
     double fLambda;
 	double fKappa;
 
+	/* For isotropic surface */
+	double fE;
+	double fNu;
+
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;
 	dArrayT fParams;
@@ -147,40 +114,6 @@ class BondLatticeT;
     dMatrixT fTangentElectromechanical;
     dMatrixT fTangentElectromechanicalSpatial;    
     dMatrixT fTangentElectrical;
-
-	/* FCC3D_Surf */
-	/** nearest neighbor distance */
-	double fNearestNeighbor;
-
-	/** surface layer thickness */
-	double fSurfaceThickness;
-
-	/** bond information */
-	FCCLatticeT_Q1P0Surf* fFCCLattice_Q1P0Surf;
-
-	/** pair interaction potential */
-	PairPropertyT* fPairProperty;
-
-	/** \name work space */
-	/*@{*/
-	dMatrixT fBondTensor4;
-	dArrayT  fBondTensor2;
-	/*@}*/
-
-	/** atomic volume */
-	double fAtomicVolume;
-
-	/** atomic area for surface cauchy-born */
-	double fAtomicArea;
-
-	/** dummy full bond density array */
-	/* THIS IS THE REFERENCE VOLUME/AREA */
-	dArrayT fFullDensity;
-	
-	/** flag to indicate whether stress calculation for output should include
-	 * the full bond density */
-	bool fFullDensityForStressOutput;
-
   };
 
 } // namespace Tahoe
