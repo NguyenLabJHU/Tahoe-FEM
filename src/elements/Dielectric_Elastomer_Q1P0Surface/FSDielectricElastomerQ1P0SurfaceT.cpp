@@ -1,6 +1,7 @@
 #include "FSDielectricElastomerQ1P0SurfaceT.h"
 #include "FSDEMatSupportQ1P0SurfaceT.h"
 #include "FSDEMatQ1P0SurfaceT.h"
+#include "FSDEMatIsotropicSurfaceT.h"
 #include "ParameterContainerT.h"
 #include "OutputSetT.h"
 #include "ShapeFunctionT.h"
@@ -12,7 +13,6 @@
 
 /* From TLCBSurfaceT */
 #include "ModelManagerT.h"
-#include "FCC3D.h"
 #include "MaterialListT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
@@ -67,10 +67,7 @@ inline static void Sum(const double* A, const double* B, double* AB) {
     FiniteStrainT(support), fFSDEMatSupportQ1P0Surface(0), fCurrMaterial(0),
     fLocScalarPotential(LocalArrayT::kESP), fElectricScalarPotentialField(0),
     fLocCurrCoords(LocalArrayT::kCurrCoords),
-	fSurfaceCBSupport(NULL),
-	fSplitInitCoords(LocalArrayT::kInitCoords),
-	fIndicator(0),
-	fSplitShapes(NULL)    
+	fSurfaceCBSupport(NULL)
   {
     SetName("dielectric_elastomer_Q1P0Surface");
   }
@@ -82,13 +79,11 @@ inline static void Sum(const double* A, const double* B, double* AB) {
   	  delete fCurrShapes;
   	  fCurrShapes = NULL;
 	  if (0 != fFSDEMatSupportQ1P0Surface) delete fFSDEMatSupportQ1P0Surface;
-	  
+
 	  /* TLCBSurface Stuff */
 	  /* free surface models */
-	  for (int i = 0; i < fSurfaceCB.Length(); i++)
-		  delete fSurfaceCB[i];
+//	  delete fSurfaceCB;
 	  delete fSurfaceCBSupport;
-	  delete fSplitShapes;	  
   }
 
   // specify parameters needed by the interface  
@@ -111,7 +106,7 @@ inline static void Sum(const double* A, const double* B, double* AB) {
 /* information about subordinate parameter lists */
 void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 {
-	const char caller[] = "FSDielectricElastomerQ1P0SurfaceT::TakeParameterList";
+	const char caller[] = "FSDielectricElastomerQ1P0SurfaceT::DefineSubs";
 	
 	/* inherited */
 	FiniteStrainT::DefineSubs(sub_list);
@@ -159,6 +154,8 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	/* Tangent moduli for LHS */
     fAmm_mat.Dimension(nme, nme);
     fAmm_geo.Dimension(nen, nen);	// dimensions changed for Q1P0!
+    fAmm_mat2.Dimension(nme, nme);
+    fAmm_geo2.Dimension(nen, nen);
     fAme.Dimension(nme, nel);
     fAem.Dimension(nel, nme);
     fAee.Dimension(nel, nel);
@@ -170,6 +167,8 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	fCauchyStress.Dimension(nsd);
 	fGradNa.Dimension(nsd, nen);
 	fStressStiff.Dimension(nen);
+	fIsostress.Dimension(nsd);
+	fStressStiff2.Dimension(nen);
 
 	/* Define LHS type based upon analysis type, i.e. static vs. dynamic */
 	int order = fIntegrator->Order();
@@ -245,6 +244,11 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	int nsi = shape.FacetShapeFunction(0).NumIP();		// # IPs per surface face (2x2=4 for 2D surface)
 	int nfn = shape.FacetShapeFunction(0).NumNodes();	// # nodes on each surface face?
 
+	/* Dimension matrices */
+	fB2.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
+	fD2.Dimension(dSymMatrixT::NumValues(NumSD()));
+	fLHS2.Dimension(neq);
+	
 	/* support for the surface model */
 	fF_Surf_List.Dimension(nsi);
 	
@@ -275,61 +279,39 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	};
 	dArray2DT normals(6, 3, normals_dat);
 
-	/* START DISTINGUISHING HERE BETWEEN EAMCB, FCC3D and TersoffCB */
-	/* find parameter list for the bulk material */
-// 	int num_blocks = list.NumLists("large_strain_element_block");
-// 	if (num_blocks > 1)
-// 		ExceptionT::GeneralFail(caller, "expecting only 1 not %d element blocks", num_blocks);
-// 	const ParameterListT& block = list.GetList("large_strain_element_block");
-// 	const ParameterListT& mat_list = block.GetListChoice(*this, "large_strain_material_choice");
-// 	const ArrayT<ParameterListT>& mat = mat_list.Lists();
-// 	const ParameterListT& bulk_params = mat[0];
-// 	fIndicator = bulk_params.Name();
-	
-	/* Initialize FSDEMatQ1P0SurfaceT */
-	/* initialize surface information & create all possible (6) surface clusters */
 	fNormal.Dimension(nfs);
-	fSurfaceCB.Dimension(nfs);
-	fSurfaceCB = NULL;
-
-	/* get pointer to the bulk model */
-	/* Get pointer to FSDEMatQ1P0SurfaceT */
-// 	FCC3D* fcc_3D = NULL;
-// 	if (fMaterialList->Length() == 1) {
-// 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
-// 		fcc_3D = TB_DYNAMIC_CAST(FCC3D*, pcont_mat);
-// 		if (!fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve FCC3D material");
-// 	} else ExceptionT::GeneralFail(caller, "expecting 1 not %d materials", fMaterialList->Length());
-
-	/* Update parameter list for FCC3D_Surf to include the surface normal codes */
 	for (int i = 0; i < nfs; i++)
 	{
 		/* face normal */
 		fNormal[i].Dimension(nsd);
 		fNormal[i] = normals(i);
-	
-		/* face C-B model */
-		fSurfaceCB[i] = new FSDEMatQ1P0SurfaceT;
-		fSurfaceCB[i]->SetFSMatSupport(fSurfaceCBSupport);
-		
-		/* pass parameters to the surface model, including surface normal code */
-//		ParameterListT surf_params = bulk_params;
-		ParameterListT surf_params;
-		surf_params.SetName("Dielectric_Elastomer_Q1P0Surface");
-		surf_params.AddParameter(i, "normal_code");
-//		surf_params.AddParameter(fcc_3D->NearestNeighbor(), "bulk_nearest_neighbor");
-		surf_params.AddParameter(4.08, "bulk_nearest_neighbor");	// NEED TO HARDCODE????
-
-		/* Initialize a different FCC3D_Surf for each different surface normal type (6 total) */
-		fSurfaceCB[i]->TakeParameterList(surf_params);
 	}
+
+	/* find parameter list for the bulk material */
+	int num_blocks = list.NumLists("large_strain_element_block");
+	if (num_blocks > 1)
+		ExceptionT::GeneralFail(caller, "expecting only 1 not %d element blocks", num_blocks);
+	const ParameterListT& block = list.GetList("large_strain_element_block");
+	const ParameterListT& mat_list = block.GetListChoice(*this, "large_strain_material_choice");
+	const ArrayT<ParameterListT>& mat = mat_list.Lists();
+	const ParameterListT& bulk_params = mat[0];
+
+	/* Define universal surface model - only need one since it is isotropic */
+	fSurfaceCB = NULL;
+	fSurfaceCB = new FSDEMatIsotropicSurfaceT;
+	fSurfaceCB->SetFSMatSupport(fSurfaceCBSupport);
+
+	/* Pass parameters to surface model */
+	ParameterListT surf_params = bulk_params;
+ 	surf_params.SetName("Dielectric_Elastomer_IsotropicSurface");
+	fSurfaceCB->TakeParameterList(surf_params);
 
 	/* output surface parameters */
 	bool output_surface = list.GetParameter("output_surface");
-	if (fIndicator != "Tersoff_CB") { /* no surface output for the other surface types */
-		output_surface = false;
-	}
-
+//	if (fIndicator != "Tersoff_CB") { /* no surface output for the other surface types */
+//		output_surface = false;
+//	}
+	
 	/* collect surface element information */
 	ArrayT<StringT> block_ID;
 	ElementBlockIDs(block_ID);
@@ -441,97 +423,12 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 			}
 		}
 	}
-
-	/* initialize data for split integration */
-	fSplitInitCoords.Dimension(nen, nsd);
-	fSplitShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fSplitInitCoords);
-	fSplitShapes->Initialize();		
 	
   }
 
 /***********************************************************************
  * Private
  ***********************************************************************/
-
-/* reduce the coordinates to a surface layer on the given face */
-void FSDielectricElastomerQ1P0SurfaceT::SurfaceLayer(LocalArrayT& coords, int face, double thickness) const
-{
-	const char caller[] = "FSDielectricElastomerQ1P0SurfaceT::SurfaceLayer";
-	if (GeometryCode() != GeometryT::kHexahedron)
-		ExceptionT::GeneralFail(caller, "implemented for hex geometry only");
-	int nen = NumElementNodes();
-	if (nen != 8 && nen != 20)
-		ExceptionT::GeneralFail(caller, "implemented for 4 or 20 node hexes only: %d", nen);
-
-	/* transpose coordinate data */
-	double d60[3*20]; /* oversize */
-	dArray2DT coords_tmp(nen, 3, d60);
-	coords.ReturnTranspose(coords_tmp);
-
-	int i8[8]; /* oversize */
-	iArrayT face_nodes(nen, i8);
-	ShapeFunction().NodesOnFacet(face, face_nodes);
-	double v1[3], v2[3];
-	Vector(coords_tmp(face_nodes[1]), coords_tmp(face_nodes[0]), v1);
-	Vector(coords_tmp(face_nodes[1]), coords_tmp(face_nodes[2]), v2);
-	double normal[3];
-	CrossProduct(v2, v1, normal);
-	Scale(normal, 1.0/sqrt(Dot(normal,normal)));
-
-	/* opposite face information - vertex nodes only */
-	int opp_face[6] = {1,0,4,5,2,3};
-	int opp_face_nodes_dat[6*4] = {
-		4,7,6,5,
-		0,1,2,3,
-		3,2,6,7,
-		0,3,7,4,
-		1,0,4,5,
-		2,1,5,6};
-	iArray2DT opp_face_nodes(6, 4, opp_face_nodes_dat);
-
-	/* "shorten" vectors to back face */
-	for (int i = 0; i < 4; i++)
-	{
-		/* nodes */
-		int n_front = face_nodes[i];
-		int n_back  = opp_face_nodes(face,i); 
-	
-		/* vector to back face */
-		Vector(coords_tmp(n_front), coords_tmp(n_back), v1);
-		double h = -Dot(v1,normal);
-		if (h < 0.0) ExceptionT::GeneralFail(caller, "geometry error");
-//		if (h < 2.0*thickness)
-//			ExceptionT::GeneralFail(caller, "layer thickness %g exceeds half element depth %g",
-//				thickness, h/2.0);
-		
-		/* compute point */
-		Scale(v1, thickness/h);
-		Sum(coords_tmp(n_front), v1, v2);
-		
-		/* store */
-		coords_tmp.SetRow(n_back, v2);
-	}
-
-	/* move mid-side nodes */
-	if (nen == 20) {
-		int edges_dat[4*2] = {0,1,1,2,2,3,3,0};
-		iArray2DT edges(4, 2, edges_dat);
-		for (int i = 0; i < 6; i++)
-			if (i != face) {
-				ShapeFunction().NodesOnFacet(i, face_nodes);
-				for (int j = 0; j < 4; j++) /* loop over edges */ {
-					Sum(coords_tmp(face_nodes[edges(j,0)]), 
-					    coords_tmp(face_nodes[edges(j,1)]), 
-					    coords_tmp(face_nodes[j+4]));
-					coords_tmp.ScaleRow(face_nodes[j+4], 0.5);
-				}
-			}
-	}
-	
-	/* write back */
-	coords.FromTranspose(coords_tmp);	
-}
-
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT FSDielectricElastomerQ1P0SurfaceT::TangentType(void) const
@@ -981,12 +878,11 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 	const double* Weight = fCurrShapes->IPWeights();
 
 	/* initialize */
-//	fStressStiff = 0.0;
 	fCurrShapes->GradNa(fMeanGradient, fb_bar);	
 	
     fShapes->TopIP();
     while (fShapes->NextIP() ) 
-    {
+    {    
 		/* double scale factor (for dynamic problems) */
 		/* NOTE:  constK = beta * dt^2 */
 		double scale = constK*(*Det++)*(*Weight++);
@@ -1032,7 +928,7 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 		dMatrixT eijk = fCurrMaterial->e_ijk();
 		eijk *= scale*J_correction;
 		bij *= scale1*J_correction;	// integration constant	
-		
+				
 		/* mechanical-electrical stiffness (24 x 8 matrix for 8-node 3D element) */
 		/* Need similar for EIJK1 though with different integration constant */
        	fAme.MultATBC(fB, eijk, fGradNa, dMatrixT::kWhole, dMatrixT::kAccumulate); 		
@@ -1044,8 +940,6 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 	/* stress stiffness into fLHS (i.e. fAmm_mat) */
 	fAmm_mat.Expand(fAmm_geo, NumDOF(), dMatrixT::kAccumulate);
 	fAem.Transpose();
-//	fAem = fAme;
-//	fAem.Transpose();
 	
 	/* Add mass matrix and non-symmetric electromechanical tangent if dynamic problem */
 	if (order == 2)
@@ -1062,6 +956,127 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
+	
+	/* TLCBSurfaceT.cpp STUFF */
+	/* dimensions */
+	const ShapeFunctionT& shape = ShapeFunction();
+	int nsd = shape.NumSD();                          // # of spatial dimensions in problem
+	int nfs = shape.NumFacets();                      // # of total possible element faces
+	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+	int nen = NumElementNodes();                      // # nodes in bulk element
+	
+	/* loop over surface elements */
+	dMatrixT jacobian(nsd, nsd-1);
+	iArrayT face_nodes(nfn), face_nodes_index(nfn);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	ElementSupport().RegisterCoordinates(face_coords);
+	dArrayT ip_coords_X(nsd);
+	dArrayT ip_coords_Xi(nsd);
+	dArrayT Na(nen);
+	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen), DNa_x(nsd,nen);
+	dMatrixT DXi_DX(nsd);
+	dMatrixT F_inv(nsd);
+	
+	double t_surface;
+	for (int i = 0; i < fSurfaceElements.Length(); i++)
+	{
+		/* bulk element information */
+		int element = fSurfaceElements[i];
+		const ElementCardT& element_card = ElementCard(element);
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
+
+		/* initialize - RENAME!! */
+    	fAmm_mat2 = 0.0;
+    	fAmm_geo2 = 0.0;
+
+		/* integrate surface contribution to nodal forces */
+		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+			{			
+				/* face parent domain */
+				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+			
+				/* collect coordinates of face nodes */
+				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+				face_coords.SetLocal(face_nodes);
+
+				/* integrate over the face */
+				int face_ip;
+				fSurfaceCBSupport->SetCurrIP(face_ip);
+				const double* w = surf_shape.Weight();
+				for (face_ip = 0; face_ip < nsi; face_ip++)
+				{
+				/* MAPPING/DEFORMATION */
+				
+					/* reference coordinate mapping on face */
+					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian);
+				
+					/* ip coordinates on face */
+					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					
+					/* ip coordinates in bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_Surf_List[face_ip];
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+					
+					/* F^-1 */
+					double J = F.Det();
+					F_inv.Inverse(F);
+					
+				/* STRESS STIFFNESS */
+					
+					/* shape function gradient wrt current configuration */
+					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
+					
+					/* stress at the surface */
+					fSurfaceCB->s_ij().ToMatrix(fIsostress);			
+					
+					/* integration weight */
+					double scale = constK*detj*w[face_ip]*J;
+					
+					/* integration constants */
+					fIsostress *= scale;
+					
+					/* using the stress symmetry - watch big X vs. little x */
+					shape.GradNa(DNa_x, fGradNa);
+					
+					/* using the stress symmetry */
+					fAmm_geo2.MultQTBQ(fGradNa, fIsostress, format, dMatrixT::kAccumulate);					
+
+				/* MATERIAL STIFFNESS */
+				
+					/* strain displacement matrix */
+					Set_B(DNa_x, fB2);
+					
+					/* Get D Matrix */
+					fD2.SetToScaled(scale, fSurfaceCB->c_ijkl());
+					
+					/* accumulate */
+					fAmm_mat2.MultQTBQ(fB2, fD2, format, dMatrixT::kAccumulate);
+				}
+			}
+		/* stress stiffness into fLHS (i.e. fAmm_mat) */
+		fAmm_mat2.Expand(fAmm_geo2, NumDOF(), dMatrixT::kAccumulate);			
+
+		/* Assemble into fLHS, or element stiffness matrix */
+		fLHS2.AddBlock(0, 0, fAmm_mat2);
+		
+		/* assemble stiffness */
+		ElementSupport().AssembleLHS(Group(), fLHS2, element_card.Equations());			
+	}		
   }
 
 /* Compute RHS, or residual of element equations */
@@ -1072,12 +1087,15 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
     const int nen = NumElementNodes();
     
     /* Define mechanical and electrical residuals */
-	dArrayT Rtotal((nsd+1)*nen);
+	dArrayT Rtotal((nsd+1)*nen), Rtotal2((nsd+1)*nen);
 	Rtotal = 0.0;
-	dArrayT Rmech(nen*nsd);
+	Rtotal2 = 0.0;
+	dArrayT Rmech(nen*nsd), Rmech2(nen*nsd);
 	Rmech = 0.0;
-	dArrayT Relec(nen);
+	Rmech2 = 0.0;
+	dArrayT Relec(nen), Relec2(nen);
 	Relec = 0.0;
+	Relec2 = 0.0;
 
 	const double* Det    = fCurrShapes->IPDets();
 	const double* Weight = fCurrShapes->IPWeights();
@@ -1130,6 +1148,101 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
  
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()]; 
+	
+	/* TLCBSurfaceT.cpp STUFF */
+	/* dimensions */
+	const ShapeFunctionT& shape = ShapeFunction();
+	int nfs = shape.NumFacets();                      // # of total possible element faces
+	int nsi = shape.FacetShapeFunction(0).NumIP();    // # IPs per surface face
+	int nfn = shape.FacetShapeFunction(0).NumNodes(); // # nodes on each surface face
+
+	/* loop over surface elements */
+	dMatrixT jacobian(nsd, nsd-1);
+	iArrayT face_nodes(nfn), face_nodes_index(nfn);
+	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	ElementSupport().RegisterCoordinates(face_coords);
+	dArrayT ip_coords_X(nsd);
+	dArrayT ip_coords_Xi(nsd);
+	dArrayT Na(nen);
+	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen), DNa_x(nsd,nen);
+	dMatrixT DXi_DX(nsd);
+	dMatrixT F_inv(nsd), cauchy(nsd);
+
+	for (int i = 0; i < fSurfaceElements.Length(); i++)
+	{
+		/* bulk element information */
+		int element = fSurfaceElements[i];
+		const ElementCardT& element_card = ElementCard(element);
+		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
+		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
+	
+		/* integrate surface contribution to nodal forces */
+		Rmech2 = 0.0;
+		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
+			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
+			{
+				/* face parent domain */
+				const ParentDomainT& surf_shape = shape.FacetShapeFunction(j);
+			
+				/* collect coordinates of face nodes */
+				ElementCardT& element_card = ElementCard(fSurfaceElements[i]);
+				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
+				face_nodes.Collect(face_nodes_index, element_card.NodesX());
+				face_coords.SetLocal(face_nodes);
+
+				/* integrate over the face */
+				int face_ip;
+				fSurfaceCBSupport->SetCurrIP(face_ip);
+				const double* w = surf_shape.Weight();				
+				for (face_ip = 0; face_ip < nsi; face_ip++) {
+
+				/* MAPPING/DEFORMATION */
+				
+					/* reference coordinate mapping on face */
+					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					double detj = surf_shape.SurfaceJacobian(jacobian);
+				
+					/* ip coordinates on face */
+					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
+					
+					/* ip coordinates in bulk parent domain */
+					shape.ParentDomain().MapToParentDomain(fLocInitCoords, ip_coords_X, ip_coords_Xi);
+
+					/* shape functions/derivatives */
+					shape.GradU(fLocInitCoords, DXi_DX, ip_coords_Xi, Na, DNa_Xi);
+					DXi_DX.Inverse();
+					shape.TransformDerivatives(DXi_DX, DNa_Xi, DNa_X);
+
+					/* deformation gradient/shape functions/derivatives at the surface ip */
+					dMatrixT& F = fF_Surf_List[face_ip];				
+					shape.ParentDomain().Jacobian(fLocDisp, DNa_X, F);
+					F.PlusIdentity();
+					
+					/* F^-1 */
+					double J = F.Det();
+					F_inv.Inverse(F);
+					
+					/* shape function gradient wrt current configuration */
+					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
+					
+					/* strain displacement matrix */
+					Set_B(DNa_x, fB2);		
+					
+					/* stress at the surface */
+					fSurfaceCB->s_ij().ToMatrix(cauchy);
+
+					/* B^T * Cauchy stress */
+					fB2.MultTx(cauchy, fNEEvec);
+
+					/* accumulate */
+					Rmech2.AddScaled(J*constK*w[face_ip]*detj, fNEEvec);
+				}				
+			}
+ 		Rtotal2.CopyIn(0, Rmech2);
+		
+		/* assemble forces */
+		ElementSupport().AssembleRHS(Group(), Rtotal2, element_card.Equations());			
+	}		
   }
 
 /* Dummy mass matrix for dynamic calculations */

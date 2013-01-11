@@ -6,13 +6,15 @@
 
 #include "FiniteStrainT.h"
 #include "FSDEMatQ1P0SurfaceT.h"
-#include "dMatrixT.h"
+#include "FSDEMatIsotropicSurfaceT.h"
+//#include "dMatrixT.h"
 
 namespace Tahoe {
 
   /* Forward declarations */
   class FSDEMatSupportQ1P0SurfaceT;
   class FSDEMatQ1P0SurfaceT;
+  class FSDEMatIsotropicSurfaceT;
   // interface for finite deformation dielectric elastomers 
   // based on 2008 JMPS paper of Suo et al.
   
@@ -126,12 +128,6 @@ namespace Tahoe {
 		const dArray2DT* ip_values,
 		const double* ip_weight);
 
-	/* TLCBSurface Stuff */
-	/** reduce the coordinates to a surface layer on the given face
-	 *\param coords should enter with the coordinates of entire element and
-	 *       returns with the coordinates defining the surface layer */
-	void SurfaceLayer(LocalArrayT& coords, int face, double thickness) const;	
-
   private:
 
     void Workspace();
@@ -196,6 +192,8 @@ namespace Tahoe {
 	dMatrixT fStressStiff;	/**< "compact" stress stiffness contribution: [nen] x [nen] */
 	dMatrixT fGradNa;       /**< shape function gradients matrix: [nsd] x [nen] */
 	/*@}*/
+	dMatrixT fIsostress;
+	dMatrixT fStressStiff2;
 
 	/* TLCBSurfaceT Stuff */
 	/** list of elements on the surface */
@@ -211,22 +209,13 @@ namespace Tahoe {
 	ArrayT<dArrayT> fNormal;
 
 	/** surface Cauchy-Born models */
-	ArrayT<FSDEMatQ1P0SurfaceT*> fSurfaceCB;
+	FSDEMatIsotropicSurfaceT* fSurfaceCB;
 
 	/** support for the surface models */
 	FSMatSupportT* fSurfaceCBSupport;
 
 	/** deformation gradients at the surface integration points */
 	ArrayT<dMatrixT> fF_Surf_List;
-
-	/** indicator for EAM_CB or FCC_CB */
-	StringT fIndicator;
-
-	/** \name split integration */
-	/*@{*/
-	LocalArrayT fSplitInitCoords;
-	ShapeFunctionT* fSplitShapes;
-	/*@}*/
 	
 	/** \name surface output */
 	/*@{*/
@@ -243,12 +232,13 @@ namespace Tahoe {
     FSDEMatQ1P0SurfaceT* fCurrMaterial;
    
     // Stiffness storage
-    dMatrixT fAmm_mat;	// mechanical material part of Hessian matrix
-    dMatrixT fAmm_geo;	// mechanical geometric part of Hessian matrix
+    dMatrixT fAmm_mat, fAmm_mat2;	// mechanical material part of Hessian matrix
+    dMatrixT fAmm_geo, fAmm_geo2;	// mechanical geometric part of Hessian matrix
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
     dMatrixT fMassMatrix;	// mass matrix for LHS
+    dMatrixT fB2, fD2, fLHS2;
     
     /* Electric potential */
     const FieldT* fElectricScalarPotentialField;
