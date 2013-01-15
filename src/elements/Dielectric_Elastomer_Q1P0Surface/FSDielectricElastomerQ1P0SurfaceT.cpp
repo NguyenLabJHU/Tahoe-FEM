@@ -976,9 +976,8 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 	dArrayT Na(nen);
 	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen), DNa_x(nsd,nen);
 	dMatrixT DXi_DX(nsd);
-	dMatrixT F_inv(nsd);
+	dMatrixT F_inv(nsd), cauchy2(nsd);
 	
-	double t_surface;
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
 		/* bulk element information */
@@ -987,9 +986,10 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 		fLocInitCoords.SetLocal(element_card.NodesX()); /* reference coordinates over bulk element */
 		fLocDisp.SetLocal(element_card.NodesU()); /* displacements over bulk element */
 
-		/* initialize - RENAME!! */
+		/* initialize */
     	fAmm_mat2 = 0.0;
     	fAmm_geo2 = 0.0;
+    	fLHS2 = 0.0;
 
 		/* integrate surface contribution to nodal forces */
 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
@@ -1042,19 +1042,19 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
 					
 					/* stress at the surface */
-					fSurfaceCB->s_ij().ToMatrix(fIsostress);			
+					fSurfaceCB->s_ij().ToMatrix(cauchy2);			
 					
 					/* integration weight */
 					double scale = constK*detj*w[face_ip]*J;
 					
 					/* integration constants */
-					fIsostress *= scale;
+					cauchy2 *= scale;
 					
 					/* using the stress symmetry - watch big X vs. little x */
 					shape.GradNa(DNa_x, fGradNa);
 					
 					/* using the stress symmetry */
-					fAmm_geo2.MultQTBQ(fGradNa, fIsostress, format, dMatrixT::kAccumulate);					
+					fAmm_geo2.MultQTBQ(fGradNa, cauchy2, format, dMatrixT::kAccumulate);					
 
 				/* MATERIAL STIFFNESS */
 				
@@ -1082,6 +1082,8 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomerQ1P0SurfaceT::FormKd(double constK)
   {  	
+	const char caller[] = "FSDielectricElastomerQ1P0SurfaceT::FormKd";
+	  
 	/* element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
@@ -1166,7 +1168,12 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 	dArrayT Na(nen);
 	dArray2DT DNa_X(nsd,nen), DNa_Xi(nsd,nen), DNa_x(nsd,nen);
 	dMatrixT DXi_DX(nsd);
-	dMatrixT F_inv(nsd), cauchy(nsd);
+	dMatrixT F_inv(nsd), cauchy(nsd), PK1(nsd);
+
+	/* matrix alias to NEEvec */
+	dArrayT NEEvec(NumSD()*NumElementNodes());
+	NEEvec = 0.0;
+	dMatrixT WP(nsd, fAmm_geo2.Rows(), NEEvec.Pointer());
 
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -1220,22 +1227,23 @@ void FSDielectricElastomerQ1P0SurfaceT::AddNodalForce(const FieldT& field, int n
 					
 					/* F^-1 */
 					double J = F.Det();
-					F_inv.Inverse(F);
-					
-					/* shape function gradient wrt current configuration */
-					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
-					
-					/* strain displacement matrix */
-					Set_B(DNa_x, fB2);		
+					if (J <= 0.0)
+						ExceptionT::BadJacobianDet(caller);
+					else
+						F_inv.Inverse(F);
 					
 					/* stress at the surface */
 					fSurfaceCB->s_ij().ToMatrix(cauchy);
 
-					/* B^T * Cauchy stress */
-					fB2.MultTx(cauchy, fNEEvec);
+					/* compute PK1/J */
+					PK1.MultABT(cauchy, F_inv);
+					
+					/* Wi,J PiJ */
+					shape.GradNa(DNa_X, fGradNa);
+					WP.MultAB(PK1, fGradNa);
 
 					/* accumulate */
-					Rmech2.AddScaled(J*constK*w[face_ip]*detj, fNEEvec);
+					Rmech2.AddScaled(-J*constK*w[face_ip]*detj, NEEvec);
 				}				
 			}
  		Rtotal2.CopyIn(0, Rmech2);
