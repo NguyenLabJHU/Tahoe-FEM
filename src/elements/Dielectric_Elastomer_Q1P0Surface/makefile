@@ -19,7 +19,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	FSDielectricElastomerQ1P0SurfaceT.o 
+	FSDielectricElastomerQ1P0SurfaceT.o \
+	FSDEMatIsotropicSurfaceT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -39,7 +40,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	FSDielectricElastomerQ1P0SurfaceT.cpp 
+	FSDielectricElastomerQ1P0SurfaceT.cpp \
+	FSDEMatIsotropicSurfaceT.cpp
 
 ##################### (3) headers
 #
@@ -51,7 +53,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	FSDielectricElastomerQ1P0SurfaceT.h
+	FSDielectricElastomerQ1P0SurfaceT.h \
+	FSDEMatIsotropicSurfaceT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
