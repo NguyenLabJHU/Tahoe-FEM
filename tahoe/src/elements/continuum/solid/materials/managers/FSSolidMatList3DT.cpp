@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.43 2012-12-06 15:31:12 hspark Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.44 2013-01-23 20:18:29 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -132,10 +132,10 @@
 #include "FSDEMatSupportQ1P0T.h"
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
-#include "FSDielectricElastomerQ1P0SurfaceT.h"
-#include "FSDEMatSupportQ1P0SurfaceT.h"
-#endif
+// #ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+// #include "FSDielectricElastomerQ1P0SurfaceT.h"
+// #include "FSDEMatSupportQ1P0SurfaceT.h"
+// #endif
 
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
 #include "FSDielectricElastomerQ1P0ViscoT.h"
@@ -317,9 +317,9 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub(FSDEMatQ1P0T::Name);
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
-		sub_lists.AddSub(FSDEMatQ1P0SurfaceT::Name);
-#endif
+// #ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+// 		sub_lists.AddSub(FSDEMatQ1P0SurfaceT::Name);
+// #endif
 
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
 		sub_lists.AddSub(FSDEMatQ1P0ViscoT::Name);
@@ -556,17 +556,17 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	}
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
-	else if (name == FSDEMatQ1P0SurfaceT::Name) {
-	  FSDEMatQ1P0SurfaceT* dematqps = new FSDEMatQ1P0SurfaceT;
-	  if (dematqps != 0) {
-	    FSMatSupportT* demsqps = const_cast<FSMatSupportT*>(fFSMatSupport);
-	    const FSDEMatSupportQ1P0SurfaceT* ddemsqps = dynamic_cast<FSDEMatSupportQ1P0SurfaceT*>(demsqps);
-	    dematqps->SetFSDEMatSupportQ1P0Surface(ddemsqps);
-	    mat = dematqps;
-	  }
-	}
-#endif
+// #ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+// 	else if (name == FSDEMatQ1P0SurfaceT::Name) {
+// 	  FSDEMatQ1P0SurfaceT* dematqps = new FSDEMatQ1P0SurfaceT;
+// 	  if (dematqps != 0) {
+// 	    FSMatSupportT* demsqps = const_cast<FSMatSupportT*>(fFSMatSupport);
+// 	    const FSDEMatSupportQ1P0SurfaceT* ddemsqps = dynamic_cast<FSDEMatSupportQ1P0SurfaceT*>(demsqps);
+// 	    dematqps->SetFSDEMatSupportQ1P0Surface(ddemsqps);
+// 	    mat = dematqps;
+// 	  }
+// 	}
+// #endif
 
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
 	else if (name == FSDEMatQ1P0ViscoT::Name) {
