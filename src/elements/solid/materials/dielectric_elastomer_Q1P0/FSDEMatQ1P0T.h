@@ -94,6 +94,8 @@ namespace Tahoe {
     double fNrig;
     double fLambda;
 	double fKappa;
+	double fYoung;
+	double fPoisson;
 
     dArrayT fElectricField;
     dArrayT fElectricDisplacement;
