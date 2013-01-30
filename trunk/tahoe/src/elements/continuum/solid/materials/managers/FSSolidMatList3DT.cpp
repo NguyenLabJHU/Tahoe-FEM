@@ -1,5 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.44 2013-01-23 20:18:29 hspark Exp $ */
-/* created: paklein (02/14/1997) */
+/* $Id: FSSolidMatList3DT.cpp,v 1.45 2013-01-30 20:36:38 tdnguye Exp $ */
 #include "FSSolidMatList3DT.h"
 
 #include "SolidMaterialsConfig.h"
@@ -154,9 +153,17 @@
 #include "FDSV_KStV3D.h"
 #include "SMP_simple.h"
 #include "SMP_multi.h"
+#include "SMP_solvent.h"
+#include "SMP_multisolvent.h"
+/*add the following sentence*/
 #include "ModBoyceVisco.h"
 #include "BergstromBoyce.h"
+// #include "ElasticHydrogelT.h"
+// #include "ElasticHydrogelSuo.h"
 #endif
+
+//#ifdef HYDROGEL
+//#endif
 
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
@@ -251,10 +258,19 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
-		sub_lists.AddSub("SMP_multi");
+	    sub_lists.AddSub("SMP_multi");
+		sub_lists.AddSub("SMP_solvent");
+		sub_lists.AddSub("SMP_multisolvent");
+		/*add the following sentence*/
 		sub_lists.AddSub("ModBoyceVisco");
-		sub_lists.AddSub("BergstromBoyce");
+		sub_lists.AddSub("BergstromBoyce");	
+//		sub_lists.AddSub("ElasticHydrogelT");
+//		sub_lists.AddSub("ElasticHydrogelSuo");
 #endif
+
+//#ifdef HYDROGEL
+//#endif
+
 #ifdef BIO_MODELS
 		sub_lists.AddSub("veronda_westmann_potential");
 #endif
@@ -454,12 +470,25 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	else if (name == "SMP_simple")
 		mat= new SMP_simple;
 	else if (name == "SMP_multi")
-		mat= new SMP_multi;
+	   mat= new SMP_multi;
+	else if (name == "SMP_solvent")
+		mat= new SMP_solvent;
+	else if (name == "SMP_multisolvent")
+		mat= new SMP_multisolvent;
+		/*add the following sentence*/
 	else if (name == "ModBoyceVisco")
 		mat= new ModBoyceVisco;
 	else if (name == "BergstromBoyce")
 		mat= new BergstromBoyce;
+//	else if (name =="ElasticHydrogelT")
+//		mat= new ElasticHydrogelT;
+//			else if (name =="ElasticHydrogelSuo")
+//		mat= new ElasticHydrogelSuo;
 #endif
+
+//#ifdef HYDROGEL
+	
+//#endif
 
 #ifdef FINITE_ANISOTROPY
 	else if (name == "Bischoff-Arruda_WLC")
