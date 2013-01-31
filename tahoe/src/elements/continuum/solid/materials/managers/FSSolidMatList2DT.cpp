@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.21 2013-01-30 20:36:37 tdnguye Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.22 2013-01-31 16:55:13 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -75,8 +75,8 @@
 #include "FDSV_KStV2D.h"
 #include "SMP_simple.h"
 #include "SMP_multi.h"
-#include "SMP_solvent.h"
-#include "SMP_multisolvent.h"
+//#include "SMP_solvent.h"
+//#include "SMP_multisolvent.h"
 #include "ModBoyceVisco.h"
 #include "BergstromBoyce.h"
 // #include "ElasticHydrogelT.h"
@@ -199,8 +199,8 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
 		sub_lists.AddSub("SMP_multi");
-        sub_lists.AddSub("SMP_solvent");
-		sub_lists.AddSub("SMP_multisolvent");
+		//        sub_lists.AddSub("SMP_solvent");
+		//		sub_lists.AddSub("SMP_multisolvent");
 		sub_lists.AddSub("ModBoyceVisco");
 		sub_lists.AddSub("BergstromBoyce");
 //        sub_lists.AddSub("ElasticHydrogelT");
@@ -340,10 +340,10 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat= new SMP_simple;
 	else if (name == "SMP_multi")
 		mat= new SMP_multi;
-    else if (name == "SMP_solvent")
-		mat= new SMP_solvent;
-	else if (name == "SMP_multisolvent")
-		mat= new SMP_multisolvent;
+	//    else if (name == "SMP_solvent")
+	//		mat= new SMP_solvent;
+	//	else if (name == "SMP_multisolvent")
+	//		mat= new SMP_multisolvent;
 	else if (name == "ModBoyceVisco")
 		mat= new ModBoyceVisco;
 	else if (name == "BergstromBoyce")
