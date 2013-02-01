@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2010-12-06 20:17:42 thao Exp $
+# $Id: makefile,v 1.5 2013-02-01 16:51:25 tahoe.xiaorui Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = SMP_simple.o \
-	SMP_multi.o 
+	SMP_multi.o \
+        SMP_solvent.o \
+        SMP_multisolvent.o
 
 
 OBJ_LINK = $(OBJ)
@@ -42,7 +44,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = SMP_simple.cpp \
-	SMP_multi.cpp  
+	SMP_multi.cpp \
+        SMP_solvent.cpp \
+        SMP_multisolvent.cpp
 
 ##################### (3) headers
 #
@@ -54,7 +58,10 @@ SRC = SMP_simple.cpp \
 # HDR and HDR_LINK macro   
 #
 HDR = SMP_simple.h \
-	SMP_multi.h
+	SMP_multi.h \
+        SMP_solvent.h \
+        SMP_multisolvent.h
+        
 
 HDR_LINK = $(HDR:.h=.h_link)
 
