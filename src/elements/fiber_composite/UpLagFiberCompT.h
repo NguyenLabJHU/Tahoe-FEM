@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.h,v 1.7 2011-04-27 20:05:04 thao Exp $ */
+/* $Id: UpLagFiberCompT.h,v 1.8 2013-02-01 19:44:45 tahoe.kziegler Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPLAG_FIB_COMP_T_
@@ -72,6 +72,9 @@ protected:
 
 	/*reads orientations from an analytical surface*/
 	void BrickVec(const ParameterListT& fibers);
+	
+	/*reads orientations from a file*/
+	void Readfiberfile(const ParameterListT& fibers);
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -86,10 +89,13 @@ protected:
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 protected:
+	StringT fUserFile;
+	ifstreamT fDataInput;
+
 	/*element list of fiber orientation vectors in global (lab) coordinates*/
 	/*num_elem< num_fibers x nsd >*/
 	ArrayT<dArray2DT> fFiber_list;
-	
+	/* element list of fiber dispersion parameter*/
 	/*material support*/
 	FSFiberMatSupportT* fFiberSupport;
 
