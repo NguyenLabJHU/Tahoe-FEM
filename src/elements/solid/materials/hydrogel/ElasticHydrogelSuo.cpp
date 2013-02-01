@@ -1,6 +1,6 @@
-/* $Id: ElasticHydrogelT.cpp,v 1.2 2013-02-01 17:03:24 tahoe.xiaorui Exp $ */
-/* created : RX (2/27/2012) */
-#include "ElasticHydrogelT.h"
+/* $Id: ElasticHydrogelSuo.cpp,v 1.1 2013-02-01 17:03:25 tahoe.xiaorui Exp $ */
+/* created : RX (1/5/2012) */
+#include "ElasticHydrogelSuo.h"
 #include "ParameterContainerT.h"
 
 #include "ExceptionT.h"
@@ -24,16 +24,16 @@ static const char* Labels[kNumOutputVar] = {"phi"};
  ***********************************************************************/
 
 /* constructor */
-ElasticHydrogelT::ElasticHydrogelT(void):
+ElasticHydrogelSuo::ElasticHydrogelSuo(void):
 	FSSolidMatT(),
-	ParameterInterfaceT("ElasticHydrogelT"),
+	ParameterInterfaceT("ElasticHydrogelSuo"),
 	fSpectralDecompSpat(3)
 {
 }
 
-int ElasticHydrogelT::NumOutputVariables() const {return kNumOutputVar;} 
+int ElasticHydrogelSuo::NumOutputVariables() const {return kNumOutputVar;} 
 
-void ElasticHydrogelT::OutputLabels(ArrayT<StringT>& labels) const 
+void ElasticHydrogelSuo::OutputLabels(ArrayT<StringT>& labels) const 
 { 
 	/*allocates space for labels*/
 	labels.Dimension(kNumOutputVar); 
@@ -44,7 +44,7 @@ void ElasticHydrogelT::OutputLabels(ArrayT<StringT>& labels) const
 } 
 
 
-double ElasticHydrogelT::StrainEnergyDensity(void)
+double ElasticHydrogelSuo::StrainEnergyDensity(void)
 {
 	/*calculates equilibrium part*/
 	const dMatrixT& F = F_total();
@@ -68,13 +68,20 @@ double ElasticHydrogelT::StrainEnergyDensity(void)
 	fb.MultAAT(fF3D);
 	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
 	fEigs = fSpectralDecompSpat.Eigenvalues();
-	
-	/*elastic part*/
-	//TO DO:: call function that calculates solid fraction
-	//calculate strain energy density
-	//the following is RX add 
+	double fmu=fPot->GetMu();
 	double J=sqrt(fEigs.Product());
-   ElementCardT& element = CurrentElement();
+	double energy = 0.0;
+	double I1 = fEigs[0]+fEigs[1]+fEigs[2];
+	energy=0.5*fmu*(I1-3-2.0*log(J));
+	
+	ElementCardT& element = CurrentElement();
+    Load(element, CurrIP());
+	fEigs *= pow(*fSolidFraction,2.0*third);
+	fEigs_dev = fEigs;
+	fEigs_dev *= pow(J, -2.0*third);
+	double Je=sqrt(fEigs_dev.Product());
+    energy +=fPot->MeanEnergy(Je);
+   /*ElementCardT& element = CurrentElement();
     Load(element, CurrIP());
     /*if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
 	{
@@ -82,21 +89,19 @@ double ElasticHydrogelT::StrainEnergyDensity(void)
 		Store(element, CurrIP());
 	}*/
 
-
-	fEigs *= pow(*fSolidFraction,2.0*third);
-
-	/*deviatoric part*/
+	/*fEigs *= pow(*fSolidFraction,2.0*third);
+   
 	fEigs_dev = fEigs;
 	fEigs_dev *= pow(J, -2.0*third);
 	
 	double energy = 0.0;
-	energy = fPot->Energy(fEigs_dev, J);
+	energy=fPot->Energy(fEigs_dev, J);*/
 
 	return(energy);
 }
 
 /* modulus */
-const dMatrixT& ElasticHydrogelT::c_ijkl(void)
+const dMatrixT& ElasticHydrogelSuo::c_ijkl(void)
 {
 	const dMatrixT& F =F_total();
 	
@@ -146,18 +151,37 @@ const dMatrixT& ElasticHydrogelT::c_ijkl(void)
 	fEigs_dev = fEigs_e;
 	fEigs_dev *= pow(Je, -2.0*third);
 	
-    fPot->DevStress(fEigs_dev, ftau);
-    ftau += fPot->MeanStress(Je);    
-
+    /*fPot->DevStress(fEigs_dev, ftau);
+    ftau += fPot->MeanStress(Je);  */  
+     double fmu=fPot->GetMu();
+	 int nsd = ftau.Length();
+     ftau[0] = fmu*(fEigs[0]-1.0);
+     ftau[1] = fmu*(fEigs[1]-1.0);
+  
+    if (nsd == 3)
+    ftau[2] = fmu*(fEigs[2]-1.0);
+	ftau += fPot->MeanStress(Je);
 	
 	//TO DO:: calculate Gamma
-    fPot->DevMod(fEigs_dev,fDtauDe);
-	//RX modify the codes below to incorparate swelling effect
-	//bulid says there is no GetParamter funciton in PontentialT.cpp
+    //fPot->DevMod(fEigs_dev,fDtauDe);
 	double fkappa=fPot->GetKappa();
+	double factor=fkappa*upsilon*(*fSolidFraction)*(*fSolidFraction)*J*J/(R*fT*(1/(*fSolidFraction-1)+1+2*fchi*(*fSolidFraction))-fkappa*upsilon/2*(3*(*fSolidFraction)*(*fSolidFraction)*J*J-1));
+	fDtauDe[0]=2.0*fmu*fEigs[0];
+	fDtauDe[1]=2.0*fmu*fEigs[1];
+	if (nsd == 2)
+  {
+    fDtauDe[2]=0;
+  }
+  else 
+  {
+   fDtauDe[2]=2.0*fmu*fEigs[2];
+    fDtauDe[3]=0;
+	 fDtauDe[4]=0;
+	  fDtauDe[5]=0;
+  }
 
 	/*double factor=fkappa*mu*(*fSolidFraction)*J/(R*fT*(1/(*fSolidFraction-1)+1+2*fchi*(*fSolidFraction))-fkappa*mu*(2*(*fSolidFraction)*J-1));*/
-	double factor=fkappa*upsilon*(*fSolidFraction)*(*fSolidFraction)*J*J/(R*fT*(1/(*fSolidFraction-1)+1+2*fchi*(*fSolidFraction))-fkappa*upsilon/2*(3*(*fSolidFraction)*(*fSolidFraction)*J*J-1));
+	
     fDtauDe += fPot->MeanMod(Je)*(1+factor);
 	
     dSymMatrixT& Gamma = fDtauDe;
@@ -221,7 +245,7 @@ const dMatrixT& ElasticHydrogelT::c_ijkl(void)
 }
 
 /* stresses */
-const dSymMatrixT& ElasticHydrogelT::s_ij(void)
+const dSymMatrixT& ElasticHydrogelSuo::s_ij(void)
 {
 	const dMatrixT& F = F_total();
 	
@@ -271,7 +295,15 @@ const dSymMatrixT& ElasticHydrogelT::s_ij(void)
 	fEigs_dev = fEigs_e;
 	fEigs_dev *= pow(Je, -2.0*third);
 	
-	fPot->DevStress(fEigs_dev, ftau);
+	/*fPot->DevStress(fEigs_dev, ftau);*/
+	 double fmu=fPot->GetMu();
+	 int nsd = ftau.Length();
+     ftau[0] = fmu*(fEigs[0]-1.0);
+     ftau[1] = fmu*(fEigs[1]-1.0);
+  
+    if (nsd == 3)
+    ftau[2] = fmu*(fEigs[2]-1.0);
+
 	ftau += fPot->MeanStress(Je);
 	
 	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau);
@@ -291,7 +323,7 @@ const dSymMatrixT& ElasticHydrogelT::s_ij(void)
 }
 
 /* material description */
-const dMatrixT& ElasticHydrogelT::C_IJKL(void)
+const dMatrixT& ElasticHydrogelSuo::C_IJKL(void)
 {
     /* deformation gradient */
     const dMatrixT& Fmat = F_total();
@@ -301,7 +333,7 @@ const dMatrixT& ElasticHydrogelT::C_IJKL(void)
     return fModulus;	
 }
 
-const dSymMatrixT& ElasticHydrogelT::S_IJ(void)
+const dSymMatrixT& ElasticHydrogelSuo::S_IJ(void)
 {
     /* deformation gradient */
     const dMatrixT& Fmat = F_total();
@@ -311,7 +343,7 @@ const dSymMatrixT& ElasticHydrogelT::S_IJ(void)
     return fStress;
 }
 
-void ElasticHydrogelT::ComputeOutput(dArrayT& output)
+void ElasticHydrogelSuo::ComputeOutput(dArrayT& output)
 {
    /*load the history variables*/
     ElementCardT& element = CurrentElement();
@@ -319,7 +351,7 @@ void ElasticHydrogelT::ComputeOutput(dArrayT& output)
 	output[0] = *fSolidFraction;
 }
 
-double ElasticHydrogelT::Pressure(void)
+/*double ElasticHydrogelSuo::Pressure(void)
 {const dMatrixT& F = F_total();
 	if (NumSD() == 2)
 	{
@@ -358,7 +390,7 @@ double ElasticHydrogelT::Pressure(void)
 	double Je = sqrt(fEigs_e.Product());
 	const dMatrixT& Ftotal = F_total();	
 	return fPot->MeanStress(Je)/Ftotal.Det();
-}
+} */
 
 
 /***********************************************************************
@@ -366,7 +398,7 @@ double ElasticHydrogelT::Pressure(void)
  ***********************************************************************/
 //TO DO: Redo interface
 /* information about subordinate parameter lists */
-void ElasticHydrogelT::DefineSubs(SubListT& sub_list) const
+void ElasticHydrogelSuo::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	FSSolidMatT::DefineSubs(sub_list);
@@ -375,7 +407,7 @@ void ElasticHydrogelT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElasticHydrogelT::NewSub(const StringT& name) const
+ParameterInterfaceT* ElasticHydrogelSuo::NewSub(const StringT& name) const
 {
 	PotentialT* pot = NULL;
 	if (name == "neo-hookean")
@@ -401,7 +433,7 @@ ParameterInterfaceT* ElasticHydrogelT::NewSub(const StringT& name) const
 	}
 }
 
-void ElasticHydrogelT::DefineParameters(ParameterListT& list) const
+void ElasticHydrogelSuo::DefineParameters(ParameterListT& list) const
 {
 	SolidMaterialT::DefineParameters(list);
 	/*list.AddParameter(ParameterT::Double, "density"); this is added*/
@@ -410,10 +442,10 @@ void ElasticHydrogelT::DefineParameters(ParameterListT& list) const
 }
 
 /* accept parameter list */
-void ElasticHydrogelT::TakeParameterList(const ParameterListT& list)
+void ElasticHydrogelSuo::TakeParameterList(const ParameterListT& list)
 {
 	FSSolidMatT::TakeParameterList(list);
-	StringT caller = "ElasticHydrogelT::TakeParameterList";
+	StringT caller = "ElasticHydrogelSuo::TakeParameterList";
 	
 	const ParameterListT& gel_pot = list.GetListChoice(*this, "gel_potential");
 	if(gel_pot.Name() == "neo-hookean")
@@ -463,7 +495,7 @@ void ElasticHydrogelT::TakeParameterList(const ParameterListT& list)
 
 
 /*initializes history variable */
-void  ElasticHydrogelT::PointInitialize(void)
+void  ElasticHydrogelSuo::PointInitialize(void)
 {
 	/* allocate element storage */
 	ElementCardT& element = CurrentElement();	
@@ -487,7 +519,7 @@ void  ElasticHydrogelT::PointInitialize(void)
 	}
 }
  
-void ElasticHydrogelT::UpdateHistory(void)
+void ElasticHydrogelSuo::UpdateHistory(void)
 {
 	/* current element */
 	ElementCardT& element = CurrentElement();	
@@ -504,7 +536,7 @@ void ElasticHydrogelT::UpdateHistory(void)
 	}
 }
 
-void ElasticHydrogelT::ResetHistory(void)
+void ElasticHydrogelSuo::ResetHistory(void)
 {
 	/* current element */
 	ElementCardT& element = CurrentElement();	
@@ -521,7 +553,7 @@ void ElasticHydrogelT::ResetHistory(void)
 	}
 }
 
-void ElasticHydrogelT::Load(ElementCardT& element, int ip)
+void ElasticHydrogelSuo::Load(ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
 	dArrayT& d_array = element.DoubleData();
@@ -532,7 +564,7 @@ void ElasticHydrogelT::Load(ElementCardT& element, int ip)
 	for (int i = 0; i < fnstatev; i++)
 		*pdr++ = *pd++;
 }
-void ElasticHydrogelT::Store(ElementCardT& element, int ip)
+void ElasticHydrogelSuo::Store(ElementCardT& element, int ip)
 {
 	/* fetch internal variable array */
 	dArrayT& d_array = element.DoubleData();
@@ -549,8 +581,8 @@ void ElasticHydrogelT::Store(ElementCardT& element, int ip)
  * Private
  *************************************************************************/
  
-/*void ElasticHydrogelT::CalculatePhi(double& phi,  const double& phi_n, const double& J)*/
-void ElasticHydrogelT::CalculatePhi(double& phi,  const double& phi_n, const double& J)
+/*void ElasticHydrogelSuo::CalculatePhi(double& phi,  const double& phi_n, const double& J)*/
+void ElasticHydrogelSuo::CalculatePhi(double& phi,  const double& phi_n, const double& J)
 { 
 
 	const double ctol=1.00e-9;
@@ -579,13 +611,13 @@ void ElasticHydrogelT::CalculatePhi(double& phi,  const double& phi_n, const dou
 	}
 	if (iteration >= maxiteration) 
 	{
-		ExceptionT::GeneralFail("ElasticHydrogelT::ComputePhi", 
+		ExceptionT::GeneralFail("ElasticHydrogelSuo::ComputePhi", 
 			"number of iteration exceeds maximum");
 	}
 }
 
 /* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
-void ElasticHydrogelT::MixedRank4_2D(const dArrayT& a, const dArrayT& b, 
+void ElasticHydrogelSuo::MixedRank4_2D(const dArrayT& a, const dArrayT& b, 
 	dMatrixT& rank4_ab) const
 {
 #if __option(extended_errorcheck)
@@ -644,7 +676,7 @@ void ElasticHydrogelT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
     *p   = z2;
 }
 
-void ElasticHydrogelT::MixedRank4_3D(const dArrayT& a, const dArrayT& b, 
+void ElasticHydrogelSuo::MixedRank4_3D(const dArrayT& a, const dArrayT& b, 
 	dMatrixT& rank4_ab) const
 {
 #if __option(extended_errorcheck)

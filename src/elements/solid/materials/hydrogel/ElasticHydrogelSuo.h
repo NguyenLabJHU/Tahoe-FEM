@@ -1,9 +1,8 @@
-/* $Id: ElasticHydrogelT.h,v 1.2 2013-02-01 17:03:24 tahoe.xiaorui Exp $ */
-/* created : RX (2/27/2012) */
-//#ifndef _E_HYDRO_T_T
-//#define _E_HYDRO_T_T
-#ifndef _E_HYDRO_T_T
-#define _E_HYDRO_T_T
+/* $Id: ElasticHydrogelSuo.h,v 1.1 2013-02-01 17:03:24 tahoe.xiaorui Exp $ */
+/* created : RX (1/5/2012) */
+#ifndef _ElasticHydrogelSuo
+#define _ElasticHydrogelSuo
+
 /* base classes */
 #include "FSSolidMatT.h"
 #include "SpectralDecompT.h"
@@ -17,16 +16,16 @@ namespace Tahoe {
 
 /** base class for nonlinear finite deformation viscoelasticity **/
 
-class ElasticHydrogelT: public FSSolidMatT 
+class ElasticHydrogelSuo: public FSSolidMatT 
 {
   public:
   
 	/* constructor */
-	ElasticHydrogelT(void);
+	ElasticHydrogelSuo(void);
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij.  */
-	virtual double Pressure(void);
+/*	virtual double Pressure(void); */
 	
 	/** return true if the material has history variables */
 	virtual bool HasHistory(void) const { return true; };
