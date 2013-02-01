@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.cpp,v 1.11 2010-06-24 13:49:17 thao Exp $ */
+/* $Id: FSFiberMatT.cpp,v 1.12 2013-02-01 19:16:06 tahoe.kziegler Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatT.h"
 #include "FSFiberMatSupportT.h"
@@ -15,6 +15,7 @@ FSFiberMatT::FSFiberMatT(void):
 	fNumModuli(6)
 {
 
+	
 }
 
 /* set the material support or pass NULL to clear */
@@ -29,7 +30,7 @@ void FSFiberMatT::SetFSFiberMatSupport(const FSFiberMatSupportT* support)
 
 /* modulus */
 const dMatrixT& FSFiberMatT::C_IJKL(void)
-{
+{	
 	/* stretch */
 	Compute_C(fC);
 	
@@ -52,7 +53,6 @@ const dMatrixT& FSFiberMatT::C_IJKL(void)
 /* stress */
 const dSymMatrixT& FSFiberMatT::S_IJ(void)
 {
-	
 	/* stretch */
 	Compute_C(fC);
 	
@@ -66,7 +66,7 @@ const dSymMatrixT& FSFiberMatT::S_IJ(void)
 	
 	/* rotate stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fStress);
-
+	
 	return(fStress);
 }
 
@@ -130,8 +130,8 @@ void FSFiberMatT::TakeParameterList(const ParameterListT& list)
 	fFiberStretch.Dimension(fNumSD);
 	fFiberStress.Dimension(fNumSD);
 	fFiberMod.Dimension(fNumFibStress);
+	
 }
-
 
 /*********************************************************************************************
  *protected                                                                                  *
@@ -140,9 +140,11 @@ const dMatrixT& FSFiberMatT::GetRotation()
 {
 	const char caller[] = "FSFiberMatT::GetRotation";
 	const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
+		
 	int num_fibers = Fibers.MajorDim();
-	num_fibers--;
 
+	num_fibers--;
+	
 	if (num_fibers > 0)
 	{
 		int fiber_num = 0; /*build orthogonal basis from the first fiber vector and normal vector*/
@@ -150,6 +152,7 @@ const dMatrixT& FSFiberMatT::GetRotation()
 		fQ(1,0) = Fibers(fiber_num,1);
 		fQ(2,0) = Fibers(fiber_num,2);
 			
+		
 		fQ(0,2) = Fibers(num_fibers,0);
 		fQ(1,2) = Fibers(num_fibers,1);
 		fQ(2,2) = Fibers(num_fibers,2);
@@ -165,23 +168,26 @@ const dMatrixT& FSFiberMatT::GetRotation()
         fQ(0,2) = A[1]*B[2] - A[2]*B[1];
         fQ(1,2) = A[2]*B[0] - A[0]*B[2];
         fQ(2,2) = A[0]*B[1] - A[1]*B[0];
-
+		
 	}
 	else 
 		ExceptionT::GeneralFail(caller, "empty side set: num sides = 0");
-	
+		
 	return(fQ);
 }
 
 /* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
 void FSFiberMatT::MixedRank4_2D(const dArrayT& a, const dArrayT& b, 
 	dMatrixT& rank4_ab) const
+
 {
+	
 #if __option(extended_errorcheck)
 	if (a.Length() != 2 ||
 	    b.Length() != 2 ||
 	    rank4_ab.Rows() != 3 ||
 	    rank4_ab.Cols() != 3) throw ExceptionT::kSizeMismatch;
+	
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -231,11 +237,13 @@ void FSFiberMatT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,
     *p++ = z3;
     *p++ = z1;
     *p   = z2;
+	
 }
 
 void FSFiberMatT::MixedRank4_3D(const dArrayT& a, const dArrayT& b, 
 	dMatrixT& rank4_ab) const
-{
+{	
+	
 #if __option(extended_errorcheck)
 	if (a.Length() != 3 ||
 	    b.Length() != 3 ||
@@ -351,6 +359,10 @@ void FSFiberMatT::MixedRank4_3D(const dArrayT& a, const dArrayT& b,
 	z1 = 0.5*z1;
 	z4 = 0.5*z4;
 	
+	
+//	cout << "a" << a[0] <<endl;
+//	cout << "rank4_ab" << rank4_ab <<endl;
+	
 	//{{z30, z16, z10,  z6,  z5,  z2}, 
 	// {z16, z37, z26,  z8,  z9, z13}, 
 	// {z10, z26, z27,  z4,  z1, z11}, 
@@ -409,6 +421,7 @@ void FSFiberMatT::ComputeFiberStretch(const dSymMatrixT& C, dSymMatrixT& Cf)
 	if (fNumFibStress == 6)
 	{
 		Cf.MultQTBQ(Q, C);
+		
 	}
 	else if (fNumFibStress ==3)
 	{
@@ -418,36 +431,40 @@ void FSFiberMatT::ComputeFiberStretch(const dSymMatrixT& C, dSymMatrixT& Cf)
 		Cf[0] = C[0]*x[0]*x[0] + C[1]*x[1]*x[1] + C[2]*x[2]*x[2] + 2.0*(C[3]*x[1]*x[2] + C[4]*x[0]*x[2] + C[5]*x[0]*x[1]);
 		Cf[1] = C[0]*y[0]*y[0] + C[1]*y[1]*y[1] + C[2]*y[2]*y[2] + 2.0*(C[3]*y[1]*y[2] + C[4]*y[0]*y[2] + C[5]*y[0]*y[1]);
 		Cf[2] = C[0]*x[0]*y[0] + C[1]*x[1]*y[1] + C[2]*x[2]*y[2] + C[3]*(x[1]*y[2] + y[1]*x[2]) + C[4]*(x[0]*y[2] + y[0]*x[2]) + C[5]*(x[0]*y[1] + y[0]*x[1]);
+		
+		//cout<<setprecision(16)<<"\nCompute_Fiber_Stretch"<<Cf;
+		//cout<<setprecision(16)<<"\nStretch"<<C;
+
 	}
 }
 
 void FSFiberMatT::AssembleFiberStress(const dSymMatrixT& sigf, dSymMatrixT& sig, const int fillmode)
 {
-	/* sig = Q.sf.QT                                            */
+	/* sig = Q.sf.QT */
 	if (fillmode == dSymMatrixT::kOverwrite)
 		sig = 0.0;
-	
+		
 	const dMatrixT& Q = GetRotation();
-
+	
 	if (fNumFibStress == 6)
 	{
 		/* transform */
 		sig[0] += sigf[0]*Q[0]*Q[0] + 2*sigf[5]*Q[0]*Q[3] + sigf[1]*Q[3]*Q[3] +
-		          2*sigf[4]*Q[0]*Q[6] + 2*sigf[3]*Q[3]*Q[6] + sigf[2]*Q[6]*Q[6];
+		          2*sigf[4]*Q[0]*Q[6] + 2*sigf[3]*Q[3]*Q[6] + sigf[2]*Q[6]*Q[6]; 
 		sig[1] += sigf[0]*Q[1]*Q[1] + 2*sigf[5]*Q[1]*Q[4] + sigf[1]*Q[4]*Q[4] +
-		          2*sigf[4]*Q[1]*Q[7] + 2*sigf[3]*Q[4]*Q[7] + sigf[2]*Q[7]*Q[7];	
+		          2*sigf[4]*Q[1]*Q[7] + 2*sigf[3]*Q[4]*Q[7] + sigf[2]*Q[7]*Q[7];
 		sig[2] += sigf[0]*Q[2]*Q[2] + 2*sigf[5]*Q[2]*Q[5] + sigf[1]*Q[5]*Q[5] +
 		          2*sigf[4]*Q[2]*Q[8] + 2*sigf[3]*Q[5]*Q[8] + sigf[2]*Q[8]*Q[8];
 		
 		sig[3] += Q[5]*(sigf[5]*Q[1] + sigf[1]*Q[4] + sigf[3]*Q[7]) +
 		            Q[2]*(sigf[0]*Q[1] + sigf[5]*Q[4] + sigf[4]*Q[7]) +
-		            Q[8]*(sigf[4]*Q[1] + sigf[3]*Q[4] + sigf[2]*Q[7]);
+		            Q[8]*(sigf[4]*Q[1] + sigf[3]*Q[4] + sigf[2]*Q[7]); 
 		sig[4] += Q[5]*(sigf[5]*Q[0] + sigf[1]*Q[3] + sigf[3]*Q[6]) +
 		            Q[2]*(sigf[0]*Q[0] + sigf[5]*Q[3] + sigf[4]*Q[6]) +
-		            Q[8]*(sigf[4]*Q[0] + sigf[3]*Q[3] + sigf[2]*Q[6]);
+		            Q[8]*(sigf[4]*Q[0] + sigf[3]*Q[3] + sigf[2]*Q[6]); 
 		sig[5] += Q[4]*(sigf[5]*Q[0] + sigf[1]*Q[3] + sigf[3]*Q[6]) +
 		            Q[1]*(sigf[0]*Q[0] + sigf[5]*Q[3] + sigf[4]*Q[6]) +
-		            Q[7]*(sigf[4]*Q[0] + sigf[3]*Q[3] + sigf[2]*Q[6]);	
+		            Q[7]*(sigf[4]*Q[0] + sigf[3]*Q[3] + sigf[2]*Q[6]);
 
 	}
 	else if (fNumFibStress == 3)
@@ -458,15 +475,21 @@ void FSFiberMatT::AssembleFiberStress(const dSymMatrixT& sigf, dSymMatrixT& sig,
 	
 		const double* x = Q(0);	
 		const double* y = Q(1);
-	
+
+		
 		/* sig = s11 a1 x a1 + s22 a2 x a2 + s12 (a1 x a2 + a2 x a1) */
+		
 		sig[0] += s1*x[0]*x[0] + s2*y[0]*y[0] + 2.0*s3*x[0]*y[0];
 		sig[1] += s1*x[1]*x[1] + s2*y[1]*y[1] + 2.0*s3*x[1]*y[1];
 		sig[2] += s1*x[2]*x[2] + s2*y[2]*y[2] + 2.0*s3*x[2]*y[2];
 		sig[3] += s1*x[1]*x[2] + s2*y[1]*y[2] + s3*(x[1]*y[2] + x[2]*y[1]);
 		sig[4] += s1*x[0]*x[2] + s2*y[0]*y[2] + s3*(x[0]*y[2] + x[2]*y[0]);
 		sig[5] += s1*x[0]*x[1] + s2*y[0]*y[1] + s3*(x[0]*y[1] + x[1]*y[0]);
+
+
 	}
+	
+	
 }
 
 void FSFiberMatT::AssembleFiberModuli(const dMatrixT& cf, dMatrixT& mod, const int fillmode)

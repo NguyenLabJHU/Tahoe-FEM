@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatT.h,v 1.7 2010-06-24 13:49:17 thao Exp $ */
+/* $Id: FSFiberMatT.h,v 1.8 2013-02-01 19:16:06 tahoe.kziegler Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_FIB_MAT_T_H_
 #define _FD_FIB_MAT_T_H_
@@ -21,6 +21,7 @@ namespace Tahoe {
  * cartesian coordinates.                                                                */
 class FSFiberMatT: public FSSolidMatT
 {
+	
 public:
 
 	/** constructor */
@@ -63,8 +64,10 @@ protected:
 	/*retrieves fiber rotation matrix*/
 	virtual const dMatrixT& GetRotation(void);
 	
+	/*calculates stretch in the fiber plane*/
+	virtual void ComputeFiberStretch(const dSymMatrixT& global_stretch, dSymMatrixT& fib_stretch);
+
 	/**rotate fiber stress and fiber moduli from local fiber coords to global cartesian coords*/
-	void ComputeFiberStretch(const dSymMatrixT& global_stretch, dSymMatrixT& fib_stretch);
 	void AssembleFiberStress(const dSymMatrixT& fib_stress, dSymMatrixT& global_stress, 
 				const int fillmode = dSymMatrixT::kAccumulate);
 	void AssembleFiberModuli(const dMatrixT& fib_mod, dMatrixT& global_mod,
