@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.16 2013-02-01 19:44:45 tahoe.kziegler Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.17 2013-02-01 19:52:48 tahoe.kziegler Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -43,17 +43,11 @@ UpLagFiberCompT::UpLagFiberCompT(const ElementSupportT& support):
 {
 	SetName("uplag_fiber_comp_planar");
 	
-	int uplag = 4;
-	
-	cout << "\nuplag: "<< uplag <<endl;
 }
 
 UpLagFiberCompT::~UpLagFiberCompT(void) {
 	delete fFiberSupport;
 	
-	int uplag5 = 4;
-	
-	cout << "\nuplag5: "<< uplag5 <<endl;
 	
 }
 
@@ -61,9 +55,6 @@ UpLagFiberCompT::~UpLagFiberCompT(void) {
 void UpLagFiberCompT::DefineSubs(SubListT& sub_list) const
 {
 	
-	int uplag1 = 4;
-	
-	cout << "\nuplag1: "<< uplag1 <<endl;
 	/* inherited */
 	SolidElementT::DefineSubs(sub_list);	
 
@@ -76,9 +67,7 @@ void UpLagFiberCompT::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 {
 	
-	int uplag4 = 4;
-	
-	cout << "\nuplag4: "<< uplag4 <<endl;
+
 	/* inherited */
 	if (name == "fiber_comp_element_block")
 	{
@@ -230,19 +219,14 @@ ParameterInterfaceT* UpLagFiberCompT::NewSub(const StringT& name) const
 	}
 	else /* inherited */
 		return SolidElementT::NewSub(name);
-	
-	int uplag6 = 4;
-	cout << "\nuplag6: "<< uplag6 <<endl;
+
 	
 }
 
 /* describe the parameters needed by the interface */
 void UpLagFiberCompT::DefineParameters(ParameterListT& list) const
 {
-	
-	int uplag2 = 4;
-	
-	cout << "\nuplag2: "<< uplag2 <<endl;
+
 	
 	/* inherited */
 	SimoQ1P0::DefineParameters(list);
@@ -253,9 +237,7 @@ void UpLagFiberCompT::DefineParameters(ParameterListT& list) const
 void UpLagFiberCompT::TakeParameterList(const ParameterListT& list)
 {
 	
-	int uplag3 = 4;
-	
-	cout << "\nuplag3: "<< uplag3 <<endl;
+
 	/* inherited */
 	SimoQ1P0::TakeParameterList(list);
 
@@ -281,11 +263,7 @@ void UpLagFiberCompT::TakeParameterList(const ParameterListT& list)
 /* extract the list of material parameters */
 void UpLagFiberCompT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
 {
-	
-	int uplag7 = 4;
-	
-	cout << "\nuplag7: "<< uplag7 <<endl;
-	
+
 	const char caller[] = "UpLagFiberCompT::CollectMaterialInfo";
 	
 	/* initialize */
@@ -414,7 +392,6 @@ if (fDataInput.is_open())
 		double f[3] = {0.0,0.0,0.0};	// fiber direction
 		double g[3] = {0.0,0.0,0.0};	// second vector in the fiber plane
 		int elem_num;
-	  cout<< num_elem<<endl;
 		for (int k=0;k<num_elem; k++) //change to while file is still good;
 		{
 			fDataInput >> elem_num;
@@ -921,30 +898,16 @@ void UpLagFiberCompT::BrickVec(const ParameterListT& fibers)
 
 	int nsd = NumSD();
 	
-	cout << "nsd" << nsd <<endl;
-
-	
 	const dArray2DT& coordinates = ElementSupport().InitialCoordinates();
 	StringT block_ID = fibers.GetParameter("block_ID");
-
-	cout << "block_ID" << block_ID <<endl;
-
 	
 	/* read fiber orientation vectors*/
 	dArray2DT p_vec;
 	
-	cout << "p_vec" << p_vec <<endl;
-
-	
 	int num_fibers = fibers.NumLists("DoubleList");
-	
-	cout << "num_fibers" << num_fibers <<endl;
-
 	
 	p_vec.Dimension(num_fibers, nsd);
 	
-	cout << "p_vec2" << p_vec <<endl;
-
 	
 	for (int f = 0; f < num_fibers; f++) 
 	{
@@ -952,31 +915,19 @@ void UpLagFiberCompT::BrickVec(const ParameterListT& fibers)
 		
 		int dim = P.NumLists("Double");
 		
-		cout << "dim" << dim <<endl;
-
 		if (dim != nsd)
 			ExceptionT::GeneralFail(caller, "expecting orientation vector length %d not %d",
 			nsd, dim);
 							
 		double* p = p_vec(f);
 		
-		cout << "f:  " << f <<endl;
-		cout << "p:  " << p[0] <<endl;
-		cout << "p1:  " << p[1] <<endl;
-		cout << "p2:  " << p[2] <<endl;
-
 		
 		/* same for all face nodes */
 		for (int k = 0; k < dim; k++)
-						p[k] = P.GetList("Double", k).GetParameter("value");
+		p[k] = P.GetList("Double", k).GetParameter("value");
 		
-		cout << "f:  " << f <<endl;
-		cout << "p:  " << p[0] <<endl;
-		cout << "p1:  " << p[1] <<endl;
-		cout << "p2:  " << p[2] <<endl;
-	}
 
-	cout << "pvec_new:  " << p_vec <<endl;
+	}
 
 	
 	/* loop over elements in the block */
@@ -990,20 +941,12 @@ void UpLagFiberCompT::BrickVec(const ParameterListT& fibers)
     while (block_count == block_data->Dimension()) {
       block_data = fBlockData.Pointer(++block_dex);
       block_count = 0;
-		
-		cout << "block_data:  " << block_data <<endl;
-		
+				
     }
     block_count++;
 		
-		cout << "block_count:  " << block_count <<endl;
-
 
 		if (block_ID == block_data->ID() || block_ID == "all" ) {
-			
-			cout << "block_ID" << block_ID <<endl;
-
-			cout << "fFiber_List1" << fFiber_list[0] <<endl;
 
 
 			/*dimension and initialize*/
@@ -1012,44 +955,20 @@ void UpLagFiberCompT::BrickVec(const ParameterListT& fibers)
 			P_vec.Dimension(num_fibers+1, nsd);
 			P_vec = 0.0;
 			
-			cout << "fFiber_List2" << fFiber_list[0] <<endl;
-
 
 			/* project s.t. in-plane direction unchanged and vector is unit */
 			for (int k = 0; k < num_fibers; k++)
 			{
 				
-				cout << "k:  " << k <<endl;
-
-				
 				P_vec(k,0) = p_vec(k,0);		
 				P_vec(k,1) = p_vec(k,1);		
 				P_vec(k,2) = p_vec(k,2);
-
 
 			}
 			
 			P_vec(num_fibers,0) = fibers.GetParameter("Nx");
 			P_vec(num_fibers,1) = fibers.GetParameter("Ny");
 			P_vec(num_fibers,2) = fibers.GetParameter("Nz");
-			
-			cout << "P_vector:  " << P_vec <<endl;
-
-			
-					
-			cout << "P1:  " << P_vec(0,0) <<endl;
-			cout << "P2:  " << P_vec(0,1) <<endl;
-			cout << "P3:  " << P_vec(0,2) <<endl;
-			cout << "P4:  " << P_vec(1,0) <<endl;
-			cout << "P5:  " << P_vec(1,1) <<endl;
-			cout << "P6:  " << P_vec(1,2) <<endl;
-			cout << "P7:  " << P_vec(2,0) <<endl;
-			cout << "P8:  " << P_vec(2,1) <<endl;
-			cout << "P9:  " << P_vec(2,2) <<endl;
-			
-			cout << "fFiber_List3" << fFiber_list[0] <<endl;
-
-			
 			
 		}
 	}
