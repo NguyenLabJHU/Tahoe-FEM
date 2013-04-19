@@ -1,3 +1,7 @@
+Note: Because paraEllip3d uses slightly different data format, we distinguish it by adding 
+a suffix "3" to the code name, for example, plot3, which means the plot version for paraEllip3d. 
+Codes without such suffix work for ellip3d and ellip3d-2.0 data format.
+
 plot:  
 it plots all particles at a time as a snapshot. Animations can be made by combining snapshots.
 
