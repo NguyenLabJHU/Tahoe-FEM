@@ -44,7 +44,7 @@
 
 #ifdef OPENMP
 #include <omp.h>
-#define OPENMP_IMPL 2
+#define OPENMP_IMPL 4
 #endif
 
 // OPENMP_IMPL: 
@@ -55,7 +55,7 @@
 // 4: OpenMP implementation 4, no partition, parallel for, various loop scheduling: (static), (static,1), (dynamic), (dynamic,1)
 
 //#define BINNING
-#define TIME_PROFILE
+//#define TIME_PROFILE
 
 using std::cout;
 using std::setw;
