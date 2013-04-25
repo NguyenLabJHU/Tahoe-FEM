@@ -1,32 +1,95 @@
 How to use paraEllip3d
 
-1. build
+1. compile
 
-   1) make sure boost.mpi is installed and configured in makefile
-   2) make
-   3) copy paraEllip3d to your simulation directory
+   1) setup environment, for example:
+      module load openmpi-1.6.4-gcc-4.6.4
+
+   2) setup boost in makefile, for example:
+      BOOST = boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+      Note: run environment must conform, for example, 
+            Torque/PBS qsub script should have the line:
+            module load openmpi-1.6.4-gcc-4.6.4
+
+   3) make
+
+   4) copy paraEllip3d to your simulation directory
 
 2. run
 
    1) single-thread mode
 
-      ./paraEllip3d input.txt &
+      ./paraEllip3d input.txt
       where ompThreads = 1 specified in input.txt.
 
    2) multi-thread OpenMP mode
 
-      ./paraEllip3d input.txt & 
-      where ompThreads > 1 specified in input.txt.
+      ./paraEllip3d input.txt 
+      where ompThreads = n (n > 1) specified in input.txt.
 
    3) MPI mode
 
-      mpirun -np 64 ./paraEllip3d input.txt & 
+      mpirun -np 64 ./paraEllip3d input.txt
       where number of processes, i.e., 64, is specified, and 
-      it must satisfys np = mpiProcX * mpiProcY * mpiProcZ, 
-      which are specified in input.txt.
+      it must satisfy np = mpiProcX * mpiProcY * mpiProcZ, 
+      which are specified in input.txt. 
+
+      ompThreads = 1 in input.txt.
 
    4) MPI/OpenMP hybrid mode
 
-      mpirun -np 64 -npernode 1 ./paraEllip3d input.txt &
-      where number of nodes, i.e., 64, is specified. Each node
-      run ompThreads threads, say, 12, specified in input.txt.
+      mpirun -np 64 -npernode 1 ./paraEllip3d input.txt
+      where number of nodes, i.e., 64, is specified, and it 
+      must satisfy np = mpiProcX * mpiProcY * mpiProcZ,
+      which are specified in input.txt.
+
+      "-npernode 1" means each node runs only 1 process, and 
+      that process contains multiple threads, specified by 
+      ompThreads = n (n > 1) in input.txt.
+
+3. job script examples for Torque/PBS
+
+   1) On soilblast
+
+    !/bin/sh
+
+    #PBS -m abe
+    #PBS -M your_email_address
+    #PBS -j oe
+
+    #PBS -N benchmark
+    #PBS -l nodes=1:ppn=12
+    #PBS -l walltime=24:00:00
+
+    source /usr/share/Modules/init/bash
+    module use /usr/local/modules
+    module purge
+    #module load openmpi-x86_64
+    module load openmpi-1.6.4-gcc-4.6.4
+
+    cd $PBS_O_WORKDIR
+    mpirun -np 12 ./paraEllip3d input.txt
+    
+   2) On Janus(it is a good practice to compile and run 
+      in the same environment, i.e., use job script for
+      compile.)
+
+    #!/bin/sh
+
+    #PBS -m abe
+    #PBS -M your_email_address
+    #PBS -j oe
+
+    #PBS -N benchmark
+    #PBS -l nodes=8:ppn=12
+    #PBS -l walltime=24:00:00
+    #PBS -q janus-small
+    #PBS -A CEAE00000001
+
+    . /curc/tools/utils/dkinit
+    reuse Torque
+    reuse Moab
+    reuse .openmpi-1.4.3_gcc-4.5.2_torque-2.5.8_ib
+
+    cd $PBS_O_WORKDIR
+    mpirun -np 8 -npernode 1 ./paraEllip3d input.txt

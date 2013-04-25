@@ -10,7 +10,8 @@ ifeq ($(PLATFORM), janus)
 endif
 
 ifeq ($(PLATFORM), soilblast)
- BOOST = boost-1.50.0
+ BOOST = boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+ #BOOST = boost-1.53.0
  #BOOST = default
 endif
 
@@ -50,9 +51,7 @@ ifeq ($(PLATFORM), soilblast)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
    BOOST_LIBS=-lboost_mpi -lboost_serialization
    BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
-  endif
-  
-  ifeq ($(BOOST), boost-1.50.0)
+  else  
    BOOST_ROOT=/usr/local/$(BOOST)
    BOOST_INCLUDE=-I$(BOOST_ROOT)/include
    BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
