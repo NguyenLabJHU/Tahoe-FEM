@@ -10,6 +10,7 @@
 #include <ctime>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/timer/timer.hpp>
 
 // serialization of pointers to objects of derived classes
 // http://www.boost.org/doc/libs/1_50_0/libs/serialization/doc/serialization.html#registration
@@ -25,6 +26,8 @@ int main(int argc, char* argv[]) {
 
   boost::mpi::environment  boostEnv(argc, argv);
   boost::mpi::communicator boostWorld;
+
+  boost::timer::auto_cpu_timer boostTimer;
 
   if (argc != 2) {
     if (boostWorld.rank() == 0) 
@@ -64,20 +67,6 @@ int main(int argc, char* argv[]) {
     assemb.expandCavityParticle();
   
   dem::debugInf.close();
-
-  ///////////////////////////////////////////////////////////////////////////////
-  // Part 0: command line arguments and timestamps
-  /*
-  dem::g_timeinf.open("timelog");
-  if(!dem::g_timeinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-  time_t time1, time2;
-  time(&time1);
-  if (argc == 2) {
-    dem::nThreads = atoi(argv[1]);
-    dem::g_timeinf << "command line: " << argv[0] << " " << argv[1] << std::endl << std::endl; 
-  }
-  */
-
 
   ///////////////////////////////////////////////////////////////////////////////
   // Part 2: set up a simulation to run

@@ -40,7 +40,7 @@ ifeq ($(PLATFORM), janus)
  BOOST_ROOT=/home/yanb/local/$(BOOST)
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
- BOOST_LIBS=-lboost_mpi -lboost_serialization
+ BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 
 endif
@@ -49,13 +49,13 @@ ifeq ($(PLATFORM), soilblast)
 
   ifeq ($(BOOST), default)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
-   BOOST_LIBS=-lboost_mpi -lboost_serialization
+   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
    BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
   else  
    BOOST_ROOT=/usr/local/$(BOOST)
    BOOST_INCLUDE=-I$(BOOST_ROOT)/include
    BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
-   BOOST_LIBS=-lboost_mpi -lboost_serialization
+   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
    BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
   endif
 

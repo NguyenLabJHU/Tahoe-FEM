@@ -27,7 +27,7 @@ How to use paraEllip3d
       ./paraEllip3d input.txt 
       where ompThreads = n (n > 1) specified in input.txt.
 
-   3) MPI mode
+   3) MPI mode (recommended)
 
       mpirun -np 64 ./paraEllip3d input.txt
       where number of processes, i.e., 64, is specified, and 
