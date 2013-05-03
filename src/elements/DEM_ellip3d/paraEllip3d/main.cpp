@@ -55,16 +55,23 @@ int main(int argc, char* argv[]) {
 
   dem::Assembly assemb;
   assemb.setCommunicator(boostWorld);
-  if ((int) dem::Parameter::getSingleton().parameter["simuType"] == 0)
+
+  int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
+  switch (simuType) {
+  case 0:
     assemb.depositIntoContainer();
-  else if ((int) dem::Parameter::getSingleton().parameter["simuType"] == 1)
+    break;
+  case 1:
     assemb.deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
 		   (int) dem::Parameter::getSingleton().parameter["snapNum"],
 		   (int) dem::Parameter::getSingleton().parameter["statInterv"],
 		   dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 		   dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-  else if ((int) dem::Parameter::getSingleton().parameter["simuType"] == 2)
+    break;
+  case 2:
     assemb.expandCavityParticle();
+    break;    
+  }
   
   dem::debugInf.close();
 
