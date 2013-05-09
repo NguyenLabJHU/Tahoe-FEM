@@ -29,25 +29,24 @@ int main(int argc, char* argv[]) {
 
   boost::timer::auto_cpu_timer boostTimer;
 
-  if (argc != 2) {
-    if (boostWorld.rank() == 0) 
-      std::cout << "please specify data file in the form: paraEllip3d input.txt" << std::endl;
+  if (boostWorld.rank() == 0 && argc != 2) {
+    std::cout << "please specify data file in the form: paraEllip3d input.txt" << std::endl;
     return -1;    
   }
-
+  
   if (boostWorld.rank() == 0) {
     dem::Parameter::getSingleton().readIn(argv[1]);
     //dem::Parameter::getSingleton().writeOut();
-  }
-  broadcast(boostWorld, dem::Parameter::getSingleton(), 0);
-  int mpiProcX = dem::Parameter::getSingleton().parameter["mpiProcX"];
-  int mpiProcY = dem::Parameter::getSingleton().parameter["mpiProcY"];
-  int mpiProcZ = dem::Parameter::getSingleton().parameter["mpiProcZ"];
-  if (mpiProcX * mpiProcY * mpiProcZ != boostWorld.size() ) {
-    if (boostWorld.rank() == 0) 
+    int mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
+    int mpiProcY = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcY"]);
+    int mpiProcZ = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcZ"]);
+    if (mpiProcX * mpiProcY * mpiProcZ != boostWorld.size() ) {
       std::cout << "number of MPI processes does match grids in data file!" << std::endl;
-    return -1;
+      return -1;
+    }
   }
+
+  broadcast(boostWorld, dem::Parameter::getSingleton(), 0); // broadcast from root process 0
 
   dem::debugInf.open("debugInf");
   if(!dem::debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
@@ -58,17 +57,17 @@ int main(int argc, char* argv[]) {
 
   int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
   switch (simuType) {
-  case 0:
+  case 0: // deposit spatially scattered particles into a rigid container
     assemb.depositIntoContainer();
     break;
-  case 1:
-    assemb.deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
-		   (int) dem::Parameter::getSingleton().parameter["snapNum"],
-		   (int) dem::Parameter::getSingleton().parameter["statInterv"],
+  case 1: // deposit using specified data file of particles and boundaries
+    assemb.deposit(static_cast<int> (dem::Parameter::getSingleton().parameter["totalSteps"]),
+		   static_cast<int> (dem::Parameter::getSingleton().parameter["snapNum"]),
+		   static_cast<int> (dem::Parameter::getSingleton().parameter["statInterv"]),
 		   dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 		   dem::Parameter::getSingleton().datafile["particleFile"].c_str());
     break;
-  case 2:
+  case 2: // expand particles inside a virtual cavity and see what occurs
     assemb.expandCavityParticle();
     break;    
   }
