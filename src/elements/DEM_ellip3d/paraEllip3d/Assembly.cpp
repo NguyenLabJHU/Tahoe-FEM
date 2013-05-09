@@ -89,9 +89,9 @@ const char* combineString(const char *str, int num) {
 void Assembly::setCommunicator(boost::mpi::communicator &comm) {
   boostWorld = comm;
   mpiWorld = MPI_Comm(comm);
-  mpiProcX = dem::Parameter::getSingleton().parameter["mpiProcX"];
-  mpiProcY = dem::Parameter::getSingleton().parameter["mpiProcY"];
-  mpiProcZ = dem::Parameter::getSingleton().parameter["mpiProcZ"];
+  mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
+  mpiProcY = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcY"]);
+  mpiProcZ = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcZ"]);
   
   // create Cartesian virtual topology (unavailable in boost.mpi) 
   int ndim = 3;
@@ -122,7 +122,7 @@ void Assembly::depositIntoContainer()
 
     buildBoundary(5, "dep_boundary");
     
-    int sieveNum = dem::Parameter::getSingleton().parameter["sieveNum"];
+    int sieveNum = static_cast<int> (dem::Parameter::getSingleton().parameter["sieveNum"]);
     std::vector<REAL> percent(sieveNum), size(sieveNum);
     std::vector<std::pair<REAL, REAL> > &grada = dem::Parameter::getSingleton().gradation;
     assert(grada.size() == sieveNum);
@@ -137,9 +137,9 @@ void Assembly::depositIntoContainer()
     generateParticle(particleLayers, "float_particle"); 
   }
 
-  deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
-	  (int) dem::Parameter::getSingleton().parameter["snapNum"],
-	  (int) dem::Parameter::getSingleton().parameter["statInterv"],
+  deposit(static_cast<int> (dem::Parameter::getSingleton().parameter["totalSteps"]),
+	  static_cast<int> (dem::Parameter::getSingleton().parameter["snapNum"]),
+	  static_cast<int> (dem::Parameter::getSingleton().parameter["statInterv"]),
 	  "dep_boundary",
 	  "float_particle");
   
