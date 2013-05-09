@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.155 2012-12-14 23:01:38 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.156 2013-05-09 14:43:27 hspark Exp $ */
 
 /* Revision 1.148  2011/11/28 15:26:08  hspark
 /* correct 2D DE visco
@@ -114,7 +114,7 @@
 #include "FSDielectricElastomerQ1P0T.h"
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+#ifdef DIELECTRIC_ELASTOMER_Q1P0_ELASTOCAPILLARY
 #include "FSDielectricElastomerQ1P0SurfaceT.h"
 #endif
 
@@ -445,8 +445,8 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
     sub_lists.AddSub("dielectric_elastomer_Q1P0");
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
-    sub_lists.AddSub("dielectric_elastomer_Q1P0Surface");
+#ifdef DIELECTRIC_ELASTOMER_Q1P0_ELASTOCAPILLARY
+    sub_lists.AddSub("dielectric_elastomer_Q1P0Elastocapillary");
 #endif
 
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
@@ -755,8 +755,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
     return new FSDielectricElastomerQ1P0T(fSupport);
 #endif
 
-#ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
-  else if (name == "dielectric_elastomer_Q1P0Surface")
+#ifdef DIELECTRIC_ELASTOMER_Q1P0_ELASTOCAPILLARY
+  else if (name == "dielectric_elastomer_Q1P0Elastocapillary")
     return new FSDielectricElastomerQ1P0SurfaceT(fSupport);
 #endif
 
