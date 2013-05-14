@@ -191,9 +191,9 @@ void Assembly::expandCavityParticle()
     printParticle("exp_particle");
   }
   
-  deposit((int) dem::Parameter::getSingleton().parameter["totalSteps"],
-	  (int) dem::Parameter::getSingleton().parameter["snapNum"],
-	  (int) dem::Parameter::getSingleton().parameter["statInterv"],
+  deposit(static_cast<int> (dem::Parameter::getSingleton().parameter["totalSteps"]),
+	  static_cast<int> (dem::Parameter::getSingleton().parameter["snapNum"]),
+	  static_cast<int> (dem::Parameter::getSingleton().parameter["statInterv"]),
 	  dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 	  "exp_particle");
 
@@ -313,7 +313,7 @@ deposit(int totalSteps,
     readBoundary(inputBoundary);
     readParticle(inputParticle); 
   }
-  scatterParticle(); // it also updates grid for the first time
+  scatterParticle(); // scatter particles only once; also updates grid for the first time
 
   iteration = 0;
   int iterSnap = 0;
@@ -347,7 +347,7 @@ deposit(int totalSteps,
 	plotGrid(combineString("dep_gridplot_", iterSnap));
       }
     }
-   
+
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
     migrateParticle();
@@ -534,14 +534,14 @@ void Assembly::scatterParticle() {
 			  v1.getZ() + vspan.getZ() / mpiProcZ * (coords[2] + 1));
       findParticleInRectangle(container, allParticleVec, tmpParticleVec);
       if (iRank != 0)
-	reqs[iRank - 1] = boostWorld.isend(iRank, mpiTag, tmpParticleVec);
+	reqs[iRank - 1] = boostWorld.isend(iRank, mpiTag, tmpParticleVec); // non-blocking send
       if (iRank == 0) {
 	particleVec.resize(tmpParticleVec.size());
 	for (int i = 0; i < particleVec.size(); ++i)
-	  particleVec[i] = new Particle(*tmpParticleVec[i]);
+	  particleVec[i] = new Particle(*tmpParticleVec[i]); // default synthesized copy constructor
       } // now particleVec do not share memeory with allParticleVec
     }
-    boost::mpi::wait_all(reqs, reqs + mpiSize - 1);
+    boost::mpi::wait_all(reqs, reqs + mpiSize - 1); // for non-blocking send
     delete [] reqs;
 
   } else { // other processes except 0
@@ -553,6 +553,8 @@ void Assembly::scatterParticle() {
   broadcast(boostWorld, boundaryVec, 0);
   broadcast(boostWorld, allContainer, 0);
   broadcast(boostWorld, grid, 0);
+
+  // content of allParticleVec is not needed any more except for later gathering to print
 }
 
 
@@ -1567,14 +1569,16 @@ void Assembly::gatherParticle() {
     allParticleVec.insert(allParticleVec.end(), dupParticleVec.begin(), dupParticleVec.end());
 
     std::vector<Particle*> tmpParticleVec;
+    long gatherRam = 0;
     for (int iRank = 1; iRank < mpiSize; ++iRank) {
 
       tmpParticleVec.clear();// do not release memory!
       boostWorld.recv(iRank, mpiTag, tmpParticleVec);
       allParticleVec.insert(allParticleVec.end(), tmpParticleVec.begin(), tmpParticleVec.end());
+      gatherRam += tmpParticleVec.size();
 
     }
-
+    std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << " ";
   }
   
 }
@@ -1591,12 +1595,16 @@ void Assembly::gatherContact() {
     allContact.insert(contactVec.begin(), contactVec.end());
 
     std::vector<CONTACT> tmpContactVec;
+    long gatherRam = 0;
     for (int iRank = 1; iRank < mpiSize; ++iRank) {
+
       tmpContactVec.clear();
       boostWorld.recv(iRank, mpiTag, tmpContactVec);
       allContact.insert(tmpContactVec.begin(), tmpContactVec.end());
-    }
+      gatherRam += tmpContactVec.size();
 
+    }
+    std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact<Particle>) << std::endl;
   }  
 }
 
