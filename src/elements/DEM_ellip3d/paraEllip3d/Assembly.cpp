@@ -315,10 +315,10 @@ deposit(int totalSteps,
   }
   scatterParticle(); // scatter particles only once; also updates grid for the first time
 
-  iteration = 0;
+  iteration = 1;
   int iterSnap = 0;
   double time0, time1, time2, commuT, migraT, gatherT, totalT;
-  do {
+  while (iteration <= totalSteps) {
     commuT = migraT = gatherT = totalT = 0;
     time0 = MPI_Wtime();
 
@@ -354,7 +354,7 @@ deposit(int totalSteps,
     time2 = MPI_Wtime(); migraT = time2 - time1;
  
     time2 = MPI_Wtime(); totalT = time2 - time0;
-    if (mpiRank == 0 && iteration % 100 == 0)
+    if (mpiRank == 0 && (iteration + 1) % (totalSteps / snapNum) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
 	       << " gather=" << gatherT
@@ -363,10 +363,8 @@ deposit(int totalSteps,
 	       << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 	       << std::scientific << std::setprecision(6) << std::endl;
 
-  } while (++iteration < totalSteps);
-
-  gatherParticle();
-  if (mpiRank == 0) printParticle("dep_particle_end");
+    ++iteration;
+  } 
 
 }
 
