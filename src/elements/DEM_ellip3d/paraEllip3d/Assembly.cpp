@@ -546,13 +546,20 @@ void Assembly::scatterParticle() {
     boostWorld.recv(0, mpiTag, particleVec);
   }
 
+  // content of allParticleVec is not needed any more 
+  // but the variable is used for later gathering to print, so clear it.
+  if (mpiRank == 0) { // process 0
+    std::vector<Particle*>::iterator it;
+    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+      delete (*it);
+    allParticleVec.clear();
+  }
+
   // broadcast necessary info
   broadcast(boostWorld, gradation, 0);
   broadcast(boostWorld, boundaryVec, 0);
   broadcast(boostWorld, allContainer, 0);
   broadcast(boostWorld, grid, 0);
-
-  // content of allParticleVec is not needed any more except for later gathering to print
 }
 
 
@@ -1550,9 +1557,9 @@ void Assembly::gatherParticle() {
     boostWorld.send(0, mpiTag, particleVec);
   }
   else { // process 0
-
+    // allParticleVec is cleared first time in scatterParticle, and at the end of each gathering.
+    // here do it redundantly with low cost, for the purpose of safety.
     std::vector<Particle*>::iterator it;
-    // clear allParticleVec
     for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
@@ -1577,6 +1584,12 @@ void Assembly::gatherParticle() {
 
     }
     std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << " ";
+
+    // clear allParticleVec, avoid long time memory footprint.
+    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+      delete (*it);
+    allParticleVec.clear();
+
   }
   
 }
@@ -1603,6 +1616,7 @@ void Assembly::gatherContact() {
 
     }
     std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact<Particle>) << std::endl;
+    allContact.clear();
   }  
 }
 
