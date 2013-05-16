@@ -553,6 +553,7 @@ void Assembly::scatterParticle() {
     for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
+    std::vector<Particle*>().swap(allParticleVec); // actual memory release
   }
 
   // broadcast necessary info
@@ -1563,6 +1564,7 @@ void Assembly::gatherParticle() {
     for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
+    std::vector<Particle*>().swap(allParticleVec); // actual memory release
 
     // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration,
     // otherwise it causes memory error.
@@ -1589,6 +1591,7 @@ void Assembly::gatherParticle() {
     for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
+    std::vector<Particle*>().swap(allParticleVec); // actual memory release
 
   }
   
@@ -1603,6 +1606,7 @@ void Assembly::gatherContact() {
   }
   else { // process 0
     allContact.clear();
+    boost::unordered_set<CONTACT>().swap(allContact); // actual memory release
     allContact.insert(contactVec.begin(), contactVec.end());
 
     std::vector<CONTACT> tmpContactVec;
@@ -1617,6 +1621,7 @@ void Assembly::gatherContact() {
     }
     std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact<Particle>) << std::endl;
     allContact.clear();
+    boost::unordered_set<CONTACT>().swap(allContact); // actual memory release
   }  
 }
 
