@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.156 2013-05-09 14:43:27 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.157 2013-05-20 23:32:55 regueiro Exp $ */
 
 /* Revision 1.148  2011/11/28 15:26:08  hspark
 /* correct 2D DE visco
@@ -268,6 +268,10 @@
 #ifdef MICROMORPHIC_DEV
 #include "FSMicromorphic2DT.h"
 #include "FSMicromorphic3DT.h"
+#endif
+
+#ifdef MICROMORPHIC2_DEV
+#include "FSMicromorphic2_3DT.h"
 #endif
 
 #ifdef MICROMORPHIC_CURR_CONFIG_DEV
@@ -565,6 +569,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef MICROMORPHIC_DEV
 		sub_lists.AddSub("micromorphic_FS_2D");
 		sub_lists.AddSub("micromorphic_FS_3D");
+#endif
+
+#ifdef MICROMORPHIC2_DEV
+		sub_lists.AddSub("micromorphic2_FS_3D");
 #endif
 
 #ifdef MICROMORPHIC_CURR_CONFIG_DEV
@@ -921,6 +929,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 	  return new FSMicromorphic2DT(fSupport);
 	else if (name == "micromorphic_FS_3D")
 	  return new FSMicromorphic3DT(fSupport);
+#endif
+
+#ifdef MICROMORPHIC2_DEV
+	else if (name == "micromorphic2_FS_3D")
+	  return new FSMicromorphic2_3DT(fSupport);
 #endif
 
 #ifdef MICROMORPHIC_CURR_CONFIG_DEV
