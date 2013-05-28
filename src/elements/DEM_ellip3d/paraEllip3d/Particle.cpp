@@ -140,7 +140,7 @@ Particle::Particle(int n, int tp, Vec center, REAL ra, REAL rb, REAL rc, REAL yn
 }
 
 
-Particle::Particle(int n, int tp, Vec center, Gradation& grad, REAL yng, REAL poi)
+Particle::Particle(int n, int tp, Vec center, Gradation &grad, REAL yng, REAL poi)
  :id(n), type(tp), young(yng), poisson(poi), currPos(center)  {
   // generate particle size in terms of gradation distribution
   REAL sievenum = grad.getSieveNum();
@@ -601,7 +601,7 @@ Vec Particle::globalVec(Vec v) const {
 }
 
   
-bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const {
+bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const {
   if(a == b && b == c) {
     Vec tnm = Vec(p,q,r) / sqrt(p * p + q * q + r * r);
     // signed distance from particle center to plane
@@ -662,9 +662,9 @@ bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const
 }
   
 
-void Particle::planeRBForce(plnBoundary<Particle>* plb,
-			    std::map<int,std::vector<BoundaryTgt> >& BdryTgtMap,
-			    std::vector<BoundaryTgt>& vtmp,
+void Particle::planeRBForce(plnBoundary *plb,
+			    std::map<int,std::vector<BoundaryTgt> > &BdryTgtMap,
+			    std::vector<BoundaryTgt> &vtmp,
 			    REAL &penetr) {
   // (p, q, r) are in the same direction as the outward normal vector,
   // hence it is not necessary to provide information about which side the particle is about the plane.
@@ -902,7 +902,7 @@ void Particle::planeRBForce(plnBoundary<Particle>* plb,
 }
   
   
-Vec Particle::cylinderRBForce(int boundaryId, const Cylinder& S, int side) {
+Vec Particle::cylinderRBForce(int boundaryId, const Cylinder &S, int side) {
   // side == -1, the particles are inside the cylinder
   // side == +1, the particles are outside the cylinder
   REAL x0 = S.getCenter().getX();

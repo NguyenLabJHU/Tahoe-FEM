@@ -1,13 +1,13 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include "Parameter.h"
 #include "realtypes.h"
 #include "Vec.h"
 #include "Gradation.h"
-#include "Contact.h"
-#include "Boundary.h"
 #include "Rectangle.h"
 #include "Cylinder.h"
+#include "Boundary.h"
 #include <map>
 #include <boost/mpi.hpp>
 
@@ -147,7 +147,7 @@ namespace dem {
     bool nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const;
     
     //calculate the normal force between particle and a plane rigid boundary
-    void planeRBForce(plnBoundary<Particle>* plb,
+    void planeRBForce(plnBoundary *plb,
 		      std::map<int,std::vector<BoundaryTgt> >& BoundarytgtMap,
 		      std::vector<BoundaryTgt>& vtmp,
 		      REAL &penetr);

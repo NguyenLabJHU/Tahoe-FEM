@@ -77,7 +77,7 @@ REAL timediffsec(const struct timeval &time1, const struct timeval &time2) {
 }
 
 
-const char* combineString(const char *str, int num) {
+const char *combineString(const char *str, int num) {
   std::string obj(str);
   std::stringstream ss;
   ss << std::setw(3) << std::setfill('0') << std::right << num;
@@ -266,8 +266,8 @@ generateParticle(int particleLayers,
 
 void Assembly::
 trim(bool toRebuild,
-     const char* inputParticle,
-     const char* trmParticle)
+     const char *inputParticle,
+     const char *trmParticle)
 {
   if (toRebuild) readParticle(inputParticle);
   trimHistoryNum = allParticleVec.size();
@@ -345,7 +345,7 @@ deposit(int totalSteps,
 	printParticle(combineString("dep_particle_", iterSnap));
 	releaseGatheredParticle();
       }
-
+      
       time1 = MPI_Wtime();
       gatherContact();
       time2 = MPI_Wtime(); gatherT += (time2 - time1);
@@ -1584,7 +1584,7 @@ void Assembly::gatherParticle() {
     long gatherRam = 0;
     for (int iRank = 1; iRank < mpiSize; ++iRank) {
 
-      tmpParticleVec.clear();// do not release memory!
+      tmpParticleVec.clear();// do not destroy particles!
       boostWorld.recv(iRank, mpiTag, tmpParticleVec);
       allParticleVec.insert(allParticleVec.end(), tmpParticleVec.begin(), tmpParticleVec.end());
       gatherRam += tmpParticleVec.size();
@@ -1604,20 +1604,20 @@ void Assembly::gatherContact() {
   }
   else { // process 0
     allContact.clear();
-    boost::unordered_set<CONTACT>().swap(allContact); // actual memory release
+    boost::unordered_set<Contact>().swap(allContact); // actual memory release
     allContact.insert(contactVec.begin(), contactVec.end());
 
-    std::vector<CONTACT> tmpContactVec;
+    std::vector<Contact> tmpContactVec;
     long gatherRam = 0;
     for (int iRank = 1; iRank < mpiSize; ++iRank) {
 
       tmpContactVec.clear();
       boostWorld.recv(iRank, mpiTag, tmpContactVec);
-      allContact.insert(tmpContactVec.begin(), tmpContactVec.end());
+      allContact.insert(tmpContactVec.begin(), tmpContactVec.end()); // duplicate, not pointer!
       gatherRam += tmpContactVec.size();
 
     }
-    std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact<Particle>) << std::endl;
+    std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact) << std::endl;
   }  
 }
 
@@ -1634,7 +1634,7 @@ void Assembly::releaseGatheredParticle() {
 void Assembly::releaseGatheredContact() {
   // clear allContact, avoid long time memeory footprint.
   allContact.clear();
-  boost::unordered_set<CONTACT>().swap(allContact); // actual memory release
+  boost::unordered_set<Contact>().swap(allContact); // actual memory release
 }
 
 
@@ -1649,7 +1649,7 @@ void Assembly::gatherContact() {
     allContactVec.clear();
     allContactVec.insert(allContactVec.end(), contactVec.begin(), contactVec.end());
 
-    std::vector<CONTACT> tmpContactVec;
+    std::vector<Contact> tmpContactVec;
     for (int iRank = 1; iRank < mpiSize; ++iRank) {
       tmpContactVec.clear();
       boostWorld.recv(iRank, mpiTag, tmpContactVec);
@@ -1714,7 +1714,7 @@ void Assembly::readParticle(const char *inputParticle) {
 }
 
 
-void Assembly::printParticle(const char* str) const {
+void Assembly::printParticle(const char *str) const {
   std::ofstream ofs(str);
   if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -1813,7 +1813,7 @@ void Assembly::printParticle(const char* str) const {
 }
 
 
-void Assembly::printParticle(const char* str, std::vector<Particle*>  &particleVec) const {
+void Assembly::printParticle(const char *str, std::vector<Particle*>  &particleVec) const {
   std::ofstream ofs(str);
   if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -1904,7 +1904,7 @@ void Assembly::printParticle(const char* str, std::vector<Particle*>  &particleV
 }
 
 
-void Assembly::readBoundary(const char* str) {
+void Assembly::readBoundary(const char *str) {
   std::ifstream ifs(str);
   if(!ifs) { std::cout << "stream error: readBoundary" << std::endl; exit(-1); }
 
@@ -1914,7 +1914,7 @@ void Assembly::readBoundary(const char* str) {
   // compute grid assumed to be the same as container, change in scatterParticle() if necessary.
   setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
 
-  Boundary<Particle>* rbptr;
+  Boundary *rbptr;
   int type;
   boundaryVec.clear();
   int boundaryNum;
@@ -1922,9 +1922,9 @@ void Assembly::readBoundary(const char* str) {
   for(int i = 0; i < boundaryNum; ++i){
     ifs >> type;
     if(type == 1) // plane boundary
-      rbptr = new plnBoundary<Particle>(ifs);
+      rbptr = new plnBoundary(ifs);
     else          // cylindrical boundary
-      rbptr = new cylBoundary<Particle>(ifs);
+      rbptr = new cylBoundary(ifs);
     boundaryVec.push_back(rbptr);
   }
 
@@ -1932,7 +1932,7 @@ void Assembly::readBoundary(const char* str) {
 }
 
 
-void Assembly::printBoundary(const char* str) const {
+void Assembly::printBoundary(const char *str) const {
   std::ofstream ofs(str);
   if(!ofs) { std::cout << "stream error: printBoundary" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -1950,7 +1950,7 @@ void Assembly::printBoundary(const char* str) const {
       << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl
       << std::setw(OWID) << boundaryVec.size() << std::endl;
   
-  std::vector<BOUNDARY*>::const_iterator rt;
+  std::vector<Boundary*>::const_iterator rt;
   for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
     (*rt)->display(ofs);
   ofs << std::endl;
@@ -2060,7 +2060,7 @@ void Assembly::findContact() { // various implementations
 	     && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
 	     && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
 	     && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	  Contact<Particle> tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
+	  Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
 	  ++possContactNum;
 #ifdef TIME_PROFILE
 	  gettimeofday(&time_r1, NULL); 
@@ -2106,7 +2106,7 @@ void Assembly::findContact() { // various implementations
 	     && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
 	     && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
 	     && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	  Contact<Particle> tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
+	  Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
 	  ++possContact;
 	  if(tmpContact.isOverlapped())
 #pragma omp critical
@@ -2135,7 +2135,7 @@ void Assembly::internalForce(){
     avgShear = 0;
   }
   else{
-    for (std::vector<CONTACT>::iterator it = contactVec.begin(); it != contactVec.end(); ++it)
+    for (std::vector<Contact>::iterator it = contactVec.begin(); it != contactVec.end(); ++it)
       it->checkinPrevTgt(contactTgtVec); // checkin previous tangential force and displacment    
     
 #ifdef TIME_PROFILE
@@ -2143,7 +2143,7 @@ void Assembly::internalForce(){
 #endif 
 
     contactTgtVec.clear(); // contactTgtVec must be cleared before filling in new values.
-    for (std::vector<CONTACT>::iterator it = contactVec.begin(); it != contactVec.end(); ++ it){
+    for (std::vector<Contact>::iterator it = contactVec.begin(); it != contactVec.end(); ++ it){
       it->contactForce();             // cannot be parallelized as it may change a particle's force simultaneously.
       it->checkoutTgt(contactTgtVec); // checkout current tangential force and displacment
       avgNormal += it->getNormalForce();
@@ -2174,18 +2174,18 @@ void Assembly::clearContactForce() {
 
 
 void Assembly::findBdryContact() {
-  for(std::vector<BOUNDARY*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
+  for(std::vector<Boundary*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
     (*rt)->findBdryContact(particleVec);
 }
 
 
 void Assembly::boundaryForce() {
-  for(std::vector<BOUNDARY*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
+  for(std::vector<Boundary*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
     (*rt)->boundaryForce(boundaryTgtMap);
 }
 
 
-void Assembly::printContact(const char* str) const
+void Assembly::printContact(const char *str) const
 {
     std::ofstream ofs(str);
     if(!ofs) { std::cout << "stream error: printContact" << std::endl; exit(-1); }
@@ -2223,8 +2223,8 @@ void Assembly::printContact(const char* str) const
         << std::setw(OWID) << "impact_t_step"
         << std::endl;
 
-    //std::vector<CONTACT>::const_iterator it;
-    boost::unordered_set<CONTACT>::const_iterator it;
+    //std::vector<Contact>::const_iterator it;
+    boost::unordered_set<Contact>::const_iterator it;
     for (it = allContact.begin(); it != allContact.end(); ++it)
       ofs << std::setw(OWID) << it->getP1()->getId()
 	  << std::setw(OWID) << it->getP2()->getId()
@@ -2318,7 +2318,7 @@ void Assembly::plotSpring(const char *str) const {
   ofs.close();
 }  
 
-void Assembly::printMemParticle(const char* str) const  {
+void Assembly::printMemParticle(const char *str) const  {
   std::ofstream ofs(str);
   if(!ofs) { std::cout << "stream error: printMemParticle" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -2850,7 +2850,7 @@ void Assembly::findContact(){ // serial version, O(n x n), n is the number of pa
 	    && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
 	    && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
 	    && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	  Contact<Particle> tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
+	  Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
 	  ++possContactNum;
 #ifdef TIME_PROFILE
 	  gettimeofday(&time_r1,NULL); 
@@ -3043,7 +3043,7 @@ REAL Assembly::getAvgPenetration() const{
 	return 0;
     else {
 	REAL pene=0;
-	for (std::vector<CONTACT>::const_iterator it=contactVec.begin();it!=contactVec.end();++it)
+	for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it)
 	    pene += it->getPenetration(); 
 	return pene/totalcntct;
     }
@@ -3054,7 +3054,7 @@ REAL Assembly::getVibraTimeStep() const {
     if (totalcntct == 0)
 	return 0;
     else {
-	std::vector<CONTACT>::const_iterator it=contactVec.begin();
+	std::vector<Contact>::const_iterator it=contactVec.begin();
         REAL minTimeStep = it->getVibraTimeStep();
 	for (++it; it != contactVec.end(); ++it) {
 	  REAL val = it->getVibraTimeStep(); 
@@ -3069,7 +3069,7 @@ REAL Assembly::getImpactTimeStep() const {
     if (totalcntct == 0)
 	return 0;
     else {
-	std::vector<CONTACT>::const_iterator it=contactVec.begin();
+	std::vector<Contact>::const_iterator it=contactVec.begin();
         REAL minTimeStep = it->getImpactTimeStep();
 	for (++it; it != contactVec.end(); ++it) {
 	  REAL val = it->getImpactTimeStep(); 
@@ -3270,7 +3270,7 @@ void Assembly::springForce() {
     (*it)->applyForce();
 }
 
-void Assembly::readCavityBoundary(const char* str) {
+void Assembly::readCavityBoundary(const char *str) {
   std::ifstream ifs(str);
   if(!ifs) { std::cout << "stream error: readCavityBoundary" << std::endl; exit(-1); }  
 
@@ -3290,13 +3290,13 @@ void Assembly::readCavityBoundary(const char* str) {
 }
 
 
-void Assembly::printCavityBoundary(const char* str) const {
+void Assembly::printCavityBoundary(const char *str) const {
   std::ofstream ofs(str);
   if(!ofs) { std::cout << "stream error: printCavityBoundary" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
   
   ofs << std::setw(OWID) << cavityBoundaryVec.size() << std::endl;
-  std::vector<BOUNDARY*>::const_iterator rt;
+  std::vector<Boundary*>::const_iterator rt;
   for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
     (*rt)->display(ofs);
   ofs << std::endl;
@@ -3307,7 +3307,7 @@ void Assembly::printCavityBoundary(const char* str) const {
 
 
 void Assembly::findCavityContact(){
-  std::vector<BOUNDARY*>::iterator rt;
+  std::vector<Boundary*>::iterator rt;
   for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
     (*rt)->findBdryContact(allParticleVec);
 }
@@ -3315,7 +3315,7 @@ void Assembly::findCavityContact(){
 
 
 void Assembly::boundaryForce(REAL penetr[],int cntnum[]){
-  std::vector<BOUNDARY*>::iterator rt;
+  std::vector<Boundary*>::iterator rt;
   for(rt=boundaryVec.begin();rt!=boundaryVec.end();++rt){	
     (*rt)->boundaryForce(boundaryTgtMap);
     for (int i = 1; i <= 6; ++i) {
@@ -3329,13 +3329,13 @@ void Assembly::boundaryForce(REAL penetr[],int cntnum[]){
 }
 
 void Assembly::cavityBoundaryForce(){
-  std::vector<BOUNDARY*>::iterator rt;
+  std::vector<Boundary*>::iterator rt;
   for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
     (*rt)->boundaryForce(boundaryTgtMap);
 }
 
 Vec Assembly::getNormalForce(int bdry) const{
-    std::vector<BOUNDARY*>::const_iterator it;
+    std::vector<Boundary*>::const_iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getNormalForce();
@@ -3344,7 +3344,7 @@ Vec Assembly::getNormalForce(int bdry) const{
 }
 
 Vec Assembly::getShearForce(int bdry) const{
-    std::vector<BOUNDARY*>::const_iterator it;
+    std::vector<Boundary*>::const_iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getShearForce();
@@ -3353,7 +3353,7 @@ Vec Assembly::getShearForce(int bdry) const{
 }
 
 REAL Assembly::getAvgNormal(int bdry) const{
-    std::vector<BOUNDARY*>::const_iterator it;
+    std::vector<Boundary*>::const_iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getAvgNormal();
@@ -3362,7 +3362,7 @@ REAL Assembly::getAvgNormal(int bdry) const{
 }
 
 Vec Assembly::getApt(int bdry) const{
-    std::vector<BOUNDARY*>::const_iterator it;
+    std::vector<Boundary*>::const_iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getApt();
@@ -3372,7 +3372,7 @@ Vec Assembly::getApt(int bdry) const{
 
 
 Vec Assembly::getDirc(int bdry) const{
-    std::vector<BOUNDARY*>::const_iterator it;
+    std::vector<Boundary*>::const_iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==bdry)
 	    return (*it)->getDirc();
@@ -3381,7 +3381,7 @@ Vec Assembly::getDirc(int bdry) const{
 }
 
 REAL Assembly::getArea(int n) const{
-    std::vector<BOUNDARY*>::const_iterator it;
+    std::vector<Boundary*>::const_iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==n)
 	    return (*it)->area;
@@ -3390,7 +3390,7 @@ REAL Assembly::getArea(int n) const{
 }
 
 void Assembly::setArea(int n, REAL a){
-    std::vector<BOUNDARY*>::iterator it;
+    std::vector<Boundary*>::iterator it;
     for(it=boundaryVec.begin();it!=boundaryVec.end();++it){
 	if((*it)->getBdryID()==n)
 	    (*it)->area=a;
@@ -3398,7 +3398,7 @@ void Assembly::setArea(int n, REAL a){
 }
 
 REAL Assembly::getAvgPressure() const{
-    std::vector<BOUNDARY*>::const_iterator rt;
+    std::vector<Boundary*>::const_iterator rt;
     REAL avgpres=0;
     for(rt=boundaryVec.begin();rt!=boundaryVec.end();++rt)
 	avgpres+=vfabs((*rt)->getNormalForce())/(*rt)->getArea();
@@ -3408,7 +3408,7 @@ REAL Assembly::getAvgPressure() const{
 // only update CoefOfLimits[0] for specified boundaries
 void Assembly::updateBoundary(int bn[], UPDATECTL rbctl[], int num){
     for(int i=0;i<num;i++){
-	for(std::vector<BOUNDARY*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt){
+	for(std::vector<Boundary*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt){
 	    if((*rt)->getBdryID()==bn[i]){
 		(*rt)->update(rbctl[i]);
 		break;
@@ -3419,9 +3419,9 @@ void Assembly::updateBoundary(int bn[], UPDATECTL rbctl[], int num){
 
 // update CoefOfLimits[1,2,3,4] for all 6 boundaries
 void Assembly::updateBoundary6(){
-    for(std::vector<BOUNDARY*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt){
+    for(std::vector<Boundary*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt){
 	if((*rt)->getBdryID()==1 || (*rt)->getBdryID()==3){
-	    for(std::vector<BOUNDARY*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt){
+	    for(std::vector<Boundary*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt){
 		if((*lt)->getBdryID()==4)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==2)
@@ -3433,7 +3433,7 @@ void Assembly::updateBoundary6(){
 	    }
 	}
 	else if((*rt)->getBdryID()==2 || (*rt)->getBdryID()==4){
-	    for(std::vector<BOUNDARY*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt){
+	    for(std::vector<Boundary*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt){
 		if((*lt)->getBdryID()==1)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==3)
@@ -3446,7 +3446,7 @@ void Assembly::updateBoundary6(){
 
 	}
 	else if((*rt)->getBdryID()==5 || (*rt)->getBdryID()==6){
-	    for(std::vector<BOUNDARY*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt){
+	    for(std::vector<Boundary*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt){
 		if((*lt)->getBdryID()==1)
 		    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
 		else if((*lt)->getBdryID()==3)
@@ -3463,11 +3463,11 @@ void Assembly::updateBoundary6(){
 }
 
 void Assembly::deposit_repose(int   interval,
-			      const char* inibdryfile,
-			      const char* ParticleFile, 
-			      const char* contactfile,
-			      const char* progressfile, 
-			      const char* debugfile)
+			      const char *inibdryfile,
+			      const char *ParticleFile, 
+			      const char *contactfile,
+			      const char *progressfile, 
+			      const char *debugfile)
 {
   this->container = container;
   
@@ -3482,11 +3482,11 @@ void Assembly::deposit_repose(int   interval,
 }
 
 void Assembly::angleOfRepose(int   interval,
-			     const char* inibdryfile,
-			     const char* ParticleFile, 
-			     const char* contactfile,
-			     const char* progressfile, 
-			     const char* debugfile)
+			     const char *inibdryfile,
+			     const char *ParticleFile, 
+			     const char *contactfile,
+			     const char *progressfile, 
+			     const char *debugfile)
 {
   // pre_1: open streams for output.
   progressinf.open(progressfile); 
@@ -3750,11 +3750,11 @@ void Assembly::scale_PtclBdry(int   totalSteps,
 			      int   interval,
 			      REAL dimn,
 			      REAL rsize,
-			      const char* iniptclfile,   
-			      const char* ParticleFile, 
-			      const char* contactfile,
-			      const char* progressfile, 
-			      const char* debugfile)
+			      const char *iniptclfile,   
+			      const char *ParticleFile, 
+			      const char *contactfile,
+			      const char *progressfile, 
+			      const char *debugfile)
 {
     deposit_p(totalSteps,        // totalSteps
 	      snapNum,          // number of snapNum
@@ -3773,12 +3773,12 @@ void Assembly::scale_PtclBdry(int   totalSteps,
 void Assembly::collapse(int   totalSteps,  
 			int   snapNum,
 			int   interval,
-			const char* iniptclfile,
-			const char* initboundary,
-			const char* ParticleFile,
-			const char* contactfile,
-			const char* progressfile,
-			const char* debugfile)
+			const char *iniptclfile,
+			const char *initboundary,
+			const char *ParticleFile,
+			const char *contactfile,
+			const char *progressfile,
+			const char *debugfile)
 {
   buildBoundary(1,              // 1-only bottom boundary; 5-no top boundary;6-boxed 6 boundaries
 		initboundary);  // output file, containing boundaries info
@@ -3799,8 +3799,8 @@ void Assembly::collapse(int   totalSteps,
 
 // make a cavity inside the sample and remove particles in the cavity
 void Assembly::trimCavity(bool toRebuild,
-			  const char* ParticleFile,
-			  const char* cavParticleFile)
+			  const char *ParticleFile,
+			  const char *cavParticleFile)
 {
   if (toRebuild) readParticle(ParticleFile);
   trimHistoryNum = allParticleVec.size();
@@ -3840,9 +3840,9 @@ void Assembly::trimCavity(bool toRebuild,
 // expand partcile size by some percentage for particles inside cavity
 void Assembly::expandCavityParticle(bool toRebuild,
 				    REAL percent,
-				    const char* cavityptclfile,
-				    const char* ParticleFile,
-				    const char* newptclfile)
+				    const char *cavityptclfile,
+				    const char *ParticleFile,
+				    const char *newptclfile)
 {
   if (toRebuild) readParticle(ParticleFile);
   trimHistoryNum = allParticleVec.size();
@@ -3881,7 +3881,7 @@ void Assembly::expandCavityParticle(bool toRebuild,
 }
 
 
-void Assembly::printCavityParticle(int total, const char* str) const {
+void Assembly::printCavityParticle(int total, const char *str) const {
   std::ofstream ofs(str);
   if(!ofs) { std::cout << "stream error: printCavityParticle" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -3996,7 +3996,7 @@ void Assembly::printCavityParticle(int total, const char* str) const {
 // bdrymum = 6 by default
 // the variable existMaxID is important because cavity and container
 // use the same boundaryTgtMap.
-void Assembly::buildCavityBoundary(int existMaxId, const char* boundaryFile)
+void Assembly::buildCavityBoundary(int existMaxId, const char *boundaryFile)
 {
   std::ofstream ofs(boundaryFile);
   if(!ofs) { std::cout << "stream error: buildCavityBoundary" << std::endl; exit(-1); }
@@ -4361,8 +4361,8 @@ void Assembly::buildCavityBoundary(int existMaxId, const char* boundaryFile)
 // create boundary particles and springs connecting those boundary particles
 void Assembly::createMemParticle(REAL rRadius,
 				 bool toRebuild,
-				 const char* ParticleFile,
-				 const char* allParticle)
+				 const char *ParticleFile,
+				 const char *allParticle)
 {
   if (toRebuild) readParticle(ParticleFile);
 
@@ -4704,8 +4704,8 @@ void Assembly::createMemParticle(REAL rRadius,
 
 
 void Assembly::TrimPtclBdryByHeight(REAL height,
-			    const char* iniptclfile,
-			    const char* ParticleFile)
+			    const char *iniptclfile,
+			    const char *ParticleFile)
 {
   readParticle(iniptclfile);
   
@@ -4929,13 +4929,13 @@ void Assembly::deposit(int   totalSteps,
 void Assembly::depositAfterCavity(int   totalSteps,  
 				  int   snapNum,
 				  int   interval,
-				  const char* iniptclfile,   
-				  const char* inibdryfile,
-				  const char* inicavefile,
-				  const char* ParticleFile, 
-				  const char* contactfile,
-				  const char* progressfile, 
-				  const char* debugfile)
+				  const char *iniptclfile,   
+				  const char *inibdryfile,
+				  const char *inicavefile,
+				  const char *ParticleFile, 
+				  const char *contactfile,
+				  const char *progressfile, 
+				  const char *debugfile)
 {
     // pre_1: open streams for output.
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -5131,11 +5131,11 @@ void Assembly::deGravitation(int   totalSteps,
 			     int   snapNum,
 			     int   interval,
 			     bool  toRebuild,
-			     const char* iniptclfile,   
-			     const char* ParticleFile, 
-			     const char* contactfile,
-			     const char* progressfile, 
-			     const char* debugfile)
+			     const char *iniptclfile,   
+			     const char *ParticleFile, 
+			     const char *contactfile,
+			     const char *progressfile, 
+			     const char *debugfile)
 {
   // pre_1: open streams for output.
   progressinf.open(progressfile); 
@@ -5244,11 +5244,11 @@ void Assembly::deposit_p(int   totalSteps,
 			 int   interval,
 			 REAL dimn,
 			 REAL rsize,
-			 const char* iniptclfile,   
-			 const char* ParticleFile, 
-			 const char* contactfile,
-			 const char* progressfile, 
-			 const char* debugfile)
+			 const char *iniptclfile,   
+			 const char *ParticleFile, 
+			 const char *contactfile,
+			 const char *progressfile, 
+			 const char *debugfile)
 {
     // pre_1: open streams for output.
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -5371,13 +5371,13 @@ void Assembly::squeeze(int   totalSteps,
 		       int   snapNum,
 		       int   interval,
 		       int   flag,
-		       const char* iniptclfile,   
-		       const char* inibdryfile,
-		       const char* ParticleFile, 
-		       const char* boundaryfile,
-		       const char* contactfile,
-		       const char* progressfile, 
-		       const char* debugfile)
+		       const char *iniptclfile,   
+		       const char *inibdryfile,
+		       const char *ParticleFile, 
+		       const char *boundaryfile,
+		       const char *contactfile,
+		       const char *progressfile, 
+		       const char *debugfile)
 {
     // pre_1: open streams for output.
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -5539,14 +5539,14 @@ void Assembly::isotropic(int   totalSteps,
 			 int   snapNum, 
 			 int   interval,
 			 REAL  sigma,			  
-			 const char* iniptclfile,   
-			 const char* inibdryfile,
-			 const char* ParticleFile, 
-			 const char* boundaryfile,
-			 const char* contactfile,  
-			 const char* progressfile,
-			 const char* balancedfile, 
-			 const char* debugfile) 
+			 const char *iniptclfile,   
+			 const char *inibdryfile,
+			 const char *ParticleFile, 
+			 const char *boundaryfile,
+			 const char *contactfile,  
+			 const char *progressfile,
+			 const char *balancedfile, 
+			 const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -5834,14 +5834,14 @@ void Assembly::isotropic(int   totalSteps,
 			 REAL sigma_a,
 			 REAL sigma_b,
 			 int   sigma_division,
-			 const char* iniptclfile,   
-			 const char* inibdryfile,
-			 const char* ParticleFile, 
-			 const char* boundaryfile,
-			 const char* contactfile,  
-			 const char* progressfile,
-			 const char* balancedfile, 
-			 const char* debugfile) 
+			 const char *iniptclfile,   
+			 const char *inibdryfile,
+			 const char *ParticleFile, 
+			 const char *boundaryfile,
+			 const char *contactfile,  
+			 const char *progressfile,
+			 const char *balancedfile, 
+			 const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -6138,14 +6138,14 @@ void Assembly::isotropic(int   totalSteps,
 			 int   sigma_points,  
 			 REAL sigma_values[],  
 			 int   sigma_division,	  
-			 const char* iniptclfile,  
-			 const char* inibdryfile,
-			 const char* ParticleFile, 
-			 const char* boundaryfile,
-			 const char* contactfile,  
-			 const char* progressfile,
-			 const char* balancedfile, 
-			 const char* debugfile) 
+			 const char *iniptclfile,  
+			 const char *inibdryfile,
+			 const char *ParticleFile, 
+			 const char *boundaryfile,
+			 const char *contactfile,  
+			 const char *progressfile,
+			 const char *balancedfile, 
+			 const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -6452,14 +6452,14 @@ void Assembly::odometer(int   totalSteps,
 			REAL sigma_3,     
 			REAL sigma_1,    
 			int   sigma_division,			  
-			const char* iniptclfile,  
-			const char* inibdryfile,
-			const char* ParticleFile,
-			const char* boundaryfile,
-			const char* contactfile,  
-			const char* progressfile,
-			const char* balancedfile, 
-			const char* debugfile) 
+			const char *iniptclfile,  
+			const char *inibdryfile,
+			const char *ParticleFile,
+			const char *boundaryfile,
+			const char *contactfile,  
+			const char *progressfile,
+			const char *balancedfile, 
+			const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -6714,14 +6714,14 @@ void Assembly::odometer(int   totalSteps,
 			int   sigma_points,  
 			REAL sigma_values[],  
 			int   sigma_division,			  
-			const char* iniptclfile,  
-			const char* inibdryfile,
-			const char* ParticleFile, 
-			const char* boundaryfile,
-			const char* contactfile,  
-			const char* progressfile,
-			const char* balancedfile, 
-			const char* debugfile) 
+			const char *iniptclfile,  
+			const char *inibdryfile,
+			const char *ParticleFile, 
+			const char *boundaryfile,
+			const char *contactfile,  
+			const char *progressfile,
+			const char *balancedfile, 
+			const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -6979,11 +6979,11 @@ void Assembly::iso_MemBdry(int   totalSteps,
 			   REAL  sigma3,
 			   REAL  rRadius,
 			   bool  toRebuild,
-			   const char* iniptclfile, 
-			   const char* ParticleFile,
-			   const char* contactfile, 
-			   const char* progressfile,
-			   const char* debugfile) 
+			   const char *iniptclfile, 
+			   const char *ParticleFile,
+			   const char *contactfile, 
+			   const char *progressfile,
+			   const char *debugfile) 
 {
   // pre_1: open streams for output
   // ParticleFile and contactfile are used for snapNum at the end.
@@ -7134,13 +7134,13 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
 				   int   snapNum, 
 				   int   interval,
 				   REAL  sigma,
-				   const char* iniptclfile, 
-				   const char* inibdryfile,
-				   const char* ParticleFile,
-				   const char* boundaryfile,
-				   const char* contactfile, 
-				   const char* progressfile,
-				   const char* debugfile) 
+				   const char *iniptclfile, 
+				   const char *inibdryfile,
+				   const char *ParticleFile,
+				   const char *boundaryfile,
+				   const char *contactfile, 
+				   const char *progressfile,
+				   const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -7291,14 +7291,14 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
 void Assembly::triaxialPtclBdry(int   totalSteps,  
 				int   snapNum, 
 				int   interval,
-				const char* iniptclfile, 
-				const char* inibdryfile,
-				const char* ParticleFile,
-				const char* boundaryfile,
-				const char* contactfile, 
-				const char* progressfile,
-				const char* balancedfile,
-				const char* debugfile) 
+				const char *iniptclfile, 
+				const char *inibdryfile,
+				const char *ParticleFile,
+				const char *boundaryfile,
+				const char *contactfile, 
+				const char *progressfile,
+				const char *balancedfile,
+				const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -7461,14 +7461,14 @@ void Assembly::triaxial(int   totalSteps,
 			int   snapNum, 
 			int   interval,
 			REAL  sigma_a,	  
-			const char* iniptclfile, 
-			const char* inibdryfile,
-			const char* ParticleFile,
-			const char* boundaryfile,
-			const char* contactfile, 
-			const char* progressfile,
-			const char* balancedfile,
-			const char* debugfile) 
+			const char *iniptclfile, 
+			const char *inibdryfile,
+			const char *ParticleFile,
+			const char *boundaryfile,
+			const char *contactfile, 
+			const char *progressfile,
+			const char *balancedfile,
+			const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -7840,14 +7840,14 @@ void Assembly::triaxial(int   totalSteps,
 			int   snapNum, 
 			int   interval,
 			REAL sigma_a,	  
-			const char* iniptclfile,  
-			const char* inibdryfile,
-			const char* ParticleFile,
-			const char* boundaryfile,
-			const char* contactfile,
-			const char* progressfile,
-			const char* balancedfile,
-			const char* debugfile) 
+			const char *iniptclfile,  
+			const char *inibdryfile,
+			const char *ParticleFile,
+			const char *boundaryfile,
+			const char *contactfile,
+			const char *progressfile,
+			const char *balancedfile,
+			const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -8085,13 +8085,13 @@ void Assembly::triaxial(int   totalSteps,
 void Assembly::rectPile_Disp(int   totalSteps,  
 			     int   snapNum, 
 			     int   interval,
-			     const char* iniptclfile,  
-			     const char* inibdryfile,
-			     const char* ParticleFile, 
-			     const char* boundaryfile,
-			     const char* contactfile,  
-			     const char* progressfile,
-			     const char* debugfile) 
+			     const char *iniptclfile,  
+			     const char *inibdryfile,
+			     const char *ParticleFile, 
+			     const char *boundaryfile,
+			     const char *contactfile,  
+			     const char *progressfile,
+			     const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -8236,11 +8236,11 @@ void Assembly::ellipPile_Disp(int   totalSteps,
 			      int   interval,
 			      REAL dimn,
 			      REAL rsize,
-			      const char* iniptclfile,
-			      const char* ParticleFile, 
-			      const char* contactfile,  
-			      const char* progressfile,
-			      const char* debugfile) 
+			      const char *iniptclfile,
+			      const char *ParticleFile, 
+			      const char *contactfile,  
+			      const char *progressfile,
+			      const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -8370,12 +8370,12 @@ void Assembly::ellipPile_Impact(int   totalSteps,
 				int   snapNum, 
 				int   interval,
 				REAL dimn,
-				const char* iniptclfile,
-				const char* inibdryfile,
-				const char* ParticleFile, 
-				const char* contactfile,  
-				const char* progressfile,
-				const char* debugfile) 
+				const char *iniptclfile,
+				const char *inibdryfile,
+				const char *ParticleFile, 
+				const char *contactfile,  
+				const char *progressfile,
+				const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -8521,11 +8521,11 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
 				  int   snapNum, 
 				  int   interval,
 				  REAL dimn,
-				  const char* iniptclfile,
-				  const char* ParticleFile, 
-				  const char* contactfile,  
-				  const char* progressfile,
-				  const char* debugfile) 
+				  const char *iniptclfile,
+				  const char *ParticleFile, 
+				  const char *contactfile,  
+				  const char *progressfile,
+				  const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -8659,12 +8659,12 @@ void Assembly::ellipPile_Force(int   totalSteps,
 			       REAL dimn,
 			       REAL force,
 			       int   division,
-			       const char* iniptclfile,
-			       const char* ParticleFile, 
-			       const char* contactfile,  
-			       const char* progressfile,
-			       const char* balancedfile,
-			       const char* debugfile) 
+			       const char *iniptclfile,
+			       const char *ParticleFile, 
+			       const char *contactfile,  
+			       const char *progressfile,
+			       const char *balancedfile,
+			       const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -8823,14 +8823,14 @@ void Assembly::truetriaxial(int   totalSteps,
 			    REAL sigma_l,     
 			    REAL sigma_h,   
 			    int   sigma_division,
-			    const char* iniptclfile,  
-			    const char* inibdryfile,
-			    const char* ParticleFile, 
-			    const char* boundaryfile,
-			    const char* contactfile,  
-			    const char* progressfile,
-			    const char* balancedfile, 
-			    const char* debugfile) 
+			    const char *iniptclfile,  
+			    const char *inibdryfile,
+			    const char *ParticleFile, 
+			    const char *boundaryfile,
+			    const char *contactfile,  
+			    const char *progressfile,
+			    const char *balancedfile, 
+			    const char *debugfile) 
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
@@ -9129,7 +9129,7 @@ void Assembly::truetriaxial(int   totalSteps,
 
 void Assembly::
 buildBoundary(int boundaryNum,
-	      const char* boundaryFile)
+	      const char *boundaryFile)
 {
   std::ofstream ofs(boundaryFile);
   if(!ofs) { std::cout << "stream error!" << std::endl; exit(-1);}
@@ -9740,7 +9740,7 @@ buildBoundary(int boundaryNum,
 }
 
 // boundaryNum = 6 by default
-void Assembly::buildBoundary(const char* boundaryFile)
+void Assembly::buildBoundary(const char *boundaryFile)
 {
   std::ofstream ofs(boundaryFile);
   if(!ofs) { std::cout << "stream error!" << std::endl; exit(-1);}
@@ -10108,7 +10108,7 @@ void Assembly::buildBoundary(const char* boundaryFile)
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
 void Assembly::generateParticle(gradation& grad,
-			const char* ParticleFile,
+			const char *ParticleFile,
 			int particleLayers,
 			REAL ht)
 {
@@ -10167,11 +10167,11 @@ void Assembly::deposit_PtclBdry(gradation& grad,
 				int   totalSteps,  
 				int   snapNum,
 				int   interval,
-				const char* iniptclfile,   
-				const char* ParticleFile, 
-				const char* contactfile,
-				const char* progressfile, 
-				const char* debugfile)
+				const char *iniptclfile,   
+				const char *ParticleFile, 
+				const char *contactfile,
+				const char *progressfile, 
+				const char *debugfile)
 {
     if (grad.rorc == 1) {
 	RORC = grad.rorc;
@@ -10201,7 +10201,7 @@ void Assembly::deposit_PtclBdry(gradation& grad,
 // 2 - multiple layers of free particles
 // ht- how many times of size would be the floating height
 void Assembly::generate_p(gradation&  grad,
-			 const char* ParticleFile,
+			 const char *ParticleFile,
 			 int particleLayers,
 			 REAL rsize,
 			 REAL ht)
@@ -10295,13 +10295,13 @@ void Assembly::generate_p(gradation&  grad,
 
    /*
 void Assembly::boundaryForce(){
-  std::vector<BOUNDARY*>::iterator rt;
+  std::vector<Boundary*>::iterator rt;
   for(rt=boundaryVec.begin();rt!=boundaryVec.end();++rt)
     (*rt)->boundaryForce(boundaryTgtMap);
 
   
   std::vector<boundarytgt>::iterator it;
-  std::vector<BOUNDARY*>::iterator rt;
+  std::vector<Boundary*>::iterator rt;
 
   for(rt=boundaryVec.begin();rt!=boundaryVec.end();++rt){	
     (*rt)->boundaryForce(boundaryTgtMap);

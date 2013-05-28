@@ -16,11 +16,12 @@
 // http://www.boost.org/doc/libs/1_50_0/libs/serialization/doc/serialization.html#registration
 // this is called registration, and this method of registration is referred to as "key export".
 #include <boost/serialization/export.hpp>
-BOOST_CLASS_EXPORT_GUID(dem::plnBoundary<dem::Particle>, "plnBoundary")
+BOOST_CLASS_EXPORT_GUID(dem::plnBoundary, "plnBoundary")
 
 // optimization on non-template types which have a fixed amount of data stored at fixed field positions
 BOOST_IS_MPI_DATATYPE(dem::Vec)
 BOOST_IS_MPI_DATATYPE(dem::Particle)
+BOOST_IS_MPI_DATATYPE(dem::Contact)
 
 int main(int argc, char* argv[]) {
 

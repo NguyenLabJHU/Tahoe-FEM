@@ -75,7 +75,7 @@ EXECUTABLE = paraEllip3d
 .PHONY: all tar clean
 
 # template classes contain implementation and need to recompile upon change
-all: $(EXECUTABLE) Contact.h Boundary.h
+all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
 	$(MPICXX) -o $@ $(CXXFLAGS) $(OBJECTS) $(INCLUDE) $(LIB_DIR) $(LIBS) $(RUN_LIB_DIR)
