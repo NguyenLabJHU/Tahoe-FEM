@@ -140,6 +140,8 @@ namespace dem {
     void commuParticle();
     bool isBdryProcess();
     void releaseRecvParticle();
+    void releaseGatheredParticle();
+    void releaseGatheredContact();
     void migrateParticle();
     void removeParticleOutRectangle();
     void gatherParticle();

@@ -338,13 +338,20 @@ deposit(int totalSteps,
     if (iteration % (totalSteps / snapNum) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
-      gatherContact();
       time2 = MPI_Wtime(); gatherT = time2 - time1;
       if (mpiRank == 0) {
-	printParticle(combineString("dep_particle_", ++iterSnap));
-	printContact(combineString("dep_contact_", iterSnap));
-	plotBoundary(combineString("dep_bdryplot_", iterSnap));
+	plotBoundary(combineString("dep_bdryplot_", ++iterSnap));
 	plotGrid(combineString("dep_gridplot_", iterSnap));
+	printParticle(combineString("dep_particle_", iterSnap));
+	releaseGatheredParticle();
+      }
+
+      time1 = MPI_Wtime();
+      gatherContact();
+      time2 = MPI_Wtime(); gatherT += (time2 - time1);
+      if (mpiRank == 0) {
+	printContact(combineString("dep_contact_", iterSnap));
+	releaseGatheredContact();
       }
     }
 
@@ -549,8 +556,7 @@ void Assembly::scatterParticle() {
   // content of allParticleVec is not needed any more 
   // but the variable is used for later gathering to print, so clear it.
   if (mpiRank == 0) { // process 0
-    std::vector<Particle*>::iterator it;
-    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
     std::vector<Particle*>().swap(allParticleVec); // actual memory release
@@ -1560,8 +1566,7 @@ void Assembly::gatherParticle() {
   else { // process 0
     // allParticleVec is cleared first time in scatterParticle, and at the end of each gathering.
     // here do it redundantly with low cost, for the purpose of safety.
-    std::vector<Particle*>::iterator it;
-    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
     std::vector<Particle*>().swap(allParticleVec); // actual memory release
@@ -1586,13 +1591,6 @@ void Assembly::gatherParticle() {
 
     }
     std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << " ";
-
-    // clear allParticleVec, avoid long time memory footprint.
-    for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
-      delete (*it);
-    allParticleVec.clear();
-    std::vector<Particle*>().swap(allParticleVec); // actual memory release
-
   }
   
 }
@@ -1620,9 +1618,23 @@ void Assembly::gatherContact() {
 
     }
     std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact<Particle>) << std::endl;
-    allContact.clear();
-    boost::unordered_set<CONTACT>().swap(allContact); // actual memory release
   }  
+}
+
+
+void Assembly::releaseGatheredParticle() {
+  // clear allParticleVec, avoid long time memory footprint.
+  for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    delete (*it);
+  allParticleVec.clear();
+  std::vector<Particle*>().swap(allParticleVec); // actual memory release
+}
+
+
+void Assembly::releaseGatheredContact() {
+  // clear allContact, avoid long time memeory footprint.
+  allContact.clear();
+  boost::unordered_set<CONTACT>().swap(allContact); // actual memory release
 }
 
 
