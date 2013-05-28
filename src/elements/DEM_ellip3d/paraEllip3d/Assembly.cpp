@@ -352,7 +352,7 @@ deposit(int totalSteps,
       if (mpiRank == 0) {
 	printContact(combineString("dep_contact_", iterSnap));
 	releaseGatheredContact();
-      }
+	}
     }
 
     releaseRecvParticle(); // late release because printContact refers to received particles
@@ -555,12 +555,8 @@ void Assembly::scatterParticle() {
 
   // content of allParticleVec is not needed any more 
   // but the variable is used for later gathering to print, so clear it.
-  if (mpiRank == 0) { // process 0
-    for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
-      delete (*it);
-    allParticleVec.clear();
-    std::vector<Particle*>().swap(allParticleVec); // actual memory release
-  }
+  if (mpiRank == 0) // process 0
+    releaseGatheredParticle();
 
   // broadcast necessary info
   broadcast(boostWorld, gradation, 0);
@@ -1565,11 +1561,6 @@ void Assembly::gatherParticle() {
   }
   else { // process 0
     // allParticleVec is cleared first time in scatterParticle, and at the end of each gathering.
-    // here do it redundantly with low cost, for the purpose of safety.
-    for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
-      delete (*it);
-    allParticleVec.clear();
-    std::vector<Particle*>().swap(allParticleVec); // actual memory release
 
     // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration,
     // otherwise it causes memory error.
@@ -1597,14 +1588,12 @@ void Assembly::gatherParticle() {
 
 
 void Assembly::gatherContact() {
-
   // update allContact: process 0 collects all updated contacts from each other process
   if (mpiRank != 0) {// each process except 0
     boostWorld.send(0, mpiTag, contactVec);
   }
   else { // process 0
-    allContact.clear();
-    boost::unordered_set<Contact>().swap(allContact); // actual memory release
+    // allContact is cleared at the end of each gathering
     allContact.insert(contactVec.begin(), contactVec.end());
 
     std::vector<Contact> tmpContactVec;
@@ -1634,30 +1623,10 @@ void Assembly::releaseGatheredParticle() {
 void Assembly::releaseGatheredContact() {
   // clear allContact, avoid long time memeory footprint.
   allContact.clear();
-  boost::unordered_set<Contact>().swap(allContact); // actual memory release
+
+  // actual memory release, not as efficient as std::vector.
+  boost::unordered_set<Contact>().swap(allContact); 
 }
-
-
-/*
-void Assembly::gatherContact() {
-
-  // update allContactVec: process 0 collects all updated contacts from each other process
-  if (mpiRank != 0) {// each process except 0
-    boostWorld.send(0, mpiTag, contactVec);
-  }
-  else { // process 0
-    allContactVec.clear();
-    allContactVec.insert(allContactVec.end(), contactVec.begin(), contactVec.end());
-
-    std::vector<Contact> tmpContactVec;
-    for (int iRank = 1; iRank < mpiSize; ++iRank) {
-      tmpContactVec.clear();
-      boostWorld.recv(iRank, mpiTag, tmpContactVec);
-      allContactVec.insert(allContactVec.end(), tmpContactVec.begin(), tmpContactVec.end());
-    }
-  }  
-}
-*/
 
 
 void Assembly::readParticle(const char *inputParticle) {
@@ -2223,7 +2192,6 @@ void Assembly::printContact(const char *str) const
         << std::setw(OWID) << "impact_t_step"
         << std::endl;
 
-    //std::vector<Contact>::const_iterator it;
     boost::unordered_set<Contact>::const_iterator it;
     for (it = allContact.begin(); it != allContact.end(); ++it)
       ofs << std::setw(OWID) << it->getP1()->getId()
