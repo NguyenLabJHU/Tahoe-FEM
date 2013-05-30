@@ -104,7 +104,9 @@ namespace dem {
     radius2 = p2->getRadius(point2);
     penetr = vfabs(point1-point2);
 
-    if (b1 && b2 && penetr/(2.0*fmax(radius1,radius2)) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]) { // a strict detection method
+    if (b1 && b2 
+	&& penetr/(2.0*fmax(radius1,radius2)) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]
+	&& nearbyint(penetr/dem::Parameter::getSingleton().parameter["measureOverlap"]) >= 1) { // a strict detection method
         isInContact = true;
         return true;
     }
