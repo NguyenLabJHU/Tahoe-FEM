@@ -43,7 +43,7 @@ namespace dem {
   void plnBoundary::display() const {
     Boundary::display();
     std::cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << std::endl;
-    typename std::vector<Particle *>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     int i = 0;
     for(it = possBdryParticle.begin();it != possBdryParticle.end(); ++it){
       if(i++ < 10)
@@ -63,7 +63,7 @@ namespace dem {
   }
   
   void plnBoundary::findBdryContact(std::vector<Particle *>& ptcls) {
-    typename std::vector<Particle *>::iterator it;
+    std::vector<Particle *>::iterator it;
     std::vector<BdryCoef>::iterator bt;
     bool next;
     possBdryParticle.clear();
@@ -108,7 +108,7 @@ namespace dem {
   }
   
   void plnBoundary::boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap) {
-    typename std::vector<Particle *>::iterator it;
+    std::vector<Particle *>::iterator it;
     this->avgNormal = 0;
     this->avgPenetr = 0;
     this->contactNum = 0;
@@ -140,7 +140,7 @@ namespace dem {
   void cylBoundary::display() const {
     Boundary::display();
     std::cout << "normal: " << normal.getX() << " " << normal.getY() << " " << normal.getZ() << std::endl;
-    typename std::vector<Particle *>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     int i = 0;
     for(it = possBdryParticle.begin();it!=possBdryParticle.end();++it){
       if(i++<10)
@@ -161,7 +161,7 @@ namespace dem {
   }
   
   void cylBoundary::findBdryContact(std::vector<Particle *> &ptcls) {
-    typename std::vector<Particle *>::iterator it;
+    std::vector<Particle *>::iterator it;
     std::vector<BdryCoef>::iterator bt;
     bool next;
     possBdryParticle.clear();
@@ -189,7 +189,7 @@ namespace dem {
   
   void cylBoundary::boundaryForce() {
     Cylinder cyl;
-    typename std::vector<Particle *>::iterator it;
+    std::vector<Particle *>::iterator it;
     BdryCoef tmp;
     tmp = *this->coefOfLimits.begin();
     cyl.setRadius(tmp.rad);
