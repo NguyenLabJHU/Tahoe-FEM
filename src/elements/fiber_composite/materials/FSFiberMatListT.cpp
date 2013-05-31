@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatListT.cpp,v 1.10 2011-09-16 21:00:28 thao Exp $ */
+/* $Id: FSFiberMatListT.cpp,v 1.11 2013-05-31 20:09:56 tahoe.kziegler Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSFiberMatListT.h"
 #include "FSFiberMatSupportT.h"
@@ -15,6 +15,7 @@
 #include "AnisoCornea.h"
 #include "AnisoCorneaVisco.h"
 #include "AnisoCorneaIVisco.h"
+#include "AnisoScleraWaxs_expo.h"
 #include "NLV_Nfibers.h"
 #include "QLV_Nfibers.h"
 #include "NLV_Ortho.h"
@@ -61,6 +62,7 @@ void FSFiberMatListT::DefineInlineSub(const StringT& name, ParameterListT::ListO
 //		sub_lists.AddSub("aniso_cornea");
 		sub_lists.AddSub("aniso_viscoelastic_cornea");
 		sub_lists.AddSub("aniso_scalar_visco_cornea");
+                sub_lists.AddSub("aniso_viscoelastic_sclera_waxs_expo");
 		sub_lists.AddSub("quasilinear_viscoelasticity_Nfibers");
 		sub_lists.AddSub("nonlinear_viscoelasticity_Nfibers");
 		sub_lists.AddSub("nonlinear_viscoelasticity_ortho");
@@ -127,6 +129,8 @@ FSFiberMatT* FSFiberMatListT::NewFSFiberMat(const StringT& name) const
 		mat = new AnisoCorneaVisco;
 	else if (name == "aniso_scalar_visco_cornea")
 		mat = new AnisoCorneaIVisco;
+        else if (name == "aniso_viscoelastic_sclera_waxs_expo")
+		mat = new AnisoScleraWaxs_expo;
 	else if (name == "quasilinear_viscoelasticity_Nfibers")
 		mat = new QLV_Nfibers;
 	else if (name == "nonlinear_viscoelasticity_ortho")
