@@ -2,11 +2,11 @@ How to use paraEllip3d
 
 1. compile
 
-   1) setup environment, for example:
+   1) setup compile environment, e.g.:
       module load openmpi-1.6.4-gcc-4.6.4
 
-   2) setup boost in makefile, for example:
-      BOOST = boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+   2) setup boost in makefile, e.g.:
+      BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
       Note: run environment must conform, for example, 
             Torque/PBS qsub script should have the line:
             module load openmpi-1.6.4-gcc-4.6.4
