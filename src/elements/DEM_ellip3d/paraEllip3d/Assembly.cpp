@@ -37,6 +37,7 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+#include <cstring>
 #include <ctime>
 #include <cassert>
 #include <utility>
@@ -77,12 +78,12 @@ REAL timediffsec(const struct timeval &time1, const struct timeval &time2) {
 }
 
 
-const char *combineString(const char *str, int num) {
+char *combineString(char *cstr, const char *str, int num, int width) {
   std::string obj(str);
   std::stringstream ss;
-  ss << std::setw(3) << std::setfill('0') << std::right << num;
+  ss << std::setw(width) << std::setfill('0') << std::right << num;
   obj += ss.str();
-  return obj.c_str();
+  return strcpy( cstr, obj.c_str() );
 }
 
 
@@ -336,23 +337,21 @@ deposit(int totalSteps,
     updateGridMaxZ();
 
     if (iteration % (totalSteps / snapNum) == 0) {
+      ++iterSnap;
+      char cstr[50];
+
       time1 = MPI_Wtime();
       gatherParticle();
       time2 = MPI_Wtime(); gatherT = time2 - time1;
       if (mpiRank == 0) {
-	plotBoundary(combineString("dep_bdryplot_", ++iterSnap));
-	plotGrid(combineString("dep_gridplot_", iterSnap));
-	printParticle(combineString("dep_particle_", iterSnap));
+	plotBoundary(combineString(cstr, "dep_bdryplot_", iterSnap, 3));
+	plotGrid(combineString(cstr, "dep_gridplot_", iterSnap, 3));
+	printParticle(combineString(cstr, "dep_particle_", iterSnap, 3));
 	releaseGatheredParticle();
       }
-      
-      time1 = MPI_Wtime();
-      gatherContact();
-      time2 = MPI_Wtime(); gatherT += (time2 - time1);
-      if (mpiRank == 0) {
-	printContact(combineString("dep_contact_", iterSnap));
-	releaseGatheredContact();
-	}
+
+      printContact(combineString(cstr, "dep_contact_", iterSnap, 3));
+
     }
 
     releaseRecvParticle(); // late release because printContact refers to received particles
@@ -1586,46 +1585,12 @@ void Assembly::gatherParticle() {
   
 }
 
-
-void Assembly::gatherContact() {
-  // update allContact: process 0 collects all updated contacts from each other process
-  if (mpiRank != 0) {// each process except 0
-    boostWorld.send(0, mpiTag, contactVec);
-  }
-  else { // process 0
-    // allContact is cleared at the end of each gathering
-    allContact.insert(contactVec.begin(), contactVec.end());
-
-    std::vector<Contact> tmpContactVec;
-    long gatherRam = 0;
-    for (int iRank = 1; iRank < mpiSize; ++iRank) {
-
-      tmpContactVec.clear();
-      boostWorld.recv(iRank, mpiTag, tmpContactVec);
-      allContact.insert(tmpContactVec.begin(), tmpContactVec.end()); // duplicate, not pointer!
-      gatherRam += tmpContactVec.size();
-
-    }
-    std::cout << "contactNum = " << gatherRam <<  " contactRam = " << gatherRam * sizeof(Contact) << std::endl;
-  }  
-}
-
-
 void Assembly::releaseGatheredParticle() {
   // clear allParticleVec, avoid long time memory footprint.
   for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
     delete (*it);
   allParticleVec.clear();
   std::vector<Particle*>().swap(allParticleVec); // actual memory release
-}
-
-
-void Assembly::releaseGatheredContact() {
-  // clear allContact, avoid long time memeory footprint.
-  allContact.clear();
-
-  // actual memory release, not as efficient as std::vector.
-  boost::unordered_set<Contact>().swap(allContact); 
 }
 
 
@@ -2154,76 +2119,80 @@ void Assembly::boundaryForce() {
 }
 
 
-void Assembly::printContact(const char *str) const
+void Assembly::printContact(char *str) const
 {
-    std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printContact" << std::endl; exit(-1); }
-    ofs.setf(std::ios::scientific, std::ios::floatfield);
-    ofs.precision(OPREC);
+  char csuf[10];
+  combineString(csuf, ".p", mpiRank, 5);
+  strcat(str, csuf);
 
-    ofs << std::setw(OWID) << allContact.size() << std::endl;
-    ofs << std::setw(OWID) << "ptcl_1"
-        << std::setw(OWID) << "ptcl_2"
-        << std::setw(OWID) << "point1_x"
-        << std::setw(OWID) << "point1_y"
-        << std::setw(OWID) << "point1_z"
-        << std::setw(OWID) << "point2_x"
-        << std::setw(OWID) << "point2_y"
-        << std::setw(OWID) << "point2_z"
-        << std::setw(OWID) << "radius_1"
-        << std::setw(OWID) << "radius_2"
-        << std::setw(OWID) << "penetration"
-        << std::setw(OWID) << "tangt_disp"
-        << std::setw(OWID) << "contact_radius"
-        << std::setw(OWID) << "R0"
-        << std::setw(OWID) << "E0"
-        << std::setw(OWID) << "normal_force"
-        << std::setw(OWID) << "tangt_force"
-        << std::setw(OWID) << "contact_x"
-        << std::setw(OWID) << "contact_y"
-        << std::setw(OWID) << "contact_z"
-        << std::setw(OWID) << "normal_x"
-        << std::setw(OWID) << "normal_y"
-        << std::setw(OWID) << "normal_z"
-        << std::setw(OWID) << "tangt_x"
-        << std::setw(OWID) << "tangt_y"
-        << std::setw(OWID) << "tangt_z"
-        << std::setw(OWID) << "vibra_t_step"
-        << std::setw(OWID) << "impact_t_step"
-        << std::endl;
-
-    boost::unordered_set<Contact>::const_iterator it;
-    for (it = allContact.begin(); it != allContact.end(); ++it)
-      ofs << std::setw(OWID) << it->getP1()->getId()
-	  << std::setw(OWID) << it->getP2()->getId()
-	  << std::setw(OWID) << it->getPoint1().getX()
-	  << std::setw(OWID) << it->getPoint1().getY()
-	  << std::setw(OWID) << it->getPoint1().getZ()
-	  << std::setw(OWID) << it->getPoint2().getX()
-	  << std::setw(OWID) << it->getPoint2().getY()
-	  << std::setw(OWID) << it->getPoint2().getZ()
-	  << std::setw(OWID) << it->getRadius1()
-	  << std::setw(OWID) << it->getRadius2()
-	  << std::setw(OWID) << it->getPenetration()
-	  << std::setw(OWID) << it->getTgtDisp()
-	  << std::setw(OWID) << it->getContactRadius()
-	  << std::setw(OWID) << it->getR0()
-	  << std::setw(OWID) << it->getE0()
-	  << std::setw(OWID) << it->getNormalForce()
-	  << std::setw(OWID) << it->getTgtForce()
-	  << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
-	  << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
-	  << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
-	  << std::setw(OWID) << it->normalForceVec().getX()
-	  << std::setw(OWID) << it->normalForceVec().getY()
-	  << std::setw(OWID) << it->normalForceVec().getZ()
-	  << std::setw(OWID) << it->tgtForceVec().getX()
-	  << std::setw(OWID) << it->tgtForceVec().getY()
-	  << std::setw(OWID) << it->tgtForceVec().getZ()
-	  << std::setw(OWID) << it->getVibraTimeStep()
-	  << std::setw(OWID) << it->getImpactTimeStep()
-	  << std::endl;
-    ofs.close();
+  std::ofstream ofs(str);
+  if(!ofs) { std::cout << "stream error: printContact" << std::endl; exit(-1); }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+  
+  ofs << std::setw(OWID) << contactVec.size() << std::endl;
+  ofs << std::setw(OWID) << "ptcl_1"
+      << std::setw(OWID) << "ptcl_2"
+      << std::setw(OWID) << "point1_x"
+      << std::setw(OWID) << "point1_y"
+      << std::setw(OWID) << "point1_z"
+      << std::setw(OWID) << "point2_x"
+      << std::setw(OWID) << "point2_y"
+      << std::setw(OWID) << "point2_z"
+      << std::setw(OWID) << "radius_1"
+      << std::setw(OWID) << "radius_2"
+      << std::setw(OWID) << "penetration"
+      << std::setw(OWID) << "tangt_disp"
+      << std::setw(OWID) << "contact_radius"
+      << std::setw(OWID) << "R0"
+      << std::setw(OWID) << "E0"
+      << std::setw(OWID) << "normal_force"
+      << std::setw(OWID) << "tangt_force"
+      << std::setw(OWID) << "contact_x"
+      << std::setw(OWID) << "contact_y"
+      << std::setw(OWID) << "contact_z"
+      << std::setw(OWID) << "normal_x"
+      << std::setw(OWID) << "normal_y"
+      << std::setw(OWID) << "normal_z"
+      << std::setw(OWID) << "tangt_x"
+      << std::setw(OWID) << "tangt_y"
+      << std::setw(OWID) << "tangt_z"
+      << std::setw(OWID) << "vibra_t_step"
+      << std::setw(OWID) << "impact_t_step"
+      << std::endl;
+  
+  std::vector<Contact>::const_iterator it;
+  for (it = contactVec.begin(); it != contactVec.end(); ++it)
+    ofs << std::setw(OWID) << it->getP1()->getId()
+	<< std::setw(OWID) << it->getP2()->getId()
+	<< std::setw(OWID) << it->getPoint1().getX()
+	<< std::setw(OWID) << it->getPoint1().getY()
+	<< std::setw(OWID) << it->getPoint1().getZ()
+	<< std::setw(OWID) << it->getPoint2().getX()
+	<< std::setw(OWID) << it->getPoint2().getY()
+	<< std::setw(OWID) << it->getPoint2().getZ()
+	<< std::setw(OWID) << it->getRadius1()
+	<< std::setw(OWID) << it->getRadius2()
+	<< std::setw(OWID) << it->getPenetration()
+	<< std::setw(OWID) << it->getTgtDisp()
+	<< std::setw(OWID) << it->getContactRadius()
+	<< std::setw(OWID) << it->getR0()
+	<< std::setw(OWID) << it->getE0()
+	<< std::setw(OWID) << it->getNormalForce()
+	<< std::setw(OWID) << it->getTgtForce()
+	<< std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
+	<< std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
+	<< std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
+	<< std::setw(OWID) << it->normalForceVec().getX()
+	<< std::setw(OWID) << it->normalForceVec().getY()
+	<< std::setw(OWID) << it->normalForceVec().getZ()
+	<< std::setw(OWID) << it->tgtForceVec().getX()
+	<< std::setw(OWID) << it->tgtForceVec().getY()
+	<< std::setw(OWID) << it->tgtForceVec().getZ()
+	<< std::setw(OWID) << it->getVibraTimeStep()
+	<< std::setw(OWID) << it->getImpactTimeStep()
+	<< std::endl;
+  ofs.close();
 }
 
 

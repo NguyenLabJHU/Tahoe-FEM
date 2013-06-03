@@ -17,7 +17,6 @@
 #include <fstream>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/unordered_set.hpp>
 
 namespace dem {
   
@@ -32,7 +31,6 @@ namespace dem {
     std::vector<Particle *> allParticleVec;  // all particles
     std::vector<Particle *> particleVec;     // particles per process
 
-    boost::unordered_set<Contact> allContact;// all contacts, no redundance
     std::vector<Contact>    contactVec;      // contacts per process
     std::vector<ContactTgt> contactTgtVec;   // tangential contact force and displacement per process
     
@@ -142,7 +140,6 @@ namespace dem {
     void migrateParticle();
     void removeParticleOutRectangle();
     void gatherParticle();
-    void gatherContact();
 
     void updateContainerMinX();
     void updateContainerMaxX();
@@ -220,7 +217,7 @@ namespace dem {
     void plotGrid(const char *str) const;
     void plotCavity(const char *str) const;
     void checkMembrane(std::vector<REAL> &vx ) const;
-    void printContact(const char *str) const;  // print contacts information
+    void printContact(char *str) const;        // print contacts information
     void printBoundary(const char *str) const; // print rigid boundaries info to a disk file
     void printCavityBoundary(const char *str) const; // print cavity boundaries
     void printCavityParticle(int total, const char *str) const;
