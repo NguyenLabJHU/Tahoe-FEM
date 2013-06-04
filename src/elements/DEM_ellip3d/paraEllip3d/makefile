@@ -1,6 +1,15 @@
+#########################################################
+###        Part A: change with your environment       ###
+#########################################################
+###1. system platform
 #PLATFORM = janus
 PLATFORM = soilblast
 
+###2. compilers package
+COMPILERS = gcc
+#COMPILERS = intel
+
+###3. boost location
 ifeq ($(PLATFORM), janus)
  # rhel-5
  BOOST_ROOT = /home/yanb/local/boost-1.53.0-openmpi-1.4.3_gcc-4.5.2_torque-2.5.8_ib
@@ -13,26 +22,39 @@ ifeq ($(PLATFORM), soilblast)
  #BOOST_ROOT = default
 endif
 
+#########################################################
+###         Part B: usually do not need change        ###
+#########################################################
+###1. MPICXX, OPENMPI and OPTIMIZE
 # C++ compiler
-MPICXX = mpic++
+ifeq ($(COMPILERS), gcc)
+ MPICXX = mpic++
+endif
 
-# optimization
-OPTIMIZE = -O3 -DNDEBUG
-
-# debugging options
-DEBUG = -Wall -g
+ifeq ($(COMPILERS), intel)
+ MPICXX = mpiicpc
+endif
 
 # OpenMP
-OPENMP = -fopenmp
+ifeq ($(COMPILERS), gcc)
+ OPENMP = -fopenmp
+endif
 
-# 1. GCC quadmath, default off
+ifeq ($(COMPILERS), intel)
+ OPENMP = -openmp
+endif
+
+# optimize or debug
+OPTIMIZE = -O3 -DNDEBUG
+#OPTIMIZE = -Wall -g
+
+# GCC quadmath, default off
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
-# 2. Optimize or debug, default optimize
+# CXXFLAGS
 CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
-#CXXFLAGS = $(DEBUG) $(OPENMP) $(QUADMATH)
 
-# 3. Boost
+###2. BOOST details
 ifeq ($(PLATFORM), janus)
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
@@ -58,7 +80,7 @@ LIB_DIR=$(BOOST_LIB_DIR)
 LIBS=$(BOOST_LIBS)
 RUN_LIB_DIR=$(BOOST_RUN_LIB_DIR)
 
-# 4. general
+###3. makefile
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 #OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
