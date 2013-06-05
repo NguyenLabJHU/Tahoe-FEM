@@ -189,7 +189,9 @@ bool contact<T>::isOverlapped(){
     penetration=vfabs(point1-point2);
     REAL minRelOverlap = penetration/(2.0*fmax(radius1,radius2));
 
-    if (b1 && b2 && minRelOverlap > MINOVERLAP) { // a strict detection method
+    if (b1 && b2 
+	&& minRelOverlap > MINOVERLAP
+	&& nearbyint(penetration/MEPS >= 1) ) {
         isInContact = true;
         return true;
     }
