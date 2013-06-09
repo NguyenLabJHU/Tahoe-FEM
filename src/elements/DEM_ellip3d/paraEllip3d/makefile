@@ -11,10 +11,7 @@ COMPILERS = gcc
 
 ###3. boost location
 ifeq ($(PLATFORM), janus)
- # rhel-5
- BOOST_ROOT = /home/yanb/local/boost-1.53.0-openmpi-1.4.3_gcc-4.5.2_torque-2.5.8_ib
- # rhel-6
- #BOOST_ROOT = /home/yanb/local/boost-1.53.0-openmpi-1.6.4_gcc-4.7.2_torque-4.1.4_ib
+ BOOST_ROOT = /home/yanb/local/boost-1.53.0-openmpi-1.6.4_gcc-4.7.2_torque-4.2.3_ib
 endif
 
 ifeq ($(PLATFORM), soilblast)
