@@ -80,24 +80,20 @@ namespace dem {
     
     ~Assembly() {
       // release memory pointed to by pointers in the container
-      std::vector<Particle *>::iterator pt;
-      std::vector<Boundary *>::iterator rt;
-      std::vector<Spring *>::iterator   st;
+      for(std::vector<Particle *>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+	delete (*it);
 
-      for(pt = allParticleVec.begin(); pt != allParticleVec.end(); ++pt)
-	delete (*pt);
+      for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+	delete (*it);
 
-      for(pt = particleVec.begin(); pt != particleVec.end(); ++pt)
-	delete (*pt);
+      for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+	delete (*it);
 
-      for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-	delete (*rt);
+      for(std::vector<Boundary *>::iterator it = cavityBoundaryVec.begin(); it != cavityBoundaryVec.end(); ++it)
+	delete (*it);
 
-      for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
-	delete (*rt);
-
-      for(st = springVec.begin(); st != springVec.end(); ++st)
-	delete (*st);    
+      for(std::vector<Spring *>::iterator it = springVec.begin(); it != springVec.end(); ++it)
+	delete (*it); 
 
       // in case of consecutive simulations
       allParticleVec.clear();

@@ -1580,7 +1580,7 @@ void Assembly::gatherParticle() {
       gatherRam += tmpParticleVec.size();
 
     }
-    std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << " ";
+    //std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << std::endl;
   }
   
 }

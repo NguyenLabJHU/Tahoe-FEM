@@ -57,7 +57,7 @@ namespace dem {
     Particle(int n, int type, Vec center, REAL r, REAL young, REAL poisson);
     Particle(int n, int type, Vec center, REAL a, REAL b, REAL c, REAL young, REAL poisson);
     Particle(int n, int type, Vec center, Gradation& grad, REAL young, REAL poisson);
-    Particle(int id,int type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
+    Particle(int n, int type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
     
     int  getId() const {return id;}
     int  getType() const {return type;}

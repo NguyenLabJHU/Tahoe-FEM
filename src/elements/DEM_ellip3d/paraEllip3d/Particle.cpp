@@ -163,8 +163,8 @@ Particle::Particle(int n, int tp, Vec center, Gradation &grad, REAL yng, REAL po
 }
   
 
-Particle::Particle(int id, int tp, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL yng, REAL poi)
- :id(id), type(tp), young(yng), poisson(poi) {
+Particle::Particle(int n, int tp, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL yng, REAL poi)
+ :id(n), type(tp), young(yng), poisson(poi) {
   a = dim.getX();
   b = dim.getY();
   c = dim.getZ();
