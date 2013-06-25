@@ -47,6 +47,13 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> str2;
       datafile[str] = str2;
     }
+    for (int i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+
   } 
   else if ((int) parameter["simuType"] == 2) { // expandCavityParticle
     for (int i = 0; i < 2; ++i) {

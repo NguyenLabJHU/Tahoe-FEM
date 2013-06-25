@@ -317,7 +317,7 @@ deposit(int totalSteps,
   scatterParticle(); // scatter particles only once; also updates grid for the first time
 
   iteration = 1;
-  int iterSnap = 0;
+  int iterSnap = static_cast<int> (dem::Parameter::getSingleton().parameter["snapResumeNum"]);
   double time0, time1, time2, commuT, migraT, gatherT, totalT;
   while (iteration <= totalSteps) {
     commuT = migraT = gatherT = totalT = 0;
@@ -1622,13 +1622,14 @@ void Assembly::readParticle(const char *inputParticle) {
     Particle* pt= new Particle(id, type, Vec(a,b,c), Vec(px,py,pz), Vec(dax,day,daz), Vec(dbx,dby,dbz), Vec(dcx,dcy,dcz), young, poisson);
     
     // optional settings for a particle's initial status
-    //pt->setPrevVelocity(Vec(vx,vy,vz));
-    //pt->setCurrVelocity(Vec(vx,vy,vz));
-    //pt->setPrevOmga(Vec(omx,omy,omz));
-    //pt->setCurrOmga(Vec(omx,omy,omz));
-    
-    //pt->setForce(Vec(fx,fy,fz));  // initial force
-    //pt->setMoment(Vec(mx,my,mz)); // initial moment
+    if ( (static_cast<int> (dem::Parameter::getSingleton().parameter["toInitParticle"])) == 1 ) {
+      pt->setPrevVeloc(Vec(vx,vy,vz));
+      pt->setCurrVeloc(Vec(vx,vy,vz));
+      pt->setPrevOmga(Vec(omx,omy,omz));
+      pt->setCurrOmga(Vec(omx,omy,omz));
+      pt->setForce(Vec(fx,fy,fz));  // initial force
+      pt->setMoment(Vec(mx,my,mz)); // initial moment
+    }
     
     //pt->setConstForce(Vec(fx,fy,fz));  // constant force, not initial force
     //pt->setConstMoment(Vec(mx,my,mz)); // constant moment, not initial moment
