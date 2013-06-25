@@ -12,10 +12,10 @@ COMPILERS = gcc
 ###3. boost location
 ifeq ($(PLATFORM), janus)
  ifeq ($(COMPILERS), gcc)
-  BOOST_ROOT = /home/yanb/local/boost-1.53.0-openmpi-1.6.4_gcc-4.7.2_torque-4.2.3_ib
+  BOOST_ROOT = /home/yanb/local/boost-1.53.0_openmpi-1.6.4_gcc-4.7.2_ib
  endif
  ifeq ($(COMPILERS), intel)
-  BOOST_ROOT = /home/yanb/local/boost-1.53.0-impi-13.0.0_intel-13.0.0
+  BOOST_ROOT = /home/yanb/local/boost-1.53.0_impi-13.0.0_intel-13.0.0
  endif
 endif
 
@@ -43,7 +43,7 @@ ifeq ($(COMPILERS), gcc)
 endif
 
 ifeq ($(COMPILERS), intel)
- OPENMP = -openmp
+ OPENMP = -openmp -mt_mpi
 endif
 
 # optimize or debug
