@@ -1,5 +1,5 @@
-BOOST_ROOT=/usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
-#BOOST_ROOT=/home/yanb/local/boost-1.53.0-openmpi-1.6.4_gcc-4.7.2_torque-4.2.3_ib
+BOOST_ROOT=/usr/local/boost-1.53.0_openmpi-1.6.4_gcc-4.6.4
+#BOOST_ROOT=/home/yanb/local/boost-1.53.0_openmpi-1.6.4_gcc-4.7.2_ib
 
 BOOST_INCLUDE=-I$(BOOST_ROOT)/include
 BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
