@@ -82,11 +82,11 @@ public:
 
 int main(int argc, char *argv[])
 {
-  if(argc < 3) {
+  if(argc < 5) {
     std::cout << std::endl 
 	      << "-- merge particle contact info from multiple processes and remove redundance --" << std::endl
-	      << "  Usage: mergeContact  file_prefix  start_snap  end_snap  number_of_processes" << std::endl
-	      << "Example: mergeContact  dep_contact  80  100  384" << std::endl << std::endl;
+	      << "  Usage:  mergeContact  file_prefix  start_snap  end_snap  number_of_processes" << std::endl
+	      << "Example:  mergeContact  dep_contact  80  100  384" << std::endl << std::endl;
     return -1;
   }
 
