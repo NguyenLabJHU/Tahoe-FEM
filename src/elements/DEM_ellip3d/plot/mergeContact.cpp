@@ -85,21 +85,22 @@ int main(int argc, char *argv[])
   if(argc < 3) {
     std::cout << std::endl 
 	      << "-- merge particle contact info from multiple processes and remove redundance --" << std::endl
-	      << "  Usage: mergeContact file_prefix total_snaps number_of_processes" << std::endl
-	      << "Example: mergeContact dep_contact 100 384" << std::endl << std::endl;
+	      << "  Usage: mergeContact  file_prefix  start_snap  end_snap  number_of_processes" << std::endl
+	      << "Example: mergeContact  dep_contact  80  100  384" << std::endl << std::endl;
     return -1;
   }
 
   const int OWID = 16; 
   const int OPREC = 6; 
   
-  int totalSnap = atoi(argv[2]);
-  int totalProc = atoi(argv[3]);
+  int startSnap = atoi(argv[2]);
+  int endSnap   = atoi(argv[3]);
+  int totalProc = atoi(argv[4]);
 
   boost::unordered_set<Contact> allContact; // all contacts, no redundance
 
   ///////////////////////////////////////////////////////////
-  for (int snapLoop = 1; snapLoop <= totalSnap; ++snapLoop) {
+  for (int snapLoop = startSnap; snapLoop <= endSnap; ++snapLoop) {
     allContact.clear();
 
     char ostr[50], argsuf[50];
