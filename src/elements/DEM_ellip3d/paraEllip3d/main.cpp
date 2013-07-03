@@ -61,12 +61,9 @@ int main(int argc, char* argv[]) {
   case 0: // deposit spatially scattered particles into a rigid container
     assemb.depositIntoContainer();
     break;
-  case 1: // deposit using specified data file of particles and boundaries
-    assemb.deposit(static_cast<int> (dem::Parameter::getSingleton().parameter["totalSteps"]),
-		   static_cast<int> (dem::Parameter::getSingleton().parameter["snapNum"]),
-		   static_cast<int> (dem::Parameter::getSingleton().parameter["statInterv"]),
-		   dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
-		   dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+  case 1: // resume deposition using specified data file of particles and boundaries
+    assemb.resumeDepositIntoContainer(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
+				      dem::Parameter::getSingleton().datafile["particleFile"].c_str());
     break;
   case 2: // expand particles inside a virtual cavity and see what occurs
     assemb.expandCavityParticle();

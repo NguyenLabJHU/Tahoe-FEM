@@ -15,8 +15,8 @@ void Parameter::readIn(const char *input) {
   std::string str, str2;
   REAL val;
 
-  // 26 generic parameters
-  for (int i = 0; i < 26; ++i) {
+  // 28 generic parameters
+  for (int i = 0; i < 28; ++i) {
     while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
     ssline.clear(); ssline.str(line);
     ssline >> str >> val;
@@ -40,7 +40,7 @@ void Parameter::readIn(const char *input) {
     }
     
   }
-  else if ((int) parameter["simuType"] == 1) { // deposit
+  else if ((int) parameter["simuType"] == 1) { // resume deposition
     for (int i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);

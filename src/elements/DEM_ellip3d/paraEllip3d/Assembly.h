@@ -109,18 +109,16 @@ namespace dem {
     void setGradation(Gradation grad) { gradation = grad; }
 
     void depositIntoContainer(); 
+    void resumeDepositIntoContainer(const char *inputBoundary,
+				    const char *inputParticle);
     void generateParticle(int particleLayers,
 			  const char *genParticle);
     void buildBoundary(int boundaryNum,
 		       const char *boundaryFile);
-    void buildBoundary(const char *boundaryFile);
     void trim(bool toRebuild,
 	      const char *inputParticle,
 	      const char *trmParticle);
-    void deposit(int totalSteps,  
-		 int snapNum,
-		 int statInterv,
-		 const char *inputBoundary,
+    void deposit(const char *inputBoundary,
 		 const char *inputParticle);
     
     void setCavity(Rectangle cav) { cavity = cav; }
