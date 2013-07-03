@@ -319,7 +319,7 @@ trim(bool toRebuild,
       ++itr;
   }
   
-  printParticle("trm_particle");
+  printParticle(trmParticle);
 }
 
 
@@ -372,7 +372,8 @@ deposit(const char *inputBoundary,
 	plotBoundary(combineString(cstr, "deposit_bdryplot_", iterSnap, 3));
 	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
-	releaseGatheredParticle();
+	if (iterSnap < endSnap) // possibly need allParticleVec to trim later
+	  releaseGatheredParticle();
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
 
