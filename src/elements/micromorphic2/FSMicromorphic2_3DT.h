@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.1 2013-05-20 23:32:28 tahoe.regueiro Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.2 2013-07-10 21:03:39 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -91,6 +91,7 @@ public:
     enum fMaterialState_T         {
     //    kkappa,
         kc,
+        kc_current_configuration,
         kc_chi,
         //    kZkappa,
     //    kZc,
@@ -421,7 +422,7 @@ private:
     dArrayT         fTemp_nine_values;
     dArrayT         fTemp_six_values;
 
-    dMatrixT        fDeformation_Gradient;
+ //   dMatrixT        fDeformation_Gradient;
     dMatrixT        fRight_Cauchy_Green_tensor;
     dMatrixT        fRight_Cauchy_Green_tensor_Inverse;
     dMatrixT        fRight_Elastic_Cauchy_Green_tensor;
@@ -444,6 +445,98 @@ private:
     dMatrixT        u_dotdot_column_matrix;
     dMatrixT        u_dot_column_matrix;
     dMatrixT        u_dot_column_matrix_Transpose;
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////Definitions for the Current configuration Plasticity/////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    dArray2DT       fdGdCauchy_Stress_Elements_IPs;
+    dArray2DT       fdGdCauchy_Stress_n_Elements_IPs;
+    dArray2DT		fdGdCauchy_Stress_IPs;
+    dArray2DT		fdGdCauchy_Stress_n_IPs;
+    dMatrixT		fdGdCauchy_Stress;
+    dMatrixT		fdGdCauchy_Stress_n;
+
+
+    dArray2DT   	fCauchy_stress_Elements_IPs;
+    dArray2DT   	fCauchy_stress_IPs;
+    dMatrixT    	fCauchy_stress_tensor_current_IP;
+    dArray2DT   	fCauchy_stress_Elements_n_IPs;
+    dArray2DT   	fCauchy_stress_n_IPs;
+    dMatrixT    	fCauchy_stress_tensor_current_n_IP;
+    dMatrixT    	fdev_Cauchy_stress_tensor_current_IP;
+
+    double			fNorm_dev_Cauchy_stress_tensor_current_IP;
+
+
+    dMatrixT    	fCauchy_stress_tensor_current_IP_tr;
+    double       	mean_Cauchy_stress_tr;
+    dMatrixT		dev_Cauchy_stress_tr;
+    double			Cauchy_Stress_Norm_tr;
+    dMatrixT		fdGdCauchy_Stress_tr;
+    dMatrixT		fdGdS_tr;
+    dMatrixT		fdGdS_tr_transpose;
+    double			mean_Cauchy_stress_n;
+    double			mean_Cauchy_stress;
+
+    dMatrixT		dev_Cauchy_stress_n;
+    dMatrixT		Predictor_stress_terms;
+    double			fVelocity_Gradient_current_IP_trace;
+    double			Temp_trace_value;
+    dMatrixT		fVelocity_Gradient_current_IP_transpose;
+    dMatrixT		Corrector_stress_terms;
+    dMatrixT		fdGdCauchy_Stress_tr_transpose;
+    double			Predictor_mean_stress_terms;
+    double			Corrector_mean_stress_terms;
+    double			fTemp_matrix_one_x_one;
+    double			fDelgamma_current_configuration_root_one;
+    double			fDelgamma_current_configuration_root_two;
+    double			fDelgamma_current_configuration;
+    double			fTemp_delgamma_coeff;
+    double			fTemp_delgamma_coeff1;
+    double			Je;
+    double			fYield_function_current_configuration;
+    double			cohesion_current_configuration;
+    dMatrixT    	fVelocity_Gradient_current_IP;
+
+    dArray2DT       fDeformation_Gradient_Elements_IPs;
+    dArray2DT       fDeformation_Gradient_n_Elements_IPs;
+    dArray2DT		fDeformation_Gradient_IPs;
+    dArray2DT		fDeformation_Gradient_n_IPs;
+    dMatrixT        fDeformation_Gradient;
+    dMatrixT		fDeformation_Gradient_n;
+
+
+    ///Runge Kutta matrices
+    dMatrixT		fTemp_Runge_Kutta_K1_nsd_x_nsd;
+    dMatrixT		fTemp_Runge_Kutta_K2_nsd_x_nsd;
+    dMatrixT		fTemp_Runge_Kutta_K3_nsd_x_nsd;
+    dMatrixT		fTemp_Runge_Kutta_K4_nsd_x_nsd;
+
+    dMatrixT		fCauchy_stress_tensor_current_IP_from_piola_stress;
+    dMatrixT    	fLeft_Cauchy_Green_tensor_current_IP;
+    dMatrixT    	fLeft_Cauchy_Green_tensor_current_IP_transpose;
+    dMatrixT		fLeft_Cauchy_Green_tensor_current_IP_Inverse;
+    double			fLeft_Cauchy_Green_tensor_current_IP_Trace;
+
+
+
+
+    //////////////////////////// A(delgamma)^2+B(delgamma)+D = 0//////////////////////////
+    double			fA_coeff;
+    double			fB_coeff;
+    double			fD_coeff;
+    double			ftemp_D_coeff;
+    double			ftemp_D_coeff1;
+    double			ftemp_B_coeff;
+    double			fDelta_function;
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //////////////End of definitions for the current configuration Plasticity////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -888,6 +981,7 @@ private:
 
     dMatrixT fFe;
     dMatrixT fFe_tr;
+    dMatrixT fFe_Inverse;
     dMatrixT fChie;
     dMatrixT fChie_tr;
     dMatrixT fdGdS_n;
@@ -2278,16 +2372,16 @@ private:
         /* to store fEulerian_strain_IPs for each of the 27 IPs of each element */
         dArray2DT   fEulerian_strain_IPs;
         /* to store fCauchy_stress_tensor_current_IP */
-        dMatrixT    fCauchy_stress_tensor_current_IP;
+//        dMatrixT    fCauchy_stress_tensor_current_IP;
         /* to store fCauchy_stress_IPs for each of the 27 IPs of each element */
-        dArray2DT   fCauchy_stress_IPs;
+//        dArray2DT   fCauchy_stress_IPs;
         ////////////////////////////////////
         dArray2DT  fE_values_IPs;
         dArray2DT  fVarepsilon_IPs;
         ////////////////////////////////////
 
         dArray2DT   fEulerian_strain_Elements_IPs;
-        dArray2DT   fCauchy_stress_Elements_IPs;
+//        dArray2DT   fCauchy_stress_Elements_IPs;
 
         /////////////////////////////////////////
         dArray2DT  fE_values_Element_IPs;
