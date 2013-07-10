@@ -152,7 +152,7 @@ void Assembly::depositIntoContainer()
     char cstr[50];
     int endSnap = static_cast<int> (dem::Parameter::getSingleton().parameter["endSnap"]);
     trim(false,
-	 combineString(cstr, "deposit_particle_", endSnap ,3),
+	 combineString(cstr, "deposit_particle_", endSnap, 3),
 	 "trim_particle_ini");
   }
     
@@ -176,7 +176,7 @@ void Assembly::resumeDepositIntoContainer(const char *inputBoundary,
     char cstr[50];
     int endSnap = static_cast<int> (dem::Parameter::getSingleton().parameter["endSnap"]);
     trim(false,
-	 combineString(cstr, "deposit_particle_", endSnap ,3),
+	 combineString(cstr, "deposit_particle_", endSnap, 3),
 	 "trim_particle_ini");
   }
     
@@ -211,7 +211,7 @@ void Assembly::expandCavityParticle()
       }
     }
     
-    printParticle("cavity_particle", cavityParticleVec);
+    printParticle("cavity_particle_ini", cavityParticleVec);
     printParticle("expand_particle_ini");
   }
   
@@ -343,11 +343,17 @@ deposit(const char *inputBoundary,
 
   double time0, time1, time2, commuT, migraT, gatherT, totalT;
 
-  iteration = startStep; // otherwise 1
-  int iterSnap = startSnap; // otherwise 1
+  iteration = startStep;
+  int iterSnap = startSnap;
+  char cstr0[50];
+  if (mpiRank == 0) {
+    plotBoundary(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3));
+    plotGrid(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3));
+    printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
+  }
   while (iteration <= endStep) {
-    commuT = migraT = gatherT = totalT = 0;
     time0 = MPI_Wtime();
+    commuT = migraT = gatherT = totalT = 0;
 
     time1 = MPI_Wtime();
     commuParticle();
@@ -372,8 +378,6 @@ deposit(const char *inputBoundary,
 	plotBoundary(combineString(cstr, "deposit_bdryplot_", iterSnap, 3));
 	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
-	if (iterSnap < endSnap) // possibly need allParticleVec to trim later
-	  releaseGatheredParticle();
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
 
@@ -578,10 +582,8 @@ void Assembly::scatterParticle() {
     boostWorld.recv(0, mpiTag, particleVec);
   }
 
-  // content of allParticleVec is not needed any more 
-  // but the variable is used for later gathering to print, so clear it.
-  if (mpiRank == 0) // process 0
-    releaseGatheredParticle();
+  // content of allParticleVec may need to be printed, so do not clear it. 
+  //if (mpiRank == 0) releaseGatheredParticle();
 
   // broadcast necessary info
   broadcast(boostWorld, gradation, 0);
@@ -1579,13 +1581,13 @@ void Assembly::migrateParticle()
 
 
 void Assembly::gatherParticle() {
-
   // update allParticleVec: process 0 collects all updated particles from each other process  
   if (mpiRank != 0) {// each process except 0
     boostWorld.send(0, mpiTag, particleVec);
   }
   else { // process 0
-    // allParticleVec is cleared first time in scatterParticle, and at the end of each gathering.
+    // allParticleVec is cleared before filling with new data
+    releaseGatheredParticle();
 
     // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration,
     // otherwise it causes memory error.
@@ -1616,7 +1618,7 @@ void Assembly::releaseGatheredParticle() {
   for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
     delete (*it);
   allParticleVec.clear();
-  std::vector<Particle*>().swap(allParticleVec); // actual memory release
+  //std::vector<Particle*>().swap(allParticleVec); // actual memory release
 }
 
 
