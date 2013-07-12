@@ -140,7 +140,7 @@ void Assembly::depositIntoContainer()
 
   deposit("deposit_boundary_ini",
 	  "float_particle_ini");
-  
+
   if (mpiRank == 0) {
     setContainer(Rectangle(allContainer.getMinCorner().getX(),
 			   allContainer.getMinCorner().getY(),
@@ -155,7 +155,7 @@ void Assembly::depositIntoContainer()
 	 combineString(cstr, "deposit_particle_", endSnap, 3),
 	 "trim_particle_ini");
   }
-    
+
 }
 
 
@@ -217,7 +217,14 @@ void Assembly::expandCavityParticle()
   
   deposit(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 	  "expand_particle_ini");
+}
 
+
+void Assembly::resumeExpandCavityParticle(const char *inputBoundary,
+					  const char *inputParticle) 
+{
+  deposit(inputBoundary,
+	  inputParticle);
 }
 
 

@@ -30,12 +30,12 @@ int main(int argc, char* argv[]) {
 
   boost::timer::auto_cpu_timer boostTimer;
 
-  if (boostWorld.rank() == 0 && argc != 2) {
-    std::cout << "please specify data file in the form: paraEllip3d input.txt" << std::endl;
-    return -1;    
-  }
-  
   if (boostWorld.rank() == 0) {
+    if (argc != 2) {
+      std::cout << "please specify data file in the form: paraEllip3d input.txt" << std::endl;
+      return -1;  
+    }
+
     dem::Parameter::getSingleton().readIn(argv[1]);
     //dem::Parameter::getSingleton().writeOut();
     int mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
@@ -58,16 +58,20 @@ int main(int argc, char* argv[]) {
 
   int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
   switch (simuType) {
-  case 0: // deposit spatially scattered particles into a rigid container
+  case 1: // deposit spatially scattered particles into a rigid container
     assemb.depositIntoContainer();
     break;
-  case 1: // resume deposition using specified data file of particles and boundaries
+  case 2: // resume deposition using specified data file of particles and boundaries
     assemb.resumeDepositIntoContainer(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 				      dem::Parameter::getSingleton().datafile["particleFile"].c_str());
     break;
-  case 2: // expand particles inside a virtual cavity and see what occurs
+  case 3: // expand particles inside a virtual cavity and see what occurs
     assemb.expandCavityParticle();
-    break;    
+    break;
+  case 4: // resume expanding particles inside a virtual cavity and see what occurs
+    assemb.resumeExpandCavityParticle(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
+				      dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    break;   
   }
   
   dem::debugInf.close();

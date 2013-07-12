@@ -111,6 +111,9 @@ namespace dem {
     void depositIntoContainer(); 
     void resumeDepositIntoContainer(const char *inputBoundary,
 				    const char *inputParticle);
+    void expandCavityParticle();
+    void resumeExpandCavityParticle(const char *inputBoundary,
+				    const char *inputParticle);
     void generateParticle(int particleLayers,
 			  const char *genParticle);
     void buildBoundary(int boundaryNum,
@@ -215,8 +218,6 @@ namespace dem {
     void printBoundary(const char *str) const; // print rigid boundaries info to a disk file
     void printCavityBoundary(const char *str) const; // print cavity boundaries
     void printCavityParticle(int total, const char *str) const;
-    
-    void expandCavityParticle();
     
   // continue to deposit after a cavity is created inside the particle assemblage
   void depositAfterCavity(int   total_steps,  

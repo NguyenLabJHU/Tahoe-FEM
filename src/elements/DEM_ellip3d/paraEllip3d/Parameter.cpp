@@ -23,7 +23,7 @@ void Parameter::readIn(const char *input) {
     parameter[str] = val;
   }
 
-  if ((int) parameter["simuType"] == 0) { // depositIntoContainer
+  if ((int) parameter["simuType"] == 1) { // depositIntoContainer
     for (int i = 0; i < 11; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
@@ -40,7 +40,7 @@ void Parameter::readIn(const char *input) {
     }
     
   }
-  else if ((int) parameter["simuType"] == 1) { // resume deposition
+  else if ((int) parameter["simuType"] == 2) { // resume deposition
     for (int i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
@@ -55,7 +55,7 @@ void Parameter::readIn(const char *input) {
     }
 
   } 
-  else if ((int) parameter["simuType"] == 2) { // expandCavityParticle
+  else if ((int) parameter["simuType"] == 3) { // expandCavityParticle
     for (int i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
