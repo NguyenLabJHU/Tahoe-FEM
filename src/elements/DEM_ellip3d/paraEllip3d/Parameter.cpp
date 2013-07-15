@@ -23,6 +23,7 @@ void Parameter::readIn(const char *input) {
     parameter[str] = val;
   }
 
+  // for different types of simulation
   if ((int) parameter["simuType"] == 1) { // depositIntoContainer
     for (int i = 0; i < 11; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
@@ -69,6 +70,21 @@ void Parameter::readIn(const char *input) {
       parameter[str] = val;
     }
   }
+  else if ((int) parameter["simuType"] == 4) { // resumeExpandCavityParticle
+    for (int i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (int i = 0; i < 1; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+  }
+
   
   ifs.close();
   
