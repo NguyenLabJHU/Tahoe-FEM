@@ -14,7 +14,7 @@ namespace dem {
       tmp.dirc = Vec(x,y,z);
       ifs >> x >> y >> z;
       tmp.apt = Vec(x,y,z);
-      ifs >> tmp.rad >> tmp.side;
+      ifs >> tmp.rad;
       coefOfLimits.push_back(tmp);
     }
   }
@@ -84,8 +84,7 @@ namespace dem {
 	for (bt = ++this->coefOfLimits.begin(); bt != this->coefOfLimits.end(); ++bt) { // coefOfLimits[1,2,...]
 	  ndirc = normalize((*bt).dirc);
 	  r = vfabs((posi-(*bt).apt) - (posi-(*bt).apt) % ndirc * ndirc);
-	  if( ( (*bt).order == 1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ) ||
-	      ( (*bt).order == 2 && (r-(*bt).rad)*(*bt).side < 0 ) ){
+	  if( (*bt).order == 1 && (posi-(*bt).apt)%(*bt).dirc >= 0 ) {
 	    next = false; // the particle is out of boundary, process next particle
 	    break;
 	  }
@@ -159,7 +158,7 @@ namespace dem {
     Vec norm = normalize(ndc);
     return fabs(r-vfabs((posi-napt)-(posi-napt)%norm*norm));
   }
-  
+
   void cylBoundary::findBdryContact(std::vector<Particle *> &ptcls) {
     std::vector<Particle *>::iterator it;
     std::vector<BdryCoef>::iterator bt;
@@ -176,9 +175,9 @@ namespace dem {
       for (bt = ++this->coefOfLimits.begin();bt!=this->coefOfLimits.end();++bt){
 	ndirc = normalize((*bt).dirc);
 	r = vfabs((posi-(*bt).apt)-(posi-(*bt).apt)%ndirc*ndirc);
-	if( ( (*bt).order==1&&(posi-(*bt).apt)%(*bt).dirc>(*it)->getA() )||
-	    ( (*bt).order==2&&(r-(*bt).rad)*(*bt).side<0 ) ){
-	  next = true;//the particle is outof boundary, process next particle
+	if( ( (*bt).order==1&&(posi-(*bt).apt)%(*bt).dirc>(*it)->getA() )
+	    /*|| ( (*bt).order==2&&(r-(*bt).rad)*(*bt).side<0 )*/ ){
+	  next = true; //the particle is outof boundary, process next particle
 	  break;
 	}
       }
@@ -196,10 +195,9 @@ namespace dem {
     cyl.setCenter(tmp.apt);
     normal = 0;
     for (it = possBdryParticle.begin();it!=possBdryParticle.end();++it){
-      normal-=(*it)->cylinderRBForce(this->boundaryId,cyl,tmp.side);
+      //normal-=(*it)->cylinderRBForce(this->boundaryId,cyl,tmp.side);
     }
   }
-  
   
 } // namespace dem ends
 

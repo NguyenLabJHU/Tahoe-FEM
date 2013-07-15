@@ -45,7 +45,6 @@ namespace dem {
     Vec  dirc;  // normal vector if plane, mother line vector if cylinder,it points out of the particles		
     Vec  apt;   // a point on the plane or a point on the axis of the cylinder
     REAL rad;   // zero if plane
-    int  side;  // zero if plane; side=1, particles are outside the cylinder; =-1, inside the cylinder
     
   private:
     friend class boost::serialization::access;
@@ -55,7 +54,6 @@ namespace dem {
       ar & dirc;
       ar & apt;
       ar & rad;
-      ar & side;
     }
     
   public:
@@ -63,7 +61,7 @@ namespace dem {
       std::cout << "order: " << order << std::endl;
       std::cout << "dirc: " << dirc.getX() << " " << dirc.getY() << " " << dirc.getZ() << std::endl;
       std::cout << "apt: " << apt.getX() << " " << apt.getY() << " " << apt.getZ() << std::endl;
-      std::cout << "radius: " << rad << " side: " << side << std::endl;
+      std::cout << "radius: " << rad << std::endl;
     }
     
     void display(std::ofstream &ofs) const{
@@ -74,8 +72,7 @@ namespace dem {
 	  << std::setw(OWID) << apt.getX()
 	  << std::setw(OWID) << apt.getY()
 	  << std::setw(OWID) << apt.getZ()
-	  << std::setw(OWID) << rad
-	  << std::setw(OWID) << side << std::endl;
+	  << std::setw(OWID) << rad << std::endl;
     }
   } BdryCoef;
   
