@@ -333,10 +333,10 @@ trim(bool toRebuild,
 void Assembly::
 deposit(const char *inputBoundary,
 	const char *inputParticle) 
-{
+{     
   if (mpiRank == 0) {
     readBoundary(inputBoundary);
-    readParticle(inputParticle); 
+    readParticle(inputParticle);
   }
   scatterParticle(); // scatter particles only once; also updates grid for the first time
 
@@ -480,6 +480,9 @@ void Assembly::removeParticleOutRectangle() {
 
 
 REAL Assembly::getPtclMaxX(const std::vector<Particle*> &inputParticle) const {
+  if (inputParticle.size() == 0)
+    return -1/EPS;
+
   std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL x0 = (*it)->getCurrPos().getX();
   for (; it != inputParticle.end(); ++it) {
@@ -491,6 +494,9 @@ REAL Assembly::getPtclMaxX(const std::vector<Particle*> &inputParticle) const {
 
 
 REAL Assembly::getPtclMinX(const std::vector<Particle*> &inputParticle) const {
+  if (inputParticle.size() == 0)
+    return 1/EPS;
+
   std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL x0 = (*it)->getCurrPos().getX();
   for (; it != inputParticle.end(); ++it) {
@@ -502,6 +508,9 @@ REAL Assembly::getPtclMinX(const std::vector<Particle*> &inputParticle) const {
 
 
 REAL Assembly::getPtclMaxY(const std::vector<Particle*> &inputParticle) const {
+  if (inputParticle.size() == 0)
+    return -1/EPS;
+
   std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL y0 = (*it)->getCurrPos().getY();
   for (; it != inputParticle.end(); ++it) {
@@ -513,6 +522,9 @@ REAL Assembly::getPtclMaxY(const std::vector<Particle*> &inputParticle) const {
 
 
 REAL Assembly::getPtclMinY(const std::vector<Particle*> &inputParticle) const {
+  if (inputParticle.size() == 0)
+    return 1/EPS;
+
   std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL y0 = (*it)->getCurrPos().getY();
   for (; it != inputParticle.end(); ++it) {
@@ -524,6 +536,9 @@ REAL Assembly::getPtclMinY(const std::vector<Particle*> &inputParticle) const {
 
 
 REAL Assembly::getPtclMaxZ(const std::vector<Particle*> &inputParticle) const {
+  if (inputParticle.size() == 0)
+    return -1/EPS;
+
   std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL z0 = (*it)->getCurrPos().getZ();
   for (; it != inputParticle.end(); ++it) {
@@ -535,6 +550,9 @@ REAL Assembly::getPtclMaxZ(const std::vector<Particle*> &inputParticle) const {
 
 
 REAL Assembly::getPtclMinZ(const std::vector<Particle*> &inputParticle) const {
+  if (inputParticle.size() == 0)
+    return 1/EPS;
+
   std::vector<Particle*>::const_iterator it = inputParticle.begin();
   REAL z0 = (*it)->getCurrPos().getZ();
   for (; it != inputParticle.end(); ++it) {
@@ -1893,7 +1911,7 @@ void Assembly::readBoundary(const char *str) {
     ifs >> type;
     if(type == 1) // plane boundary
       rbptr = new plnBoundary(ifs);
-    else          // cylindrical boundary
+    else if(type == 2) // cylindrical boundary
       rbptr = new cylBoundary(ifs);
     boundaryVec.push_back(rbptr);
   }
@@ -1917,7 +1935,7 @@ void Assembly::printBoundary(const char *str) const {
   REAL z2 = v2.getZ();
   
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z1
-      << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl
+      << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
       << std::setw(OWID) << boundaryVec.size() << std::endl;
   
   std::vector<Boundary*>::const_iterator rt;
@@ -9122,10 +9140,10 @@ buildBoundary(int boundaryNum,
   REAL z0 = v0.getZ();
 
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z1
-      << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl
+      << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
       << std::setw(OWID) << boundaryNum << std::endl << std::endl;
   
-  if (boundaryNum == 1){   // only a bottom boundary
+  if (boundaryNum == 1) {   // only a bottom boundary
     ofs << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 6
         << std::setw(OWID) << 1 << std::endl
@@ -9137,15 +9155,14 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
         << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl;
     
   }
-  else if (boundaryNum == 5){ // no top boundary
+  else if (boundaryNum == 5) { // no top boundary
     // boundary 1
     ofs << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 4 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 1
@@ -9154,43 +9171,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x2
         << std::setw(OWID) << y0
         << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x0
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x0
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
-      
+
       // boundary 2
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 2
-        << std::setw(OWID) << 4 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
@@ -9199,43 +9185,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0     
         << std::setw(OWID) << y2
         << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0      
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x1
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 3
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 3
-        << std::setw(OWID) << 4 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << -1
@@ -9244,43 +9199,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x1
         << std::setw(OWID) << y0
         << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << y0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 4
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 4
-        << std::setw(OWID) << 4 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
@@ -9289,43 +9213,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y1
         << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x1
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 6
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 6
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
@@ -9334,54 +9227,13 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0
         << std::setw(OWID) << y0
         << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x1 
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl;
+        << std::setw(OWID) << 0 << std::endl << std::endl;
   }
   else if (boundaryNum == 6){ // all 6 boundaries
     // boundary 1
     ofs << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 1
@@ -9390,53 +9242,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x2
         << std::setw(OWID) << y0
         << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0    
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y0    
-        << std::setw(OWID) << z2 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 2
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 2
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
@@ -9445,53 +9256,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0    
         << std::setw(OWID) << y2
         << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x1 
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y0    
-        << std::setw(OWID) << z2 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y0      
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << 0 << std::endl <<std::endl
       
       // boundary 3
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 3
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << -1
@@ -9500,53 +9270,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x1
         << std::setw(OWID) << y0
         << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0  
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0       
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z2 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0      
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 4
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 4
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
@@ -9555,53 +9284,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y1
         << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x1 
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0     
-        << std::setw(OWID) << z2 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y0      
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 5
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 5
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
@@ -9610,53 +9298,12 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y0
         << std::setw(OWID) << z2 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x1 
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << z0
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 6
         << std::setw(OWID) << 1 << std::endl
         << std::setw(OWID) << 6
-        << std::setw(OWID) << 5 << std::endl
+        << std::setw(OWID) << 1 << std::endl
       
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
@@ -9665,47 +9312,6 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y0
         << std::setw(OWID) << z1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x2
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << -1 
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x1 
-        << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0 << std::endl
-      
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0 
-        << std::setw(OWID) << x0      
-        << std::setw(OWID) << y1
-        << std::setw(OWID) << z0
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 << std::endl << std::endl;
   }
   
