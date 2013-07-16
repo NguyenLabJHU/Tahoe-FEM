@@ -98,13 +98,14 @@ void Assembly::setCommunicator(boost::mpi::communicator &comm) {
   int ndim = 3;
   int dims[3] = {mpiProcX, mpiProcY, mpiProcZ};
   int periods[3] = {0, 0, 0};
-  int reorder = 1;
+  int reorder = 0; // mpiRank not reordered
   MPI_Cart_create(mpiWorld, ndim, dims, periods, reorder, &cartComm);
-  MPI_Comm_rank(cartComm, &mpiRank); // mpiRank probably reordered
+  MPI_Comm_rank(cartComm, &mpiRank); 
   MPI_Comm_size(cartComm, &mpiSize);
   MPI_Cart_coords(cartComm, mpiRank, ndim, mpiCoords);
   mpiTag = 0;
   assert(mpiRank == boostWorld.rank());
+  //std::cout << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
 }
 
 
@@ -579,7 +580,7 @@ void Assembly::scatterParticle() {
     Vec vspan = v2 - v1;
 
     boost::mpi::request *reqs = new boost::mpi::request [mpiSize - 1];
-    std::vector<Particle*> tmpParticleVec;
+    std::vector<Particle *> tmpParticleVec;
     for (int iRank = mpiSize - 1; iRank >= 0; --iRank) {
       tmpParticleVec.clear(); // do not release memory!
       int ndim = 3;
