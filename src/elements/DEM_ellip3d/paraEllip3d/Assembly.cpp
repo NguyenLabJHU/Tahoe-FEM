@@ -1,26 +1,29 @@
+//
+//                                    x1(3)
 //                          ---------------------
 //                         /                    /|
 //                        /                    / |
 //                       /                    /  |
-//                      /         z2 (5)     /   |
-//                     /                    /    |height
+//                      /        z2(5)       /   |
+//                     /                    /    |
 //                    /                    /     |                    z (sigma3)
 //                   /                    /      |                    |
 //                  |---------------------       |                    |
-//                  |                    | y2(2) |                    |____ y (sigma1)
+//            y1(4) |                    | y2(2) |                    |____ y (sigma1)
 //                  |                    |       /                   /
 //                  |                    |      /                   /
-//                  |        x2 (1)      |     /                   x (sigma2) 
-//                  |                    |    /length
+//                  |        x2(1)       |     /                   x (sigma2) 
+//                  |                    |    /
 //                  |                    |   /
 //                  |                    |  /
 //                  |                    | /
 //                  |                    |/
 //                  ----------------------
-//                         width
+//                             z1(6)
+//
 //
 //    It is preferable to use the description of surface x1, x2, y1, y2, z1, z2,
-//    where x1 < x2, y1 < y2, z1 < z2
+//    where x1 < x2, y1 < y2, z1 < z2. We also use surface 3, 1, 4, 2, 6, 5 accordingly.
 //
 //    sigma1_1 & sigma1_2 refers to side 2 & side 4 respectively,
 //    sigma2_1 & sigma2_2 refers to side 1 & side 3 respectively,
