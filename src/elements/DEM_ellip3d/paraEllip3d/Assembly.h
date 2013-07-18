@@ -45,12 +45,14 @@ namespace dem {
     
     // boundaries property
     std::vector<Boundary *> boundaryVec;       // rigid boundaries
+    std::vector<Boundary *> mergeBoundaryVec;  // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
     std::map<int,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
     
     // MPI data
     boost::mpi::communicator boostWorld;
     MPI_Comm mpiWorld, cartComm;
+    std::vector<int> bdryProcess;
     int mpiProcX, mpiProcY, mpiProcZ;
     int mpiRank, mpiSize, mpiTag, mpiCoords[3];
     int rankX1, rankX2, rankY1, rankY2, rankZ1, rankZ2;
@@ -137,6 +139,7 @@ namespace dem {
     void migrateParticle();
     void removeParticleOutRectangle();
     void gatherParticle();
+    void gatherBdryContact();
 
     void updateContainerMinX();
     void updateContainerMaxX();
@@ -177,7 +180,7 @@ namespace dem {
   
     // if bn[i]=2, the 2nd rigid boundary should be updated according to rbctl[i],
     // totally num rigid boundaries must be updated
-    void updateBoundary(int bn[], UPDATECTL rbctl[], int num);
+    //void updateBoundary(int bn[], UPDATECTL rbctl[], int num);
     void updateBoundary6();
     
     REAL getDensity() const; 
@@ -207,6 +210,7 @@ namespace dem {
     void setArea(int bdry,REAL a);             // set the area of the bdry-th rigid boundary be a
     void setTrimHistoryNum(int n) { trimHistoryNum = n; }
     void printParticle(const char *str) const; // print all particles info into a disk file
+    void printBdryContact(const char *str) const; // print all boundary contact info into a disk file
     void printParticle(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info into a disk file
     void printMemParticle(const char *str) const; // print membrane particles info into a disk file
     void plotSpring(const char *str) const;    // print springs in Tecplot format

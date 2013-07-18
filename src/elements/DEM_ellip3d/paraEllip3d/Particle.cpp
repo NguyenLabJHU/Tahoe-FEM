@@ -662,19 +662,18 @@ bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const
 }
   
 
-void Particle::planeRBForce(plnBoundary *plb,
-			    std::map<int,std::vector<BoundaryTgt> > &BdryTgtMap,
-			    std::vector<BoundaryTgt> &vtmp,
-			    REAL &penetr) {
+void Particle::planeRBForce(planeBoundary *plane,
+			    std::map<int, std::vector<BoundaryTgt> > &BdryTgtMap,
+			    std::vector<BoundaryTgt> &vtmp) {
   // (p, q, r) are in the same direction as the outward normal vector,
   // hence it is not necessary to provide information about which side the particle is about the plane.
   REAL p,q,r,s;
-  BdryCoef tmp = *((plb->coefOfLimits).begin());
-  p = tmp.dirc.getX();
-  q = tmp.dirc.getY();
-  r = tmp.dirc.getZ();
-  s = -tmp.dirc % tmp.apt; // plane equation: p(x-x0) + q(y-y0) + r(z-z0) = 0, that is, px + qy + rz + s = 0
-  
+  Vec dirc = normalize(plane->getDirec());
+  p = dirc.getX();
+  q = dirc.getY();
+  r = dirc.getZ();
+  s = -dirc % plane->getPoint(); // plane equation: p(x-x0) + q(y-y0) + r(z-z0) = 0, that is, px + qy + rz + s = 0
+
   Vec pt1;
   if (!nearestPTOnPlane(p, q, r, s, pt1)) // the particle and the plane does not intersect
     return;
@@ -682,7 +681,6 @@ void Particle::planeRBForce(plnBoundary *plb,
   // if particle and plane intersect:
   ++contactNum;
   inContact = true;
-  Vec dirc = normalize(Vec(p, q, r));
   Vec rt[2];
   if (!intersectWithLine(pt1, dirc, rt)) // the line and ellipsoid surface does not intersect
     return;
@@ -700,7 +698,7 @@ void Particle::planeRBForce(plnBoundary *plb,
     pt2 = rt[1];
   
   // obtain normal force
-  REAL penetration = vfabs(pt1-pt2);
+  REAL penetration = vfabs(pt1 - pt2);
   if (penetration / (2.0*getRadius(pt2) ) <= dem::Parameter::getSingleton().parameter["minRelaOverlap"])
     return;
   
@@ -710,16 +708,15 @@ void Particle::planeRBForce(plnBoundary *plb,
   if (penetration > allowedOverlap) {
     debugInf << "Particle.cpp: iter=" << iteration 
 	     << " ptclId=" << getId()
-	     << " bdryId=" << plb->boundaryId
+	     << " bdryId=" << plane->getId()
 	     << " penetr=" << penetration 
-	     << " allow=" << allowedOverlap << std::endl;
+	     << " allow="  << allowedOverlap << std::endl;
     penetration = allowedOverlap;
   }
   
   REAL measureOverlap = dem::Parameter::getSingleton().parameter["measureOverlap"];  
   penetration = nearbyint (penetration/measureOverlap) * measureOverlap;
   REAL contactRadius = sqrt(penetration*R0);
-  penetr = penetration;
   Vec normalDirc = -dirc;
   // pow(penetration,1.5), a serious bug
   Vec normalForce = sqrt(penetration * penetration * penetration) * sqrt(R0) * 4 * E0/3 * normalDirc;
@@ -727,7 +724,7 @@ void Particle::planeRBForce(plnBoundary *plb,
   /*
   debugInf << ' ' << iteration
 	   << ' ' << getId()
-	   << ' ' << plb->boundaryId
+	   << ' ' << plane->boundaryId
 	   << ' ' << pt1.getX()
 	   << ' ' << pt1.getY()
 	   << ' ' << pt1.getZ()
@@ -758,17 +755,17 @@ void Particle::planeRBForce(plnBoundary *plb,
   addMoment(((pt1 + pt2)/2 - currPos) * cntDampingForce);
   
   Vec tgtForce = 0;
-  if (dem::Parameter::getSingleton().parameter["boundaryFric"] != 0){
+  if (dem::Parameter::getSingleton().parameter["boundaryFric"] != 0) {
     // checkin previous tangential force and displacement
-    Vec prevTgtForce;
-    Vec prevTgtDisp;
+    Vec  prevTgtForce;
+    Vec  prevTgtDisp;
     bool prevTgtLoading = true;
     Vec  tgtDispStart;
     REAL tgtPeak = 0;
     
     bool tgtLoading = true;
     std::vector<BoundaryTgt>::iterator it;
-    for (it = BdryTgtMap[plb->boundaryId].begin(); it != BdryTgtMap[plb->boundaryId].end(); ++it){
+    for (it = BdryTgtMap[plane->getId()].begin(); it != BdryTgtMap[plane->getId()].end(); ++it){
       if (id == it->particleId) {
 	prevTgtForce   = it->tgtForce;
 	prevTgtDisp    = it->tgtDisp;
@@ -896,9 +893,8 @@ void Particle::planeRBForce(plnBoundary *plb,
     
   }
   
-  plb->normal -= normalForce;
-  plb->tangt  -= tgtForce;
-  // plb->moment -= (((pt1 + pt2)/2 - currPos) * NormForce + ((pt1 + pt2)/2 - currPos) * tgtForce));
+  plane->getContactInfo().push_back(BdryContact(this, pt1, -normalForce, -tgtForce, penetration));
+  // update forces acting on boundary in class Boundary, not here
 }
   
   

@@ -144,18 +144,16 @@ namespace dem {
     
     // find the point on plane which is deepest into a particles, px + qy + rz + s = 0 is the equation 
     // of the plane, true means intersection; false means no intersection.
-    bool nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec& ptnp) const;
+    bool nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const;
     
     //calculate the normal force between particle and a plane rigid boundary
-    void planeRBForce(plnBoundary *plb,
-		      std::map<int,std::vector<BoundaryTgt> >& BoundarytgtMap,
-		      std::vector<BoundaryTgt>& vtmp,
-		      REAL &penetr);
+    void planeRBForce(planeBoundary *plane,
+		      std::map<int,std::vector<BoundaryTgt> > &BoundarytgtMap,
+		      std::vector<BoundaryTgt> &vtmp);
     
-    // if side < 0, particles are inside the cylinder; else side is outside the cylinder
     // calculate the normal force between particle and a cylinder wall
-    Vec cylinderRBForce(int bdry_id, const Cylinder& S, int side);
-
+    Vec cylinderRBForce(int boundaryId, const Cylinder &S, int side);
+    
   private:
     void init();    
 

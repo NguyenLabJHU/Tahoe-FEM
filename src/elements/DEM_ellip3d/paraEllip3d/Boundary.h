@@ -18,7 +18,8 @@
 namespace dem {
   
   class Particle; // forward declaration, only use pointer to class Particle
-
+  
+  /////////////////////////////////////
   class BoundaryTgt {  
   public:
     int  particleId;
@@ -39,181 +40,183 @@ namespace dem {
     
   };
   
-  
-  typedef struct bdryfunc {
-    int  order; // 1-linear; 2-quadratic
-    Vec  dirc;  // normal vector if plane, mother line vector if cylinder,it points out of the particles		
-    Vec  apt;   // a point on the plane or a point on the axis of the cylinder
-    REAL rad;   // zero if plane
+  /////////////////////////////////////
+  class BdryContact {
+  public:
+    Particle *ptcl;
+    Vec point;
+    Vec normal;
+    Vec tangt;
+    REAL penetr;
+
+  public:
+  BdryContact()
+    :ptcl(NULL), point(0), normal(0), tangt(0), penetr(0) 
+    {}
     
+  BdryContact(Particle *p, Vec pt, Vec nm, Vec tg, REAL pntr)
+    :ptcl(p), point(pt), normal(nm), tangt(tg), penetr(pntr) 
+    {}
+    
+  void print(std::ostream &os) {
+    os << std::setw(OWID) << point.getX()
+       << std::setw(OWID) << point.getY()
+       << std::setw(OWID) << point.getZ()
+       << std::setw(OWID) << normal.getX()
+       << std::setw(OWID) << normal.getY()
+       << std::setw(OWID) << normal.getZ() 
+       << std::setw(OWID) << tangt.getX()
+       << std::setw(OWID) << tangt.getY()
+       << std::setw(OWID) << tangt.getZ() 
+       << std::setw(OWID) << penetr << std::endl;
+
+  }
   private:
     friend class boost::serialization::access;
     template<class Archive>
-    void serialize(Archive & ar, const unsigned int version) {
-      ar & order;
-      ar & dirc;
-      ar & apt;
-      ar & rad;
+      void serialize(Archive & ar, const unsigned int version) {
+      ar & ptcl;
+      ar & point;
+      ar & normal;
+      ar & tangt;
+      ar & penetr;
     }
-    
-  public:
-    void display() const{
-      std::cout << "order: " << order << std::endl;
-      std::cout << "dirc: " << dirc.getX() << " " << dirc.getY() << " " << dirc.getZ() << std::endl;
-      std::cout << "apt: " << apt.getX() << " " << apt.getY() << " " << apt.getZ() << std::endl;
-      std::cout << "radius: " << rad << std::endl;
-    }
-    
-    void display(std::ofstream &ofs) const{
-      ofs << std::setw(OWID) << order
-	  << std::setw(OWID) << dirc.getX()
-	  << std::setw(OWID) << dirc.getY()
-	  << std::setw(OWID) << dirc.getZ()
-	  << std::setw(OWID) << apt.getX()
-	  << std::setw(OWID) << apt.getY()
-	  << std::setw(OWID) << apt.getZ()
-	  << std::setw(OWID) << rad << std::endl;
-    }
-  } BdryCoef;
-  
-  
-  typedef struct updatectl{
-    Vec  tran;  // tranlation second
-    Vec  rote;  // rotate first
-    Vec  fixpt; // before any update is made
-    REAL expnd; // expand last
-    
-    updatectl() {tran=0;rote=0;fixpt=0;expnd=1;}
-    
-    void display() const {
-      std::cout << "tran: " << tran.getX() << " " << tran.getY() << " " << tran.getZ() << std::endl;
-      std::cout << "rote: " << rote.getX() << " " << rote.getY() << " " << rote.getZ() << std::endl;
-      std::cout << "fixpt: " << fixpt.getX() << " " << fixpt.getY() << " " << fixpt.getZ() << std::endl;
-      std::cout << "expand:" << expnd << std::endl;
-    }
-    
-  } UPDATECTL;
-  
-  
-  class Boundary {
-  public:
-    int  boundaryId; // the first record defines the bdry itself, the other 
-    std::vector<BdryCoef> coefOfLimits; // limitnum records define the other lines on the bdry 
-    REAL avgNormal;  // that give limits to the first boundary.
-    REAL avgPenetr;  // average penetration by particles onto this boundary
-    int  contactNum; // contact numbers by particles onto this boundary
-    REAL area;       // bounary's area
-    int  limitNum;   // how many lines the boundary has
+  };
+
+  ///////////////////////////////////////
+  class Boundary { // abstract base class
+  protected:
+    int id;
+    int type;
+
+    std::vector<Particle *> possParticle;
+    std::vector<BdryContact> contactInfo;
+    int  contactNum;
+    Vec  normal;
+    Vec  tangt;
+    REAL penetr;
     
   private:
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
-      ar & boundaryId;
-      ar & coefOfLimits;
-      ar & avgNormal;
-      ar & avgPenetr;
+      ar & id;
+      ar & type;
+      ar & possParticle;
+      ar & contactInfo;
       ar & contactNum;
-      ar & area;
-      ar & limitNum;
+      ar & normal;
+      ar & tangt;
+      ar & penetr;
     }
     
   public:
-    Boundary() {}
-    Boundary(std::ifstream &ifs);
-    int getBdryID() { return boundaryId; }
-    virtual ~Boundary() {} // base class needs a virtual destructor.
-    virtual void display() const {
-      std::cout << "area: " << area << " limitNum: " << limitNum << std::endl;
-      std::vector<BdryCoef>::const_iterator it;
-      for(it = coefOfLimits.begin(); it != coefOfLimits.end(); ++it)
-	(*it).display();
-    }
-    virtual void display(std::ofstream &ofs) const {
-      std::vector<BdryCoef>::const_iterator it;
-      ofs << std::endl
-	  << std::setw(OWID) << (*coefOfLimits.begin()).order << std::endl;
-      ofs << std::setw(OWID) << boundaryId
-	  << std::setw(OWID) << limitNum << std::endl;
-      for(it = coefOfLimits.begin(); it != coefOfLimits.end(); ++it)
-	(*it).display(ofs);
-    }
-    virtual void findBdryContact(std::vector<Particle *> &ptcls) {}
+    Boundary(int i = 0, int tp = 0)
+      :id(i), type(tp), contactNum(0), normal(0), tangt(0), penetr(0)  
+      {}
+
+    Boundary(int type, std::ifstream &ifs);
+    virtual ~Boundary() {} // polymorphic base class requires a virtual destructor
     
-    // calculate for each boundary particles the rigid boundary force
-    virtual void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap) {}
-    
-    virtual Vec getNormalForce() const { return 0; }
-    virtual REAL getAvgNormal() const { return 0; }
-    virtual REAL getAvgPenetr() const { return 0; }
-    virtual int getCntnum() const { return 0; }
-    virtual Vec getShearForce() const { return 0; }
-    virtual Vec getApt() const { return 0; }
-    virtual Vec getDirc() const { return 0; }
-    virtual void setArea(REAL a) { area=a; }
-    virtual REAL getArea() { return area; }
-    virtual void update(UPDATECTL &ctl); //the boundary is translating with tran and rotating with rote around axis
+    int getId() { return id; }
+    int getType() { return type; }
+    std::vector<Particle *> &getPossParticle () {return possParticle;}
+    std::vector<BdryContact> &getContactInfo () {return contactInfo;}
+    int getContactNum() const { return contactNum; }
+    Vec getNormalForce() const { return normal; }
+    Vec getTangtForce() const { return tangt; }
+    REAL getAvgPenetr() const { return penetr; }
+
+    virtual void print(std::ostream &os);
+    virtual void printContactInfo(std::ostream &os);
+    virtual void findBdryContact(std::vector<Particle *> &ptcls) = 0;
+    virtual void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap) = 0;
+    virtual void updateLocation() = 0;
+    virtual void updateStatForce();
+    void clearStatForce();
   };
-  
-  class plnBoundary : public Boundary {
-  public:
-    Vec normal;  // normal force acting on the boundary by all contacting particles 
-    Vec tangt;   // tangential force acting on the boundary
-    Vec moment;  // moment on the boundary
-    std::vector<Particle *> possBdryParticle; // possible boundary particles of this specific boundary
+
+  ///////////////////////////////////////
+  class planeBoundary : public Boundary {
+  private:
+    Vec  direc;
+    Vec  point;
     
   private:
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
       ar & boost::serialization::base_object<Boundary >(*this);
-      ar & normal;
-      ar & tangt;
-      ar & moment;
-      ar & possBdryParticle;
+      ar & direc;
+      ar & point;
     }
     
   public:
-    plnBoundary() {}
-    plnBoundary(std::ifstream &ifs):Boundary(ifs) {
-      normal = 0;
-      tangt = 0;
-      moment = 0;
-      this->avgNormal = 0;
-      this->avgPenetr = 0;
-      this->contactNum = 0;
-    }
-    
-    int getBdryID() {return this->boundaryId;}
-    void display() const;
-    REAL distToBdry(Vec posi) const;
-    void findBdryContact(std::vector<Particle *> &ptcls);
-    Vec getApt() const;
-    Vec getDirc() const;
-    plnBoundary* getBdry(int bdryid) { return this; }
-    const plnBoundary* getBdry(int bdryid) const { return this; }
-    void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap);
-    Vec getNormalForce() const { return normal; }
-    REAL getAvgNormal() const { return this->avgNormal; }
-    REAL getAvgPenetr() const { return this->avgPenetr; }
-    int getCntnum() const { return this->contactNum; }
-    Vec getShearForce() const { return tangt; }
-  };
-  
-  class cylBoundary : public Boundary {
-  public:
-    Vec normal; 
-    std::vector<Particle *> possBdryParticle;
+    planeBoundary(int i = 0, int tp = 0)
+      :Boundary(i, tp), direc(0), point(0) 
+      {}
 
-  public:
-  cylBoundary(std::ifstream &ifs):Boundary(ifs){normal = 0;}
-    void display() const;
-    REAL distToBdry(Vec posi) const;
+    planeBoundary(int type, std::ifstream &ifs);
+
+    Vec getDirec() const { return direc; }
+    Vec getPoint() const { return point; }
+
+    REAL distanceToBdry(Vec pos) const { return (pos - point) % normalize(direc); }
+    void print(std::ostream &os);
+    void printContactInfo(std::ostream &os);
+
+    void updateLocation() {}
     void findBdryContact(std::vector<Particle *> &ptcls);
-    void boundaryForce();
-    Vec getNormalForce() const{ return normal; }
+    void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap);
+
   };
   
+  ///////////////////////////////////////
+  class cylinderBoundary : public Boundary {
+  private:
+    Vec  direc;
+    Vec  point;
+    REAL radius;
+    
+  private:
+    friend class boost::serialization::access;
+    template<class Archive>
+      void serialize(Archive & ar, const unsigned int version) {
+      ar & boost::serialization::base_object<Boundary >(*this);
+      ar & direc;
+      ar & point;
+      ar & radius;
+    }
+    
+  public:
+    cylinderBoundary()
+      :Boundary(), direc(0), point(0), radius(0)
+      {}
+
+    cylinderBoundary(int type, std::ifstream &ifs);
+
+    Vec getDirec() const { return direc; }
+    Vec getPoint() const { return point; }
+    REAL getRadius() const { return radius; }
+ 
+    void print(std::ostream &os) {
+      Boundary::print(os);
+      os << std::setw(OWID) << direc.getX()
+	 << std::setw(OWID) << direc.getY()
+	 << std::setw(OWID) << direc.getZ()
+	 << std::setw(OWID) << point.getX()
+	 << std::setw(OWID) << point.getY()
+	 << std::setw(OWID) << point.getZ()
+	 << std::setw(OWID) << radius
+	 << std::endl << std::endl;
+    }
+
+    void updateLocation() {}
+    void findBdryContact(std::vector<Particle *> &ptcls);
+    void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap);
+
+  };
+
 } // namespace dem ends
 
 #endif

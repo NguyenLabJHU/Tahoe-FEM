@@ -109,6 +109,16 @@ void Assembly::setCommunicator(boost::mpi::communicator &comm) {
   mpiTag = 0;
   assert(mpiRank == boostWorld.rank());
   //std::cout << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
+
+  for (int iRank = 0; iRank < mpiSize; ++iRank) {
+    int ndim = 3;
+    int coords[3];
+    MPI_Cart_coords(cartComm, iRank, ndim, coords);
+    if (coords[0] == 0 || coords[0] == mpiProcX - 1 ||
+	coords[1] == 0 || coords[1] == mpiProcY - 1 ||
+	coords[2] == 0 || coords[2] == mpiProcZ - 1)
+      bdryProcess.push_back(iRank);
+  }
 }
 
 
@@ -361,6 +371,7 @@ deposit(const char *inputBoundary,
     plotBoundary(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3));
     plotGrid(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3));
     printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
+    printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
   }
   while (iteration <= endStep) {
     time0 = MPI_Wtime();
@@ -382,6 +393,7 @@ deposit(const char *inputBoundary,
     if (iteration % (netStep / netSnap) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
+      gatherBdryContact();
       time2 = MPI_Wtime(); gatherT = time2 - time1;
 
       char cstr[50];
@@ -389,6 +401,7 @@ deposit(const char *inputBoundary,
 	plotBoundary(combineString(cstr, "deposit_bdryplot_", iterSnap, 3));
 	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
+	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
 
@@ -1639,8 +1652,8 @@ void Assembly::gatherParticle() {
     }
     //std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << std::endl;
   }
-  
 }
+
 
 void Assembly::releaseGatheredParticle() {
   // clear allParticleVec, avoid long time memory footprint.
@@ -1651,6 +1664,51 @@ void Assembly::releaseGatheredParticle() {
 }
 
 
+void Assembly::gatherBdryContact() {
+  if (isBdryProcess()) {
+    if (mpiRank != 0)
+      boostWorld.send(0, mpiTag, boundaryVec);
+  }
+
+  if (mpiRank == 0) {
+    mergeBoundaryVec.clear();
+    mergeBoundaryVec = boundaryVec; 
+
+    std::vector<Boundary *> tmpBoundaryVec;   
+    for (int it = 0; it < bdryProcess.size(); ++it) {
+      if (bdryProcess[it] != 0) {// not root process
+	tmpBoundaryVec.clear();  // do not destroy particles!
+	boostWorld.recv(bdryProcess[it], mpiTag, tmpBoundaryVec);
+	// merge tmpBoundaryVec into mergeBoundaryVec
+	assert(tmpBoundaryVec.size() == mergeBoundaryVec.size());
+	for (int jt = 0; jt < tmpBoundaryVec.size(); ++jt)
+	  mergeBoundaryVec[jt]->getContactInfo().insert(   \
+	     mergeBoundaryVec[jt]->getContactInfo().end(), \
+	     tmpBoundaryVec[jt]->getContactInfo().begin(), \
+	     tmpBoundaryVec[jt]->getContactInfo().end() );
+      }    
+    }
+
+    // must update after collecting all boundary contact info
+    for(std::vector<Boundary *>::iterator rt = mergeBoundaryVec.begin(); rt != mergeBoundaryVec.end(); ++rt)
+      (*rt)->updateStatForce();
+  }
+}
+  
+
+void Assembly::printBdryContact(const char *str) const {
+  std::ofstream ofs(str);
+  if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+  
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    (*it)->printContactInfo(ofs);
+  }
+  
+  ofs.close();
+}
+  
 void Assembly::readParticle(const char *inputParticle) {
 
   REAL young = dem::Parameter::getSingleton().parameter["young"];
@@ -1906,18 +1964,19 @@ void Assembly::readBoundary(const char *str) {
   // compute grid assumed to be the same as container, change in scatterParticle() if necessary.
   setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
 
-  Boundary *rbptr;
-  int type;
   boundaryVec.clear();
+  Boundary *bptr;
   int boundaryNum;
+  int type;
   ifs >> boundaryNum;
-  for(int i = 0; i < boundaryNum; ++i){
+  for(int i = 0; i < boundaryNum; ++i) {
     ifs >> type;
     if(type == 1) // plane boundary
-      rbptr = new plnBoundary(ifs);
+      bptr = new planeBoundary(type, ifs);
     else if(type == 2) // cylindrical boundary
-      rbptr = new cylBoundary(ifs);
-    boundaryVec.push_back(rbptr);
+      bptr = new cylinderBoundary(type, ifs);
+
+    boundaryVec.push_back(bptr);
   }
 
   ifs.close();
@@ -1940,12 +1999,11 @@ void Assembly::printBoundary(const char *str) const {
   
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z1
       << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
-      << std::setw(OWID) << boundaryVec.size() << std::endl;
+      << std::setw(OWID) << boundaryVec.size() << std::endl << std::endl;
   
   std::vector<Boundary*>::const_iterator rt;
   for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-    (*rt)->display(ofs);
-  ofs << std::endl;
+    (*rt)->print(ofs);
   
   ofs.close();
 }
@@ -3277,7 +3335,7 @@ void Assembly::readCavityBoundary(const char *str) {
   for(int i = 0; i < boundaryNum; i++){
     ifs >> type;
     if(type == 1) // plane boundary
-      rbptr = new plnBoundary<Particle>(ifs);
+      rbptr = new planeBoundary<Particle>(ifs);
     cavityBoundaryVec.push_back(rbptr);
   }
 
@@ -9148,98 +9206,78 @@ buildBoundary(int boundaryNum,
       << std::setw(OWID) << boundaryNum << std::endl << std::endl;
   
   if (boundaryNum == 1) {   // only a bottom boundary
-    ofs << std::setw(OWID) << 1 << std::endl
+    ofs << std::setw(OWID) << 1
         << std::setw(OWID) << 6
-        << std::setw(OWID) << 1 << std::endl
-      
-        << std::setw(OWID) << 1
+
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0 << std::endl;
+        << std::setw(OWID) << z1 << std::endl << std::endl;
     
   }
   else if (boundaryNum == 5) { // no top boundary
     // boundary 1
-    ofs << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 1
-        << std::setw(OWID) << 1 << std::endl
-      
-        << std::setw(OWID) << 1
+    ofs << std::setw(OWID) << 1
+	<< std::setw(OWID) << 1
+        
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x2
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl << std::endl
 
       // boundary 2
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 2
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 2
+
         << std::setw(OWID) << 0
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x0     
         << std::setw(OWID) << y2
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 3
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 3
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 3
+
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x1
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 4
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 4
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 4
+
         << std::setw(OWID) << 0 
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y1
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 6
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 6
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 6
+
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
         << std::setw(OWID) << x0
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0 << std::endl << std::endl;
+        << std::setw(OWID) << z1 << std::endl << std::endl;
   }
   else if (boundaryNum == 6){ // all 6 boundaries
     // boundary 1
-    ofs << std::setw(OWID) << 1 << std::endl
+    ofs << std::setw(OWID) << 1
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 1 << std::endl
-      
-        << std::setw(OWID) << 1
+
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0     
@@ -9249,74 +9287,59 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << 0 << std::endl << std::endl
       
       // boundary 2
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 2
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 2
+
         << std::setw(OWID) << 0
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0     
         << std::setw(OWID) << x0    
         << std::setw(OWID) << y2
-        << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0 << std::endl <<std::endl
+        << std::setw(OWID) << z0 << std::endl <<std::endl
       
       // boundary 3
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 3
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 3
+
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0     
         << std::setw(OWID) << x1
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 4
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 4
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 4
+
         << std::setw(OWID) << 0 
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0     
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y1
-        << std::setw(OWID) << z0      
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 5
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 5
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 5
+
         << std::setw(OWID) << 0 
         << std::setw(OWID) << 0
         << std::setw(OWID) << 1     
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z2 
-        << std::setw(OWID) << 0 << std::endl << std::endl
+        << std::setw(OWID) << z2 << std::endl << std::endl
       
       // boundary 6
-        << std::setw(OWID) << 1 << std::endl
-        << std::setw(OWID) << 6
-        << std::setw(OWID) << 1 << std::endl
-      
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 6
+
         << std::setw(OWID) << 0 
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1    
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z1
-        << std::setw(OWID) << 0 << std::endl << std::endl;
+        << std::setw(OWID) << z1 << std::endl << std::endl;
   }
   
   ofs.close();
