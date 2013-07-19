@@ -1767,7 +1767,7 @@ void Assembly::printProgress(std::ofstream &ofs) {
   ofs << std::setw(OWID) << iteration;
   for (int i = 0; i < 6; ++i) {
     if (line[i] == 1/EPS)
-      progressInf << std::setw(OWID) << " ";
+      progressInf << std::setw(OWID) << 0;
     else 
       progressInf << std::setw(OWID) << line[i];
   }
