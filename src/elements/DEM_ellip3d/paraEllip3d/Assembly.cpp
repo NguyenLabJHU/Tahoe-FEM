@@ -57,7 +57,7 @@ static struct timeval time_r1, time_r2; // for internal wall-clock time profilin
 
 namespace dem {
 
-std::ofstream progressinf;
+std::ofstream progressInf;
 
 struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
   struct timeval diff;
@@ -351,6 +351,7 @@ deposit(const char *inputBoundary,
   if (mpiRank == 0) {
     readBoundary(inputBoundary);
     readParticle(inputParticle);
+    openProgress(progressInf, "deposit_progress");
   }
   scatterParticle(); // scatter particles only once; also updates grid for the first time
 
@@ -402,6 +403,7 @@ deposit(const char *inputBoundary,
 	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
+	printProgress(progressInf);
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
 
@@ -425,7 +427,8 @@ deposit(const char *inputBoundary,
 
     ++iteration;
   } 
-
+  
+  if (mpiRank == 0) closeProgress(progressInf);
 }
 
 
@@ -1708,6 +1711,70 @@ void Assembly::printBdryContact(const char *str) const {
   
   ofs.close();
 }
+
+
+void  Assembly::openProgress(std::ofstream &ofs, const char *str) {
+  ofs.open(str);
+  if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+
+  progressInf << std::setw(OWID) << "iteration"
+	      << std::setw(OWID) << "normal_x2"
+	      << std::setw(OWID) << "normal_y2"
+	      << std::setw(OWID) << "normal_x1"
+	      << std::setw(OWID) << "normal_y1"
+	      << std::setw(OWID) << "normal_z2"
+	      << std::setw(OWID) << "normal_z1" << std::endl;
+}
+
+
+void Assembly::closeProgress(std::ofstream &ofs) {
+  ofs.close();
+}
+
+
+void Assembly::printProgress(std::ofstream &ofs) {
+  REAL line[6];
+  for (int i = 0; i < 6; ++i)
+    line[i] = 1/EPS;
+
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    int id = (*it)->getId();
+    Vec normal = (*it)->getNormalForce();
+    switch (id) {
+    case 1:
+      line[0] = normal.getX();
+      break;
+    case 2:
+      line[1] = normal.getY();
+      break;
+    case 3:
+      line[2] = normal.getX();
+      break;
+    case 4:
+      line[3] = normal.getY();
+      break;
+    case 5:
+      line[4] = normal.getZ();
+      break;
+    case 6:
+      line[5] = normal.getZ();
+      break;
+    }
+  }
+
+  ofs << std::setw(OWID) << iteration;
+  for (int i = 0; i < 6; ++i) {
+    if (line[i] == 1/EPS)
+      progressInf << std::setw(OWID) << " ";
+    else 
+      progressInf << std::setw(OWID) << line[i];
+  }
+
+  ofs << std::endl;
+}
+
   
 void Assembly::readParticle(const char *inputParticle) {
 
@@ -3542,11 +3609,11 @@ void Assembly::angleOfRepose(int   interval,
 			     const char *debugfile)
 {
   // pre_1: open streams for output.
-  progressinf.open(progressfile); 
-  if(!progressinf) { std::cout << "stream error: angleOfRepose" << std::endl; exit(-1); }
-  progressinf.setf(std::ios::scientific, std::ios::floatfield);
-  progressinf.precision(OPREC);
-  progressinf << std::setw(OWID) << "iteration"
+  progressInf.open(progressfile); 
+  if(!progressInf) { std::cout << "stream error: angleOfRepose" << std::endl; exit(-1); }
+  progressInf.setf(std::ios::scientific, std::ios::floatfield);
+  progressInf.precision(OPREC);
+  progressInf << std::setw(OWID) << "iteration"
 	      << std::setw(OWID) << "poss_contact"
 	      << std::setw(OWID) << "actual_contact"
 	      << std::setw(OWID) << "penetration"
@@ -3732,7 +3799,7 @@ void Assembly::angleOfRepose(int   interval,
 	REAL t1=getTransEnergy();
 	REAL t2=getRotatEnergy();
 	REAL t3=getPotenEnergy(-0.025);
-	progressinf << std::setw(OWID) << iteration
+	progressInf << std::setw(OWID) << iteration
 		    << std::setw(OWID) << getPossContactNum()
 		    << std::setw(OWID) << getActualContactNum()
 		    << std::setw(OWID) << getAvgPenetration()
@@ -3788,7 +3855,7 @@ void Assembly::angleOfRepose(int   interval,
     g_timeinf << std::setw(4) << "end" << " " << ctime(&timeStamp) << std::flush;
 
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -4787,11 +4854,11 @@ void Assembly::deposit(int   totalSteps,
 		       int   interval) {
     // pre_1: open streams for output.
     // particlefile and contactfile are used for snapNum at the end.
-    progressinf.open("dep_progress"); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf.precision(OPREC);
-    progressinf << std::setw(OWID) << "iteration"
+    progressInf.open("dep_progress"); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf.precision(OPREC);
+    progressInf << std::setw(OWID) << "iteration"
 	        << std::setw(OWID) << "poss_contact"
 	        << std::setw(OWID) << "actual_contact"
 	        << std::setw(OWID) << "penetration"
@@ -4904,7 +4971,7 @@ void Assembly::deposit(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -4974,7 +5041,7 @@ void Assembly::deposit(int   totalSteps,
     g_timeinf << std::setw(4) << "end" << " " << ctime(&timeStamp) << std::flush;
 
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -4992,11 +5059,11 @@ void Assembly::depositAfterCavity(int   totalSteps,
 {
     // pre_1: open streams for output.
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf.precision(OPREC);
-    progressinf << std::setw(OWID) << "iteration"
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf.precision(OPREC);
+    progressInf << std::setw(OWID) << "iteration"
 	        << std::setw(OWID) << "poss_contact"
 	        << std::setw(OWID) << "actual_contact"
 	        << std::setw(OWID) << "penetration"
@@ -5106,7 +5173,7 @@ void Assembly::depositAfterCavity(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -5175,7 +5242,7 @@ void Assembly::depositAfterCavity(int   totalSteps,
     g_timeinf << std::setw(4) << "end" << " " << ctime(&timeStamp) << std::flush;
 
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -5191,11 +5258,11 @@ void Assembly::deGravitation(int   totalSteps,
 			     const char *debugfile)
 {
   // pre_1: open streams for output.
-  progressinf.open(progressfile); 
-  if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-  progressinf.setf(std::ios::scientific, std::ios::floatfield);
-  progressinf.precision(OPREC);
-  progressinf << std::setw(OWID) << "iteration"
+  progressInf.open(progressfile); 
+  if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+  progressInf.setf(std::ios::scientific, std::ios::floatfield);
+  progressInf.precision(OPREC);
+  progressInf << std::setw(OWID) << "iteration"
 	      << std::setw(OWID) << "poss_contact"
 	      << std::setw(OWID) << "actual_contact"
 	      << std::setw(OWID) << "penetration"
@@ -5256,7 +5323,7 @@ void Assembly::deGravitation(int   totalSteps,
       
       // 5. (2) output stress and strain info.
       if (iteration % interval == 0) {
-	progressinf << std::setw(OWID) << iteration
+	progressInf << std::setw(OWID) << iteration
 		    << std::setw(OWID) << getPossContactNum()
 		    << std::setw(OWID) << getActualContactNum()
 		    << std::setw(OWID) << getAvgPenetration()
@@ -5286,7 +5353,7 @@ void Assembly::deGravitation(int   totalSteps,
   g_timeinf << std::setw(4) << "end" << " " << ctime(&timeStamp) << std::flush;
   
   // post_2. close streams
-  progressinf.close();
+  progressInf.close();
   debugInf.close();
 }
 
@@ -5305,10 +5372,10 @@ void Assembly::deposit_p(int   totalSteps,
 {
     // pre_1: open streams for output.
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "deposit..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "deposit..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential         total           void            sample       coordination"
@@ -5379,7 +5446,7 @@ void Assembly::deposit_p(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -5413,7 +5480,7 @@ void Assembly::deposit_p(int   totalSteps,
     printContact(stepsfp);
 
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -5434,10 +5501,10 @@ void Assembly::squeeze(int   totalSteps,
 {
     // pre_1: open streams for output.
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "deposit..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "deposit..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential         total           void            sample       coordination"
@@ -5529,7 +5596,7 @@ void Assembly::squeeze(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -5580,7 +5647,7 @@ void Assembly::squeeze(int   totalSteps,
     printBoundary(stepsfp);
 
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -5603,10 +5670,10 @@ void Assembly::isotropic(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "isotropic..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "isotropic..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -5755,7 +5822,7 @@ void Assembly::isotropic(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -5829,7 +5896,7 @@ void Assembly::isotropic(int   totalSteps,
 					+bdry_cntnum[1]+bdry_cntnum[2]+bdry_cntnum[3]
 					+bdry_cntnum[4]+bdry_cntnum[5]+bdry_cntnum[6])/allParticleVec.size()
 		        << std::endl;
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -5872,7 +5939,7 @@ void Assembly::isotropic(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -5898,10 +5965,10 @@ void Assembly::isotropic(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "isotropic..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "isotropic..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -6053,7 +6120,7 @@ void Assembly::isotropic(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6134,7 +6201,7 @@ void Assembly::isotropic(int   totalSteps,
 	if (   fabs(sigma1_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma1_2-sigma_b)/sigma_b < boundaryStressTol
 	    && fabs(sigma2_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma2_2-sigma_b)/sigma_b < boundaryStressTol
 	    && fabs(sigma3_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma3_2-sigma_b)/sigma_b < boundaryStressTol ) {
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6177,7 +6244,7 @@ void Assembly::isotropic(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -6202,10 +6269,10 @@ void Assembly::isotropic(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "isotropic..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "isotropic..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -6359,7 +6426,7 @@ void Assembly::isotropic(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6446,7 +6513,7 @@ void Assembly::isotropic(int   totalSteps,
 	if (   fabs(sigma1_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma1_2-sigma_b)/sigma_b < boundaryStressTol
 	    && fabs(sigma2_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma2_2-sigma_b)/sigma_b < boundaryStressTol
 	    && fabs(sigma3_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma3_2-sigma_b)/sigma_b < boundaryStressTol ) {
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6489,7 +6556,7 @@ void Assembly::isotropic(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -6516,10 +6583,10 @@ void Assembly::odometer(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "odometer..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "odometer..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -6645,7 +6712,7 @@ void Assembly::odometer(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6708,7 +6775,7 @@ void Assembly::odometer(int   totalSteps,
 
 	// 9. loop break condition
 	if (fabs(sigma3_1-sigma_1)/sigma_1 < boundaryStressTol && fabs(sigma3_2-sigma_1)/sigma_1 < boundaryStressTol) {
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6750,7 +6817,7 @@ void Assembly::odometer(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -6778,10 +6845,10 @@ void Assembly::odometer(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "odometer..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "odometer..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -6910,7 +6977,7 @@ void Assembly::odometer(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -6978,7 +7045,7 @@ void Assembly::odometer(int   totalSteps,
 
 	// 9. loop break condition
 	if (fabs(sigma3_1-sigma_b)/sigma_b < boundaryStressTol && fabs(sigma3_2-sigma_b)/sigma_b < boundaryStressTol) {
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -7020,7 +7087,7 @@ void Assembly::odometer(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -7040,11 +7107,11 @@ void Assembly::iso_MemBdry(int   totalSteps,
 {
   // pre_1: open streams for output
   // ParticleFile and contactfile are used for snapNum at the end.
-  progressinf.open(progressfile);
-  if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-  progressinf.setf(std::ios::scientific, std::ios::floatfield);
-  progressinf.precision(OPREC);
-  progressinf << std::setw(OWID) << "iteration"
+  progressInf.open(progressfile);
+  if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+  progressInf.setf(std::ios::scientific, std::ios::floatfield);
+  progressInf.precision(OPREC);
+  progressInf << std::setw(OWID) << "iteration"
 	      << std::setw(OWID) << "poss_contact"
 	      << std::setw(OWID) << "actual_contact"
 	      << std::setw(OWID) << "penetration"
@@ -7145,7 +7212,7 @@ void Assembly::iso_MemBdry(int   totalSteps,
       
       // 6. (2) output stress and strain info
 	if (iteration % interval == 0 ){
-	  progressinf << std::setw(OWID) << iteration
+	  progressInf << std::setw(OWID) << iteration
 		      << std::setw(OWID) << getPossContactNum()
 		      << std::setw(OWID) << getActualContactNum()
 		      << std::setw(OWID) << getAvgPenetration()
@@ -7177,7 +7244,7 @@ void Assembly::iso_MemBdry(int   totalSteps,
   g_timeinf << std::setw(4) << "end" << " " << ctime(&timeStamp) << std::flush;
   
   // post_2. close streams
-  progressinf.close();
+  progressInf.close();
   debugInf.close();
 }
 
@@ -7197,10 +7264,10 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "triaxial..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "triaxial..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -7289,7 +7356,7 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
 	l56=getApt(5).getZ()-getApt(6).getZ();
 	epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -7334,7 +7401,7 @@ void Assembly::triaxialPtclBdryIni(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -7355,10 +7422,10 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "triaxial..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "triaxial..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -7459,7 +7526,7 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
 	l56=getApt(5).getZ()-getApt(6).getZ();
 	epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -7502,7 +7569,7 @@ void Assembly::triaxialPtclBdry(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -7525,11 +7592,11 @@ void Assembly::triaxial(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf.precision(OPREC);
-    progressinf << std::setw(OWID) << "iteration"
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf.precision(OPREC);
+    progressInf << std::setw(OWID) << "iteration"
 	        << std::setw(OWID) << "possible"
 	        << std::setw(OWID) << "actual"
 	        << std::setw(OWID) << "average"
@@ -7778,7 +7845,7 @@ void Assembly::triaxial(int   totalSteps,
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
 	    gettimeofday(&time_w2,NULL);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -7826,7 +7893,7 @@ void Assembly::triaxial(int   totalSteps,
 		       << std::endl;
 	}
 
-	// Most time it is balanced, so use progressinf instead.
+	// Most time it is balanced, so use progressInf instead.
 	// 8. find the balanced status and increase confining pressure
 	if (   fabs(sigma1_1-sigma_a)/sigma_a < boundaryStressTol && fabs(sigma1_2-sigma_a)/sigma_a < boundaryStressTol
 	    && fabs(sigma2_1-sigma_a)/sigma_a < boundaryStressTol && fabs(sigma2_2-sigma_a)/sigma_a < boundaryStressTol
@@ -7879,7 +7946,7 @@ void Assembly::triaxial(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -7904,10 +7971,10 @@ void Assembly::triaxial(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "triaxial..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "triaxial..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -8069,7 +8136,7 @@ void Assembly::triaxial(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -8127,7 +8194,7 @@ void Assembly::triaxial(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -8148,10 +8215,10 @@ void Assembly::rectPile_Disp(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "pile penetrate..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "pile penetrate..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential        total           sample           sample     "
@@ -8244,7 +8311,7 @@ void Assembly::rectPile_Disp(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -8277,7 +8344,7 @@ void Assembly::rectPile_Disp(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -8297,10 +8364,10 @@ void Assembly::ellipPile_Disp(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "pile penetrate..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "pile penetrate..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential         total           void            sample       coordination"
@@ -8371,7 +8438,7 @@ void Assembly::ellipPile_Disp(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -8412,7 +8479,7 @@ void Assembly::ellipPile_Disp(int   totalSteps,
     printContact(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -8432,10 +8499,10 @@ void Assembly::ellipPile_Impact(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "penetrator impact..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "penetrator impact..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential         total           void            sample       coordination"
@@ -8515,7 +8582,7 @@ void Assembly::ellipPile_Impact(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -8563,7 +8630,7 @@ void Assembly::ellipPile_Impact(int   totalSteps,
     printContact(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -8582,10 +8649,10 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "penetrator impact..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "penetrator impact..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential         total           void            sample       coordination"
@@ -8656,7 +8723,7 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -8697,7 +8764,7 @@ void Assembly::ellipPile_Impact_p(int   totalSteps,
     printContact(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     debugInf.close();
 }
 
@@ -8721,10 +8788,10 @@ void Assembly::ellipPile_Force(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile); 
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1); }
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "pile penetrate..." << std::endl
+    progressInf.open(progressfile); 
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "pile penetrate..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average       translational    rotational       "
 	        << "kinetic        potential         total           void            sample       coordination"
@@ -8825,7 +8892,7 @@ void Assembly::ellipPile_Force(int   totalSteps,
 	    REAL t1=getTransEnergy();
 	    REAL t2=getRotatEnergy();
 	    REAL t3=getPotenEnergy(-0.025);
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -8860,7 +8927,7 @@ void Assembly::ellipPile_Force(int   totalSteps,
     printContact(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }
@@ -8887,10 +8954,10 @@ void Assembly::truetriaxial(int   totalSteps,
 {
     // pre_1: open streams for output
     // ParticleFile and contactfile are used for snapNum at the end.
-    progressinf.open(progressfile);
-    if(!progressinf) { std::cout << "stream error!" << std::endl; exit(-1);}
-    progressinf.setf(std::ios::scientific, std::ios::floatfield);
-    progressinf << "true triaxial..." << std::endl
+    progressInf.open(progressfile);
+    if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+    progressInf.setf(std::ios::scientific, std::ios::floatfield);
+    progressInf << "true triaxial..." << std::endl
 	        << "     iteration possible  actual      average	    average         average         average"
 	        << "         average         average         average        sample            sample     "
 	        << "     sample          sample          sample          sample          sample          "
@@ -9046,7 +9113,7 @@ void Assembly::truetriaxial(int   totalSteps,
 	// 7. (2) output stress and strain info
 	epsilon_w = (W0-l24)/W0; epsilon_l = (L0-l13)/L0; epsilon_h = (H0-l56)/H0;
 	if (iteration % interval == 0 ){
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -9129,7 +9196,7 @@ void Assembly::truetriaxial(int   totalSteps,
 	if (   fabs(sigma1_1-sigma_w)/sigma_w < boundaryStressTol && fabs(sigma1_2-sigma_w)/sigma_w < boundaryStressTol
 	    && fabs(sigma2_1-sigma_l)/sigma_l < boundaryStressTol && fabs(sigma2_2-sigma_l)/sigma_l < boundaryStressTol
 	    && fabs(sigma3_1-sigma_h)/sigma_h < boundaryStressTol && fabs(sigma3_2-sigma_h)/sigma_h < boundaryStressTol ) {
-	    progressinf << std::setw(OWID) << iteration
+	    progressInf << std::setw(OWID) << iteration
 		        << std::setw(OWID) << getPossContactNum()
 		        << std::setw(OWID) << getActualContactNum()
 		        << std::setw(OWID) << getAvgPenetration()
@@ -9172,7 +9239,7 @@ void Assembly::truetriaxial(int   totalSteps,
     printBoundary(stepsfp);
     
     // post_2. close streams
-    progressinf.close();
+    progressInf.close();
     balancedinf.close();
     debugInf.close();
 }

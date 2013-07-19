@@ -155,6 +155,9 @@ namespace dem {
     void updateGridMinZ();
     void updateGridMaxZ();    
 
+    void openProgress(std::ofstream &ofs, const char *str);
+    void closeProgress(std::ofstream &ofs);
+    void printProgress(std::ofstream &ofs);
 
     void trimCavity(bool toRebuild, const char *Particlefile, const char *cavParticle);
     void readCavityBoundary(const char *boundaryfile);
