@@ -1,38 +1,30 @@
 //
-//                                    x1(3)
+//                                    x1(1)
 //                          ---------------------
 //                         /                    /|
 //                        /                    / |
 //                       /                    /  |
-//                      /        z2(5)       /   |
+//                      /        z2(6)       /   |
 //                     /                    /    |
-//                    /                    /     |                    z (sigma3)
+//                    /                    /     |                    z
 //                   /                    /      |                    |
 //                  |---------------------       |                    |
-//            y1(4) |                    | y2(2) |                    |____ y (sigma1)
+//            y1(3) |                    | y2(4) |                    |____ y
 //                  |                    |       /                   /
 //                  |                    |      /                   /
-//                  |        x2(1)       |     /                   x (sigma2) 
+//                  |        x2(2)       |     /                   x
 //                  |                    |    /
 //                  |                    |   /
 //                  |                    |  /
 //                  |                    | /
 //                  |                    |/
 //                  ----------------------
-//                             z1(6)
+//                             z1(5)
 //
 //
 //    It is preferable to use the description of surface x1, x2, y1, y2, z1, z2,
-//    where x1 < x2, y1 < y2, z1 < z2. We also use surface 3, 1, 4, 2, 6, 5 accordingly.
+//    where x1 < x2, y1 < y2, z1 < z2. We also use surface 1, 2, 3, 4, 5, 6 accordingly.
 //
-//    sigma1_1 & sigma1_2 refers to side 2 & side 4 respectively,
-//    sigma2_1 & sigma2_2 refers to side 1 & side 3 respectively,
-//    sigma3_1 & sigma3_2 refers to side 5 & side 6 respectively,
-//
-//    int mid[2]={1,3};    // boundary 1 and 3
-//    int max[2]={2,4};    // boundary 2 and 4
-//    int min[2]={5,6};    // boundary 5 and 6
-//    min/mid/max does not mean actual magnitude of values, just signs
 
 #include "Assembly.h"
 #include "const.h"
@@ -359,6 +351,7 @@ deposit(const char *inputBoundary,
   int endStep   = static_cast<int> (dem::Parameter::getSingleton().parameter["endStep"]);
   int startSnap = static_cast<int> (dem::Parameter::getSingleton().parameter["startSnap"]);
   int endSnap   = static_cast<int> (dem::Parameter::getSingleton().parameter["endSnap"]);
+  int statInterv= static_cast<int> (dem::Parameter::getSingleton().parameter["statInterv"]);
 
   int netStep = endStep - startStep + 1;
   int netSnap = endSnap - startSnap + 1;
@@ -390,7 +383,7 @@ deposit(const char *inputBoundary,
     if (isBdryProcess()) boundaryForce();
     updateParticle();
     updateGridMaxZ();
-
+   
     if (iteration % (netStep / netSnap) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
@@ -406,7 +399,7 @@ deposit(const char *inputBoundary,
 	printProgress(progressInf);
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
-
+      
       ++iterSnap;
     }
 
@@ -1720,12 +1713,27 @@ void  Assembly::openProgress(std::ofstream &ofs, const char *str) {
   ofs.precision(OPREC);
 
   progressInf << std::setw(OWID) << "iteration"
-	      << std::setw(OWID) << "normal_x2"
-	      << std::setw(OWID) << "normal_y2"
 	      << std::setw(OWID) << "normal_x1"
+	      << std::setw(OWID) << "normal_x2"
 	      << std::setw(OWID) << "normal_y1"
+	      << std::setw(OWID) << "normal_y2"
+	      << std::setw(OWID) << "normal_z1"
 	      << std::setw(OWID) << "normal_z2"
-	      << std::setw(OWID) << "normal_z1" << std::endl;
+
+	      << std::setw(OWID) << "contact_x1"
+	      << std::setw(OWID) << "contact_x2"
+	      << std::setw(OWID) << "contact_y1"
+	      << std::setw(OWID) << "contact_y2"
+	      << std::setw(OWID) << "contact_z1"
+	      << std::setw(OWID) << "contact_z2"
+
+	      << std::setw(OWID) << "penetr_x1"
+	      << std::setw(OWID) << "penetr_x2"
+	      << std::setw(OWID) << "penetr_y1"
+	      << std::setw(OWID) << "penetr_y2"
+	      << std::setw(OWID) << "penetr_z1"
+	      << std::setw(OWID) << "penetr_z2"
+	      << std::endl;
 }
 
 
@@ -1736,41 +1744,57 @@ void Assembly::closeProgress(std::ofstream &ofs) {
 
 void Assembly::printProgress(std::ofstream &ofs) {
   REAL line[6];
-  for (int i = 0; i < 6; ++i)
-    line[i] = 1/EPS;
 
+  // normalForce
+  for (int i = 0; i < 6; ++i)
+    line[i] = 0;
   for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
     int id = (*it)->getId();
     Vec normal = (*it)->getNormalForce();
     switch (id) {
-    case 1:
-      line[0] = normal.getX();
+    case 1: 
+      line[0] = fabs(normal.getX());
       break;
     case 2:
-      line[1] = normal.getY();
+      line[1] = normal.getX();
       break;
     case 3:
-      line[2] = normal.getX();
+      line[2] = fabs(normal.getY());
       break;
     case 4:
       line[3] = normal.getY();
       break;
     case 5:
-      line[4] = normal.getZ();
+      line[4] = fabs(normal.getZ());
       break;
     case 6:
       line[5] = normal.getZ();
       break;
     }
   }
-
   ofs << std::setw(OWID) << iteration;
-  for (int i = 0; i < 6; ++i) {
-    if (line[i] == 1/EPS)
-      progressInf << std::setw(OWID) << 0;
-    else 
-      progressInf << std::setw(OWID) << line[i];
+  for (int i = 0; i < 6; ++i)
+    progressInf << std::setw(OWID) << line[i];
+
+  // contactNum
+  for (int i = 0; i < 6; ++i)
+    line[i] = 0;
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    int id = (*it)->getId();
+    line[id - 1] = (*it)->getContactNum();
   }
+  for (int i = 0; i < 6; ++i)
+    progressInf << std::setw(OWID) << (int) line[i];
+
+  // avgPenetr
+  for (int i = 0; i < 6; ++i)
+    line[i] = 0;
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    int id = (*it)->getId();
+    line[id - 1] = (*it)->getAvgPenetr();
+  }
+  for (int i = 0; i < 6; ++i)
+    progressInf << std::setw(OWID) << line[i];
 
   ofs << std::endl;
 }
@@ -9274,7 +9298,7 @@ buildBoundary(int boundaryNum,
   
   if (boundaryNum == 1) {   // only a bottom boundary
     ofs << std::setw(OWID) << 1
-        << std::setw(OWID) << 6
+        << std::setw(OWID) << 5
 
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
@@ -9289,10 +9313,10 @@ buildBoundary(int boundaryNum,
     ofs << std::setw(OWID) << 1
 	<< std::setw(OWID) << 1
         
-        << std::setw(OWID) << 1
+        << std::setw(OWID) << -1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
-        << std::setw(OWID) << x2
+        << std::setw(OWID) << x1
         << std::setw(OWID) << y0
         << std::setw(OWID) << z0 << std::endl << std::endl
 
@@ -9300,22 +9324,22 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << 1
         << std::setw(OWID) << 2
 
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 1
+        << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
-        << std::setw(OWID) << x0     
-        << std::setw(OWID) << y2
+        << std::setw(OWID) << x2     
+        << std::setw(OWID) << y0
         << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 3
         << std::setw(OWID) << 1
         << std::setw(OWID) << 3
 
-        << std::setw(OWID) << -1
         << std::setw(OWID) << 0
+        << std::setw(OWID) << -1
         << std::setw(OWID) << 0 
-        << std::setw(OWID) << x1
-        << std::setw(OWID) << y0
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y1
         << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 4
@@ -9323,15 +9347,15 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << 4
 
         << std::setw(OWID) << 0 
-        << std::setw(OWID) << -1
+        << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x0      
-        << std::setw(OWID) << y1
+        << std::setw(OWID) << y2
         << std::setw(OWID) << z0 << std::endl << std::endl
       
-      // boundary 6
+      // boundary 5
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 6
+        << std::setw(OWID) << 5
 
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
@@ -9343,36 +9367,35 @@ buildBoundary(int boundaryNum,
   else if (boundaryNum == 6){ // all 6 boundaries
     // boundary 1
     ofs << std::setw(OWID) << 1
-        << std::setw(OWID) << 1
-
-        << std::setw(OWID) << 1
+	<< std::setw(OWID) << 1
+        
+        << std::setw(OWID) << -1
         << std::setw(OWID) << 0
-        << std::setw(OWID) << 0     
-        << std::setw(OWID) << x2
+        << std::setw(OWID) << 0 
+        << std::setw(OWID) << x1
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z0     
-        << std::setw(OWID) << 0 << std::endl << std::endl
-      
+        << std::setw(OWID) << z0 << std::endl << std::endl
+
       // boundary 2
         << std::setw(OWID) << 1
         << std::setw(OWID) << 2
 
-        << std::setw(OWID) << 0
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 0     
-        << std::setw(OWID) << x0    
-        << std::setw(OWID) << y2
-        << std::setw(OWID) << z0 << std::endl <<std::endl
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 0 
+        << std::setw(OWID) << x2     
+        << std::setw(OWID) << y0
+        << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 3
         << std::setw(OWID) << 1
         << std::setw(OWID) << 3
 
-        << std::setw(OWID) << -1
         << std::setw(OWID) << 0
-        << std::setw(OWID) << 0     
-        << std::setw(OWID) << x1
-        << std::setw(OWID) << y0
+        << std::setw(OWID) << -1
+        << std::setw(OWID) << 0 
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y1
         << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 4
@@ -9380,22 +9403,22 @@ buildBoundary(int boundaryNum,
         << std::setw(OWID) << 4
 
         << std::setw(OWID) << 0 
-        << std::setw(OWID) << -1
-        << std::setw(OWID) << 0     
+        << std::setw(OWID) << 1
+        << std::setw(OWID) << 0 
         << std::setw(OWID) << x0      
-        << std::setw(OWID) << y1
+        << std::setw(OWID) << y2
         << std::setw(OWID) << z0 << std::endl << std::endl
       
       // boundary 5
         << std::setw(OWID) << 1
         << std::setw(OWID) << 5
 
-        << std::setw(OWID) << 0 
         << std::setw(OWID) << 0
-        << std::setw(OWID) << 1     
-        << std::setw(OWID) << x0      
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << -1
+        << std::setw(OWID) << x0
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z2 << std::endl << std::endl
+        << std::setw(OWID) << z1 << std::endl << std::endl
       
       // boundary 6
         << std::setw(OWID) << 1
@@ -9403,10 +9426,10 @@ buildBoundary(int boundaryNum,
 
         << std::setw(OWID) << 0 
         << std::setw(OWID) << 0
-        << std::setw(OWID) << -1    
+        << std::setw(OWID) << 1    
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z1 << std::endl << std::endl;
+        << std::setw(OWID) << z2 << std::endl << std::endl;
   }
   
   ofs.close();
