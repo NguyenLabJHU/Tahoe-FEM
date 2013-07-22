@@ -25,8 +25,6 @@ namespace dem {
 
     // particles property
     int  trimHistoryNum;                     // historical maximum numbering before trimming
-    int  possContactNum;                     // possible contact number based on spherical distances
-    int  actualContactNum;                   // actual contact number based on contact resolution
     Gradation               gradation;       // particles gradation
     std::vector<Particle *> allParticleVec;  // all particles
     std::vector<Particle *> particleVec;     // particles per process
@@ -48,6 +46,13 @@ namespace dem {
     std::vector<Boundary *> mergeBoundaryVec;  // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
     std::map<int,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
+
+    // energy data
+    REAL transEnergy;
+    REAL rotatEnergy;
+    REAL kinetEnergy;
+    REAL graviEnergy;
+    REAL mechaEnergy; 
     
     // MPI data
     boost::mpi::communicator boostWorld;
@@ -75,9 +80,7 @@ namespace dem {
     
   public:
     Assembly()
-      :trimHistoryNum(0),
-      possContactNum(0),
-      actualContactNum(0)
+      :trimHistoryNum(0)
       {}
     
     ~Assembly() {
@@ -187,30 +190,23 @@ namespace dem {
     void updateBoundary6();
     
     REAL getDensity() const; 
-    int  getPossContactNum() const {return  possContactNum;};
-    int  getActualContactNum() const {return actualContactNum;}
-    REAL getAvgPenetration() const;
+    REAL getAvgPenetr() const;
     REAL getVibraTimeStep() const;
     REAL getImpactTimeStep() const;
-    REAL getAvgVelocity() const;
-    REAL getAvgForce() const;
-    REAL getAvgOmga() const;
-    REAL getAvgMoment() const;
     REAL getParticleVolume() const;
-    Vec  getTopFreeParticlePosition() const;
+
+    REAL getAvgTransVelocity() const;
+    REAL getAvgRotatVelocity() const;
+    REAL getAvgForce() const;
+    REAL getAvgMoment() const;
+
     REAL getTransEnergy() const;
     REAL getRotatEnergy() const;
     REAL getKinetEnergy() const;
-    REAL getPotenEnergy(REAL ref) const;
+    REAL getGraviEnergy(REAL ref) const;
+    REAL getMechaEnergy(REAL ref) const;
+    void gatherEnergy();
     
-    Vec  getNormalForce(int bdry) const;       // get normal force acting on the bdry_th rigid boundary
-    Vec  getShearForce(int bdry) const;        // get shear force acting on the bdry_th rigid boundary
-    REAL getAvgNormal(int bdry) const;
-    Vec  getApt(int bdry) const;               // get a point on bdry_th rigid boundary
-    Vec  getDirc(int bdry) const;              // get the dirc of bdry_th rigid boundry
-    REAL getArea(int bdry) const;
-    REAL getAvgPressure() const;
-    void setArea(int bdry,REAL a);             // set the area of the bdry-th rigid boundary be a
     void setTrimHistoryNum(int n) { trimHistoryNum = n; }
     void printParticle(const char *str) const; // print all particles info into a disk file
     void printBdryContact(const char *str) const; // print all boundary contact info into a disk file
