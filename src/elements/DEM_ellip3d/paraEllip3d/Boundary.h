@@ -71,6 +71,7 @@ namespace dem {
        << std::setw(OWID) << penetr << std::endl;
 
   }
+
   private:
     friend class boost::serialization::access;
     template<class Archive>
@@ -83,11 +84,52 @@ namespace dem {
     }
   };
 
+  /////////////////////////////////////
+  class Plane {
+  public:
+    Vec direc;
+    Vec point;
+
+  public:
+  Plane()
+    :direc(0), point(0) 
+    {}
+    
+  Plane(Vec dir, Vec pt)
+    :direc(dir), point(pt) 
+    {}
+    
+  void print(std::ostream &os) {
+    os << std::setw(OWID) << direc.getX()
+       << std::setw(OWID) << direc.getY()
+       << std::setw(OWID) << direc.getZ()
+       << std::setw(OWID) << point.getX()
+       << std::setw(OWID) << point.getY()
+       << std::setw(OWID) << point.getZ() << std::endl;
+  }
+
+  Vec getDirec() const { return direc; }
+  Vec getPoint() const { return point; }
+
+  private:
+    friend class boost::serialization::access;
+    template<class Archive>
+      void serialize(Archive & ar, const unsigned int version) {
+      ar & direc;
+      ar & point;
+    }
+  };
+
   ///////////////////////////////////////
   class Boundary { // abstract base class
   protected:
     int id;
     int type;
+
+    // extra edges that are necessary to define a finite plane
+    // e.g., side wall of a top-open container
+    int extraNum;
+    std::vector<Plane> extraEdge;
 
     std::vector<Particle *> possParticle;
     std::vector<BdryContact> contactInfo;
@@ -102,6 +144,8 @@ namespace dem {
       void serialize(Archive & ar, const unsigned int version) {
       ar & id;
       ar & type;
+      ar & extraNum;
+      ar & extraEdge;
       ar & possParticle;
       ar & contactInfo;
       ar & contactNum;
@@ -111,8 +155,8 @@ namespace dem {
     }
     
   public:
-    Boundary(int i = 0, int tp = 0)
-      :id(i), type(tp), contactNum(0), normal(0), tangt(0), penetr(0)  
+    Boundary(int i = 0, int tp = 0, int en = 0)
+      :id(i), type(tp), extraNum(en), contactNum(0), normal(0), tangt(0), penetr(0)  
       {}
 
     Boundary(int type, std::ifstream &ifs);
@@ -152,8 +196,8 @@ namespace dem {
     }
     
   public:
-    planeBoundary(int i = 0, int tp = 0)
-      :Boundary(i, tp), direc(0), point(0) 
+    planeBoundary(int i = 0, int tp = 0, int en = 0)
+    :Boundary(i, tp, en), direc(0), point(0) 
       {}
 
     planeBoundary(int type, std::ifstream &ifs);
@@ -162,6 +206,8 @@ namespace dem {
     Vec getPoint() const { return point; }
 
     REAL distanceToBdry(Vec pos) const { return (pos - point) % normalize(direc); }
+    REAL distanceToBdry(Vec pos, Plane pn) const { return (pos - pn.getPoint()) % normalize(pn.getDirec()); }
+
     void print(std::ostream &os);
     void printContactInfo(std::ostream &os);
 

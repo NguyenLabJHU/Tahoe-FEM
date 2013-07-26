@@ -128,7 +128,8 @@ namespace dem {
 	      const char *trmParticle);
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
-    
+    void coupleWithSonicFluid(const char *inputBoundary,
+			      const char *inputParticle);    
     void setCavity(Rectangle cav) { cavity = cav; }
 
     void readParticle(const char *str);
@@ -144,13 +145,6 @@ namespace dem {
     void gatherParticle();
     void gatherBdryContact();
 
-    void updateContainerMinX();
-    void updateContainerMaxX();
-    void updateContainerMinY();
-    void updateContainerMaxY();
-    void updateContainerMinZ();
-    void updateContainerMaxZ();    
-
     void updateGridMinX();
     void updateGridMaxX();
     void updateGridMinY();
@@ -158,9 +152,11 @@ namespace dem {
     void updateGridMinZ();
     void updateGridMaxZ();    
 
-    void openProgress(std::ofstream &ofs, const char *str);
-    void closeProgress(std::ofstream &ofs);
-    void printProgress(std::ofstream &ofs);
+    void openDepositProg(std::ofstream &ofs, const char *str);
+    void printDepositProg(std::ofstream &ofs);
+    void openFluidProg(std::ofstream &ofs, const char *str);
+    void printFluidProg(std::ofstream &ofs);
+    void closeProg(std::ofstream &ofs);
 
     void trimCavity(bool toRebuild, const char *Particlefile, const char *cavParticle);
     void readCavityBoundary(const char *boundaryfile);

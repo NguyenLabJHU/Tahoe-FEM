@@ -234,6 +234,97 @@ void Assembly::resumeExpandCavityParticle(const char *inputBoundary,
 }
 
 
+void Assembly::coupleWithSonicFluid(const char *inputBoundary,
+				    const char *inputParticle) 
+{
+  if (mpiRank == 0) {
+    readBoundary(inputBoundary);
+    readParticle(inputParticle);
+    openFluidProg(progressInf, "fluid_progress");
+  }
+  scatterParticle(); // scatter particles only once; also updates grid for the first time
+
+  int startStep = static_cast<int> (dem::Parameter::getSingleton().parameter["startStep"]);
+  int endStep   = static_cast<int> (dem::Parameter::getSingleton().parameter["endStep"]);
+  int startSnap = static_cast<int> (dem::Parameter::getSingleton().parameter["startSnap"]);
+  int endSnap   = static_cast<int> (dem::Parameter::getSingleton().parameter["endSnap"]);
+  int statInterv= static_cast<int> (dem::Parameter::getSingleton().parameter["statInterv"]);
+
+  int netStep = endStep - startStep + 1;
+  int netSnap = endSnap - startSnap + 1;
+
+  double time0, time1, time2, commuT, migraT, gatherT, totalT;
+
+  iteration = startStep;
+  int iterSnap = startSnap;
+  char cstr0[50];
+  if (mpiRank == 0) {
+    plotBoundary(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3));
+    plotGrid(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3));
+    printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
+    printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
+  }
+  while (iteration <= endStep) {
+    time0 = MPI_Wtime();
+    commuT = migraT = gatherT = totalT = 0;
+
+    time1 = MPI_Wtime();
+    commuParticle();
+    time2 = MPI_Wtime(); commuT = time2 - time1;
+
+    findContact();
+    if (isBdryProcess()) findBdryContact();
+    // Fluid Simulation (particles info)
+
+    clearContactForce();
+    internalForce();
+    //applyFluidForceToParticle();
+    if (isBdryProcess()) boundaryForce();
+    updateParticle();
+    updateGridMaxZ();
+   
+    if (iteration % (netStep / netSnap) == 0) {
+      time1 = MPI_Wtime();
+      gatherParticle();
+      gatherBdryContact();
+      gatherEnergy();
+      time2 = MPI_Wtime(); gatherT = time2 - time1;
+
+      char cstr[50];
+      if (mpiRank == 0) {
+	plotBoundary(combineString(cstr, "deposit_bdryplot_", iterSnap, 3));
+	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
+	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
+	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
+	printFluidProg(progressInf);
+      }
+      printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
+      
+      ++iterSnap;
+    }
+
+    releaseRecvParticle(); // late release because printContact refers to received particles
+    time1 = MPI_Wtime();
+    migrateParticle();
+    time2 = MPI_Wtime(); migraT = time2 - time1;
+ 
+    time2 = MPI_Wtime(); totalT = time2 - time0;
+    if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
+      debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	       << " commu=" << commuT
+	       << " gather=" << gatherT
+	       << " migra=" << migraT
+	       << " total=" << totalT 
+	       << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
+	       << std::scientific << std::setprecision(6) << std::endl;
+
+    ++iteration;
+  } 
+  
+  if (mpiRank == 0) closeProg(progressInf);
+}
+
+
 // particleLayers:
 // 0 - one free particle
 // 1 - a horizontal layer of free particles
@@ -341,9 +432,9 @@ deposit(const char *inputBoundary,
 	const char *inputParticle) 
 {     
   if (mpiRank == 0) {
-    readBoundary(inputBoundary);
+    readBoundary(inputBoundary); 
     readParticle(inputParticle);
-    openProgress(progressInf, "deposit_progress");
+    openDepositProg(progressInf, "deposit_progress");
   }
   scatterParticle(); // scatter particles only once; also updates grid for the first time
 
@@ -397,7 +488,7 @@ deposit(const char *inputBoundary,
 	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
-	printProgress(progressInf);
+	printDepositProg(progressInf);
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
       
@@ -422,7 +513,7 @@ deposit(const char *inputBoundary,
     ++iteration;
   } 
   
-  if (mpiRank == 0) closeProgress(progressInf);
+  if (mpiRank == 0) closeProg(progressInf);
 }
 
 
@@ -1153,126 +1244,73 @@ void Assembly::releaseRecvParticle() {
 }
 
 
-void Assembly::updateContainerMinX() {
+void Assembly::updateGridMinX() {
   REAL pMinX = getPtclMinX(particleVec);
   REAL minX = 0;
   MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
-
-  setContainer(Rectangle(minX - gradation.getPtclMaxRadius(),
-			 allContainer.getMinCorner().getY(),
-			 allContainer.getMinCorner().getZ(),
-			 allContainer.getMaxCorner().getX(),
-			 allContainer.getMaxCorner().getY(),
-			 allContainer.getMaxCorner().getZ() ));
+  
+  setGrid(Rectangle(minX - gradation.getPtclMaxRadius(),
+		    grid.getMinCorner().getY(),
+		    grid.getMinCorner().getZ(),
+		    grid.getMaxCorner().getX(),
+		    grid.getMaxCorner().getY(),
+		    grid.getMaxCorner().getZ() ));
 }
 
 
-void Assembly::updateContainerMaxX() {
+void Assembly::updateGridMaxX() {
   REAL pMaxX = getPtclMaxX(particleVec);
   REAL maxX = 0;
   MPI_Allreduce(&pMaxX, &maxX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
-
-  setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			 allContainer.getMinCorner().getY(),
-			 allContainer.getMinCorner().getZ(),
-			 maxX + gradation.getPtclMaxRadius(),
-			 allContainer.getMaxCorner().getY(),
-			 allContainer.getMaxCorner().getZ() ));
+  
+  setGrid(Rectangle(grid.getMinCorner().getX(),
+		    grid.getMinCorner().getY(),
+		    grid.getMinCorner().getZ(),
+		    maxX + gradation.getPtclMaxRadius(),
+		    grid.getMaxCorner().getY(),
+		    grid.getMaxCorner().getZ() ));
 }
 
 
-void Assembly::updateContainerMinY() {
+void Assembly::updateGridMinY() {
   REAL pMinY = getPtclMinY(particleVec);
   REAL minY = 0;
   MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
-
-  setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			 minY - gradation.getPtclMaxRadius(),
-			 allContainer.getMinCorner().getZ(),
-			 allContainer.getMaxCorner().getX(),
-			 allContainer.getMaxCorner().getY(),
-			 allContainer.getMaxCorner().getZ() ));
+  
+  setGrid(Rectangle(grid.getMinCorner().getX(),
+		    minY - gradation.getPtclMaxRadius(),
+		    grid.getMinCorner().getZ(),
+		    grid.getMaxCorner().getX(),
+		    grid.getMaxCorner().getY(),
+		    grid.getMaxCorner().getZ() ));
 }
 
 
-void Assembly::updateContainerMaxY() {
+void Assembly::updateGridMaxY() {
   REAL pMaxY = getPtclMaxY(particleVec);
   REAL maxY = 0;
   MPI_Allreduce(&pMaxY, &maxY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
-
-  setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			 allContainer.getMinCorner().getY(),
-			 allContainer.getMinCorner().getZ(),
-			 allContainer.getMaxCorner().getX(),
-			 maxY + gradation.getPtclMaxRadius(),
-			 allContainer.getMaxCorner().getZ() ));
+  
+  setGrid(Rectangle(grid.getMinCorner().getX(),
+		    grid.getMinCorner().getY(),
+		    grid.getMinCorner().getZ(),
+		    grid.getMaxCorner().getX(),
+		    maxY + gradation.getPtclMaxRadius(),
+		    grid.getMaxCorner().getZ() ));
 }
 
 
-void Assembly::updateContainerMinZ() {
+void Assembly::updateGridMinZ() {
   REAL pMinZ = getPtclMinZ(particleVec);
   REAL minZ = 0;
   MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
-
-  setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			 allContainer.getMinCorner().getY(),
-			 minZ - gradation.getPtclMaxRadius(),
-			 allContainer.getMaxCorner().getX(),
-			 allContainer.getMaxCorner().getY(),
-			 allContainer.getMaxCorner().getZ() ));
-}
-
-
-void Assembly::updateContainerMaxZ() {
-  // update allContainer adaptively due to particle motion
-  REAL pMaxZ = getPtclMaxZ(particleVec);
-  REAL maxZ = 0;
-  MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
-
-  // no need to broadcast allContainer as it is updated in each process
-  setContainer(Rectangle(allContainer.getMinCorner().getX(),
-			 allContainer.getMinCorner().getY(),
-			 allContainer.getMinCorner().getZ(),
-			 allContainer.getMaxCorner().getX(),
-			 allContainer.getMaxCorner().getY(),
-			 maxZ + gradation.getPtclMaxRadius() ));
-  /*
-  std::vector<int> procGroup;
-  for (int iRank = 0; iRank < mpiSize; ++iRank) {
-    int ndim = 3;
-    int coords[3];
-    MPI_Cart_coords(cartComm, iRank, ndim, coords);
-    if (coords[2] == mpiProcZ - 1) // process at top level
-      procGroup.push_back(iRank);
-  }
-
-  int size = procGroup.size();
-  int *ranks = new int[size];
-  for (int i = 0; i < size; ++i)
-    ranks[i] = procGroup[i];
   
-  MPI_Group groupWorld, groupWorker;
-  MPI_Comm commWorker;
-  MPI_Comm_group(mpiWorld, &groupWorld);
-  MPI_Group_incl(groupWorld, size, ranks, &groupWorker);
-  MPI_Comm_create(mpiWorld, groupWorker, &commWorker);
-
-  REAL pMaxZ = getPtclMaxZ(particleVec);
-  REAL maxZ = 0;
-  MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, commWorker);
-
-  std::vector<int>::iterator it;
-  it = find(procGroup.begin(), procGroup.end(), mpiRank);
-  if (it != procGroup.end())
-  std::cout << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank
-	    << " pNum=" << particleVec.size() << " topProc=" << size
-	    << " maxZ=" << std::scientific << std::setprecision(10) << pMaxZ << std::fixed << std::endl;
-
-  MPI_Group_free(&groupWorld);
-  MPI_Group_free(&groupWorker);
-  MPI_Comm_free(&commWorker);
-  delete [] ranks;
-  */
+  setGrid(Rectangle(grid.getMinCorner().getX(),
+		    grid.getMinCorner().getY(),
+		    minZ - gradation.getPtclMaxRadius(),
+		    grid.getMaxCorner().getX(),
+		    grid.getMaxCorner().getY(),
+		    grid.getMaxCorner().getZ() ));
 }
 
 
@@ -1716,7 +1754,12 @@ void Assembly::gatherEnergy() {
 }
 
 
-void  Assembly::openProgress(std::ofstream &ofs, const char *str) {
+void Assembly::closeProg(std::ofstream &ofs) {
+  ofs.close();
+}
+
+
+void  Assembly::openDepositProg(std::ofstream &ofs, const char *str) {
   ofs.open(str);
   if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -1754,12 +1797,10 @@ void  Assembly::openProgress(std::ofstream &ofs, const char *str) {
 }
 
 
-void Assembly::closeProgress(std::ofstream &ofs) {
-  ofs.close();
-}
+void  Assembly::openFluidProg(std::ofstream &ofs, const char *str) {}
 
 
-void Assembly::printProgress(std::ofstream &ofs) {
+void Assembly::printDepositProg(std::ofstream &ofs) {
   REAL line[6];
   
   // normalForce
@@ -1822,6 +1863,9 @@ void Assembly::printProgress(std::ofstream &ofs) {
 
   ofs << std::endl;
 }
+
+
+void Assembly::printFluidProg(std::ofstream &ofs) {}
 
   
 void Assembly::readParticle(const char *inputParticle) {
@@ -2114,7 +2158,7 @@ void Assembly::printBoundary(const char *str) const {
   
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z1
       << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
-      << std::setw(OWID) << boundaryVec.size() << std::endl << std::endl;
+      << std::setw(OWID) << boundaryVec.size() << std::endl;
   
   std::vector<Boundary*>::const_iterator rt;
   for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
@@ -9330,67 +9374,105 @@ buildBoundary(int boundaryNum,
       << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
       << std::setw(OWID) << boundaryNum << std::endl << std::endl;
   
-  if (boundaryNum == 1) {   // only a bottom boundary
+  if (boundaryNum == 1) {   // only a bottom boundary, i.e., boundary 5
     ofs << std::setw(OWID) << 1
+        << std::setw(OWID) << 0 << std::endl
+      
         << std::setw(OWID) << 5
-
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
-        << std::setw(OWID) << 0
-        << std::setw(OWID) << 0
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y0
         << std::setw(OWID) << z1 << std::endl << std::endl;
     
   }
-  else if (boundaryNum == 5) { // no top boundary
+  else if (boundaryNum == 5) { // no top boundary, i.e., no boundary 6
     // boundary 1
     ofs << std::setw(OWID) << 1
+	<< std::setw(OWID) << 1 << std::endl
+      
 	<< std::setw(OWID) << 1
-        
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x1
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl
 
+        << std::setw(OWID) << " "
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 1 
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y0
+        << std::setw(OWID) << z2 << std::endl << std::endl
+      
       // boundary 2
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 2
+        << std::setw(OWID) << 1 << std::endl
 
+        << std::setw(OWID) << 2
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x2     
         << std::setw(OWID) << y0
-        << std::setw(OWID) << z0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl
+
+        << std::setw(OWID) << " "
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 1 
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y0
+        << std::setw(OWID) << z2 << std::endl << std::endl
       
       // boundary 3
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 3
+        << std::setw(OWID) << 1 << std::endl
 
+        << std::setw(OWID) << 3
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x0
         << std::setw(OWID) << y1
-        << std::setw(OWID) << z0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl
+
+        << std::setw(OWID) << " "
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 1 
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y0
+        << std::setw(OWID) << z2 << std::endl << std::endl
       
       // boundary 4
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 4
+        << std::setw(OWID) << 1 << std::endl
 
+        << std::setw(OWID) << 4
         << std::setw(OWID) << 0 
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
         << std::setw(OWID) << x0      
         << std::setw(OWID) << y2
-        << std::setw(OWID) << z0 << std::endl << std::endl
+        << std::setw(OWID) << z0 << std::endl
+
+        << std::setw(OWID) << " "
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 0
+        << std::setw(OWID) << 1 
+        << std::setw(OWID) << x0
+        << std::setw(OWID) << y0
+        << std::setw(OWID) << z2 << std::endl << std::endl
       
       // boundary 5
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 5
+        << std::setw(OWID) << 0 << std::endl
 
+        << std::setw(OWID) << 5
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
@@ -9401,8 +9483,9 @@ buildBoundary(int boundaryNum,
   else if (boundaryNum == 6) { // all 6 boundaries
     // boundary 1
     ofs << std::setw(OWID) << 1
-	<< std::setw(OWID) << 1
-        
+        << std::setw(OWID) << 0 << std::endl
+
+	<< std::setw(OWID) << 1      
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
@@ -9412,8 +9495,9 @@ buildBoundary(int boundaryNum,
 
       // boundary 2
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 2
+        << std::setw(OWID) << 0 << std::endl
 
+        << std::setw(OWID) << 2
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0 
@@ -9423,8 +9507,9 @@ buildBoundary(int boundaryNum,
       
       // boundary 3
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 3
+        << std::setw(OWID) << 0 << std::endl
 
+        << std::setw(OWID) << 3
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
         << std::setw(OWID) << 0 
@@ -9434,8 +9519,9 @@ buildBoundary(int boundaryNum,
       
       // boundary 4
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 4
+        << std::setw(OWID) << 0 << std::endl
 
+        << std::setw(OWID) << 4
         << std::setw(OWID) << 0 
         << std::setw(OWID) << 1
         << std::setw(OWID) << 0 
@@ -9445,8 +9531,9 @@ buildBoundary(int boundaryNum,
       
       // boundary 5
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 5
+        << std::setw(OWID) << 0 << std::endl
 
+        << std::setw(OWID) << 5
         << std::setw(OWID) << 0
         << std::setw(OWID) << 0
         << std::setw(OWID) << -1
@@ -9456,8 +9543,9 @@ buildBoundary(int boundaryNum,
       
       // boundary 6
         << std::setw(OWID) << 1
-        << std::setw(OWID) << 6
+        << std::setw(OWID) << 0 << std::endl
 
+        << std::setw(OWID) << 6
         << std::setw(OWID) << 0 
         << std::setw(OWID) << 0
         << std::setw(OWID) << 1    

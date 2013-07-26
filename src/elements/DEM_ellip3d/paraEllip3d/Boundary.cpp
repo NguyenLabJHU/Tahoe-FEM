@@ -6,11 +6,14 @@ namespace dem {
   
   Boundary::Boundary(int tp, std::ifstream &ifs) {
     type = tp;
+    ifs >> extraNum;
     ifs >> id;
   }
   
   void Boundary::print(std::ostream &os) {
-    os << std::setw(OWID) << type
+    os << std::endl 
+       << std::setw(OWID) << type
+       << std::setw(OWID) << extraNum << std::endl
        << std::setw(OWID) << id;
   }
   
@@ -57,6 +60,10 @@ namespace dem {
     ifs >> dx >> dy >> dz >> px >> py >> pz;
     direc = Vec(dx, dy, dz);
     point = Vec(px, py, pz);
+    for (int i = 0; i < extraNum; ++i) {
+      ifs >> dx >> dy >> dz >> px >> py >> pz;
+      extraEdge.push_back(Plane(Vec(dx, dy, dz), Vec(px, py, pz)));
+    }
   }
   
   void planeBoundary::print(std::ostream &os) {
@@ -66,8 +73,17 @@ namespace dem {
        << std::setw(OWID) << direc.getZ()
        << std::setw(OWID) << point.getX()
        << std::setw(OWID) << point.getY()
-       << std::setw(OWID) << point.getZ()
-       << std::endl << std::endl;
+       << std::setw(OWID) << point.getZ() << std::endl;
+
+    for (std::vector<Plane>::iterator et = extraEdge.begin(); et != extraEdge.end(); ++et)
+      os << std::setw(OWID) << " "
+	 << std::setw(OWID) << et->getDirec().getX()
+	 << std::setw(OWID) << et->getDirec().getY()
+	 << std::setw(OWID) << et->getDirec().getZ()
+	 << std::setw(OWID) << et->getPoint().getX()
+	 << std::setw(OWID) << et->getPoint().getY()
+	 << std::setw(OWID) << et->getPoint().getZ()
+	 << std::endl;
   }
   
   void planeBoundary::printContactInfo(std::ostream &os) {
@@ -92,8 +108,18 @@ namespace dem {
     for (std::vector<Particle *>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       if ( (*it)->getType() == 0 ) { // only process free particles, excluding type 5
 	REAL dist = distanceToBdry((*it)->getCurrPos());
-	if(dist < 0 && fabs(dist) <= (*it)->getA())
-	  possParticle.push_back(*it);
+	if (dist < 0 && fabs(dist) <= (*it)->getA()) {
+	  bool inside = true;
+	  for (std::vector<Plane>::iterator et = extraEdge.begin(); et != extraEdge.end(); ++et) {
+	    REAL eDist = distanceToBdry((*it)->getCurrPos(), (*et));
+	    if (eDist >= 0 ) {
+	      inside = false;
+	      break;
+	    }
+	  }
+	  if (inside)
+	    possParticle.push_back(*it);
+	}
       }
     }
   }

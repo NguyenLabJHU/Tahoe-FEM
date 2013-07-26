@@ -75,6 +75,26 @@ int main(int argc, char* argv[]) {
   
   dem::debugInf.close();
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Notes:
+//
+// particleLayers (settings for free particles):
+//  0 - a single free particle
+//  1 - a layer of free particles
+//  2 - multiple layers of free particles
+//
+// particle type (settings for individual particle):
+//  0 - free particle
+//  1 - fixed particle
+//  2 - special case 2 (pure moment): translate first, then rotate only, MNT_START needs to be defined
+//  3 - special case 3 (displacemental ellipsoidal pile): translate in vertical direction only
+//  4 - special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only
+//  5 - free boundary particle
+// 10 - ghost particle
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
   ///////////////////////////////////////////////////////////////////////////////
   // Part 2: set up a simulation to run
 
@@ -272,23 +292,6 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
- 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Notes:
-//
-// particleLayers (settings for free particles):
-//  0 - a single free particle
-//  1 - a layer of free particles
-//  2 - multiple layers of free particles
-//
-// particle type (settings for individual particle):
-//  0 - free particle
-//  1 - fixed particle
-//  2 - special case 2 (pure moment): translate first, then rotate only, MNT_START needs to be defined
-//  3 - special case 3 (displacemental ellipsoidal pile): translate in vertical direction only
-//  4 - special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only
-//  5 - free boundary particle
-// 10 - ghost particle
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Various types of simulation, copy into part 2 of main() function to run, only ONE block a time.
