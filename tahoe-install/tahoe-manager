@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.72 2012-10-12 22:32:05 regueiro Exp $
+# $Id: tahoe-manager,v 1.73 2013-08-01 16:04:40 regueiro Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -20,8 +20,8 @@ $tahoe_sf = "tahoe.cvs.sourceforge.net";
 # Colorado server
 #$tahoe_co = "tahoe.colorado.edu"; 
 
-# Codesion/Collabnet server
-$tahoe_cod = "tahoe.cvs.cvsdude.com"; 
+# Cloudforge server
+$tahoe_cld = "tahoe.cvs.cvsdude.com"; 
 
 # core modules (for rebuild)
 @core_modules = (
@@ -293,7 +293,7 @@ print "*--------------------------------------------------\n";
 print "* Sourceforge username: $tahoe_sf_name\@$tahoe_sf\n";
 #print "* Tahoe server name: $tahoe_name\@$tahoe\n";
 #print "* Colorado server name: $tahoe_co_name\@$tahoe_co\n";
-print "* Codesion server tahoe.username: $tahoe_cod_name\@$tahoe_cod\n";
+print "* Cloudforge server tahoe.username: $tahoe_cld_name\@$tahoe_cld\n";
 #print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print "*             proxy: $proxy\n";
@@ -369,7 +369,7 @@ print "* reading config file $config_file\n";
 open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
 my $type = "UNKNOWN";
 #$tahoe_co_name = 'NONE';
-$tahoe_cod_name = 'NONE';
+$tahoe_cld_name = 'NONE';
 while(<CONFIG>) {
 	s/^\s+//; s/\s+$//; @list = split(/ +/);
  	if (defined($list[0])){
@@ -378,7 +378,7 @@ while(<CONFIG>) {
 #			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
 			elsif ($type =~ /TAHOE_SF_LOGIN/) { $tahoe_sf_name = $tmp_list[0]; }
 #			elsif ($type =~ /TAHOE_CO_LOGIN/) { $tahoe_co_name = $tmp_list[0]; }
-			elsif ($type =~ /TAHOE_COD_LOGIN/) { $tahoe_cod_name = $tmp_list[0]; }
+			elsif ($type =~ /TAHOE_CLD_LOGIN/) { $tahoe_cld_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
 			elsif  ($type  =~ /USE_DEFAULT/){$use_default_arch = $tmp_list[0];}
@@ -516,12 +516,12 @@ if ($connection =~ "cvs") {
 #		$tahoe_co_name = $name;
 #	}
 
-	# codesion server
-	$tahoe_cod_name = "NONE";
-	print "Codesion server tahoe.username [NONE]: ";
+	# cloudforge server
+	$tahoe_cld_name = "NONE";
+	print "Cloudforge server tahoe.username [NONE]: ";
 	$name = <STDIN>; chomp($name);
 	if (length($name) > 0) {
-		$tahoe_cod_name = $name;
+		$tahoe_cld_name = $name;
 	}
 }
 
@@ -644,9 +644,9 @@ sub update_cvs {
 #				if ($tahoe_co_name !~ /NONE/) { # must have an account
 #					do_system("cvs -d $tahoe_co_name\@$repo -q checkout $dir > cvs.log");
 #				}
-			} else { # on Codesion server
-				if ($tahoe_cod_name !~ /NONE/) { # must have an account
-					do_system("cvs -d $tahoe_cod_name\@$repo -q checkout $dir > cvs.log");
+			} else { # on Cloudforge server
+				if ($tahoe_cld_name !~ /NONE/) { # must have an account
+					do_system("cvs -d $tahoe_cld_name\@$repo -q checkout $dir > cvs.log");
 				}
 			}
 		}
@@ -1210,7 +1210,7 @@ sub write_config {
 	#print CONFIG  "# TAHOE_LOGIN\n$tahoe_name\n\n";
 	print CONFIG  "# TAHOE_SF_LOGIN\n$tahoe_sf_name\n\n";
 	#print CONFIG  "# TAHOE_CO_LOGIN\n$tahoe_co_name\n\n";
-	print CONFIG  "# TAHOE_COD_LOGIN\n$tahoe_cod_name\n\n";
+	print CONFIG  "# TAHOE_CLD_LOGIN\n$tahoe_cld_name\n\n";
 	print CONFIG  "# CONNECTION\n$connection\n\n";
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
@@ -1226,14 +1226,14 @@ sub write_config {
 sub config_optional_modules {
 
 	# private modules on Tahoe server
-	my @myoptionalmodules = ();
-	if ($tahoe_name !~ /NONE/) {
-		@myoptionalmodules = @optionalmodules;
-	} else { # filter out
-		foreach my $module (@optionalmodules) {
-			push (@myoptionalmodules, $module) if ($module2repo{$module} !~ /$tahoe/);
-		}
-	}
+#	my @myoptionalmodules = ();
+#	if ($tahoe_name !~ /NONE/) {
+#		@myoptionalmodules = @optionalmodules;
+#	} else { # filter out
+#		foreach my $module (@optionalmodules) {
+#			push (@myoptionalmodules, $module) if ($module2repo{$module} !~ /$tahoe/);
+#		}
+#	}
 
 	# collect current status of optional modules
 	my @opt_mod_off = complement(\@myoptionalmodules, \@modules);	
