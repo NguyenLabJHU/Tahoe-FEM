@@ -601,13 +601,14 @@ void FSSolidFluidMixQ8P8T::AddNodalForce(const FieldT& field, int node, dArrayT&
 		    fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 		    //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
 		    fCurrCoords_displ=fInitCoords_displ;
-		    fShapes_displ->SetDerivatives_DN_DDN(); 
+		    //fShapes_displ->SetDerivatives_DN_DDN();
+		    fShapes_displ->SetDerivatives();
 
 		    //
 		    fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
 		    fCurrCoords_press=fInitCoords_press;
 		    //fCurrCoords_press.SetToCombination (1.0, fInitCoords_press, 1.0, u); 
-		    fShapes_press->SetDerivatives(); 
+		    fShapes_press->SetDerivatives();
 			
 		    //update state variables
 		    fdstatenew_all.Alias(fNumIP_displ, knum_d_state, fdState_new(CurrElementNumber()));
@@ -1198,7 +1199,8 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 		fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
 		fCurrCoords_displ=fInitCoords_displ;
 		//fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u); 
-		fShapes_displ->SetDerivatives_DN_DDN(); 
+		//fShapes_displ->SetDerivatives_DN_DDN();
+		fShapes_displ->SetDerivatives();
 		//
 		fInitCoords_press.SetLocal(fElementCards_press[e].NodesX());
 		fCurrCoords_press=fInitCoords_press;
@@ -2010,10 +2012,11 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 				fIota_temp_matrix.MultATB(fShapeSolidGrad,fDefGradInv_Grad_grad);
 				
 				/* second derivatives of solid shape functions, [fShapeSolidGradGrad] will be formed */
-				fShapes_displ->Grad_GradNa(fShapeSolidGradGrad);
+				//fShapes_displ->Grad_GradNa(fShapeSolidGradGrad); //comment out for Q8P8
 				
 				/* [fVarpi_temp_matrix] will be formed */
-				Form_Varpi_temp_matrix();
+				//Form_Varpi_temp_matrix(); //comment out for Q8P8
+				fVarpi_temp_matrix = 0.0;
 				
 				/* ??? do we need this in the current Darcy's law ???? */			
 				/* hydraulic conductivity matrix in the current coordinate, [k] will be formed */
@@ -2825,7 +2828,8 @@ void FSSolidFluidMixQ8P8T::SetGlobalShape(void)
     SetLocalX(fLocInitCoords);
 	
     /* compute shape function derivatives */
-    fShapes_displ->SetDerivatives_DN_DDN();
+    //fShapes_displ->SetDerivatives_DN_DDN();
+    fShapes_displ->SetDerivatives();
     fShapes_press->SetDerivatives();
 }
 
@@ -3099,7 +3103,8 @@ void FSSolidFluidMixQ8P8T::TakeParameterList(const ParameterListT& list)
     fInitCoords_displ.Dimension(n_en_displ, n_sd);
     ElementSupport().RegisterCoordinates(fInitCoords_displ);	
     fCurrCoords_displ.Dimension(n_en_displ, n_sd);
-    fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ,1 );
+    //fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ,1 ); //comment out for Q8P8
+    fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
 
 	// open a temporary file for debugging
     fs_plast_mix_out.open("fs_plast_mix.info");
@@ -3902,7 +3907,7 @@ void FSSolidFluidMixQ8P8T::ApplyTractionBC(void)
 void FSSolidFluidMixQ8P8T::Form_solid_shape_functions(const double* &shapes_displ_X)
 {
     fShapeSolid = 0.0;
-    for (int i=0; i<27; i++)
+    for (int i=0; i<8; i++)
     {
 	fShapeSolid(0,i*3) = shapes_displ_X[i];
 	fShapeSolid(1,1+i*3) = shapes_displ_X[i];
@@ -3913,7 +3918,7 @@ void FSSolidFluidMixQ8P8T::Form_solid_shape_functions(const double* &shapes_disp
 void FSSolidFluidMixQ8P8T::Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp)
 {
     fShapeSolidGrad = 0.0;
-    for(int i=0; i<27; i++)
+    for(int i=0; i<8; i++)
     {
 	fShapeSolidGrad(0,i*3) = fShapeSolidGrad_temp(0,i);
 	fShapeSolidGrad(1,1+i*3) = fShapeSolidGrad_temp(0,i);
@@ -4096,7 +4101,7 @@ void FSSolidFluidMixQ8P8T::Form_Varpi_temp_matrix()
 void FSSolidFluidMixQ8P8T::Form_Gradient_t_of_solid_shape_functions(const dMatrixT &fShapeSolidGrad_temp)
 {
     fShapeSolidGrad_t = 0.0;
-    for (int i=0; i<27; i++)
+    for (int i=0; i<8; i++)
     {
 	fShapeSolidGrad_t(0,i*3) = fShapeSolidGrad_temp(0,i);
 	fShapeSolidGrad_t(1,i*3) = fShapeSolidGrad_temp(1,i);
