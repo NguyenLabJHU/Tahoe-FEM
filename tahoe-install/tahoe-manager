@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.73 2013-08-01 16:04:40 regueiro Exp $
+# $Id: tahoe-manager,v 1.74 2013-08-01 19:41:27 regueiro Exp $
 #
 #------------------------------------------------------------------------------
 # tahoe-manager: 
@@ -1226,14 +1226,14 @@ sub write_config {
 sub config_optional_modules {
 
 	# private modules on Tahoe server
-#	my @myoptionalmodules = ();
-#	if ($tahoe_name !~ /NONE/) {
-#		@myoptionalmodules = @optionalmodules;
-#	} else { # filter out
-#		foreach my $module (@optionalmodules) {
-#			push (@myoptionalmodules, $module) if ($module2repo{$module} !~ /$tahoe/);
-#		}
-#	}
+	my @myoptionalmodules = ();
+	if ($tahoe_name !~ /NONE/) {
+		@myoptionalmodules = @optionalmodules;
+	} else { # filter out
+		foreach my $module (@optionalmodules) {
+			push (@myoptionalmodules, $module) if ($module2repo{$module} !~ /$tahoe/);
+		}
+	}
 
 	# collect current status of optional modules
 	my @opt_mod_off = complement(\@myoptionalmodules, \@modules);	
