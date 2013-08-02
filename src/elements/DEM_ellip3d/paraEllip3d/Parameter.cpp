@@ -38,8 +38,7 @@ void Parameter::readIn(const char *input) {
       REAL percent, size;
       ssline >> percent >> size;
       gradation.push_back(std::make_pair(percent, size));
-    }
-    
+    }  
   }
   else if ((int) parameter["simuType"] == 2) { // resume deposition
     for (int i = 0; i < 2; ++i) {
@@ -54,7 +53,6 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> val;
       parameter[str] = val;
     }
-
   } 
   else if ((int) parameter["simuType"] == 3) { // expandCavityParticle
     for (int i = 0; i < 2; ++i) {
@@ -84,7 +82,20 @@ void Parameter::readIn(const char *input) {
       parameter[str] = val;
     }
   }
-
+  else if ((int) parameter["simuType"] == 100) { // couple with sonie fluid flow
+    for (int i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (int i = 0; i < 7; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+  } 
   
   ifs.close();
   

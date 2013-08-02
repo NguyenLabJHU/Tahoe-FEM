@@ -12,6 +12,7 @@
 #include "Rectangle.h"
 #include "Cylinder.h"
 #include "Spring.h"
+#include "Fluid.h"
 #include <map>
 #include <vector>
 #include <fstream>
@@ -35,6 +36,9 @@ namespace dem {
     std::vector< std::vector< std::vector<Particle *> > > memBoundary; // membrane particle boundaries
     std::vector<Spring *>   springVec;       // springs connecting membrane particles
     
+    // fluid property
+    Fluid fluid;
+
     // container property
     Rectangle allContainer;// whole container
     Rectangle container;   // container per process
@@ -145,6 +149,7 @@ namespace dem {
     void gatherParticle();
     void gatherBdryContact();
 
+    void updateGrid();
     void updateGridMinX();
     void updateGridMaxX();
     void updateGridMinY();
@@ -154,8 +159,6 @@ namespace dem {
 
     void openDepositProg(std::ofstream &ofs, const char *str);
     void printDepositProg(std::ofstream &ofs);
-    void openFluidProg(std::ofstream &ofs, const char *str);
-    void printFluidProg(std::ofstream &ofs);
     void closeProg(std::ofstream &ofs);
 
     void trimCavity(bool toRebuild, const char *Particlefile, const char *cavParticle);
@@ -600,35 +603,6 @@ namespace dem {
     void findParticleInRectangle(const Rectangle &container,
 				 const std::vector<Particle *> &allParticle,
 				 std::vector<Particle *> &foundParticle);
-    void mpiTest0();
-    
-    void mpiTest1() {
-      int tag = 0;
-      if (boostWorld.rank() == 0) {
-	readParticle("test_particle_ini");
-	printParticle("test_particle_0");
-	boostWorld.send(1, tag, allParticleVec);
-	boostWorld.send(1, tag, gradation);
-      }
-      else if (boostWorld.rank() == 1 ) {
-	boostWorld.recv(0, tag, allParticleVec);
-	boostWorld.recv(0, tag, gradation);
-	printParticle("test_particle_1");
-      }
-    }
-    
-    void mpiTest2() {
-      if (boostWorld.rank() == 0) {
-	readParticle("test_particle_ini");
-	printParticle("test_particle_0");
-      }
-      broadcast(boostWorld, allParticleVec, 0);
-      broadcast(boostWorld, gradation, 0);
-      
-      if (boostWorld.rank() == 1 ) {
-	printParticle("test_particle_1");
-      }
-    }
     
   };
   

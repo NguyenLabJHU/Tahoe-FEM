@@ -240,9 +240,10 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
   if (mpiRank == 0) {
     readBoundary(inputBoundary);
     readParticle(inputParticle);
-    openFluidProg(progressInf, "fluid_progress");
+    /*1*/ fluid.initParameter(allContainer, gradation);
+    /*2*/ fluid.initialize();
   }
-  scatterParticle(); // scatter particles only once; also updates grid for the first time
+  scatterParticle();
 
   int startStep = static_cast<int> (dem::Parameter::getSingleton().parameter["startStep"]);
   int endStep   = static_cast<int> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -259,10 +260,11 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
   int iterSnap = startSnap;
   char cstr0[50];
   if (mpiRank == 0) {
-    plotBoundary(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3));
-    plotGrid(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3));
+    plotBoundary(strcat(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3), ".dat"));
+    plotGrid(strcat(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3), ".dat"));
     printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
     printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
+    /*3*/ fluid.plot(strcat(combineString(cstr0, "fluid_plot_", iterSnap -1, 3), ".dat")); 
   }
   while (iteration <= endStep) {
     time0 = MPI_Wtime();
@@ -274,11 +276,14 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
 
     findContact();
     if (isBdryProcess()) findBdryContact();
-    // Fluid Simulation (particles info)
 
     clearContactForce();
+
+    ///*4*/ fluid.getParticleInfo(allParticleVec);
+    /*5*/ fluid.runOneStep();
+    ///*6*/ fluid.calcParticleForce(allParticleVec);
+
     internalForce();
-    //applyFluidForceToParticle();
     if (isBdryProcess()) boundaryForce();
     updateParticle();
     updateGridMaxZ();
@@ -292,11 +297,11 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
 
       char cstr[50];
       if (mpiRank == 0) {
-	plotBoundary(combineString(cstr, "deposit_bdryplot_", iterSnap, 3));
-	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
+	plotBoundary(strcat(combineString(cstr, "deposit_bdryplot_", iterSnap, 3), ".dat"));
+	plotGrid(strcat(combineString(cstr, "deposit_gridplot_", iterSnap, 3), ".dat"));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
-	printFluidProg(progressInf);
+	/*7*/ fluid.plot(strcat(combineString(cstr, "fluid_plot_", iterSnap, 3), ".dat"));
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
       
@@ -453,8 +458,8 @@ deposit(const char *inputBoundary,
   int iterSnap = startSnap;
   char cstr0[50];
   if (mpiRank == 0) {
-    plotBoundary(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3));
-    plotGrid(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3));
+    plotBoundary(strcat(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3), ".dat"));
+    plotGrid(strcat(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3), ".dat"));
     printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
     printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
   }
@@ -474,6 +479,7 @@ deposit(const char *inputBoundary,
     if (isBdryProcess()) boundaryForce();
     updateParticle();
     updateGridMaxZ();
+    //updateGrid();
    
     if (iteration % (netStep / netSnap) == 0) {
       time1 = MPI_Wtime();
@@ -484,8 +490,8 @@ deposit(const char *inputBoundary,
 
       char cstr[50];
       if (mpiRank == 0) {
-	plotBoundary(combineString(cstr, "deposit_bdryplot_", iterSnap, 3));
-	plotGrid(combineString(cstr, "deposit_gridplot_", iterSnap, 3));
+	plotBoundary(strcat(combineString(cstr, "deposit_bdryplot_", iterSnap, 3), ".dat"));
+	plotGrid(strcat(combineString(cstr, "deposit_gridplot_", iterSnap, 3), ".dat"));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
 	printDepositProg(progressInf);
@@ -1244,6 +1250,15 @@ void Assembly::releaseRecvParticle() {
 }
 
 
+void Assembly::updateGrid() {
+  updateGridMinX();
+  updateGridMaxX();
+  updateGridMinY();
+  updateGridMaxY();
+  updateGridMinZ();
+  updateGridMaxZ();
+}
+
 void Assembly::updateGridMinX() {
   REAL pMinX = getPtclMinX(particleVec);
   REAL minX = 0;
@@ -1797,9 +1812,6 @@ void  Assembly::openDepositProg(std::ofstream &ofs, const char *str) {
 }
 
 
-void  Assembly::openFluidProg(std::ofstream &ofs, const char *str) {}
-
-
 void Assembly::printDepositProg(std::ofstream &ofs) {
   REAL line[6];
   
@@ -1865,9 +1877,6 @@ void Assembly::printDepositProg(std::ofstream &ofs) {
 }
 
 
-void Assembly::printFluidProg(std::ofstream &ofs) {}
-
-  
 void Assembly::readParticle(const char *inputParticle) {
 
   REAL young = dem::Parameter::getSingleton().parameter["young"];

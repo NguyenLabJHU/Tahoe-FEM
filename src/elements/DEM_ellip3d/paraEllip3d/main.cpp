@@ -71,6 +71,10 @@ int main(int argc, char* argv[]) {
     assemb.resumeExpandCavityParticle(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 				      dem::Parameter::getSingleton().datafile["particleFile"].c_str());
     break;   
+  case 100: // couple with sonic fluid flow
+    assemb.coupleWithSonicFluid(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
+				dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    break;  
   }
   
   dem::debugInf.close();
