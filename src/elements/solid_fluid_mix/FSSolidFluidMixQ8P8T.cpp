@@ -3629,7 +3629,7 @@ void FSSolidFluidMixQ8P8T::TakeNaturalBC(const ParameterListT& list)
 {
     const char caller[] = "FSSolidFluidMixQ8P8T::TakeTractionBC";
 
-    int num_natural_bc = list.NumLists("natural_bc");
+    int num_natural_bc = list.NumLists("total_lagrangian_solid_fluid_mix_q8p8_natural_bc");
     if (num_natural_bc > 0)
     {
 	/* model manager */
@@ -3650,7 +3650,7 @@ void FSSolidFluidMixQ8P8T::TakeNaturalBC(const ParameterListT& list)
 	int tot_num_sides = 0;
 	for (int i = 0; i < num_natural_bc; i++) 
 	{
-	    const ParameterListT& natural_bc = list.GetList("natural_bc", i);
+	    const ParameterListT& natural_bc = list.GetList("total_lagrangian_solid_fluid_mix_q8p8_natural_bc", i);
 	    
 	    /* side set */
 	    const StringT& ss_ID = natural_bc.GetParameter("side_set_ID");
