@@ -30,6 +30,7 @@ namespace dem {
     ny += 2;
     nz += 2;
     
+    CFL   = 0.5;
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
     reflecting = dem::Parameter::getSingleton().parameter["reflecting"];
     rhoL = dem::Parameter::getSingleton().parameter["leftDensity"];
@@ -57,13 +58,14 @@ namespace dem {
     // extended
     var_msk = n_var++;
 
-    /*
+    ///*
     std::cout << "rhoL=" << rhoL << std::endl;
     std::cout << "reflecting=" << reflecting << std::endl;
     std::cout << "uL=" << uL << std::endl;
     std::cout << "pL=" << pL << std::endl;
     std::cout << "uR=" << uR << std::endl;
     std::cout << "z0=" << z0 << std::endl;
+    std::cout << "dx=" << dx << std::endl;
     std::cout << "dt=" << dt << std::endl;
     std::cout << "n_var = " << n_var << std::endl;
     std::cout << "n_integ = " << n_integ << std::endl;
@@ -77,7 +79,7 @@ namespace dem {
     std::cout << "var_vel[2] = " << var_vel[2] << std::endl;    
     std::cout << "var_prs = " << var_prs  << std::endl;    
     std::cout << "var_msk = " << var_msk  << std::endl;    
-    */
+    //*/
 
     // nx, ny, nz, n_dim
     arrayGrid.resize(nx);
@@ -183,8 +185,9 @@ namespace dem {
 
   void Fluid::runOneStep() { 
     addGhostPoints();
-    // soundSpeed();
+    soundSpeed();
     dt = std::min(dem::Parameter::getSingleton().parameter["timeStep"], timeStep());
+    std::cout << "dt=" << dt << std::endl;
     enthalpy();
 
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
@@ -321,7 +324,31 @@ namespace dem {
   }
 
   REAL Fluid::timeStep() {
-    return 1;
+    std::valarray<REAL> allGrid(nx * ny * nz);
+    for (std::size_t i = 0; i < nx ; ++i)
+      for (std::size_t j = 0; j < ny; ++j)
+	for (std::size_t k = 0; k < nz; ++k)
+	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][var_vel[0]]) + arraySoundSpeed[i][j][k];
+    REAL sx = allGrid.max();
+
+    for (std::size_t i = 0; i < nx ; ++i)
+      for (std::size_t j = 0; j < ny; ++j)
+	for (std::size_t k = 0; k < nz; ++k)
+	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][var_vel[1]]) + arraySoundSpeed[i][j][k];
+    REAL sy = allGrid.max();
+
+    for (std::size_t i = 0; i < nx ; ++i)
+      for (std::size_t j = 0; j < ny; ++j)
+	for (std::size_t k = 0; k < nz; ++k)
+	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][var_vel[2]]) + arraySoundSpeed[i][j][k];
+    REAL sz = allGrid.max();
+
+    std::valarray<REAL> dtMin(3);
+    dtMin[0] = dx/sx;
+    dtMin[1] = dy/sy;
+    dtMin[2] = dz/sz;
+    
+    return CFL * dtMin.min();
   }
 
   void Fluid::soundSpeed() {
@@ -495,6 +522,7 @@ namespace dem {
 	  for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
 	    if ( (*it)->surfaceError(Vec(x,y,z)) < 0 ) {// inside particle surface
 	      arrayU[i][j][k][var_msk] = 1;
+	      //std::cout << "iter=" << iteration << " " << i << " " << j << " " << k << " " << std::endl;
 	      // (*it)->getCurrPos();
 	      // (*it)->getCurrDirecA();
 	      // (*it)->getCurrVeloc();
@@ -529,6 +557,7 @@ namespace dem {
 	<< std::setw(OWID) << "\"velocity_y\""
 	<< std::setw(OWID) << "\"velocity_z\""
 	<< std::setw(OWID) << "\"pressure\""
+	<< std::setw(OWID) << "\"mask\""
 	<< std::endl;
 
     ofs << "ZONE I=" << nx -2
@@ -543,7 +572,7 @@ namespace dem {
 	  ofs << std::setw(OWID) << arrayGrid[i][j][k][0]
 	      << std::setw(OWID) << arrayGrid[i][j][k][1]
 	      << std::setw(OWID) << arrayGrid[i][j][k][2]
-	      << std::setw(OWID) << arrayU[i][j][k][0]
+	      << std::setw(OWID) << arrayU[i][j][k][var_den]
 	      << std::setw(OWID) << arrayU[i][j][k][1]
 	      << std::setw(OWID) << arrayU[i][j][k][2]
 	      << std::setw(OWID) << arrayU[i][j][k][3]
@@ -551,7 +580,8 @@ namespace dem {
 	      << std::setw(OWID) << arrayU[i][j][k][5]
 	      << std::setw(OWID) << arrayU[i][j][k][6]
 	      << std::setw(OWID) << arrayU[i][j][k][7]
-	      << std::setw(OWID) << arrayU[i][j][k][8] << std::endl;
+	      << std::setw(OWID) << arrayU[i][j][k][8]
+	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  << std::endl;
 	}
 
     ofs.close();

@@ -260,11 +260,11 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
   int iterSnap = startSnap;
   char cstr0[50];
   if (mpiRank == 0) {
-    plotBoundary(strcat(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3), ".dat"));
-    plotGrid(strcat(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3), ".dat"));
-    printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
-    printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
-    /*3*/ fluid.plot(strcat(combineString(cstr0, "fluid_plot_", iterSnap -1, 3), ".dat")); 
+    plotBoundary(strcat(combineString(cstr0, "couple_bdryplot_", iterSnap - 1, 3), ".dat"));
+    plotGrid(strcat(combineString(cstr0, "couple_gridplot_", iterSnap - 1, 3), ".dat"));
+    printParticle(combineString(cstr0, "couple_particle_", iterSnap - 1, 3));
+    printBdryContact(combineString(cstr0, "couple_bdrycntc_", iterSnap -1, 3));
+    /*3*/ fluid.plot(strcat(combineString(cstr0, "couple_fluidplot_", iterSnap -1, 3), ".dat")); 
   }
   while (iteration <= endStep) {
     time0 = MPI_Wtime();
@@ -279,7 +279,7 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
 
     clearContactForce();
 
-    ///*4*/ fluid.getParticleInfo(allParticleVec);
+    /*4*/ fluid.getParticleInfo(allParticleVec);
     /*5*/ fluid.runOneStep();
     ///*6*/ fluid.calcParticleForce(allParticleVec);
 
@@ -297,13 +297,13 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
 
       char cstr[50];
       if (mpiRank == 0) {
-	plotBoundary(strcat(combineString(cstr, "deposit_bdryplot_", iterSnap, 3), ".dat"));
-	plotGrid(strcat(combineString(cstr, "deposit_gridplot_", iterSnap, 3), ".dat"));
-	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
-	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
-	/*7*/ fluid.plot(strcat(combineString(cstr, "fluid_plot_", iterSnap, 3), ".dat"));
+	plotBoundary(strcat(combineString(cstr, "couple_bdryplot_", iterSnap, 3), ".dat"));
+	plotGrid(strcat(combineString(cstr, "couple_gridplot_", iterSnap, 3), ".dat"));
+	printParticle(combineString(cstr, "couple_particle_", iterSnap, 3));
+	printBdryContact(combineString(cstr, "couple_bdrycntc_", iterSnap, 3));
+	/*7*/ fluid.plot(strcat(combineString(cstr, "couple_fluidplot_", iterSnap, 3), ".dat"));
       }
-      printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
+      printContact(combineString(cstr, "couple_contact_", iterSnap, 3));
       
       ++iterSnap;
     }

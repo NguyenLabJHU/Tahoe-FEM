@@ -33,6 +33,7 @@ namespace dem {
     REAL dz;
     REAL dt;
 
+    REAL CFL;          // Courant Fredics Levy
     REAL gamma;
     bool reflecting;   // 0 - non-reflecting; 1 - reflecting
     REAL rhoL, uL, pL; // known
