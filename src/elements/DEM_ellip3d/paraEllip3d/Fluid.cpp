@@ -58,7 +58,7 @@ namespace dem {
     // extended
     var_msk = n_var++;
 
-    ///*
+    /*
     std::cout << "rhoL=" << rhoL << std::endl;
     std::cout << "reflecting=" << reflecting << std::endl;
     std::cout << "uL=" << uL << std::endl;
@@ -79,26 +79,26 @@ namespace dem {
     std::cout << "var_vel[2] = " << var_vel[2] << std::endl;    
     std::cout << "var_prs = " << var_prs  << std::endl;    
     std::cout << "var_msk = " << var_msk  << std::endl;    
-    //*/
+    */
 
     // nx, ny, nz, n_dim
-    arrayGrid.resize(nx);
-    for (std::size_t i = 0; i < arrayGrid.size(); ++i) {
-      arrayGrid[i].resize(ny);
-      for (std::size_t j = 0; j < arrayGrid[i].size(); ++j) {
-	arrayGrid[i][j].resize(nz);
-	for (std::size_t k = 0; k < arrayGrid[i][j].size(); ++k) 
-	  arrayGrid[i][j][k].resize(n_dim);
+    arrayGridCoord.resize(nx);
+    for (std::size_t i = 0; i < arrayGridCoord.size(); ++i) {
+      arrayGridCoord[i].resize(ny);
+      for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j) {
+	arrayGridCoord[i][j].resize(nz);
+	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) 
+	  arrayGridCoord[i][j][k].resize(n_dim);
       }
     }
 
     // coordinates
-    for (std::size_t i = 0; i < arrayGrid.size(); ++i)
-      for (std::size_t j = 0; j < arrayGrid[i].size(); ++j)
-	for (std::size_t k = 0; k < arrayGrid[i][j].size(); ++k) {
-	  arrayGrid[i][j][k][0] = (minX - dx/2) + i * dx;
-	  arrayGrid[i][j][k][1] = (minY - dy/2) + j * dy;
-	  arrayGrid[i][j][k][2] = (minZ - dz/2) + k * dz;
+    for (std::size_t i = 0; i < arrayGridCoord.size(); ++i)
+      for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) {
+	  arrayGridCoord[i][j][k][0] = (minX - dx/2) + i * dx;
+	  arrayGridCoord[i][j][k][1] = (minY - dy/2) + j * dy;
+	  arrayGridCoord[i][j][k][2] = (minZ - dz/2) + k * dz;
 	}
 
     // nx, ny, nz, n_var
@@ -187,7 +187,6 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     dt = std::min(dem::Parameter::getSingleton().parameter["timeStep"], timeStep());
-    std::cout << "dt=" << dt << std::endl;
     enthalpy();
 
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
@@ -217,7 +216,6 @@ namespace dem {
 	    REAL uL[5], uR[5], FL[5], FR[5], HL, HR; // local variable only
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
-	    //std::cout << "HL="<<HL<< " HR="<<HR << " ";
 	    for (std::size_t m = 0; m < n_integ; ++m) {
 	      uL[m] = arrayUtmp[IL[0]] [IL[1]] [IL[2]] [m];
 	      uR[m] = arrayUtmp[IR[0]] [IR[1]] [IR[2]] [m];
@@ -370,7 +368,7 @@ namespace dem {
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
-	  if ( arrayGrid[i][j][k][2] <= z0) {
+	  if ( arrayGridCoord[i][j][k][2] <= z0) {
 	    arrayU[i][j][k][var_den] = rhoL;
 	    arrayU[i][j][k][var_vel[2]] = uL;
 	    arrayU[i][j][k][var_prs] = pL;
@@ -421,9 +419,6 @@ namespace dem {
     REAL avgW   = (sqrt(uL[var_den])*uL[var_vel[2]] + sqrt(uR[var_den])*uR[var_vel[2]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
     
-    //std::cout << it << " " << jt << " " << kt << " " << "HL=" << HL << " HR=" << HR << std::endl;
-    //<< "avgH=" << avgH  <<" u="<<avgU << " v="<<avgV << " w=" << avgW <<  " sound=" << avgSoundSpeed << std::endl;
-
     REAL eigen[5];
     eigen[var_den]    = avgU - avgSoundSpeed;
     eigen[var_mom[0]] = eigen[var_mom[1]] = eigen[var_mom[2]] = avgU;
@@ -512,30 +507,54 @@ namespace dem {
   }
 
   void Fluid::getParticleInfo(std::vector<Particle *> &ptcls) {
-    for (std::size_t i = 1; i < arrayGrid.size() - 1 ; ++i)
-      for (std::size_t j = 1; j <  arrayGrid[i].size() - 1; ++j)
-	for (std::size_t k = 1; k <  arrayGrid[i][j].size() -1; ++k) {
+
+    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
+      (*it)->clearFluidGrid();
+
+    for (std::size_t i = 1; i < arrayGridCoord.size() - 1 ; ++i)
+      for (std::size_t j = 1; j <  arrayGridCoord[i].size() - 1; ++j)
+	for (std::size_t k = 1; k <  arrayGridCoord[i][j].size() -1; ++k) {
 	  arrayU[i][j][k][var_msk] = 0;
-	  REAL x = arrayGrid[i][j][k][0];
-	  REAL y = arrayGrid[i][j][k][1];
-	  REAL z = arrayGrid[i][j][k][2];
+	  REAL x = arrayGridCoord[i][j][k][0];
+	  REAL y = arrayGridCoord[i][j][k][1];
+	  REAL z = arrayGridCoord[i][j][k][2];
 	  for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
 	    if ( (*it)->surfaceError(Vec(x,y,z)) < 0 ) {// inside particle surface
-	      arrayU[i][j][k][var_msk] = 1;
-	      //std::cout << "iter=" << iteration << " " << i << " " << j << " " << k << " " << std::endl;
-	      // (*it)->getCurrPos();
-	      // (*it)->getCurrDirecA();
-	      // (*it)->getCurrVeloc();
-	      // (*it)->getCurrOmea();
+	      arrayU[i][j][k][var_msk] = 1;     
+	      (*it)->recordFluidGrid(i, j, k);
 	    }
 	  }
 	}
   }
 
   void Fluid::calcParticleForce(std::vector<Particle *> &ptcls) {
-    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-      // check each grid and evaluate forces and moments.
-      ;
+
+    for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      std::vector<std::vector<std::size_t>  > fluidGrid = (*it)->getFluidGrid();
+      for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
+	std::size_t i = fluidGrid[iter][0];
+	std::size_t j = fluidGrid[iter][1];
+	std::size_t k = fluidGrid[iter][2];
+
+	REAL uxFluid = arrayU[i][j][k][var_vel[0]];
+	REAL uyFluid = arrayU[i][j][k][var_vel[1]];
+	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
+
+	REAL ux = (*it)->getCurrVeloc().getX() + 0; //omga*distance
+	REAL uy = (*it)->getCurrVeloc().getY() + 0; //omga*distance
+	REAL uz = (*it)->getCurrVeloc().getZ() + 0; //omga*distance
+
+	REAL fx = (uxFluid - ux) * 0;// coef
+	REAL fy = (uyFluid - uy) * 0;
+	REAL fz = (uzFluid - uz) * 0;
+
+	(*it)->addForce(Vec(fx, fy, fz) * (dx*dy*dz));
+      }
+
+
+      // (*it)->getCurrPos();
+      // (*it)->getCurrVeloc();
+      // (*it)->getCurrOmea();
     }    
   }
 
@@ -569,9 +588,9 @@ namespace dem {
     for (std::size_t k = 1; k < nz - 1; ++k)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t i = 1; i < nx -1; ++i) {
-	  ofs << std::setw(OWID) << arrayGrid[i][j][k][0]
-	      << std::setw(OWID) << arrayGrid[i][j][k][1]
-	      << std::setw(OWID) << arrayGrid[i][j][k][2]
+	  ofs << std::setw(OWID) << arrayGridCoord[i][j][k][0]
+	      << std::setw(OWID) << arrayGridCoord[i][j][k][1]
+	      << std::setw(OWID) << arrayGridCoord[i][j][k][2]
 	      << std::setw(OWID) << arrayU[i][j][k][var_den]
 	      << std::setw(OWID) << arrayU[i][j][k][1]
 	      << std::setw(OWID) << arrayU[i][j][k][2]

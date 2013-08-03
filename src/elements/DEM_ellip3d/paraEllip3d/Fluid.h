@@ -44,7 +44,7 @@ namespace dem {
     std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
     std::size_t var_mom[3], var_vel[3];
 
-    Array4D arrayGrid; 
+    Array4D arrayGridCoord; 
     // fluid compute grid coordinates, 4-dimensional
     // nx, ny, nz, n_dim
     // arrayMesh[i][j][k][0]: coord_x

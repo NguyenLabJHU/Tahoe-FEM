@@ -281,7 +281,7 @@ void Assembly::coupleWithSonicFluid(const char *inputBoundary,
 
     /*4*/ fluid.getParticleInfo(allParticleVec);
     /*5*/ fluid.runOneStep();
-    ///*6*/ fluid.calcParticleForce(allParticleVec);
+    /*6*/ fluid.calcParticleForce(allParticleVec);
 
     internalForce();
     if (isBdryProcess()) boundaryForce();

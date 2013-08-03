@@ -51,6 +51,7 @@ namespace dem {
     REAL kinetEnergy;// kinetic energy
     int  contactNum;
     bool inContact;  // in contact with other particle or boundary
+    std::vector<std::vector<std::size_t> > fluidGrid;
 
   public:
     Particle();
@@ -153,6 +154,9 @@ namespace dem {
     
     // calculate the normal force between particle and a cylinder wall
     Vec cylinderRBForce(int boundaryId, const Cylinder &S, int side);
+    void clearFluidGrid();
+    void recordFluidGrid(std::size_t i, std::size_t j, std::size_t k);
+    std::vector<std::vector<std::size_t> > & getFluidGrid() { return fluidGrid; }
     
   private:
     void init();    
