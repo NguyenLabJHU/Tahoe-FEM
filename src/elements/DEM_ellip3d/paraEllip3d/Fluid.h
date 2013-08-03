@@ -33,11 +33,11 @@ namespace dem {
     REAL dz;
     REAL dt;
 
-    REAL CFL;          // Courant Fredics Levy
+    REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;
     bool reflecting;   // 0 - non-reflecting; 1 - reflecting
-    REAL rhoL, uL, pL; // known
-    REAL rhoR, uR, pR; // only uR is known
+    REAL rhoL, uL, pL; // known as IC
+    REAL rhoR, uR, pR; // only uR is known as IC
     REAL shockSpeed;   // unknown
     REAL z0;           // initial discontinuity plane in Z direction
 

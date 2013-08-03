@@ -30,7 +30,7 @@ namespace dem {
     ny += 2;
     nz += 2;
     
-    CFL   = 0.5;
+    CFL   = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
     reflecting = dem::Parameter::getSingleton().parameter["reflecting"];
     rhoL = dem::Parameter::getSingleton().parameter["leftDensity"];
@@ -59,14 +59,17 @@ namespace dem {
     var_msk = n_var++;
 
     /*
-    std::cout << "rhoL=" << rhoL << std::endl;
+    std::cout << "dx=" << dx << std::endl;
+    std::cout << "dt=" << dt << std::endl;
+    std::cout << "CFL=" << CFL << std::endl;
+    std::cout << "gamma=" << gamma << std::endl;
     std::cout << "reflecting=" << reflecting << std::endl;
+    std::cout << "rhoL=" << rhoL << std::endl;
     std::cout << "uL=" << uL << std::endl;
     std::cout << "pL=" << pL << std::endl;
     std::cout << "uR=" << uR << std::endl;
     std::cout << "z0=" << z0 << std::endl;
-    std::cout << "dx=" << dx << std::endl;
-    std::cout << "dt=" << dt << std::endl;
+
     std::cout << "n_var = " << n_var << std::endl;
     std::cout << "n_integ = " << n_integ << std::endl;
     std::cout << "var_den = " << var_den  << std::endl;    
@@ -187,6 +190,7 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     dt = std::min(dem::Parameter::getSingleton().parameter["timeStep"], timeStep());
+    std::cout << "iter=" <<  std::setw(7) << iteration << " dt=" << dt << std::endl;
     enthalpy();
 
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
