@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.33 2010-06-24 13:51:20 thao Exp $
+# $Id: makefile,v 1.34 2013-08-08 17:17:06 tahoe.vickynguyen Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -19,7 +19,8 @@ OBJ = \
 	ScaledCsch.o \
 	ScaledSinh.o \
 	LanirFiber.o \
-	PowerTrig.o
+	PowerTrig.o \
+	LinearType.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,7 +43,8 @@ SRC = \
 	ScaledCsch.cpp \
 	LanirFiber.cpp \
 	ScaledSinh.cpp \
-	PowerTrig.cpp 
+	PowerTrig.cpp \
+	LinearType.cpp  
 
 
 # headers
@@ -60,7 +62,8 @@ HDR = \
 	ScaledCsch.h \
 	ScaledSinh.h \
 	LanirFiber.h \
-	PowerTrig.h 
+	PowerTrig.h \
+	LinearType.h 
 
 
 HDR_LINK = $(HDR:.h=.h_link)
