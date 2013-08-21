@@ -8,9 +8,6 @@
 #include "FSDielectricElastomerQ1P0T.h"
 
 namespace Tahoe {
-
-  /* Forward declarations */
-  class FSDEMatIsotropicSurfaceT;
   
   // interface for finite deformation dielectric elastomers 
   // based on 2008 JMPS paper of Suo et al.
@@ -45,6 +42,18 @@ namespace Tahoe {
     // driver for calculating output values
     virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         const iArrayT& e_codes, dArray2DT& e_values);
+
+	// Calculate surface tension stress
+	dMatrixT Surf_Tension_Stress();
+	
+	// Calculate surface tension stiffness
+	dMatrixT Surf_Tension_Stiffness();
+
+	// Calculate surface gradient-modified B matrix
+	dMatrixT Surf_BMatrix(const dMatrixT& B_original, const dMatrixT& Q);
+
+	// Convert Matrix to dArray2DT
+	dArray2DT MatrixTodArray2DT(const dMatrixT& source);
 
   private:
 

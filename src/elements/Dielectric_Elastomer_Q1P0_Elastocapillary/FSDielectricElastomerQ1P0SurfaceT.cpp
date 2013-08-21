@@ -328,10 +328,15 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	int nen = NumElementNodes();                      // # nodes in bulk element
 	
 	/* loop over surface elements */
+	dMatrixT Q(nsd);
 	dMatrixT jacobian(nsd, nsd-1);
+	dMatrixT surfGradNa(nsd, nen);
+	dArray2DT surfGradNa1(nsd, nen);
 	iArrayT face_nodes(nfn), face_nodes_index(nfn);
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	LocalArrayT face_curr_coords(LocalArrayT::kCurrCoords, nfn, nsd);
 	ElementSupport().RegisterCoordinates(face_coords);
+	ElementSupport().RegisterCoordinates(face_curr_coords);
 	dArrayT ip_coords_X(nsd);
 	dArrayT ip_coords_Xi(nsd);
 	dArrayT Na(nen);
@@ -350,7 +355,6 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 		/* initialize */
     	fAmm_mat2 = 0.0;
     	fAmm_geo2 = 0.0;
-//    	fLHS2 = 0.0;
 
 		/* integrate surface contribution to nodal forces */
 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
@@ -365,6 +369,7 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
 				face_coords.SetLocal(face_nodes);
+				face_curr_coords.SetLocal(face_nodes);
 
 				/* integrate over the face */
 				int face_ip;
@@ -377,6 +382,10 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 					/* reference coordinate mapping on face */
 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
+				
+					/* face normal (for all face IPs) */
+					surf_shape.DomainJacobian(face_curr_coords, face_ip, jacobian);
+					surf_shape.SurfaceJacobian(jacobian, Q);	// Last column of Q is normal vector to surface
 				
 					/* ip coordinates on face */
 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
@@ -403,17 +412,21 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 					/* shape function gradient wrt current configuration */
 					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
 					
-					/* stress at the surface */
-//					fSurfaceCB->s_ij().ToMatrix(cauchy2);			
+					/* stress at the surface */			
+					cauchy2 = Surf_Tension_Stress();
 					
 					/* integration weight */
-//					double scale = constK*detj*w[face_ip]*J;
+					double scale = constK*detj*w[face_ip]*J;
 					
 					/* integration constants */
-//					cauchy2 *= scale;
+					cauchy2 *= scale;
 					
 					/* using the stress symmetry - watch big X vs. little x */
 					shape.GradNa(DNa_x, fGradNa);
+
+					/* MODIFY SHAPE FUNCTIONS USING SURFACE GRADIENT */
+					surfGradNa = Surf_BMatrix(fGradNa, Q);
+					surfGradNa1 = MatrixTodArray2DT(surfGradNa);
 					
 					/* using the stress symmetry */
 //					fAmm_geo2.MultQTBQ(fGradNa, cauchy2, format, dMatrixT::kAccumulate);					
@@ -421,7 +434,8 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 				/* MATERIAL STIFFNESS */
 				
 					/* strain displacement matrix */
-					Set_B(DNa_x, fB2);
+//					Set_B(DNa_x, fB2);
+					Set_B(surfGradNa1, fB2);
 					
 					/* Get D Matrix */
 //					fD2.SetToScaled(scale, fSurfaceCB->c_ijkl());
@@ -464,10 +478,13 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	dArrayT Rmech2(nen*nsd);
 	
 	/* loop over surface elements */
+	dMatrixT Q(nsd);	
 	dMatrixT jacobian(nsd, nsd-1);
 	iArrayT face_nodes(nfn), face_nodes_index(nfn);
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	LocalArrayT face_curr_coords(LocalArrayT::kCurrCoords, nfn, nsd);
 	ElementSupport().RegisterCoordinates(face_coords);
+	ElementSupport().RegisterCoordinates(face_curr_coords);
 	dArrayT ip_coords_X(nsd);
 	dArrayT ip_coords_Xi(nsd);
 	dArrayT Na(nen);
@@ -502,6 +519,7 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
 				face_coords.SetLocal(face_nodes);
+				face_curr_coords.SetLocal(face_nodes);
 
 				/* integrate over the face */
 				int face_ip;
@@ -516,6 +534,10 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 				
+					/* face normal (for all face IPs) */
+					surf_shape.DomainJacobian(face_curr_coords, face_ip, jacobian);
+					surf_shape.SurfaceJacobian(jacobian, Q);	// Last column of Q is normal vector to surface
+					
 					/* ip coordinates on face */
 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
 					
@@ -541,12 +563,13 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 					
 					/* stress at the surface */
 //					fSurfaceCB->s_ij().ToMatrix(cauchy);
+					cauchy = Surf_Tension_Stress();
 
 					/* compute PK1/J */
 //					PK1.MultABT(cauchy, F_inv);
 					
 					/* Wi,J PiJ */
-//					shape.GradNa(DNa_X, fGradNa);
+					shape.GradNa(DNa_X, fGradNa);
 //					WP.MultAB(PK1, fGradNa);
 
 					/* accumulate */
@@ -562,7 +585,59 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 
 	}		
   }
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_BMatrix(const dMatrixT& B_original, const dMatrixT& Q)
+{
+	dMatrixT surfb(NumSD(), NumElementNodes());
+	dMatrixT surfb1(NumSD(), NumElementNodes());
+	dMatrixT surfb2(NumSD());
+	dArrayT normal(NumSD());
+	
+	/* extract normal from Q */
+	Q.CopyColumn(2,normal);
 
+	/* modify B matrix using surface gradient */
+	surfb = B_original;
+	surfb2.Outer(normal, normal);
+	surfb1.MultAB(surfb2, B_original);
+	surfb-=surfb1;
+	
+	return surfb;
+}
+
+dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_Tension_Stress()
+{
+	// MAY NOT NEED THIS - JUST MULTIPLY SURF B-MATRIX BY GAMMA
+	dMatrixT tempstress(NumSD());
+	tempstress.Identity();
+	tempstress*=fSurfTension;
+
+	return tempstress;
+}
+
+dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_Tension_Stiffness()
+{
+	dMatrixT tempstiff(dSymMatrixT::NumValues(NumSD()));
+	
+	return tempstiff;
+}
+
+dArray2DT FSDielectricElastomerQ1P0SurfaceT::MatrixTodArray2DT(const dMatrixT& source)
+{
+	dArray2DT B(NumSD(), NumElementNodes());
+	
+	for (int i = 0; i < NumSD(); i++)
+	{
+		for (int j = 0; j < NumElementNodes(); j++)
+		{
+			B(i,j) = source(i,j);
+		}	
+	}
+
+	return B;
+}
 
 /***********************************************************************
  * Private
