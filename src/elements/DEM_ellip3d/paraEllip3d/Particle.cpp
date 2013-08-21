@@ -6,7 +6,7 @@
 
 //#define MOMENT
 #ifdef MOMENT
-const int START = 10000;  // at which time step to apply moment? for moment rotation test only.
+const std::size_t START = 10000;  // at which time step to apply moment? for moment rotation test only.
 #define SLIP  // if defined, stick and slip; otherwise slide.
 #endif
 // for moment case: timeStep = 5.0e-07; totalSteps = 12000
@@ -28,7 +28,7 @@ Particle::Particle()
   constForce(0), constMoment(0),
   density(0), mass(0), volume(0), momentJ(0),
   kinetEnergy(0), contactNum(0), inContact(false) {
-  for (int i = 0; i < 10; ++i)
+  for (std::size_t i = 0; i < 10; ++i)
     coef[i] = 0;
 }
   
@@ -128,23 +128,23 @@ void Particle::init () {
 */
 
 
-Particle::Particle(int n, int tp, Vec center, REAL r, REAL yng, REAL poi)
+Particle::Particle(std::size_t n, std::size_t tp, Vec center, REAL r, REAL yng, REAL poi)
  :id(n), type(tp), a(r), b(r), c(r), young(yng), poisson(poi), currPos(center) {
   init();
 }
 
 
-Particle::Particle(int n, int tp, Vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
+Particle::Particle(std::size_t n, std::size_t tp, Vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
  :id(n), type(tp), a(ra), b(rb), c(rc), young(yng), poisson(poi), currPos(center) {
   init();
 }
 
 
-Particle::Particle(int n, int tp, Vec center, Gradation &grad, REAL yng, REAL poi)
+Particle::Particle(std::size_t n, std::size_t tp, Vec center, Gradation &grad, REAL yng, REAL poi)
  :id(n), type(tp), young(yng), poisson(poi), currPos(center)  {
   // generate particle size in terms of gradation distribution
   REAL sievenum = grad.getSieveNum();
-  for (int k = 0; k < sievenum; ++k){
+  for (std::size_t k = 0; k < sievenum; ++k) {
     if (ran(&idum) <= grad.getPercent()[sievenum-1-k]) {
       a = grad.getSize()[sievenum-1-k];
       break;
@@ -163,7 +163,7 @@ Particle::Particle(int n, int tp, Vec center, Gradation &grad, REAL yng, REAL po
 }
   
 
-Particle::Particle(int n, int tp, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL yng, REAL poi)
+Particle::Particle(std::size_t n, std::size_t tp, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL yng, REAL poi)
  :id(n), type(tp), young(yng), poisson(poi) {
   a = dim.getX();
   b = dim.getY();
@@ -217,7 +217,7 @@ REAL Particle::getPotenEnergy(REAL ref) const {
 
   
 void Particle::getGlobalCoef(REAL coef[]) const {
-  for (int i = 0;i < 10; ++i)
+  for (std::size_t i = 0; i < 10; ++i)
     coef[i] = this->coef[i];
 }
 
@@ -302,7 +302,7 @@ void Particle::globalCoef() {
     pow(b,-2)*pow(n2,2)*pow(Z0,2) + 
     pow(c,-2)*pow(n3,2)*pow(Z0,2);
   REAL divd = coef[0];
-  for (int i = 0;i < 10; ++i)  // when a particle is initialized or updated, coef[0] is set as 1.0
+  for (std::size_t i = 0; i < 10; ++i)  // when a particle is initialized or updated, coef[0] is set as 1.0
     coef[i] /= divd;
 }
   
@@ -447,15 +447,15 @@ void Particle::clearContactForce() {
   REAL m[20] = { 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
 		 80, 70, 60, 50, 40, 30, 20, 10, 0};
 #ifdef SLIP
-  for (int i = 0;i < 20; ++i) m[i] *= 1.0e-8;
+  for (std::size_t i = 0;i < 20; ++i) m[i] *= 1.0e-8;
 #else
-  for (int i = 0;i < 20; ++i) m[i] *= 2.0e-8; 
+  for (std::size_t i = 0;i < 20; ++i) m[i] *= 2.0e-8; 
 #endif
-  int s[20];
-  for (int i = 0;i < 20; ++i)
+  std::size_t s[20];
+  for (std::size_t i = 0;i < 20; ++i)
     s[i] = START + i*100;
   
-  for (int i = 0;i < 19; ++i)
+  for (std::size_t i = 0;i < 19; ++i)
     if (iteration >= s[i] && iteration < s[i+1] )
       moment += Vec(0,m[i],0);
   if (iteration >= s[19] )
@@ -663,7 +663,7 @@ bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const
   
 
 void Particle::planeRBForce(planeBoundary *plane,
-			    std::map<int, std::vector<BoundaryTgt> > &BdryTgtMap,
+			    std::map<std::size_t, std::vector<BoundaryTgt> > &BdryTgtMap,
 			    std::vector<BoundaryTgt> &vtmp) {
   // (p, q, r) are in the same direction as the outward normal vector,
   // hence it is not necessary to provide information about which side the particle is about the plane.
@@ -898,7 +898,7 @@ void Particle::planeRBForce(planeBoundary *plane,
 }
   
   
-Vec Particle::cylinderRBForce(int boundaryId, const Cylinder &S, int side) {
+Vec Particle::cylinderRBForce(std::size_t boundaryId, const Cylinder &S, int side) {
   // side == -1, the particles are inside the cylinder
   // side == +1, the particles are outside the cylinder
   REAL x0 = S.getCenter().getX();

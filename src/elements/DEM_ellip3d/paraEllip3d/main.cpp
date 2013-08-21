@@ -61,19 +61,25 @@ int main(int argc, char* argv[]) {
     assemb.depositIntoContainer();
     break;
   case 2: // resume deposition using specified data file of particles and boundaries
-    assemb.resumeDepositIntoContainer(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
-				      dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    assemb.resumeDepositIntoContainer();
     break;
   case 3: // expand particles inside a virtual cavity and see what occurs
     assemb.expandCavityParticle();
     break;
   case 4: // resume expanding particles inside a virtual cavity and see what occurs
-    assemb.resumeExpandCavityParticle(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
-				      dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    assemb.resumeExpandCavityParticle();
     break;   
+  case 5: // 
+    assemb.isotropic(1);
+    break; 
+  case 6: // 
+    assemb.isotropic(2);
+    break; 
+  case 7: // 
+    assemb.isotropic(3);
+    break; 
   case 100: // couple with sonic fluid flow
-    assemb.coupleWithSonicFluid(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
-				dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    assemb.coupleWithSonicFluid();
     break;  
   }
   

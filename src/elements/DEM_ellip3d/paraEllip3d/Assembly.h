@@ -25,7 +25,7 @@ namespace dem {
   private:
 
     // particles property
-    int  trimHistoryNum;                     // historical maximum numbering before trimming
+    std::size_t trimHistoryNum;                     // historical maximum numbering before trimming
     Gradation               gradation;       // particles gradation
     std::vector<Particle *> allParticleVec;  // all particles
     std::vector<Particle *> particleVec;     // particles per process
@@ -49,7 +49,7 @@ namespace dem {
     std::vector<Boundary *> boundaryVec;       // rigid boundaries
     std::vector<Boundary *> mergeBoundaryVec;  // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
-    std::map<int,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
+    std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
 
     // energy data
     REAL transEnergy;
@@ -61,7 +61,7 @@ namespace dem {
     // MPI data
     boost::mpi::communicator boostWorld;
     MPI_Comm mpiWorld, cartComm;
-    std::vector<int> bdryProcess;
+    std::vector<std::size_t> bdryProcess;
     int mpiProcX, mpiProcY, mpiProcZ;
     int mpiRank, mpiSize, mpiTag, mpiCoords[3];
     int rankX1, rankX2, rankY1, rankY2, rankZ1, rankZ2;
@@ -118,22 +118,25 @@ namespace dem {
     void setGradation(Gradation grad) { gradation = grad; }
 
     void depositIntoContainer(); 
-    void resumeDepositIntoContainer(const char *inputBoundary,
-				    const char *inputParticle);
+    void resumeDepositIntoContainer();
     void expandCavityParticle();
-    void resumeExpandCavityParticle(const char *inputBoundary,
-				    const char *inputParticle);
-    void generateParticle(int particleLayers,
+    void resumeExpandCavityParticle();
+    void generateParticle(std::size_t particleLayers,
 			  const char *genParticle);
-    void buildBoundary(int boundaryNum,
+    void buildBoundary(std::size_t boundaryNum,
 		       const char *boundaryFile);
     void trim(bool toRebuild,
 	      const char *inputParticle,
 	      const char *trmParticle);
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
-    void coupleWithSonicFluid(const char *inputBoundary,
-			      const char *inputParticle);    
+    void coupleWithSonicFluid();    
+
+    // Isotropically compress particles to a specific confining pressure, 
+    // which is usually a low value in order to create an intial status. 
+    // Force boundaries are used. This process may not be physically true.
+    void isotropic(std::size_t type);
+
     void setCavity(Rectangle cav) { cavity = cav; }
 
     void readParticle(const char *str);
@@ -157,13 +160,13 @@ namespace dem {
     void updateGridMinZ();
     void updateGridMaxZ();    
 
-    void openDepositProg(std::ofstream &ofs, const char *str);
-    void printDepositProg(std::ofstream &ofs);
-    void closeProg(std::ofstream &ofs);
+    void openProgress(std::ofstream &ofs, const char *str);
+    void printProgress(std::ofstream &ofs);
+    void closeProgress(std::ofstream &ofs);
 
     void trimCavity(bool toRebuild, const char *Particlefile, const char *cavParticle);
     void readCavityBoundary(const char *boundaryfile);
-    void buildCavityBoundary(int existMaxId, const char *boundaryfile);
+    void buildCavityBoundary(std::size_t existMaxId, const char *boundaryfile);
     void findContact();                           // detect and resolve contact between particles
     void findBdryContact();                       // find particles on boundaries
     void findParticleOnCavity();                  // find particle on cavity boundaries
@@ -172,7 +175,6 @@ namespace dem {
     void internalForce();                         // calculate inter-particle forces
     void springForce();
     void boundaryForce();                         // calcualte forces between rigid boundaries and particles
-    void boundaryForce(REAL penetr[],int cntnum[]);
     void cavityBoundaryForce();
     void updateParticle();                        // update motion of particles
     
@@ -183,10 +185,7 @@ namespace dem {
     REAL ellipPileTipZ();
     REAL ellipPilePeneVol();
   
-    // if bn[i]=2, the 2nd rigid boundary should be updated according to rbctl[i],
-    // totally num rigid boundaries must be updated
-    //void updateBoundary(int bn[], UPDATECTL rbctl[], int num);
-    void updateBoundary6();
+    void updateBoundary();
     
     REAL getDensity() const; 
     REAL getAvgPenetr() const;
@@ -206,7 +205,7 @@ namespace dem {
     REAL getMechaEnergy(REAL ref) const;
     void gatherEnergy();
     
-    void setTrimHistoryNum(int n) { trimHistoryNum = n; }
+    void setTrimHistoryNum(std::size_t n) { trimHistoryNum = n; }
     void printParticle(const char *str) const; // print all particles info into a disk file
     void printBdryContact(const char *str) const; // print all boundary contact info into a disk file
     void printParticle(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info into a disk file
@@ -219,12 +218,12 @@ namespace dem {
     void printContact(char *str) const;        // print contacts information
     void printBoundary(const char *str) const; // print rigid boundaries info to a disk file
     void printCavityBoundary(const char *str) const; // print cavity boundaries
-    void printCavityParticle(int total, const char *str) const;
+    void printCavityParticle(std::size_t total, const char *str) const;
     
   // continue to deposit after a cavity is created inside the particle assemblage
-  void depositAfterCavity(int   total_steps,  
-			  int   snapNum,
-			  int   interval,
+  void depositAfterCavity(std::size_t  total_steps,  
+			  std::size_t  snapNum,
+			  std::size_t  interval,
 			  const char *iniptclfile,   
 			  const char *inibdryfile,
 			  const char *inicavefile,
@@ -235,11 +234,11 @@ namespace dem {
 
   // create a specimen by depositing particles into particle boundaries
   void deposit_PtclBdry(Gradation &grad,
-			int   freetype,
+			std::size_t  freetype,
 			REAL  rsize,
-			int   total_steps,  
-			int   snapNum,
-			int   interval,
+			std::size_t  total_steps,  
+			std::size_t  snapNum,
+			std::size_t  interval,
 			const char *iniptclfile,   
 			const char *Particlefile, 
 			const char *contactfile,
@@ -247,9 +246,9 @@ namespace dem {
 			const char *debugfile);
   
   // scale the assembly with particle boundaries from deposited state until it reaches steady state
-  void scale_PtclBdry(int         total_steps  =50000,             // total_steps
-		      int         snapNum    =100,               // number of snapNum   
-		      int         interval     =10,                // print interval
+  void scale_PtclBdry(std::size_t        total_steps  =50000,             // total_steps
+		      std::size_t        snapNum    =100,               // number of snapNum   
+		      std::size_t        interval     =10,                // print interval
 		      REAL        dimn         =0.05,              // dimension of particle-composed-boundary
 		      REAL        rsize        =1.0,               // relative container size
 		      const char *iniptclfile  ="dep_particle_end",// input file, initial particles
@@ -262,14 +261,14 @@ namespace dem {
   // generate particles in space for particle boundaries
   void generate_p(Gradation &grad,
 		  const char *str,
-		  int freetype,
+		  std::size_t freetype,
 		  REAL rsize,
 		  REAL ht);
   
  
-  void deGravitation(int   total_steps,  
-		     int   snapNum,
-		     int   interval,
+  void deGravitation(std::size_t  total_steps,  
+		     std::size_t  snapNum,
+		     std::size_t  interval,
 		     bool  toRebuild,
 		     const char *iniptclfile,   
 		     const char *Particlefile, 
@@ -278,9 +277,9 @@ namespace dem {
 		     const char *debugfile);
   
   // actual deposit function for particle boundaries
-  void deposit_p(int         total_steps  =50000,             // total_steps
-		 int         snapNum    =100,               // number of snapNum   
-		 int         interval     =10,                // print interval 
+  void deposit_p(std::size_t        total_steps  =50000,             // total_steps
+		 std::size_t        snapNum    =100,               // number of snapNum   
+		 std::size_t        interval     =10,                // print interval 
 		 REAL dimn   =0.05,                           // dimension of particle-composed-boundary
 		 REAL rsize  =1.0,                            // relative container size
 		 const char *iniptclfile  ="flo_particle_end",// input file, initial particles
@@ -290,11 +289,11 @@ namespace dem {
 		 const char *debugfile    ="dep_debug");      // output file, debug info
   
   //squeeze paticles inside a container by moving the boundaries
-  void squeeze(int         total_steps  =20000,               // total_steps
-	       int         init_steps   =5000,                // initial_steps to reach equilibrium
-	       int         snapNum    =100,                 // number of snapNum   
-	       int         interval     =10,                  // print interval 
-	       int         flag         =-1,                  // -1 squeeze; +1 loosen
+  void squeeze(std::size_t        total_steps  =20000,               // total_steps
+	       std::size_t        init_steps   =5000,                // initial_steps to reach equilibrium
+	       std::size_t        snapNum    =100,                 // number of snapNum   
+	       std::size_t        interval     =10,                  // print interval 
+	       std::size_t        flag         =-1,                  // -1 squeeze; +1 loosen
 	       const char *iniptclfile  ="flo_particle_end",  // input file, initial particles
 	       const char *inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
 	       const char *Particlefile ="dep_particle",      // output file, resulted particles, including snapNum 
@@ -303,14 +302,14 @@ namespace dem {
 	       const char *progressfile ="dep_progress",      // output file, statistical info
 	       const char *debugfile    ="dep_debug");        // output file, debug info
   
-  void deposit_repose(int   interval,
+  void deposit_repose(std::size_t  interval,
 		      const char *inibdryfile,
 		      const char *Particlefile, 
 		      const char *contactfile,
 		      const char *progressfile, 
 		      const char *debugfile);
   
-  void angleOfRepose(int   interval,
+  void angleOfRepose(std::size_t  interval,
 		     const char *inibdryfile,
 		     const char *Particlefile, 
 		     const char *contactfile,
@@ -324,9 +323,9 @@ namespace dem {
   REAL getPtclMinZ(const std::vector<Particle *> &particleVec) const;
   REAL getPtclMaxZ(const std::vector<Particle *> &particleVec) const;
   
-  void collapse(int   total_steps,  
-		int   snapNum,
-		int   interval,
+  void collapse(std::size_t  total_steps,  
+		std::size_t  snapNum,
+		std::size_t  interval,
 		const char *iniptclfile,
 		const char *initboundary,
 		const char *Particlefile,
@@ -339,9 +338,9 @@ namespace dem {
 			 const char *Particlefile,
 			 const char *allParticle);
   
-  void iso_MemBdry(int   total_steps,  
-		   int   snapNum, 
-		   int   interval,
+  void iso_MemBdry(std::size_t  total_steps,  
+		   std::size_t  snapNum, 
+		   std::size_t  interval,
 		   REAL  sigma3,
 		   REAL  rRadius,
 		   bool  toRebuild,
@@ -355,9 +354,9 @@ namespace dem {
 			    const char *iniptclfile,
 			    const char *Particlefile);
   
-  void applyParticleBoundary(int          total_steps  =100000,
-			     int          snapNum    =100,
-			     int          nterval      =10,
+  void applyParticleBoundary(std::size_t         total_steps  =100000,
+			     std::size_t         snapNum    =100,
+			     std::size_t         nterval      =10,
 			     REAL         sigma        =1.0e+4,
 			     const char *iniptclfile  ="cre_particle",
 			     const char *inibdryfile  ="cre_bounary",
@@ -368,67 +367,16 @@ namespace dem {
 			     const char *balancedfile ="iso_balanced",
 			     const char *debugfile    ="iso_debug");
   
-  // Isotropically compress floating particles to a specific confining pressure, which is usually a low
-  // value in order to create an intial status. Force boundaries are used. This process may be not 
-  // physically true.
-  void isotropic(int          total_steps  =100000,
-		 int          snapNum    =100,
-		 int          interval     =10,
-		 REAL         sigma        =1.0e+4,
-		 const char *iniptclfile  ="flo_particle_end",
-		 const char *inibdryfile  ="iso_inbdry",
-		 const char *Particlefile ="iso_particle",
-		 const char *boundaryfile ="iso_boundary",
-		 const char *contactfile  ="iso_contact",
-		 const char *progressfile ="iso_progress",
-		 const char *balancedfile ="iso_balanced",
-		 const char *debugfile    ="iso_debug");
-  
-  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
-  // increases confining pressure step by step to sigma_b, making it possible to find equilibrium 
-  // state where particle pressure equals confining pressure. Force boundaries are used.
-  void isotropic(int          total_steps   =100000,
-		 int          snapNum     =100,
-		 int          interval      =10, 
-		 REAL  sigma_a       =1.0e+4,
-		 REAL  sigma_b       =1.0e+5,	
-		 int    sigma_division      =100,	  
-		 const char *iniptclfile   ="iso_particle_10k",
-		 const char *inibdryfile   ="iso_boundary_10k",
-		 const char *Particlefile  ="iso_particle", 
-		 const char *boundaryfile  ="iso_boundary", 
-		 const char *contactfile   ="iso_contact",
-		 const char *progressfile  ="iso_progress",
-		 const char *balancedfile  ="iso_balanced", 
-		 const char *debugfile     ="iso_debug");
-  
-  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
-  // follows an unloading-reloading stress path. Force boundaries are used.
-  void isotropic(int          total_steps,
-		 int          snapNum,
-		 int          interval,
-		 int          sigma_points,			  
-		 REAL  sigma_values[],
-		 int          sigma_division=100,
-		 const char *iniptclfile   ="iso_particle_10k",
-		 const char *inibdryfile   ="iso_boundary_10k",
-		 const char *Particlefile  ="iso_particle", 
-		 const char *boundaryfile  ="iso_boundary", 
-		 const char *contactfile   ="iso_contact",
-		 const char *progressfile  ="iso_progress",
-		 const char *balancedfile  ="iso_balanced", 
-		 const char *debugfile     ="iso_debug");
-  
-  // The specimen has been isotropically compressed to confining pressure sigma_3. This function
+   // The specimen has been isotropically compressed to confining pressure sigma_3. This function
   // increases confining pressure step by step to sigma_1, thus making it possible to find out
   // balanced status where top and bottom particle pressure equals major principle stress. 
   // Side boundaries are fixed, top and bottom plates are force-controlled.
-  void odometer(int          total_steps    =100000,
-		int          snapNum      =100,
-		int          interval       =10,
+  void odometer(std::size_t         total_steps    =100000,
+		std::size_t         snapNum      =100,
+		std::size_t         interval       =10,
 		REAL  sigma_3        =1.0e+4,
 		REAL  sigma_1        =1.0e+5,
-		int          sigma_division =100,		  
+		std::size_t         sigma_division =100,		  
 		const char *iniptclfile    ="iso_particle_10k",
 		const char *inibdryfile    ="iso_boundary_10k",
 		const char *Particlefile   ="odo_particle", 
@@ -442,12 +390,12 @@ namespace dem {
   // increases confining pressure step by step to sigma_1, thus making it possible to find out
   // balanced status where top and bottom particle pressure equals major principle stress. 
   // Side boundaries are fixed, top and bottom plates are force-controlled. Unloading is applied.
-  void odometer(int          total_steps,
-		int          snapNum,
-		int          interval,
-		int          sigma_points,			  
+  void odometer(std::size_t         total_steps,
+		std::size_t         snapNum,
+		std::size_t         interval,
+		std::size_t         sigma_points,			  
 		REAL  sigma_values[],
-		int          sigma_division=100,		  
+		std::size_t         sigma_division=100,		  
 		const char *iniptclfile   ="iso_particle_10k",
 		const char *inibdryfile   ="iso_boundary_10k",
 		const char *Particlefile  ="odo_particle", 
@@ -458,9 +406,9 @@ namespace dem {
 		const char *debugfile     ="odo_debug");
   
   // The confining pressure is 500kPa. This function initializes triaxial compression test.
-  void triaxialPtclBdryIni(int          total_steps  =10000,
-			   int          snapNum    =100,
-			   int          interval     =10,
+  void triaxialPtclBdryIni(std::size_t         total_steps  =10000,
+			   std::size_t         snapNum    =100,
+			   std::size_t         interval     =10,
 			   REAL         sigma        =5.0e+5,
 			   const char *iniptclfile  ="ini_particle_ini",
 			   const char *inibdryfile  ="ini_boundary_ini",
@@ -472,9 +420,9 @@ namespace dem {
   
   // The confining pressure is 500kPa. This function performs triaxial compression test.
   // Displacement boundaries are used in axial direction.
-  void triaxialPtclBdry(int          total_steps  =100000,
-			int          snapNum    =100,
-			int          interval     =10,
+  void triaxialPtclBdry(std::size_t         total_steps  =100000,
+			std::size_t         snapNum    =100,
+			std::size_t         interval     =10,
 			const char *iniptclfile  ="iso_particle_100k",
 			const char *inibdryfile  ="iso_boundary_100k",
 			const char *Particlefile ="tri_particle", 
@@ -486,9 +434,9 @@ namespace dem {
   
   // The specimen has been isotropically compressed to confining pressure sigma_a. This function
   // performs triaxial compression test. Displacement boundaries are used in axial direction.
-  void triaxial(int          total_steps  =100000,
-		int          snapNum    =100,
-		int          interval     =10,
+  void triaxial(std::size_t         total_steps  =100000,
+		std::size_t         snapNum    =100,
+		std::size_t         interval     =10,
 		REAL  sigma_a      =1.0e+5,
 		const char *iniptclfile  ="iso_particle_100k",
 		const char *inibdryfile  ="iso_boundary_100k",
@@ -502,10 +450,10 @@ namespace dem {
   // The specimen has been isotropically compressed to confining pressure sigma_a. This function
   // performs triaxial compression test with unloading. Displacement boundaries are used in 
   // axial direction.
-  void triaxial(int          total_steps  =200000,
-		int          unload_step  =100000,
-		int          snapNum    =100,
-		int          interval     =10,
+  void triaxial(std::size_t         total_steps  =200000,
+		std::size_t         unload_step  =100000,
+		std::size_t         snapNum    =100,
+		std::size_t         interval     =10,
 		REAL  sigma_a      =3.0e+5,
 		const char *iniptclfile  ="iso_particle_300k",
 		const char *inibdryfile  ="iso_boundary_300k",
@@ -518,9 +466,9 @@ namespace dem {
   
   // The specimen has been deposited with gravitation within boundaries composed of particles.
   // A rectangular pile is then drived into the particles using displacement control.
-  void rectPile_Disp(int          total_steps  =50000,
-		     int          snapNum    =100,
-		     int          interval     =10,
+  void rectPile_Disp(std::size_t         total_steps  =50000,
+		     std::size_t         snapNum    =100,
+		     std::size_t         interval     =10,
 		     const char *iniptclfile  ="pile_particle_ini",
 		     const char *inibdryfile  ="pile_boundary_ini",
 		     const char *Particlefile ="pile_particle", 
@@ -531,9 +479,9 @@ namespace dem {
   
   // The specimen has been deposited with gravitation within boundaries composed of particles.
   // An ellipsoidal pile is then drived into the particles using displacement control.
-  void ellipPile_Disp(int         total_steps  =50000,  
-		      int         snapNum    =100, 
-		      int          interval     =10,
+  void ellipPile_Disp(std::size_t        total_steps  =50000,  
+		      std::size_t        snapNum    =100, 
+		      std::size_t         interval     =10,
 		      REAL dimn         =0.05,
 		      REAL rsize        =1.0,
 		      const char *iniptclfile  ="pile_particle_ini",
@@ -544,9 +492,9 @@ namespace dem {
   
   // The specimen has been deposited with gravitation within rigid boundaries.
   // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
-  void ellipPile_Impact(int         total_steps  =50000,  
-			int         snapNum    =100, 
-			int         interval     =10,
+  void ellipPile_Impact(std::size_t        total_steps  =50000,  
+			std::size_t        snapNum    =100, 
+			std::size_t        interval     =10,
 			REAL dimn         =0.05,
 			const char *iniptclfile  ="ipt_particle_ini",
 			const char *inibdryfile  ="dep_boundary_ini",
@@ -557,9 +505,9 @@ namespace dem {
   
   // The specimen has been deposited with gravitation within particle boundaries.
   // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
-  void ellipPile_Impact_p(int         total_steps  =50000,  
-			  int         snapNum    =100, 
-			  int         interval     =10,
+  void ellipPile_Impact_p(std::size_t        total_steps  =50000,  
+			  std::size_t        snapNum    =100, 
+			  std::size_t        interval     =10,
 			  REAL dimn         =0.05,
 			  const char *iniptclfile  ="ipt_particle_ini",
 			  const char *Particlefile ="ipt_particle", 
@@ -569,12 +517,12 @@ namespace dem {
   
   // The specimen has been deposited with gravitation within boundaries composed of particles.
   // An ellipsoidal pile is then drived into the particles using force control.
-  void ellipPile_Force(int         total_steps  =50000,  
-		       int         snapNum    =100, 
-		       int         interval     =10,
+  void ellipPile_Force(std::size_t        total_steps  =50000,  
+		       std::size_t        snapNum    =100, 
+		       std::size_t        interval     =10,
 		       REAL dimn         =0.05,
 		       REAL force        =1.0e+4,
-		       int   division           =100,
+		       std::size_t  division           =100,
 		       const char *iniptclfile  ="pile_particle_ini",
 		       const char *Particlefile ="pile_particle", 
 		       const char *contactfile  ="pile_contact",  
@@ -582,14 +530,14 @@ namespace dem {
 		       const char *balancedfile ="pile_balanced",
 		       const char *debugfile    ="pile_debug");
 
-  void truetriaxial(int          total_steps   =1000000,
-		    int          snapNum     =100,
-		    int          interval      =10,
+  void truetriaxial(std::size_t         total_steps   =1000000,
+		    std::size_t         snapNum     =100,
+		    std::size_t         interval      =10,
 		    REAL  sigma_a       =1.0e+4,
 		    REAL  sigma_w       =1.0e+5,
 		    REAL  sigma_l       =1.0e+5,	
 		    REAL  sigma_h       =1.0e+5,	
-		    int          sigma_division=100,			  
+		    std::size_t         sigma_division=100,			  
 		    const char *iniptclfile   ="iso_particle_10k",
 		    const char *inibdryfile   ="iso_boundary_10k",
 		    const char *Particlefile  ="tru_particle", 

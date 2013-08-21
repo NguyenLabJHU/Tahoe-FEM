@@ -12,14 +12,14 @@ namespace dem{
     
   public:
     Spring(Particle &p1, Particle &p2, REAL young);
-    Spring(std::vector<Particle*> &ParticleVec, int id1, int id2, REAL young);
+    Spring(std::vector<Particle*> &ParticleVec, std::size_t id1, std::size_t id2, REAL young);
     
     REAL getLength0() const {return length0;}
     REAL getLength() const {return vfabs( p2.getCurrPos() - p1.getCurrPos() );}
     Vec  getDeformation(); 
     void applyForce();
-    int getParticleId1() const {return p1.getId();}
-    int getParticleId2() const {return p2.getId();}
+    std::size_t getParticleId1() const {return p1.getId();}
+    std::size_t getParticleId2() const {return p2.getId();}
     
   private:
     Particle &p1;

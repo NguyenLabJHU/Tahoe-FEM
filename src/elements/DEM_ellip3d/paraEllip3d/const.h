@@ -15,12 +15,12 @@ extern const REAL EPS;
 extern long idum;
 
 // output field width and precision
-extern const int OWID;
-extern const int OPREC;
+extern const std::size_t OWID;
+extern const std::size_t OPREC;
 
 // other global variables
 extern std::ofstream debugInf;
-extern int iteration;
+extern std::size_t iteration;
 
 }
 #endif

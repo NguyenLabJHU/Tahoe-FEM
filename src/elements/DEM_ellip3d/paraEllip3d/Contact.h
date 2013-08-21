@@ -11,8 +11,8 @@ namespace dem {
   class ContactTgt {
     
   public:
-    int  ptcl1;
-    int  ptcl2;
+    std::size_t  ptcl1;
+    std::size_t  ptcl2;
     Vec  tgtForce;
     Vec  tgtDisp;
     bool tgtLoading;
@@ -46,7 +46,7 @@ namespace dem {
       tgtSlide(false)
       {}
     
-    ContactTgt(int _ptcl1, int _ptcl2, Vec _tf, Vec _td, bool _tl, Vec _tds, REAL _tp, bool _ts)
+    ContactTgt(std::size_t _ptcl1, std::size_t _ptcl2, Vec _tf, Vec _td, bool _tl, Vec _tds, REAL _tp, bool _ts)
       :ptcl1(_ptcl1),
       ptcl2(_ptcl2),
       tgtForce(_tf),
@@ -163,7 +163,7 @@ namespace dem {
 
   public:
     friend std::size_t hash_value(const Contact &c) {
-      boost::hash<int> hasher;
+      boost::hash<std::size_t> hasher;
       return hasher(c.getP1()->getId() * c.getP2()->getId());
     }
 

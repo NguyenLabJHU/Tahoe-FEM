@@ -12,11 +12,11 @@ const REAL EPS  = 1.0E-12;
 long idum       = -1;
 
 // output field width and precision
-const int OWID  = 16;   // 20, output width
-const int OPREC = 6;    // 10, output precision, number of digits after decimal dot
+const std::size_t OWID  = 16;   // 20, output width
+const std::size_t OPREC = 6;    // 10, output precision, number of digits after decimal dot
 
 // other global variables
-std::ofstream debugInf; // debug info
-int iteration;          // iteration number
+std::ofstream debugInf;         // debug info
+std::size_t iteration;          // iteration number
 
 }

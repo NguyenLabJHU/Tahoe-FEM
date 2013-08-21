@@ -22,7 +22,7 @@ namespace dem {
   /////////////////////////////////////
   class BoundaryTgt {  
   public:
-    int  particleId;
+    std::size_t  particleId;
     Vec  tgtForce;
     Vec  tgtDisp;
     bool tgtLoading;
@@ -34,7 +34,7 @@ namespace dem {
     :particleId(0), tgtForce(0), tgtDisp(0), tgtLoading(false), tgtDispStart(0), tgtPeak(0)
       {}
     
-  BoundaryTgt(int _particleId, Vec _v1, Vec _v2, bool _b, Vec _v3, REAL _tp)
+  BoundaryTgt(std::size_t _particleId, Vec _v1, Vec _v2, bool _b, Vec _v3, REAL _tp)
     :particleId(_particleId), tgtForce(_v1), tgtDisp(_v2), tgtLoading(_b), tgtDispStart(_v3), tgtPeak(_tp)
     {}
     
@@ -123,17 +123,17 @@ namespace dem {
   ///////////////////////////////////////
   class Boundary { // abstract base class
   protected:
-    int id;
-    int type;
+    std::size_t id;
+    std::size_t type;
 
     // extra edges that are necessary to define a finite plane
     // e.g., side wall of a top-open container
-    int extraNum;
+    std::size_t extraNum;
     std::vector<Plane> extraEdge;
 
     std::vector<Particle *> possParticle;
     std::vector<BdryContact> contactInfo;
-    int  contactNum;
+    std::size_t  contactNum;
     Vec  normal;
     Vec  tangt;
     REAL penetr;
@@ -155,18 +155,18 @@ namespace dem {
     }
     
   public:
-    Boundary(int i = 0, int tp = 0, int en = 0)
+    Boundary(std::size_t i = 0, std::size_t tp = 0, std::size_t en = 0)
       :id(i), type(tp), extraNum(en), contactNum(0), normal(0), tangt(0), penetr(0)  
       {}
 
-    Boundary(int type, std::ifstream &ifs);
+    Boundary(std::size_t type, std::ifstream &ifs);
     virtual ~Boundary() {} // polymorphic base class requires a virtual destructor
     
-    int getId() { return id; }
-    int getType() { return type; }
+    std::size_t getId() { return id; }
+    std::size_t getType() { return type; }
     std::vector<Particle *> &getPossParticle () {return possParticle;}
     std::vector<BdryContact> &getContactInfo () {return contactInfo;}
-    int getContactNum() const { return contactNum; }
+    std::size_t getContactNum() const { return contactNum; }
     Vec getNormalForce() const { return normal; }
     Vec getTangtForce() const { return tangt; }
     REAL getAvgPenetr() const { return penetr; }
@@ -174,7 +174,7 @@ namespace dem {
     virtual void print(std::ostream &os);
     virtual void printContactInfo(std::ostream &os);
     virtual void findBdryContact(std::vector<Particle *> &ptcls) = 0;
-    virtual void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap) = 0;
+    virtual void boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap) = 0;
     virtual void updateLocation() = 0;
     virtual void updateStatForce();
     void clearStatForce();
@@ -196,11 +196,11 @@ namespace dem {
     }
     
   public:
-    planeBoundary(int i = 0, int tp = 0, int en = 0)
+    planeBoundary(std::size_t i = 0, std::size_t tp = 0, std::size_t en = 0)
     :Boundary(i, tp, en), direc(0), point(0) 
       {}
 
-    planeBoundary(int type, std::ifstream &ifs);
+    planeBoundary(std::size_t type, std::ifstream &ifs);
 
     Vec getDirec() const { return direc; }
     Vec getPoint() const { return point; }
@@ -213,7 +213,7 @@ namespace dem {
 
     void updateLocation() {}
     void findBdryContact(std::vector<Particle *> &ptcls);
-    void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap);
+    void boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap);
 
   };
   
@@ -239,7 +239,7 @@ namespace dem {
       :Boundary(), direc(0), point(0), radius(0)
       {}
 
-    cylinderBoundary(int type, std::ifstream &ifs);
+    cylinderBoundary(std::size_t type, std::ifstream &ifs);
 
     Vec getDirec() const { return direc; }
     Vec getPoint() const { return point; }
@@ -259,7 +259,7 @@ namespace dem {
 
     void updateLocation() {}
     void findBdryContact(std::vector<Particle *> &ptcls);
-    void boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap);
+    void boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap);
 
   };
 

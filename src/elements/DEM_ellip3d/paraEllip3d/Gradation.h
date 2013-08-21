@@ -15,11 +15,11 @@ namespace dem {
       :sieveNum(), percent(), size(), ratioBA(), ratioCA()
       {}
     
-    Gradation(int sn, std::vector<REAL> v1, std::vector<REAL> v2, REAL ba, REAL ca)
+    Gradation(std::size_t sn, std::vector<REAL> v1, std::vector<REAL> v2, REAL ba, REAL ca)
       :sieveNum(sn), percent(v1), size(v2), ratioBA(ba), ratioCA(ca)
       {}
     
-    int getSieveNum() const { return sieveNum; }
+    std::size_t getSieveNum() const { return sieveNum; }
     std::vector<REAL>& getPercent() {return percent;}
     const std::vector<REAL>& getPercent() const {return percent;}
     std::vector<REAL>& getSize() {return size;}
@@ -33,7 +33,7 @@ namespace dem {
     REAL getPtclMinRadius() const {return size[sieveNum-1] * ratioCA;}
 
   private:
-    int  sieveNum; // sieveNum == percent.size() == size.size()
+    std::size_t  sieveNum; // sieveNum == percent.size() == size.size()
     std::vector<REAL> percent;
     std::vector<REAL> size;
     REAL ratioBA; // ratio of radius b to radius a

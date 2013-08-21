@@ -62,20 +62,20 @@ namespace dem {
   
 
   bool Contact::isRedundant(const Contact &other) const {
-    int id1 = getP1() -> getId();
-    int id2 = getP2() -> getId();
-    int oId1 = ( other.getP1() ) -> getId();
-    int oId2 = ( other.getP2() ) -> getId();
+    std::size_t id1 = getP1() -> getId();
+    std::size_t id2 = getP2() -> getId();
+    std::size_t oId1 = ( other.getP1() ) -> getId();
+    std::size_t oId2 = ( other.getP2() ) -> getId();
     
     return ( (id2 == oId1 && id1 == oId2) || (id1 == oId1 && id2 == oId2) );
   }
 
 
   bool Contact::operator==(const Contact &other) const {
-    int id1 = getP1() -> getId();
-    int id2 = getP2() -> getId();
-    int oId1 = ( other.getP1() ) -> getId();
-    int oId2 = ( other.getP2() ) -> getId();
+    std::size_t id1 = getP1() -> getId();
+    std::size_t id2 = getP2() -> getId();
+    std::size_t oId1 = ( other.getP1() ) -> getId();
+    std::size_t oId2 = ( other.getP2() ) -> getId();
     
     return ( (id2 == oId1 && id1 == oId2) || (id1 == oId1 && id2 == oId2) );
   }

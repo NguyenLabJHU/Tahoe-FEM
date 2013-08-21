@@ -7,7 +7,7 @@ Spring::Spring(Particle &ptcl1, Particle &ptcl2, REAL modulus)
   init(p1, p2);
 }
 
-Spring::Spring(std::vector<Particle*> &ParticleVec, int id1, int id2, REAL modulus)
+Spring::Spring(std::vector<Particle*> &ParticleVec, std::size_t id1, std::size_t id2, REAL modulus)
   :p1(*ParticleVec[id1]), p2(*ParticleVec[id2]), young(modulus) {
   init(p1, p2);
 }

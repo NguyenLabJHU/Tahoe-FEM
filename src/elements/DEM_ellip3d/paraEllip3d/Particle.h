@@ -24,9 +24,9 @@ namespace dem {
     //   4 - special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only
     //   5 - free boundary particle
     //  10 - ghost particle
-    int  id;
-    int  type;            
-    REAL a, b, c;    // three semi-axle length, a >= b >= c
+    std::size_t  id;
+    std::size_t  type;            
+    REAL a, b, c;    // three semi-axle length, must satisfy a >= b >= c
     REAL young;
     REAL poisson;
     Vec  currPos;    // particle center
@@ -49,19 +49,19 @@ namespace dem {
     Vec  momentJ;    // moment of inertia in local body-fixed frame
     REAL coef[10];   // particle's coefficients in global coordinates
     REAL kinetEnergy;// kinetic energy
-    int  contactNum;
+    std::size_t  contactNum;
     bool inContact;  // in contact with other particle or boundary
     std::vector<std::vector<std::size_t> > fluidGrid;
 
   public:
     Particle();
-    Particle(int n, int type, Vec center, REAL r, REAL young, REAL poisson);
-    Particle(int n, int type, Vec center, REAL a, REAL b, REAL c, REAL young, REAL poisson);
-    Particle(int n, int type, Vec center, Gradation& grad, REAL young, REAL poisson);
-    Particle(int n, int type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, Vec center, REAL r, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, Vec center, REAL a, REAL b, REAL c, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, Vec center, Gradation& grad, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
     
-    int  getId() const {return id;}
-    int  getType() const {return type;}
+    std::size_t  getId() const {return id;}
+    std::size_t  getType() const {return type;}
     REAL getA() const {return a;}
     REAL getB() const {return b;}
     REAL getC() const {return c;}
@@ -88,7 +88,7 @@ namespace dem {
     Vec  getConstMoment() const {return constMoment;}
     Vec  getmomentJ() const {return momentJ;}
     bool isInContact() const {return inContact;}
-    int  getContactNum() const {return contactNum;}
+    std::size_t  getContactNum() const {return contactNum;}
 
     REAL getRadius(Vec v) const;
     REAL getTransEnergy() const;
@@ -96,8 +96,8 @@ namespace dem {
     REAL getKinetEnergy() const;
     REAL getPotenEnergy(REAL ref) const;
     
-    void setId(int n){id = n;}
-    void setType(int n) {type = n;}
+    void setId(std::size_t n){id = n;}
+    void setType(std::size_t n) {type = n;}
     void setA(REAL dd){a = dd;}
     void setB(REAL dd){b = dd;}
     void setC(REAL dd){c = dd;}
@@ -122,7 +122,7 @@ namespace dem {
     void setMass(REAL d){mass = d;}
     void setDensity(REAL dn) {density = dn;}
     void setInContact(bool value) {inContact = value;}
-    void setContactNum(int num) {contactNum = num;}
+    void setContactNum(std::size_t num) {contactNum = num;}
 
     void clearContactForce();
     void addForce(Vec vv) {force += vv;}
@@ -149,11 +149,11 @@ namespace dem {
     
     //calculate the normal force between particle and a plane rigid boundary
     void planeRBForce(planeBoundary *plane,
-		      std::map<int,std::vector<BoundaryTgt> > &BoundarytgtMap,
+		      std::map<std::size_t,std::vector<BoundaryTgt> > &BoundarytgtMap,
 		      std::vector<BoundaryTgt> &vtmp);
     
     // calculate the normal force between particle and a cylinder wall
-    Vec cylinderRBForce(int boundaryId, const Cylinder &S, int side);
+    Vec cylinderRBForce(std::size_t boundaryId, const Cylinder &S, int side);
     void clearFluidGrid();
     void recordFluidGrid(std::size_t i, std::size_t j, std::size_t k);
     std::vector<std::vector<std::size_t> > & getFluidGrid() { return fluidGrid; }

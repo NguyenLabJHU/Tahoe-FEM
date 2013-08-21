@@ -4,7 +4,7 @@
 
 namespace dem {
   
-  Boundary::Boundary(int tp, std::ifstream &ifs) {
+  Boundary::Boundary(std::size_t tp, std::ifstream &ifs) {
     type = tp;
     ifs >> extraNum;
     ifs >> id;
@@ -54,13 +54,13 @@ namespace dem {
       penetr /= contactNum;
   }
   
-  planeBoundary::planeBoundary(int tp, std::ifstream &ifs)
+  planeBoundary::planeBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;
     ifs >> dx >> dy >> dz >> px >> py >> pz;
     direc = Vec(dx, dy, dz);
     point = Vec(px, py, pz);
-    for (int i = 0; i < extraNum; ++i) {
+    for (std::size_t i = 0; i < extraNum; ++i) {
       ifs >> dx >> dy >> dz >> px >> py >> pz;
       extraEdge.push_back(Plane(Vec(dx, dy, dz), Vec(px, py, pz)));
     }
@@ -124,7 +124,7 @@ namespace dem {
     }
   }
   
-  void planeBoundary::boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap) {
+  void planeBoundary::boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap) {
     // for each plane boundary, define a temparory variable vtmp to use,
     // better than define a member variable which needs to be cleared.
     // and vtmp is initialized as empty in each iteration.
@@ -140,7 +140,7 @@ namespace dem {
     updateStatForce();
   }
 
-  cylinderBoundary::cylinderBoundary(int tp, std::ifstream &ifs)
+  cylinderBoundary::cylinderBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;
     ifs >> dx >> dy >> dz >> px >> py >> pz >> radius;
@@ -159,7 +159,7 @@ namespace dem {
     }
   }
   
-  void cylinderBoundary::boundaryForce(std::map<int,std::vector<BoundaryTgt> > &boundaryTgtMap) {
+  void cylinderBoundary::boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap) {
     // for each plane boundary, define a temparory variable vtmp to use,
     // better than define a member variable which needs to be cleared.
     // and vtmp is initialized as empty in each iteration.
