@@ -6,6 +6,7 @@
 
 /* base class */
 #include "FSDielectricElastomerQ1P0T.h"
+//#include "FSDEMatQ1P0ElastocapillaryT.h"
 
 namespace Tahoe {
   
@@ -44,10 +45,10 @@ namespace Tahoe {
         const iArrayT& e_codes, dArray2DT& e_values);
 
 	// Calculate surface tension stress
-	dMatrixT Surf_Tension_Stress();
+	dSymMatrixT Surf_Tension_Stress();
 	
 	// Calculate surface tension stiffness
-	dMatrixT Surf_Tension_Stiffness();
+	dMatrixT Surf_Tension_Stiffness(dMatrixT& Foriginal);
 
 	// Calculate surface gradient-modified B matrix
 	dMatrixT Surf_BMatrix(const dMatrixT& B_original, const dMatrixT& Q);
@@ -102,6 +103,14 @@ namespace Tahoe {
     dMatrixT fAmm_geo2;	// mechanical geometric part of Hessian matrix
     dMatrixT fB2, fD2, fLHS2;
     double fSurfTension;
+
+	/** \name FSSolidMatT::c_ijkl work space */
+	/*@{*/
+	dMatrixT tempstiff;
+	dMatrixT F_0_;
+	dArrayT vec_;
+	dSymMatrixT stress_;
+	/*@}*/
 
   };
 
