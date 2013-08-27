@@ -156,14 +156,13 @@ void Assembly::resumeDepositIntoContainer()
 }
 
 
-void Assembly::
-deposit(const char *inputBoundary,
-	const char *inputParticle) 
+void Assembly::deposit(const char *inputBoundary,
+		       const char *inputParticle) 
 {     
   if (mpiRank == 0) {
     readBoundary(inputBoundary); 
     readParticle(inputParticle);
-    openProgress(progressInf, "deposit_progress");
+    openDepositProg(progressInf, "deposit_progress");
   }
   scatterParticle(); // scatter particles only once; also updates grid for the first time
 
@@ -172,12 +171,10 @@ deposit(const char *inputBoundary,
   std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
   std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
   std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
-
   std::size_t netStep = endStep - startStep + 1;
   std::size_t netSnap = endSnap - startSnap + 1;
 
-  double time0, time1, time2, commuT, migraT, gatherT, totalT;
-
+  REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
   iteration = startStep;
   std::size_t iterSnap = startSnap;
   char cstr0[50];
@@ -218,7 +215,7 @@ deposit(const char *inputBoundary,
 	plotGrid(strcat(combineString(cstr, "deposit_gridplot_", iterSnap, 3), ".dat"));
 	printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
-	printProgress(progressInf);
+	printDepositProg(progressInf);
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
       
@@ -243,7 +240,7 @@ deposit(const char *inputBoundary,
     ++iteration;
   } 
   
-  if (mpiRank == 0) closeProgress(progressInf);
+  if (mpiRank == 0) closeProg(progressInf);
 }
 
 
@@ -291,11 +288,16 @@ void Assembly::resumeExpandCavityParticle()
 }
 
 
-void Assembly::isotropic(std::size_t type) 
+void Assembly::isotropic() 
 {
+  std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
   if (mpiRank == 0) {
     readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    if (isotropicType == 1) 
+      openCompressProg(progressInf, "isotropic_progress");
+    else
+      openCompressProg(progressInf, "isotropic_balanced");
   }
   scatterParticle();
 
@@ -304,20 +306,36 @@ void Assembly::isotropic(std::size_t type)
   std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
   std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
   std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
-
   std::size_t netStep = endStep - startStep + 1;
   std::size_t netSnap = endSnap - startSnap + 1;
 
-  double time0, time1, time2, commuT, migraT, gatherT, totalT;
+  REAL sigmaStart, sigmaEnd, sigmaInc, sigmaVar;
+  std::size_t sigmaDiv;
+  
+  sigmaStart = dem::Parameter::getSingleton().parameter["sigmaStart"];
+  sigmaEnd   = dem::Parameter::getSingleton().parameter["sigmaEnd"];
+  sigmaDiv   = dem::Parameter::getSingleton().parameter["sigmaDiv"];
 
+  if (isotropicType == 1) 
+    sigmaVar = sigmaEnd;
+  else if (isotropicType == 2) {
+    sigmaInc = (sigmaEnd -sigmaStart) / sigmaDiv;
+    sigmaVar = sigmaStart;
+  }
+
+  REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
   iteration = startStep;
   std::size_t iterSnap = startSnap;
   char cstr0[50];
+  REAL distX, distY, distZ;
   if (mpiRank == 0) {
-    plotBoundary(strcat(combineString(cstr0, "couple_bdryplot_", iterSnap - 1, 3), ".dat"));
-    plotGrid(strcat(combineString(cstr0, "couple_gridplot_", iterSnap - 1, 3), ".dat"));
-    printParticle(combineString(cstr0, "couple_particle_", iterSnap - 1, 3));
-    printBdryContact(combineString(cstr0, "couple_bdrycntc_", iterSnap -1, 3));
+    plotBoundary(strcat(combineString(cstr0, "isotropic_bdryplot_", iterSnap - 1, 3), ".dat"));
+    plotGrid(strcat(combineString(cstr0, "isotropic_gridplot_", iterSnap - 1, 3), ".dat"));
+    printParticle(combineString(cstr0, "isotropic_particle_", iterSnap - 1, 3));
+    printBdryContact(combineString(cstr0, "isotropic_bdrycntc_", iterSnap -1, 3));
+    printBoundary(combineString(cstr0, "isotropic_boundary_", iterSnap - 1, 3));
+    getStartDimension(distX, distY, distZ);
+
   }
   while (iteration <= endStep) {
     time0 = MPI_Wtime();
@@ -336,25 +354,28 @@ void Assembly::isotropic(std::size_t type)
     if (isBdryProcess()) boundaryForce();
 
     updateParticle();
-    updateBoundary();
-    //updateGridMaxZ(); // all or none
+    gatherBdryContact(); // must do this before updateBoundary
+    updateBoundary(sigmaVar);
+    //updateGrid();
    
     if (iteration % (netStep / netSnap) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
-      gatherBdryContact();
       gatherEnergy();
       time2 = MPI_Wtime(); gatherT = time2 - time1;
 
       char cstr[50];
       if (mpiRank == 0) {
-	plotBoundary(strcat(combineString(cstr, "couple_bdryplot_", iterSnap, 3), ".dat"));
-	plotGrid(strcat(combineString(cstr, "couple_gridplot_", iterSnap, 3), ".dat"));
-	printParticle(combineString(cstr, "couple_particle_", iterSnap, 3));
-	printBdryContact(combineString(cstr, "couple_bdrycntc_", iterSnap, 3));
+	plotBoundary(strcat(combineString(cstr, "isotropic_bdryplot_", iterSnap, 3), ".dat"));
+	plotGrid(strcat(combineString(cstr, "isotropic_gridplot_", iterSnap, 3), ".dat"));
+	printParticle(combineString(cstr, "isotropic_particle_", iterSnap, 3));
+	printBdryContact(combineString(cstr, "isotropic_bdrycntc_", iterSnap, 3));
+	if (isotropicType == 1) {
+	  printBoundary(combineString(cstr, "isotropic_boundary_", iterSnap, 3));
+	  printCompressProg(progressInf, distX, distY, distZ);
+	}
       }
-      printContact(combineString(cstr, "couple_contact_", iterSnap, 3));
-      
+      printContact(combineString(cstr, "isotropic_contact_", iterSnap, 3));      
       ++iterSnap;
     }
 
@@ -373,10 +394,87 @@ void Assembly::isotropic(std::size_t type)
 	       << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 	       << std::scientific << std::setprecision(6) << std::endl;
 
+    if (isotropicType == 1 && tractionErrorTol(sigmaVar)) {
+      if (mpiRank == 0) {
+	printParticle("isotropic_particle_end");
+	printBdryContact("isotropic_bdrycntc_end");
+	printBoundary("isotropic_boundary_end");
+	printCompressProg(progressInf, distX, distY, distZ);
+      }
+      break;
+    }
+
+    if (isotropicType == 2) {
+      if (tractionErrorTol(sigmaVar)) {
+	if (mpiRank == 0) printCompressProg(progressInf, distX, distY, distZ);
+	sigmaVar += sigmaInc;
+      }
+      if (tractionErrorTol(sigmaEnd)) {
+	if (mpiRank == 0) {
+	  printParticle("isotropic_particle_end");
+	  printBdryContact("isotropic_bdrycntc_end");
+	  printBoundary("isotropic_boundary_end");
+	  printCompressProg(progressInf, distX, distY, distZ);
+	}
+	break;
+      }
+    }
+
     ++iteration;
   } 
   
-  if (mpiRank == 0) closeProgress(progressInf);
+  if (mpiRank == 0) closeProg(progressInf);
+}
+
+
+bool Assembly::tractionErrorTol(REAL sigma) {
+  REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
+
+  std::map<std::string, REAL> normalForce;
+  REAL x1, x2, y1, y2, z1, z2;
+  // do not use mergeBoundaryVec because each process calls this function.
+  for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+    std::size_t id = (*it)->getId();
+    Vec normal = (*it)->getNormalForce();
+    Vec point  = (*it)->getPoint();
+    switch (id) {
+    case 1: 
+      normalForce["x1"] = fabs(normal.getX());
+      x1 = point.getX();
+      break;
+    case 2:
+      normalForce["x2"] = normal.getX();
+      x2 = point.getX();
+      break;
+    case 3:
+      normalForce["y1"] = fabs(normal.getY());
+      y1 = point.getY();
+      break;
+    case 4:
+      normalForce["y2"] = normal.getY();
+      y2 = point.getY();
+      break;
+    case 5:
+      normalForce["z1"] = fabs(normal.getZ());
+      z1 = point.getZ();
+      break;
+    case 6:
+      normalForce["z2"] = normal.getZ();
+      z2 = point.getZ();
+      break;
+    }
+  }
+  REAL areaX = (y2 - y1) * (z2 - z1);
+  REAL areaY = (z2 - z1) * (x2 - x1);
+  REAL areaZ = (x2 - x1) * (y2 - y1);
+
+  return ( fabs(normalForce["x1"]/areaX - sigma) / sigma <= tol
+	&& fabs(normalForce["x2"]/areaX - sigma) / sigma <= tol
+	&& fabs(normalForce["y1"]/areaY - sigma) / sigma <= tol
+	&& fabs(normalForce["y2"]/areaY - sigma) / sigma <= tol
+	&& fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
+	&& fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol );
+
 }
 
 
@@ -399,7 +497,7 @@ void Assembly::coupleWithSonicFluid()
   std::size_t netStep = endStep - startStep + 1;
   std::size_t netSnap = endSnap - startSnap + 1;
 
-  double time0, time1, time2, commuT, migraT, gatherT, totalT;
+  REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
 
   iteration = startStep;
   std::size_t iterSnap = startSnap;
@@ -471,7 +569,7 @@ void Assembly::coupleWithSonicFluid()
     ++iteration;
   } 
   
-  if (mpiRank == 0) closeProgress(progressInf);
+  if (mpiRank == 0) closeProg(progressInf);
 }
 
 
@@ -537,11 +635,17 @@ void Assembly::generateParticle(std::size_t particleLayers,
   printParticle(genParticle); 
 }
 
+void Assembly::trimOnly() {
+  readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+  trim(true,
+       dem::Parameter::getSingleton().datafile["particleFile"].c_str(),
+       "trim_particle_end");
+}
 
-void Assembly::
-trim(bool toRebuild,
-     const char *inputParticle,
-     const char *trmParticle)
+
+void Assembly::trim(bool toRebuild,
+		    const char *inputParticle,
+		    const char *trmParticle)
 {
   if (toRebuild) readParticle(inputParticle);
   trimHistoryNum = allParticleVec.size();
@@ -775,7 +879,7 @@ void Assembly::scatterParticle() {
     Vec vspan = v2 - v1;
 
     boost::mpi::request *reqs = new boost::mpi::request [mpiSize - 1];
-    std::vector<Particle *> tmpParticleVec;
+    std::vector<Particle*> tmpParticleVec;
     for (int iRank = mpiSize - 1; iRank >= 0; --iRank) {
       tmpParticleVec.clear(); // do not release memory!
       int ndim = 3;
@@ -1344,6 +1448,7 @@ void Assembly::updateGrid() {
   updateGridMaxZ();
 }
 
+
 void Assembly::updateGridMinX() {
   REAL pMinX = getPtclMinX(particleVec);
   REAL minX = 0;
@@ -1433,9 +1538,9 @@ void Assembly::updateGridMaxZ() {
 void Assembly::migrateParticle() 
 {
   Vec vspan = grid.getMaxCorner() - grid.getMinCorner();
-  double segX = vspan.getX() / mpiProcX;
-  double segY = vspan.getY() / mpiProcY;
-  double segZ = vspan.getZ() / mpiProcZ;
+  REAL segX = vspan.getX() / mpiProcX;
+  REAL segY = vspan.getY() / mpiProcY;
+  REAL segZ = vspan.getZ() / mpiProcZ;
   Vec v1 = container.getMinCorner(); // v1, v2 in terms of process
   Vec v2 = container.getMaxCorner();  
 
@@ -1809,7 +1914,7 @@ void Assembly::gatherBdryContact() {
     mergeBoundaryVec.clear();
     mergeBoundaryVec = boundaryVec; 
 
-    std::vector<Boundary *> tmpBoundaryVec;   
+    std::vector<Boundary*> tmpBoundaryVec;   
     for (std::size_t it = 0; it < bdryProcess.size(); ++it) {
       if (bdryProcess[it] != 0) {// not root process
 	tmpBoundaryVec.clear();  // do not destroy particles!
@@ -1825,8 +1930,8 @@ void Assembly::gatherBdryContact() {
     }
 
     // must update after collecting all boundary contact info
-    for(std::vector<Boundary *>::iterator rt = mergeBoundaryVec.begin(); rt != mergeBoundaryVec.end(); ++rt)
-      (*rt)->updateStatForce();
+    for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+      (*it)->updateStatForce();
   }
 }
   
@@ -1854,12 +1959,12 @@ void Assembly::gatherEnergy() {
 }
 
 
-void Assembly::closeProgress(std::ofstream &ofs) {
+void Assembly::closeProg(std::ofstream &ofs) {
   ofs.close();
 }
 
 
-void  Assembly::openProgress(std::ofstream &ofs, const char *str) {
+void  Assembly::openDepositProg(std::ofstream &ofs, const char *str) {
   ofs.open(str);
   if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
   ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -1897,59 +2002,265 @@ void  Assembly::openProgress(std::ofstream &ofs, const char *str) {
 }
 
 
-void Assembly::printProgress(std::ofstream &ofs) {
-  REAL line[6];
+void Assembly::printDepositProg(std::ofstream &ofs) {
+  REAL var[6];
   
   // normalForce
   for (std::size_t i = 0; i < 6; ++i)
-    line[i] = 0;
+    var[i] = 0;
   for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
     std::size_t id = (*it)->getId();
     Vec normal = (*it)->getNormalForce();
     switch (id) {
     case 1: 
-      line[0] = fabs(normal.getX());
+      var[0] = fabs(normal.getX());
       break;
     case 2:
-      line[1] = normal.getX();
+      var[1] = normal.getX();
       break;
     case 3:
-      line[2] = fabs(normal.getY());
+      var[2] = fabs(normal.getY());
       break;
     case 4:
-      line[3] = normal.getY();
+      var[3] = normal.getY();
       break;
     case 5:
-      line[4] = fabs(normal.getZ());
+      var[4] = fabs(normal.getZ());
       break;
     case 6:
-      line[5] = normal.getZ();
+      var[5] = normal.getZ();
       break;
     }
   }
   ofs << std::setw(OWID) << iteration;
   for (std::size_t i = 0; i < 6; ++i)
-    ofs << std::setw(OWID) << line[i];
+    ofs << std::setw(OWID) << var[i];
   
   // contactNum
   for (std::size_t i = 0; i < 6; ++i)
-    line[i] = 0;
+    var[i] = 0;
   for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
     std::size_t id = (*it)->getId();
-    line[id - 1] = (*it)->getContactNum();
+    var[id - 1] = (*it)->getContactNum();
   }
   for (std::size_t i = 0; i < 6; ++i)
-    ofs << std::setw(OWID) << (std::size_t) line[i];
+    ofs << std::setw(OWID) << (std::size_t) var[i];
   
   // avgPenetr
   for (std::size_t i = 0; i < 6; ++i)
-    line[i] = 0;
+    var[i] = 0;
   for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
     std::size_t id = (*it)->getId();
-    line[id - 1] = (*it)->getAvgPenetr();
+    var[id - 1] = (*it)->getAvgPenetr();
   }
   for (std::size_t i = 0; i < 6; ++i)
-    ofs << std::setw(OWID) << line[i];
+    ofs << std::setw(OWID) << var[i];
+  
+  // energy
+  ofs << std::setw(OWID) << transEnergy
+      << std::setw(OWID) << rotatEnergy
+      << std::setw(OWID) << kinetEnergy
+      << std::setw(OWID) << graviEnergy
+      << std::setw(OWID) << mechaEnergy;
+
+  ofs << std::endl;
+}
+
+
+void Assembly::getStartDimension(REAL &distX, REAL &distY, REAL &distZ) {
+  REAL x1, x2, y1, y2, z1, z2;
+  // use boundaryVec
+  for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+    switch ((*it)->getId()) {
+    case 1: 
+      x1 = (*it)->getPoint().getX();
+      break;
+    case 2:
+      x2 = (*it)->getPoint().getX();
+      break;
+    case 3:
+      y1 = (*it)->getPoint().getY();
+      break;
+    case 4:
+      y2 = (*it)->getPoint().getY();
+      break;
+    case 5:
+      z1 = (*it)->getPoint().getZ();
+      break;
+    case 6:
+      z2 = (*it)->getPoint().getZ();
+      break;
+    }
+  }
+  distX = x2 - x1;
+  distY = y2 - y1;
+  distZ = z2 - z1;
+}
+
+
+void  Assembly::openCompressProg(std::ofstream &ofs, const char *str) {
+  ofs.open(str);
+  if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
+  ofs.setf(std::ios::scientific, std::ios::floatfield);
+  ofs.precision(OPREC);
+
+  ofs << std::setw(OWID) << "iteration"
+      << std::setw(OWID) << "traction_x1"
+      << std::setw(OWID) << "traction_x2"
+      << std::setw(OWID) << "traction_y1"
+      << std::setw(OWID) << "traction_y2"
+      << std::setw(OWID) << "traction_z1"
+      << std::setw(OWID) << "traction_z2"
+      << std::setw(OWID) << "mean_stress"
+
+      << std::setw(OWID) << "bulk_volume"
+      << std::setw(OWID) << "density"
+      << std::setw(OWID) << "epsilon_x"
+      << std::setw(OWID) << "epsilon_y"
+      << std::setw(OWID) << "epsilon_z"
+      << std::setw(OWID) << "epsilon_v"
+      << std::setw(OWID) << "void_ratio"
+      << std::setw(OWID) << "porosity"
+
+      << std::setw(OWID) << "velocity_x1"
+      << std::setw(OWID) << "velocity_x2"
+      << std::setw(OWID) << "velocity_y1"
+      << std::setw(OWID) << "velocity_y2"
+      << std::setw(OWID) << "velocity_z1"
+      << std::setw(OWID) << "velocity_z2"
+    
+      << std::setw(OWID) << "contact_x1"
+      << std::setw(OWID) << "contact_x2"
+      << std::setw(OWID) << "contact_y1"
+      << std::setw(OWID) << "contact_y2"
+      << std::setw(OWID) << "contact_z1"
+      << std::setw(OWID) << "contact_z2"
+    
+      << std::setw(OWID) << "penetr_x1"
+      << std::setw(OWID) << "penetr_x2"
+      << std::setw(OWID) << "penetr_y1"
+      << std::setw(OWID) << "penetr_y2"
+      << std::setw(OWID) << "penetr_z1"
+      << std::setw(OWID) << "penetr_z2"
+    
+      << std::setw(OWID) << "trans_energy"
+      << std::setw(OWID) << "rotat_energy"
+      << std::setw(OWID) << "kinet_energy"
+      << std::setw(OWID) << "gravi_energy"
+      << std::setw(OWID) << "mecha_energy"
+    
+      << std::endl;
+}
+
+
+void Assembly::printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REAL distZ) {
+  REAL x1, x2, y1, y2, z1, z2;
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    switch ((*it)->getId()) {
+    case 1: 
+      x1 = (*it)->getPoint().getX();
+      break;
+    case 2:
+      x2 = (*it)->getPoint().getX();
+      break;
+    case 3:
+      y1 = (*it)->getPoint().getY();
+      break;
+    case 4:
+      y2 = (*it)->getPoint().getY();
+      break;
+    case 5:
+      z1 = (*it)->getPoint().getZ();
+      break;
+    case 6:
+      z2 = (*it)->getPoint().getZ();
+      break;
+    }
+  }
+  REAL areaX = (y2 - y1) * (z2 - z1);
+  REAL areaY = (z2 - z1) * (x2 - x1);
+  REAL areaZ = (x2 - x1) * (y2 - y1);
+  REAL bulkVolume = (x2 - x1) * (y2 - y1) * (z2 - z1);
+  REAL voidRatio = bulkVolume / getParticleVolume() - 1;
+
+  REAL var[6], vel[6];
+  // normalForce
+  for (std::size_t i = 0; i < 6; ++i) {
+    var[i] = 0;
+    vel[i] = 0;
+  }
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    std::size_t id = (*it)->getId();
+    Vec normal = (*it)->getNormalForce();
+    Vec veloc  = (*it)->getVeloc();
+    switch (id) {
+    case 1: 
+      var[0] = fabs(normal.getX()) / areaX;
+      vel[0] = veloc.getX();
+      break;
+    case 2:
+      var[1] = normal.getX() / areaX;
+      vel[1] = veloc.getX();
+      break;
+    case 3:
+      var[2] = fabs(normal.getY()) / areaY;
+      vel[2] = veloc.getY();
+      break;
+    case 4:
+      var[3] = normal.getY() / areaY;
+      vel[3] = veloc.getY();
+      break;
+    case 5:
+      var[4] = fabs(normal.getZ()) / areaZ;
+      vel[4] = veloc.getZ();
+      break;
+    case 6:
+      var[5] = normal.getZ() / areaZ;
+      vel[5] = veloc.getZ();
+      break;
+    }
+  }
+  ofs << std::setw(OWID) << iteration;
+  REAL avg = 0;
+  for (std::size_t i = 0; i < 6; ++i) {
+    ofs << std::setw(OWID) << var[i];
+    avg += var[i];
+  }
+  ofs << std::setw(OWID) << avg/6;  
+
+  // volume
+  ofs << std::setw(OWID) << bulkVolume
+      << std::setw(OWID) << getMass() / bulkVolume
+      << std::setw(OWID) << 1-(x2-x1)/distX
+      << std::setw(OWID) << 1-(y2-y1)/distY
+      << std::setw(OWID) << 1-(z2-z1)/distZ
+      << std::setw(OWID) << 3-(x2-x1)/distX - (y2-y1)/distY - (z2-z1)/distZ
+      << std::setw(OWID) << voidRatio
+      << std::setw(OWID) << voidRatio / (1 + voidRatio);
+
+  // velocity
+  for (std::size_t i = 0; i < 6; ++i)
+    ofs << std::setw(OWID) << vel[i];  
+
+  // contactNum
+  for (std::size_t i = 0; i < 6; ++i)
+    var[i] = 0;
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    std::size_t id = (*it)->getId();
+    var[id - 1] = (*it)->getContactNum();
+  }
+  for (std::size_t i = 0; i < 6; ++i)
+    ofs << std::setw(OWID) << (std::size_t) var[i];
+  
+  // avgPenetr
+  for (std::size_t i = 0; i < 6; ++i)
+    var[i] = 0;
+  for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    std::size_t id = (*it)->getId();
+    var[id - 1] = (*it)->getAvgPenetr();
+  }
+  for (std::size_t i = 0; i < 6; ++i)
+    ofs << std::setw(OWID) << var[i];
   
   // energy
   ofs << std::setw(OWID) << transEnergy
@@ -2253,10 +2564,9 @@ void Assembly::printBoundary(const char *str) const {
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z1
       << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
       << std::setw(OWID) << boundaryVec.size() << std::endl;
-  
-  std::vector<Boundary*>::const_iterator rt;
-  for(rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-    (*rt)->print(ofs);
+
+  for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+    (*it)->print(ofs);
   
   ofs.close();
 }
@@ -2348,7 +2658,7 @@ void Assembly::findContact() { // various implementations
     contactVec.clear();
     
 #ifdef TIME_PROFILE
-    double time_r = 0; // time consumed in contact resolution, i.e., tmpContact.isOverlapped()
+    REAL time_r = 0; // time consumed in contact resolution, i.e., tmpContact.isOverlapped()
     gettimeofday(&time_p1, NULL); 
 #endif
     
@@ -2464,9 +2774,71 @@ void Assembly::updateParticle() {
 }
 
 
-void Assembly::updateBoundary() {
-  for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
-    (*it)->updateLocation();
+void Assembly::updateBoundary(REAL sigma) {
+  if (mpiRank == 0) {
+    REAL x1, x2, y1, y2, z1, z2;
+    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+      switch ((*it)->getId()) {
+      case 1: 
+	x1 = (*it)->getPoint().getX();
+	break;
+      case 2:
+	x2 = (*it)->getPoint().getX();
+	break;
+      case 3:
+	y1 = (*it)->getPoint().getY();
+	break;
+      case 4:
+	y2 = (*it)->getPoint().getY();
+	break;
+      case 5:
+	z1 = (*it)->getPoint().getZ();
+	break;
+      case 6:
+	z2 = (*it)->getPoint().getZ();
+	break;
+      }
+    }
+    REAL areaX = (y2 - y1) * (z2 - z1);
+    REAL areaY = (z2 - z1) * (x2 - x1);
+    REAL areaZ = (x2 - x1) * (y2 - y1);
+
+    for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+      (*it)->updateLocation(sigma, areaX, areaY, areaZ);
+    
+    // update boundaryVec from mergeBoundaryVec and remove contactInfo to reduce MPI transmission
+    boundaryVec = mergeBoundaryVec; 
+    for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+      (*it)->clearContactInfo();
+
+    // update allContainer
+    for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+      switch ((*it)->getId()) {
+      case 1: 
+	x1 = (*it)->getPoint().getX();
+	break;
+      case 2:
+	x2 = (*it)->getPoint().getX();
+	break;
+      case 3:
+	y1 = (*it)->getPoint().getY();
+	break;
+      case 4:
+	y2 = (*it)->getPoint().getY();
+	break;
+      case 5:
+	z1 = (*it)->getPoint().getZ();
+	break;
+      case 6:
+	z2 = (*it)->getPoint().getZ();
+	break;
+      }
+    }
+    setContainer(Rectangle(x1, y1, z1, x2, y2, z2));
+  }
+
+  broadcast(boostWorld, boundaryVec, 0);
+
 }
 
 
@@ -2477,14 +2849,14 @@ void Assembly::clearContactForce() {
 
 
 void Assembly::findBdryContact() {
-  for(std::vector<Boundary*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-    (*rt)->findBdryContact(particleVec);
+  for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+    (*it)->findBdryContact(particleVec);
 }
 
 
 void Assembly::boundaryForce() {
-  for(std::vector<Boundary*>::iterator rt = boundaryVec.begin(); rt != boundaryVec.end(); ++rt)
-    (*rt)->boundaryForce(boundaryTgtMap);
+  for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+    (*it)->boundaryForce(boundaryTgtMap);
 }
 
 
@@ -2568,7 +2940,7 @@ void Assembly::printContact(char *str) const
 REAL Assembly::getTransEnergy() const {
   REAL pEngy = 0;
   REAL engy = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
       pEngy += (*it)->getTransEnergy();
@@ -2581,7 +2953,7 @@ REAL Assembly::getTransEnergy() const {
 REAL Assembly::getRotatEnergy() const {
   REAL pEngy = 0;
   REAL engy = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
       pEngy += (*it)->getRotatEnergy();
@@ -2594,7 +2966,7 @@ REAL Assembly::getRotatEnergy() const {
 REAL Assembly::getKinetEnergy() const {
   REAL pEngy = 0;
   REAL engy = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin();it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
       pEngy += (*it)->getKinetEnergy();
@@ -2607,7 +2979,7 @@ REAL Assembly::getKinetEnergy() const {
 REAL Assembly::getGraviEnergy(REAL ref) const {
   REAL pEngy = 0;
   REAL engy = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin();it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
 	    pEngy += (*it)->getPotenEnergy(ref);
@@ -2622,12 +2994,20 @@ REAL Assembly::getMechaEnergy(REAL ref) const {
 }
 
 
-REAL Assembly::getDensity() const {
-  REAL dens = 0;
-  std::vector<Particle *>::const_iterator it;
-  for ( it = particleVec.begin(); it != particleVec.end(); ++it)
-    dens += (*it)->getMass();
-  return dens /= 1; //bulkVolume;
+REAL Assembly::getMass() const {
+  REAL var = 0;
+  for (std::vector<Particle*>::const_iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    var += (*it)->getMass();
+  return var;
+}
+
+
+REAL Assembly::getParticleVolume() const {
+  REAL var = 0;
+  for (std::vector<Particle*>::const_iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    if ((*it)->getType() == 0)
+      var += (*it)->getVolume();
+  return var;
 }
 
 
@@ -2666,7 +3046,7 @@ REAL Assembly::getImpactTimeStep() const {
 REAL Assembly::getAvgTransVelocity() const {
   REAL avgv = 0;
   std::size_t count = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it)
     if ((*it)->getType() == 0) {
       avgv += vfabs((*it)->getCurrVeloc());
@@ -2679,7 +3059,7 @@ REAL Assembly::getAvgTransVelocity() const {
 REAL Assembly::getAvgRotatVelocity() const {
   REAL avgv = 0;
   std::size_t count = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it)
     if ((*it)->getType() == 0) {
       avgv += vfabs((*it)->getCurrOmga());
@@ -2692,7 +3072,7 @@ REAL Assembly::getAvgRotatVelocity() const {
 REAL Assembly::getAvgForce() const {
   REAL avgv = 0;
   std::size_t count = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it)
     if ((*it)->getType() == 0) {
       avgv += vfabs((*it)->getForce());
@@ -2705,23 +3085,13 @@ REAL Assembly::getAvgForce() const {
 REAL Assembly::getAvgMoment() const {
   REAL avgv = 0;
   std::size_t count = 0;
-  std::vector<Particle *>::const_iterator it;
+  std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin();it != particleVec.end(); ++it)
     if ((*it)->getType() == 0) {
       avgv += vfabs((*it)->getMoment());
       ++count;
     }
   return avgv /= count;
-}
-
-
-REAL Assembly::getParticleVolume() const {
-  REAL avgv = 0;
-  std::vector<Particle *>::const_iterator it;
-  for (it = particleVec.begin(); it != particleVec.end(); ++it)
-    if ((*it)->getType() == 0)
-      avgv += (*it)->getVolume();
-  return avgv;
 }
 
 
@@ -3302,7 +3672,7 @@ void Assembly::findContact() { // serial version, O(n x n), n is the number of p
     possContactNum = 0;
 
 #ifdef TIME_PROFILE
-    double time_r = 0; // time consumed in contact resolution, i.e., tmpContact.isOverlapped()
+    REAL time_r = 0; // time consumed in contact resolution, i.e., tmpContact.isOverlapped()
     gettimeofday(&time_p1,NULL); 
 #endif
     
@@ -3346,7 +3716,7 @@ void Assembly::findContact() { // serial version, binning methods, cell slightly
   possContactNum = 0;
   
 #ifdef TIME_PROFILE
-  double time_r = 0;
+  REAL time_r = 0;
   gettimeofday(&time_p1,NULL); 
 #endif
   REAL maxDiameter = gradation.getPtclMaxRadius() * 2;
@@ -4866,35 +5236,35 @@ void Assembly::createMemParticle(REAL rRadius,
 
   // membrane particles at the edges of each surface, for example,
   // x1y1 means particles on surface x1 connecting to particles on surface y1
-  std::vector<Particle *> x1y1;
-  std::vector<Particle *> x1y2;
-  std::vector<Particle *> x1z1;
-  std::vector<Particle *> x1z2;
+  std::vector<Particle*> x1y1;
+  std::vector<Particle*> x1y2;
+  std::vector<Particle*> x1z1;
+  std::vector<Particle*> x1z2;
 
-  std::vector<Particle *> x2y1;
-  std::vector<Particle *> x2y2;
-  std::vector<Particle *> x2z1;
-  std::vector<Particle *> x2z2;
+  std::vector<Particle*> x2y1;
+  std::vector<Particle*> x2y2;
+  std::vector<Particle*> x2z1;
+  std::vector<Particle*> x2z2;
 
-  std::vector<Particle *> y1x1;
-  std::vector<Particle *> y1x2;
-  std::vector<Particle *> y1z1;
-  std::vector<Particle *> y1z2;
+  std::vector<Particle*> y1x1;
+  std::vector<Particle*> y1x2;
+  std::vector<Particle*> y1z1;
+  std::vector<Particle*> y1z2;
 
-  std::vector<Particle *> y2x1;
-  std::vector<Particle *> y2x2;
-  std::vector<Particle *> y2z1;
-  std::vector<Particle *> y2z2;
+  std::vector<Particle*> y2x1;
+  std::vector<Particle*> y2x2;
+  std::vector<Particle*> y2z1;
+  std::vector<Particle*> y2z2;
 
-  std::vector<Particle *> z1x1;
-  std::vector<Particle *> z1x2;
-  std::vector<Particle *> z1y1;
-  std::vector<Particle *> z1y2;
+  std::vector<Particle*> z1x1;
+  std::vector<Particle*> z1x2;
+  std::vector<Particle*> z1y1;
+  std::vector<Particle*> z1y2;
 
-  std::vector<Particle *> z2x1;
-  std::vector<Particle *> z2x2;
-  std::vector<Particle *> z2y1;
-  std::vector<Particle *> z2y2;
+  std::vector<Particle*> z2x1;
+  std::vector<Particle*> z2x2;
+  std::vector<Particle*> z2y1;
+  std::vector<Particle*> z2y2;
 
   // find edge particles for each surface
   // memBoundary[0, 1, 2, 3, 4, 5] correspond to 

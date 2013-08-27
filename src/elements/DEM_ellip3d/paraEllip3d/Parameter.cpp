@@ -24,23 +24,25 @@ void Parameter::readIn(const char *input) {
   }
 
   // for different types of simulation
-  if ((std::size_t) parameter["simuType"] == 1) { // depositIntoContainer
+  std::size_t simuType = (std::size_t) parameter["simuType"];
+  switch (simuType) {
+  case 1: // depositIntoContainer  
     for (std::size_t i = 0; i < 11; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
       ssline >> str >> val;
       parameter[str] = val;
     }
-    
     for (std::size_t i = 0; i < (std::size_t) parameter["sieveNum"]; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
       REAL percent, size;
       ssline >> percent >> size;
       gradation.push_back(std::make_pair(percent, size));
-    }  
-  }
-  else if ((std::size_t) parameter["simuType"] == 2) { // resume deposition
+    } 
+    break;
+  
+  case 2: // resumeDepositIntoContainer 
     for (std::size_t i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
@@ -53,8 +55,9 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> val;
       parameter[str] = val;
     }
-  } 
-  else if ((std::size_t) parameter["simuType"] == 3) { // expandCavityParticle
+    break;
+
+  case 3: // expandCavityParticle
     for (std::size_t i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
@@ -67,8 +70,9 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> val;
       parameter[str] = val;
     }
-  }
-  else if ((std::size_t) parameter["simuType"] == 4) { // resumeExpandCavityParticle
+    break;
+
+  case 4: // resumeExpandCavityParticle
     for (std::size_t i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
@@ -81,8 +85,54 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> val;
       parameter[str] = val;
     }
-  }
-  else if ((std::size_t) parameter["simuType"] == 100) { // couple with sonie fluid flow
+    break;
+
+  case 5: // trimOnly
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 1; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 6: // isotropic 1
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 5; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 7: // isotropic 2
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 7; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 100: // couple with sonic fluid flow
     for (std::size_t i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
@@ -95,7 +145,8 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> val;
       parameter[str] = val;
     }
-  } 
+    break;
+  }
   
   ifs.close();
   

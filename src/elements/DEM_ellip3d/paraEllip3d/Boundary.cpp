@@ -54,12 +54,20 @@ namespace dem {
       penetr /= contactNum;
   }
   
+  
+  void Boundary::clearContactInfo() {
+    possParticle.clear();
+    contactInfo.clear();
+  }
+
   planeBoundary::planeBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;
     ifs >> dx >> dy >> dz >> px >> py >> pz;
     direc = Vec(dx, dy, dz);
     point = Vec(px, py, pz);
+    prevPoint = point;
+    prevVeloc = veloc = 0;
     for (std::size_t i = 0; i < extraNum; ++i) {
       ifs >> dx >> dy >> dz >> px >> py >> pz;
       extraEdge.push_back(Plane(Vec(dx, dy, dz), Vec(px, py, pz)));
@@ -138,6 +146,64 @@ namespace dem {
     boundaryTgtMap[this->id] = vtmp;
 
     updateStatForce();
+  }
+
+  void planeBoundary::updateLocation(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
+      REAL timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
+      REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
+      REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];
+      REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
+      REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
+      std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
+      REAL atf = forceDamp * timeStep;
+
+      REAL vel, pos;
+      switch (id) {
+      case 1: 
+	//if (isotropicType == 1) vel = ((normal.getX() + sigma*areaX)>0 ? 1:-1) * boundaryRate; else
+	vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() + sigma * areaX) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getX() + vel * timeStep;
+	setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
+	setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() ));
+	break;
+      case 2:
+	//if (isotropicType == 1) vel = ((normal.getX() - sigma*areaX)>0 ? 1:-1) * boundaryRate; else
+	vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() - sigma * areaX) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getX() + vel * timeStep;
+	setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
+	setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() ));
+	break;
+      case 3:
+	//if (isotropicType == 1) vel = ((normal.getY() + sigma*areaY)>0 ? 1:-1) * boundaryRate; else 
+	vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() + sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getY() + vel * timeStep;
+	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
+	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
+	break;
+      case 4:
+	//if (isotropicType == 1) vel = ((normal.getY() - sigma*areaY)>0 ? 1:-1) * boundaryRate; else 
+	vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() - sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getY() + vel * timeStep;
+	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
+	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
+	break;
+      case 5:
+	//if (isotropicType == 1) vel = ((normal.getZ() + sigma*areaZ)>0 ? 1:-1) * boundaryRate; else 
+	vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() + sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getZ() + vel * timeStep;
+	setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
+	setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
+	break;
+      case 6:
+	//if (isotropicType == 1) vel = ((normal.getZ() - sigma*areaZ)>0 ? 1:-1) * boundaryRate; else 
+	vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() - sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getZ() + vel * timeStep;
+	setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
+	setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
+	break;
+      }
+      prevPoint = point;
+      prevVeloc = veloc;
   }
 
   cylinderBoundary::cylinderBoundary(std::size_t tp, std::ifstream &ifs)

@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     int mpiProcY = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcY"]);
     int mpiProcZ = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcZ"]);
     if (mpiProcX * mpiProcY * mpiProcZ != boostWorld.size() ) {
-      std::cout << "number of MPI processes does match grids in data file!" << std::endl;
+      std::cout << "number of MPI processes does not match grids in data file!" << std::endl;
       return -1;
     }
   }
@@ -68,15 +68,18 @@ int main(int argc, char* argv[]) {
     break;
   case 4: // resume expanding particles inside a virtual cavity and see what occurs
     assemb.resumeExpandCavityParticle();
-    break;   
-  case 5: // 
-    assemb.isotropic(1);
+    break;  
+  case 5: // trim particles
+    assemb.trimOnly();
+    break;  
+  case 6: // isotropic type 1 - create an initial state with low confining pressure
+    assemb.isotropic();
     break; 
-  case 6: // 
-    assemb.isotropic(2);
+  case 7: // isotropic type 2 - increase confining pressure from sigmaInit to sigmaEnd
+    assemb.isotropic();
     break; 
-  case 7: // 
-    assemb.isotropic(3);
+  case 8: // isotropic type 3 - conduct loading-unloading-reloading path
+    assemb.isotropic();
     break; 
   case 100: // couple with sonic fluid flow
     assemb.coupleWithSonicFluid();
@@ -84,7 +87,8 @@ int main(int argc, char* argv[]) {
   }
   
   dem::debugInf.close();
-
+  return 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notes:
@@ -299,8 +303,6 @@ int main(int argc, char* argv[]) {
   dem::g_timeinf.close();
   */
 
-  return 0;
-}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

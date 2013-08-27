@@ -125,6 +125,7 @@ namespace dem {
 			  const char *genParticle);
     void buildBoundary(std::size_t boundaryNum,
 		       const char *boundaryFile);
+    void trimOnly();
     void trim(bool toRebuild,
 	      const char *inputParticle,
 	      const char *trmParticle);
@@ -132,10 +133,9 @@ namespace dem {
 		 const char *inputParticle);
     void coupleWithSonicFluid();    
 
-    // Isotropically compress particles to a specific confining pressure, 
-    // which is usually a low value in order to create an intial status. 
-    // Force boundaries are used. This process may not be physically true.
-    void isotropic(std::size_t type);
+    void isotropic();
+    bool tractionErrorTol(REAL sigmaVar);
+    void getStartDimension(REAL &distX, REAL &distY, REAL &distZ);
 
     void setCavity(Rectangle cav) { cavity = cav; }
 
@@ -160,9 +160,11 @@ namespace dem {
     void updateGridMinZ();
     void updateGridMaxZ();    
 
-    void openProgress(std::ofstream &ofs, const char *str);
-    void printProgress(std::ofstream &ofs);
-    void closeProgress(std::ofstream &ofs);
+    void openDepositProg(std::ofstream &ofs, const char *str);
+    void printDepositProg(std::ofstream &ofs);
+    void openCompressProg(std::ofstream &ofs, const char *str);
+    void printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REAL distZ);
+    void closeProg(std::ofstream &ofs);
 
     void trimCavity(bool toRebuild, const char *Particlefile, const char *cavParticle);
     void readCavityBoundary(const char *boundaryfile);
@@ -185,9 +187,9 @@ namespace dem {
     REAL ellipPileTipZ();
     REAL ellipPilePeneVol();
   
-    void updateBoundary();
+    void updateBoundary(REAL simga);
     
-    REAL getDensity() const; 
+    REAL getMass() const; 
     REAL getAvgPenetr() const;
     REAL getVibraTimeStep() const;
     REAL getImpactTimeStep() const;
@@ -206,17 +208,17 @@ namespace dem {
     void gatherEnergy();
     
     void setTrimHistoryNum(std::size_t n) { trimHistoryNum = n; }
-    void printParticle(const char *str) const; // print all particles info into a disk file
-    void printBdryContact(const char *str) const; // print all boundary contact info into a disk file
-    void printParticle(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info into a disk file
-    void printMemParticle(const char *str) const; // print membrane particles info into a disk file
+    void printParticle(const char *str) const; // print all particles
+    void printBdryContact(const char *str) const; // print all boundary contact info
+    void printParticle(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info
+    void printMemParticle(const char *str) const; // print membrane particles
     void plotSpring(const char *str) const;    // print springs in Tecplot format
     void plotBoundary(const char *str) const;
     void plotGrid(const char *str) const;
     void plotCavity(const char *str) const;
     void checkMembrane(std::vector<REAL> &vx ) const;
     void printContact(char *str) const;        // print contacts information
-    void printBoundary(const char *str) const; // print rigid boundaries info to a disk file
+    void printBoundary(const char *str) const; // print rigid boundaries info
     void printCavityBoundary(const char *str) const; // print cavity boundaries
     void printCavityParticle(std::size_t total, const char *str) const;
     
