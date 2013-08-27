@@ -543,12 +543,15 @@ namespace dem {
 	REAL uxFluid = arrayU[i][j][k][var_vel[0]];
 	REAL uyFluid = arrayU[i][j][k][var_vel[1]];
 	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
+	
+	Vec dist = Vec(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]) - (*it)->getCurrPos();
+	Vec omgar = (*it)->getCurrOmga() * dist; // Omga*distVector, where * is overloaded as cross product
 
-	REAL ux = (*it)->getCurrVeloc().getX() + 0; //omga*distance
-	REAL uy = (*it)->getCurrVeloc().getY() + 0; //omga*distance
-	REAL uz = (*it)->getCurrVeloc().getZ() + 0; //omga*distance
+	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
+	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
+	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	REAL fx = (uxFluid - ux) * 0;// coef
+	REAL fx = (uxFluid - ux) * 0; // coef
 	REAL fy = (uyFluid - uy) * 0;
 	REAL fz = (uzFluid - uz) * 0;
 

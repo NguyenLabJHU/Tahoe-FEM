@@ -934,14 +934,17 @@ Vec Particle::cylinderRBForce(std::size_t boundaryId, const Cylinder &S, int sid
   return normalForce;
 }
 
-  void Particle::clearFluidGrid() {
-    fluidGrid.clear();
-  }
-  void Particle::recordFluidGrid(std::size_t i, std::size_t j, std::size_t k) {
-    std::vector<std::size_t> vec;
-    vec.push_back(i);
-    vec.push_back(j);
-    vec.push_back(k);
-    fluidGrid.push_back(vec);
-  }
+void Particle::clearFluidGrid() {
+  fluidGrid.clear();
+}
+
+void Particle::recordFluidGrid(std::size_t i, std::size_t j, std::size_t k) {
+  std::vector<std::size_t> vec;
+  vec.push_back(i);
+  vec.push_back(j);
+  vec.push_back(k);
+  fluidGrid.push_back(vec);
+ }
+
+
 } // namespace dem ends
