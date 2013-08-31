@@ -50,6 +50,7 @@ static struct timeval time_r1, time_r2; // for internal wall-clock time profilin
 namespace dem {
 
 std::ofstream progressInf;
+std::ofstream balancedInf;
 
 struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
   struct timeval diff;
@@ -294,10 +295,9 @@ void Assembly::isotropic()
   if (mpiRank == 0) {
     readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-    if (isotropicType == 1) 
-      openCompressProg(progressInf, "isotropic_progress");
-    else
-      openCompressProg(progressInf, "isotropic_balanced");
+    openCompressProg(progressInf, "isotropic_progress");
+    if (isotropicType != 1)
+      openCompressProg(balancedInf, "isotropic_balanced");
   }
   scatterParticle();
 
@@ -370,7 +370,8 @@ void Assembly::isotropic()
 	plotGrid(strcat(combineString(cstr, "isotropic_gridplot_", iterSnap, 3), ".dat"));
 	printParticle(combineString(cstr, "isotropic_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "isotropic_bdrycntc_", iterSnap, 3));
-	if (isotropicType == 1) {
+	//if (isotropicType == 1) 
+	{
 	  printBoundary(combineString(cstr, "isotropic_boundary_", iterSnap, 3));
 	  printCompressProg(progressInf, distX, distY, distZ);
 	}
@@ -406,7 +407,7 @@ void Assembly::isotropic()
 
     if (isotropicType == 2) {
       if (tractionErrorTol(sigmaVar)) {
-	if (mpiRank == 0) printCompressProg(progressInf, distX, distY, distZ);
+	if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	sigmaVar += sigmaInc;
       }
       if (tractionErrorTol(sigmaEnd)) {
@@ -414,7 +415,7 @@ void Assembly::isotropic()
 	  printParticle("isotropic_particle_end");
 	  printBdryContact("isotropic_bdrycntc_end");
 	  printBoundary("isotropic_boundary_end");
-	  printCompressProg(progressInf, distX, distY, distZ);
+	  printCompressProg(balancedInf, distX, distY, distZ);
 	}
 	break;
       }

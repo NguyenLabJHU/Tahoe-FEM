@@ -160,42 +160,42 @@ namespace dem {
       REAL vel, pos;
       switch (id) {
       case 1: 
-	//if (isotropicType == 1) vel = ((normal.getX() + sigma*areaX)>0 ? 1:-1) * boundaryRate; else
+	if (isotropicType == 1) vel = ((normal.getX() + sigma*areaX)>0 ? 1:-1) * boundaryRate; else
 	vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() + sigma * areaX) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getX() + vel * timeStep;
 	setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
 	setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() ));
 	break;
       case 2:
-	//if (isotropicType == 1) vel = ((normal.getX() - sigma*areaX)>0 ? 1:-1) * boundaryRate; else
+	if (isotropicType == 1) vel = ((normal.getX() - sigma*areaX)>0 ? 1:-1) * boundaryRate; else
 	vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() - sigma * areaX) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getX() + vel * timeStep;
 	setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
 	setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() ));
 	break;
       case 3:
-	//if (isotropicType == 1) vel = ((normal.getY() + sigma*areaY)>0 ? 1:-1) * boundaryRate; else 
+	if (isotropicType == 1) vel = ((normal.getY() + sigma*areaY)>0 ? 1:-1) * boundaryRate; else 
 	vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() + sigma * areaY) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getY() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
 	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
 	break;
       case 4:
-	//if (isotropicType == 1) vel = ((normal.getY() - sigma*areaY)>0 ? 1:-1) * boundaryRate; else 
+	if (isotropicType == 1) vel = ((normal.getY() - sigma*areaY)>0 ? 1:-1) * boundaryRate; else 
 	vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() - sigma * areaY) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getY() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
 	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
 	break;
       case 5:
-	//if (isotropicType == 1) vel = ((normal.getZ() + sigma*areaZ)>0 ? 1:-1) * boundaryRate; else 
+	if (isotropicType == 1) vel = ((normal.getZ() + sigma*areaZ)>0 ? 1:-1) * boundaryRate; else 
 	vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() + sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getZ() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
 	setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
 	break;
       case 6:
-	//if (isotropicType == 1) vel = ((normal.getZ() - sigma*areaZ)>0 ? 1:-1) * boundaryRate; else 
+	if (isotropicType == 1) vel = ((normal.getZ() - sigma*areaZ)>0 ? 1:-1) * boundaryRate; else 
 	vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() - sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getZ() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
