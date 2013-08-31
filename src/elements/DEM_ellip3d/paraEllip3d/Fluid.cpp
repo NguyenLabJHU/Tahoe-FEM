@@ -21,6 +21,10 @@ namespace dem {
     ny = static_cast<std::size_t> (ceil((maxY - minY) / dy));
     nz = static_cast<std::size_t> (ceil((maxZ - minZ) / dz));
 
+    nx = 2;
+    ny = 2;
+    nz = 50;
+
     dx = (maxX - minX) / nx;
     dy = (maxY - minY) / ny;
     dz = (maxZ - minZ) / nz;
@@ -190,7 +194,7 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     dt = std::min(dem::Parameter::getSingleton().parameter["timeStep"], timeStep());
-    std::cout << "iter=" <<  std::setw(7) << iteration << " dt=" << dt << std::endl;
+    //std::cout << "iter=" <<  std::setw(7) << iteration << " dt=" << dt << std::endl;
     enthalpy();
 
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
@@ -209,7 +213,7 @@ namespace dem {
 	    }
 
       flux();
-            
+
       // for local Riemann problem
       for (std::size_t i = 0; i < nx- 1; ++i) {
 	for (std::size_t j = 0; j < ny - 1; ++j) {
@@ -217,15 +221,17 @@ namespace dem {
 	    std::size_t IL[3] = {i, j, k};
 	    std::size_t IR[3] = {i, j, k};
 	    IR[idim] += 1;
-	    REAL uL[5], uR[5], FL[5], FR[5], HL, HR; // local variable only
+	    REAL uL[9], uR[9], FL[5], FR[5], HL, HR; // local variable only
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
-	    for (std::size_t m = 0; m < n_integ; ++m) {
+	    for (std::size_t m = 0; m < n_var; ++m) {
 	      uL[m] = arrayUtmp[IL[0]] [IL[1]] [IL[2]] [m];
 	      uR[m] = arrayUtmp[IR[0]] [IR[1]] [IR[2]] [m];
+	    }	
+	    for (std::size_t m = 0; m < n_integ; ++m) {
 	      FL[m] = arrayFlux [IL[0]] [IL[1]] [IL[2]] [m];
 	      FR[m] = arrayFlux [IR[0]] [IR[1]] [IR[2]] [m];
-	    }	    
+	    }    
 	    RoeFlux(uL, uR, FL, FR, HL, HR, idim, i, j, k);
 	  }
 	}
@@ -239,33 +245,37 @@ namespace dem {
 
       // switch components back for consistency with u
       for (std::size_t i = 0; i < nx - 1; ++i)
-	for (std::size_t j = 0; j < ny - 1 ; ++j)
+	for (std::size_t j = 0; j < ny - 1; ++j)
 	  for (std::size_t k = 0; k < nz -1; ++k)
 	    for (std::size_t m = 0; m < n_dim; ++m)
 	      arrayRoeFlux[i][j][k][var_mom[m]][idim] = arrayRoeFluxTmp[i][j][k][ var_mom[id[idim][m]] ];
 
     } // end of for x, y, z directions
 
+
     // update conservative variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t k = 1; k < nz - 1; ++k)
+	for (std::size_t k = 1; k < nz - 1; ++k) {
 	  for (std::size_t m = 0; m < n_integ; ++m)
 	    arrayU[i][j][k][m] -= (   dt / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
 				    + dt / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
 				    + dt / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
+	}
+
+
 
     // calculate primitive after finding conservative variables
     UtoW(); 
     /*
     for (std::size_t k = 1; k < nz; ++k) {
-      for (std::size_t j = 1; j < 4; ++j) {
-	for (std::size_t i = 1; i < 4; ++i) {
+      for (std::size_t j = 1; j < ny; ++j) {
+	for (std::size_t i = 1; i < nx; ++i) {
 	  std::cout << arrayU[i][j][k][var_den] << " ";
 	}
-	std::cout << std::endl;
+	debugInf << std::endl;
       }
-      std::cout << "----------------------" << std::endl;
+      debugInf << "----------------------" << std::endl;
     }
     */
   }
@@ -394,12 +404,12 @@ namespace dem {
     shockSpeed = uR + (uL - uR) * (3-gamma + (1+gamma)*beta) / 4;
 
     /*
-    std::cout << "alpla=" << alpha << std::endl;
-    std::cout << "beta=" << beta << std::endl;
-    std::cout << "rhoR=" << rhoR << std::endl;
-    std::cout << "uR=" << uR << std::endl;
-    std::cout << "pR=" << pR << std::endl;
-    std::cout << "shock=" << shockSpeed << std::endl;
+    debugInf << "alpla=" << alpha << std::endl;
+    debugInf << "beta=" << beta << std::endl;
+    debugInf << "rhoR=" << rhoR << std::endl;
+    debugInf << "uR=" << uR << std::endl;
+    debugInf << "pR=" << pR << std::endl;
+    debugInf << "shock=" << shockSpeed << std::endl;
     */
   }
 
@@ -422,14 +432,14 @@ namespace dem {
     REAL avgV   = (sqrt(uL[var_den])*uL[var_vel[1]] + sqrt(uR[var_den])*uR[var_vel[1]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgW   = (sqrt(uL[var_den])*uL[var_vel[2]] + sqrt(uR[var_den])*uR[var_vel[2]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
-    
+
     REAL eigen[5];
     eigen[var_den]    = avgU - avgSoundSpeed;
     eigen[var_mom[0]] = eigen[var_mom[1]] = eigen[var_mom[2]] = avgU;
     eigen[var_eng]    = avgU + avgSoundSpeed;
 
-    REAL avgWaveStr[5], du[5];
-    for (std::size_t i = 0; i < n_integ; ++i)
+    REAL avgWaveStr[5], du[9];
+    for (std::size_t i = 0; i < n_var; ++i)
       du[i] = uR[i] - uL[i];
 
     avgWaveStr[var_den]    = (du[var_prs] - avgRho*avgSoundSpeed*du[var_vel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
@@ -608,6 +618,7 @@ namespace dem {
 	      << std::setw(OWID) << arrayU[i][j][k][7]
 	      << std::setw(OWID) << arrayU[i][j][k][8]
 	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  << std::endl;
+	  //printf("%A ", arrayU[i][j][k][1]);
 	}
 
     ofs.close();
