@@ -50,7 +50,6 @@ static struct timeval time_r1, time_r2; // for internal wall-clock time profilin
 namespace dem {
 
 std::ofstream progressInf;
-std::ofstream balancedInf;
 
 struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
   struct timeval diff;
@@ -295,9 +294,10 @@ void Assembly::isotropic()
   if (mpiRank == 0) {
     readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-    openCompressProg(progressInf, "isotropic_progress");
-    if (isotropicType != 1)
-      openCompressProg(balancedInf, "isotropic_balanced");
+    if (isotropicType == 1)
+      openCompressProg(progressInf, "isotropic_progress");
+    else
+      openCompressProg(progressInf, "isotropic_balanced");
   }
   scatterParticle();
 
@@ -309,18 +309,24 @@ void Assembly::isotropic()
   std::size_t netStep = endStep - startStep + 1;
   std::size_t netSnap = endSnap - startSnap + 1;
 
-  REAL sigmaStart, sigmaEnd, sigmaInc, sigmaVar;
+  REAL sigmaEnd, sigmaInc, sigmaVar;
   std::size_t sigmaDiv;
   
-  sigmaStart = dem::Parameter::getSingleton().parameter["sigmaStart"];
-  sigmaEnd   = dem::Parameter::getSingleton().parameter["sigmaEnd"];
-  sigmaDiv   = dem::Parameter::getSingleton().parameter["sigmaDiv"];
+  sigmaEnd = dem::Parameter::getSingleton().parameter["sigmaEnd"];
+  sigmaDiv = dem::Parameter::getSingleton().parameter["sigmaDiv"];
+  std::vector<REAL> &sigmaPath = dem::Parameter::getSingleton().sigmaPath;
+  std::size_t sigma_i = 0;
 
   if (isotropicType == 1) 
     sigmaVar = sigmaEnd;
   else if (isotropicType == 2) {
-    sigmaInc = (sigmaEnd -sigmaStart) / sigmaDiv;
+    REAL sigmaStart = dem::Parameter::getSingleton().parameter["sigmaStart"];
+    sigmaInc = (sigmaEnd - sigmaStart) / sigmaDiv;
     sigmaVar = sigmaStart;
+  } else if (isotropicType == 3) {
+    sigmaVar = sigmaPath[sigma_i];
+    sigmaInc = (sigmaPath[sigma_i+1] -  sigmaPath[sigma_i])/sigmaDiv;
+    sigmaEnd = sigmaPath[sigmaPath.size()-1];
   }
 
   REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
@@ -370,8 +376,7 @@ void Assembly::isotropic()
 	plotGrid(strcat(combineString(cstr, "isotropic_gridplot_", iterSnap, 3), ".dat"));
 	printParticle(combineString(cstr, "isotropic_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "isotropic_bdrycntc_", iterSnap, 3));
-	//if (isotropicType == 1) 
-	{
+	if (isotropicType == 1) {
 	  printBoundary(combineString(cstr, "isotropic_boundary_", iterSnap, 3));
 	  printCompressProg(progressInf, distX, distY, distZ);
 	}
@@ -407,7 +412,7 @@ void Assembly::isotropic()
 
     if (isotropicType == 2) {
       if (tractionErrorTol(sigmaVar)) {
-	if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	if (mpiRank == 0) printCompressProg(progressInf, distX, distY, distZ);
 	sigmaVar += sigmaInc;
       }
       if (tractionErrorTol(sigmaEnd)) {
@@ -415,7 +420,27 @@ void Assembly::isotropic()
 	  printParticle("isotropic_particle_end");
 	  printBdryContact("isotropic_bdrycntc_end");
 	  printBoundary("isotropic_boundary_end");
-	  printCompressProg(balancedInf, distX, distY, distZ);
+	  printCompressProg(progressInf, distX, distY, distZ);
+	}
+	break;
+      }
+    }
+
+    if (isotropicType == 3) {
+      if (tractionErrorTol(sigmaVar)) {
+	if (mpiRank == 0) printCompressProg(progressInf, distX, distY, distZ);
+	sigmaVar += sigmaInc;
+	if (sigmaVar == sigmaPath[sigma_i+1]) {
+	  sigmaVar = sigmaPath[++sigma_i];
+	  sigmaInc = (sigmaPath[sigma_i+1] -  sigmaPath[sigma_i])/sigmaDiv;
+	}
+      }
+      if (tractionErrorTol(sigmaEnd)) {
+	if (mpiRank == 0) {
+	  printParticle("isotropic_particle_end");
+	  printBdryContact("isotropic_bdrycntc_end");
+	  printBoundary("isotropic_boundary_end");
+	  printCompressProg(progressInf, distX, distY, distZ);
 	}
 	break;
       }

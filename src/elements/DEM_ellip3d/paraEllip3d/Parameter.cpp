@@ -132,6 +132,35 @@ void Parameter::readIn(const char *input) {
     }
     break;
 
+  case 8: // isotropic 3
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 3; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    for (std::size_t i = 0; i < (std::size_t) parameter["sigmaPoints"]; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      REAL sigma;
+      ssline >> sigma;
+      sigmaPath.push_back(sigma);
+    } 
+    for (std::size_t i = 0; i < 3; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+
+    break;
+
   case 100: // couple with sonic fluid flow
     for (std::size_t i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
@@ -156,6 +185,7 @@ void Parameter::writeOut() {
   std::map<std::string, REAL> &param = dem::Parameter::getSingleton().parameter;
   std::vector<std::pair<REAL, REAL> > &grada = dem::Parameter::getSingleton().gradation;
   std::map<std::string, std::string> &file = dem::Parameter::getSingleton().datafile;
+  std::vector<REAL> &sigma = dem::Parameter::getSingleton().sigmaPath;
   
   for (std::map<std::string, REAL>::const_iterator it = param.begin(); it != param.end(); ++it)
     std::cout << it->first << "  " << it->second << std::endl;
@@ -165,6 +195,9 @@ void Parameter::writeOut() {
 
   for (std::map<std::string, std::string>::const_iterator it = file.begin(); it != file.end(); ++it)
     std::cout << it->first << "  " << it->second << std::endl;  
+
+  for (std::vector<REAL>::const_iterator it = sigma.begin(); it != sigma.end(); ++it)
+    std::cout << (*it) << std::endl;
 }
   
 }

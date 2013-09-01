@@ -55,12 +55,14 @@ namespace dem {
     std::map<std::string, REAL> parameter;
     std::vector<std::pair<REAL, REAL> > gradation;
     std::map<std::string, std::string> datafile; 
+    std::vector<REAL> sigmaPath;
 
   private:
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
       ar & parameter;
+      ar & sigmaPath;
     } 
    
   };
