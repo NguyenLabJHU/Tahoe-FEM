@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic3DCurrConfigT.h,v 1.1 2012-12-14 22:58:21 tahoe.regueiro Exp $ */
+/* $Id: FSMicromorphic3DCurrConfigT.h,v 1.2 2013-09-02 03:35:59 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC_3D_CURR_CONFIG_T_H_
 #define _FS_MICROMORPHIC_3D_CURR_CONFIG_T_H_
@@ -404,6 +404,534 @@ private:
     dMatrixT        u_dot_column_matrix;
     dMatrixT        u_dot_column_matrix_Transpose;
 
+    ///////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    ///////////// Plasticity Parameters//////////////////////
+    ////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////
+
+//////////////////////////// A(delgamma)^2+B(delgamma)+D = 0//////////////////////////
+    double			fA_coeff;
+    double			fB_coeff;
+    double			fD_coeff;
+    double			ftemp_D_coeff;
+    double			ftemp_D_coeff1;
+    double			ftemp_B_coeff;
+    double			fDelta_function;
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    dArray2DT       fdGdCauchy_Stress_Elements_IPs;
+    dArray2DT       fdGdCauchy_Stress_n_Elements_IPs;
+    dArray2DT		fdGdCauchy_Stress_IPs;
+    dArray2DT		fdGdCauchy_Stress_n_IPs;
+    dMatrixT		fdGdCauchy_Stress;
+    dMatrixT		fdGdCauchy_Stress_n;
+    dMatrixT		fdGdCauchy_Stress_n_Transpose;
+    dMatrixT		fdGdCauchy_Stress_Transpose;
+    dMatrixT		fdGdCauchy_Stress_tr;
+    dMatrixT		fdGdCauchy_Stress_tr_Transpose;
+    double			fdGdCauchy_Stress_tr_trace;
+    double			fdGdCauchy_Stress_n_trace;
+    double			fdGdCauchy_Stress_trace;
+
+    dMatrixT		fdFYdCauchy_Stress;
+    dArray2DT       fdFYdCauchy_Stress_Elements_IPs;
+    dArray2DT       fdFYdCauchy_Stress_n_Elements_IPs;
+    dArray2DT		fdFYdCauchy_Stress_IPs;
+    dArray2DT		fdFYdCauchy_Stress_n_IPs;
+    dMatrixT		fdFYdCauchy_Stress_n;
+    dMatrixT		fdFYdCauchy_Stress_n_Transpose;
+
+
+
+    dArray2DT   	fCauchy_stress_Elements_IPs;
+    dArray2DT   	fCauchy_stress_IPs;
+    dMatrixT    	fCauchy_stress_tensor_current_IP;
+    dArray2DT   	fCauchy_stress_Elements_n_IPs;
+    dArray2DT   	fCauchy_stress_n_IPs;
+    dMatrixT    	fCauchy_stress_tensor_current_n_IP;
+    dMatrixT    	fdev_Cauchy_stress_tensor_current_IP;
+    dMatrixT    	fdev_Cauchy_stress_tensor_current_n_IP;
+    dMatrixT		fdCauchy_stressdDelgamma;
+    double			fCauchy_stress_tensor_current_IP_trace;
+
+
+    double			fNorm_dev_Cauchy_stress_tensor_current_IP;
+    double			fNorm_dev_Cauchy_stress_tensor_current_IP_tr;
+
+
+
+    double			Beta;
+    double			Aphi;
+    double			Bphi;
+    double 			Bpsi;
+    double 			Apsi;
+
+
+    dMatrixT    	fCauchy_stress_tensor_current_IP_tr;
+    double       	mean_Cauchy_stress_tr;
+    dMatrixT		dev_Cauchy_stress_tr;
+    double			Cauchy_Stress_Norm_tr;
+    dMatrixT		fdGdS_tr;
+    dMatrixT		fdGdS_tr_transpose;
+    double			mean_Cauchy_stress_n;
+    double			mean_Cauchy_stress;
+    double			fdmean_Cauchy_stressdDelgamma;
+    dMatrixT		fdDev_Cauchy_stressdDelgamma;
+
+    double			dcdDelgamma;
+    double			fNorm_dDev_Cauchy_stressdDelgamma;
+    double			dFYdDelgamma;
+    dMatrixT		fElastic_Velocity_Gradient_current_IP;
+    double			fElastic_Velocity_Gradient_current_IP_trace;
+    dMatrixT		fElastic_Velocity_Gradient_current_IP_transpose;
+
+    dMatrixT		dev_Cauchy_stress_n;
+    dMatrixT		Predictor_stress_terms;
+    double			fVelocity_Gradient_current_IP_trace;
+    double			Temp_trace_value;
+    dMatrixT		fVelocity_Gradient_current_IP_transpose;
+    dMatrixT		Corrector_stress_terms;
+    double			Predictor_mean_stress_terms;
+    double			Corrector_mean_stress_terms;
+    double			fTemp_matrix_one_x_one;
+    double			fDelgamma_current_configuration_root_one;
+    double			fDelgamma_current_configuration_root_two;
+    double			fDelgamma_current_configuration;
+    double			fTemp_delgamma_coeff;
+    double			fTemp_delgamma_coeff1;
+    double			Je;
+    double			fYield_function_current_configuration;
+    double			cohesion_current_configuration;
+    double			fYield_function_tr;
+    double			fYield_function;
+    double			fF_tr_fact;
+    double			fdelDelgamma;
+    double			fDelgamma;
+    double			iter_count;
+    double 			cohesion;
+    double			fVariation_Delgamma;
+    dMatrixT    	fVelocity_Gradient_current_IP;
+    dMatrixT		fSymmetric_part_Velocity_Gradient_current_IP;
+    double			fSymmetric_part_Velocity_Gradient_current_IP_trace;
+    double			fdFYdc;
+    double			Comp11;
+    double			Comp22;
+    double			Comp33;
+    double			Comp44;
+    double			J;
+
+    dArray2DT       fDeformation_Gradient_Elements_IPs;
+    dArray2DT       fDeformation_Gradient_n_Elements_IPs;
+    dArray2DT		fDeformation_Gradient_IPs;
+    dArray2DT		fDeformation_Gradient_n_IPs;
+    dMatrixT		fDeformation_Gradient_n;
+    dMatrixT		fDel_Deformation_Gradient;
+
+
+    ///Runge Kutta matrices
+    dMatrixT		fTemp_Runge_Kutta_K1_nsd_x_nsd;
+    dMatrixT		fTemp_Runge_Kutta_K2_nsd_x_nsd;
+    dMatrixT		fTemp_Runge_Kutta_K3_nsd_x_nsd;
+    dMatrixT		fTemp_Runge_Kutta_K4_nsd_x_nsd;
+
+    dMatrixT		fCauchy_stress_tensor_current_IP_from_piola_stress;
+    dMatrixT    	fLeft_Cauchy_Green_tensor_current_IP;
+    dMatrixT    	fLeft_Cauchy_Green_tensor_current_IP_transpose;
+    dMatrixT		fLeft_Cauchy_Green_tensor_current_IP_Inverse;
+    double			fLeft_Cauchy_Green_tensor_current_IP_Trace;
+
+    dMatrixT		fRight_Elastic_Cauchy_Green_tensor_Inverse;
+
+    dMatrixT		fCauchy_stress_tensor_current_IP_Predictor;
+    dMatrixT		fCauchy_stress_tensor_current_IP_Corrector;
+ ///////////////////// Global Consistent tangent matrices/////////////////////
+    //////////////////////////////////////////////////////////////////
+
+    dArrayT Vintp_1;
+    dArrayT Vintp_1_temp;
+    dArrayT fV1p;
+
+    dArrayT Vinte_1;
+    dArrayT Vinte_1_temp;
+    dArrayT fV1e;
+
+
+    dMatrixT		IJe_1;
+    dMatrixT		IJe_2;
+    dMatrixT		IJe_3;
+    dMatrixT		IJe_4;
+    dMatrixT		IJe_5;
+    dMatrixT		IJe_6;
+    dMatrixT		IJe_7;
+    dMatrixT		IJe_8;
+
+
+
+    dMatrixT		I1p_1;
+    dMatrixT		I1p_2;
+    dMatrixT		I1p_3;
+    dMatrixT		I1p_4;
+    dMatrixT		I1p_5;
+    dMatrixT		I1p_6;
+
+
+    dMatrixT		I2p_1;
+    dMatrixT		I2p_2;
+    dMatrixT		I2p_3;
+    dMatrixT		I2p_4;
+    dMatrixT		I2p_5;
+    dMatrixT		I2p_6;
+
+
+    dMatrixT		I3p_1;
+    dMatrixT		I3p_2;
+    dMatrixT		I3p_3;
+    dMatrixT		I3p_4;
+    dMatrixT		I3p_5;
+    dMatrixT		I3p_6;
+
+
+    dMatrixT		I4p_1;
+    dMatrixT		I4p_2;
+    dMatrixT		I4p_3;
+    dMatrixT		I4p_4;
+    dMatrixT		I4p_5;
+    dMatrixT		I4p_6;
+
+
+    dMatrixT		I5p_1;
+    dMatrixT		I5p_2;
+    dMatrixT		I5p_3;
+    dMatrixT		I5p_4;
+    dMatrixT		I5p_5;
+    dMatrixT		I5p_6;
+
+
+    dMatrixT		I6p_1;
+    dMatrixT		I6p_2;
+    dMatrixT		I6p_3;
+    dMatrixT		I6p_4;
+    dMatrixT		I6p_5;
+    dMatrixT		I6p_6;
+
+    dMatrixT		I7p_1;
+    dMatrixT		I7p_2;
+    dMatrixT		I7p_3;
+    dMatrixT		I7p_4;
+    dMatrixT		I7p_5;
+    dMatrixT		I7p_6;
+    dMatrixT		I7p_7;
+    dMatrixT		I7p_8;
+    dMatrixT		I7p_9;
+    dMatrixT		I7p_10;
+    dMatrixT		I7p_11;
+    dMatrixT		I7p_12;
+    dMatrixT		I7p_13;
+
+
+    dMatrixT		I8p_1;
+    dMatrixT		I8p_2;
+    dMatrixT		I8p_3;
+    dMatrixT		I8p_4;
+    dMatrixT		I8p_5;
+    dMatrixT		I8p_6;
+    dMatrixT		I8p_7;
+    dMatrixT		I8p_8;
+    dMatrixT		I8p_9;
+    dMatrixT		I8p_10;
+    dMatrixT		I8p_11;
+    dMatrixT		I8p_12;
+    dMatrixT		I8p_13;
+
+    dMatrixT		I9p_1;
+    dMatrixT		I9p_2;
+    dMatrixT		I9p_3;
+    dMatrixT		I9p_4;
+    dMatrixT		I9p_5;
+    dMatrixT		I9p_6;
+    dMatrixT		I9p_7;
+    dMatrixT		I9p_8;
+    dMatrixT		I9p_9;
+    dMatrixT		I9p_10;
+    dMatrixT		I9p_11;
+    dMatrixT		I9p_12;
+    dMatrixT		I9p_13;
+
+    dMatrixT		I10p_1;
+    dMatrixT		I10p_2;
+    dMatrixT		I10p_3;
+    dMatrixT		I10p_4;
+    dMatrixT		I10p_5;
+    dMatrixT		I10p_6;
+    dMatrixT		I10p_7;
+    dMatrixT		I10p_8;
+    dMatrixT		I10p_9;
+    dMatrixT		I10p_10;
+    dMatrixT		I10p_11;
+    dMatrixT		I10p_12;
+    dMatrixT		I10p_13;
+
+
+
+
+    dMatrixT		fKu_IJe_1;
+    dMatrixT		fKu_IJe_2;
+    dMatrixT		fKu_IJe_3;
+    dMatrixT		fKu_IJe_4;
+    dMatrixT		fKu_IJe_5;
+    dMatrixT		fKu_IJe_6;
+    dMatrixT		fKu_IJe_7;
+    dMatrixT		fKu_IJe_8;
+
+
+
+    dMatrixT		fKu_I1p_1;
+    dMatrixT		fKu_I1p_2;
+    dMatrixT		fKu_I1p_3;
+    dMatrixT		fKu_I1p_4;
+    dMatrixT		fKu_I1p_5;
+    dMatrixT		fKu_I1p_6;
+
+
+
+    dMatrixT		fKu_I2p_1;
+    dMatrixT		fKu_I2p_2;
+    dMatrixT		fKu_I2p_3;
+    dMatrixT		fKu_I2p_4;
+    dMatrixT		fKu_I2p_5;
+    dMatrixT		fKu_I2p_6;
+
+
+
+    dMatrixT		fKu_I3p_1;
+    dMatrixT		fKu_I3p_2;
+    dMatrixT		fKu_I3p_3;
+    dMatrixT		fKu_I3p_4;
+    dMatrixT		fKu_I3p_5;
+    dMatrixT		fKu_I3p_6;
+
+
+
+    dMatrixT		fKu_I4p_1;
+    dMatrixT		fKu_I4p_2;
+    dMatrixT		fKu_I4p_3;
+    dMatrixT		fKu_I4p_4;
+    dMatrixT		fKu_I4p_5;
+    dMatrixT		fKu_I4p_6;
+
+
+
+    dMatrixT		fKu_I5p_1;
+    dMatrixT		fKu_I5p_2;
+    dMatrixT		fKu_I5p_3;
+    dMatrixT		fKu_I5p_4;
+    dMatrixT		fKu_I5p_5;
+    dMatrixT		fKu_I5p_6;
+
+
+
+    dMatrixT		fKu_I6p_1;
+    dMatrixT		fKu_I6p_2;
+    dMatrixT		fKu_I6p_3;
+    dMatrixT		fKu_I6p_4;
+    dMatrixT		fKu_I6p_5;
+    dMatrixT		fKu_I6p_6;
+
+    dMatrixT		fKu_I7p_1;
+    dMatrixT		fKu_I7p_2;
+    dMatrixT		fKu_I7p_3;
+    dMatrixT		fKu_I7p_4;
+    dMatrixT		fKu_I7p_5;
+    dMatrixT		fKu_I7p_6;
+    dMatrixT		fKu_I7p_7;
+    dMatrixT		fKu_I7p_8;
+    dMatrixT		fKu_I7p_9;
+    dMatrixT		fKu_I7p_10;
+    dMatrixT		fKu_I7p_11;
+    dMatrixT		fKu_I7p_12;
+    dMatrixT		fKu_I7p_13;
+
+    dMatrixT		fKu_I8p_1;
+    dMatrixT		fKu_I8p_2;
+    dMatrixT		fKu_I8p_3;
+    dMatrixT		fKu_I8p_4;
+    dMatrixT		fKu_I8p_5;
+    dMatrixT		fKu_I8p_6;
+    dMatrixT		fKu_I8p_7;
+    dMatrixT		fKu_I8p_8;
+    dMatrixT		fKu_I8p_9;
+    dMatrixT		fKu_I8p_10;
+    dMatrixT		fKu_I8p_11;
+    dMatrixT		fKu_I8p_12;
+    dMatrixT		fKu_I8p_13;
+
+    dMatrixT		fKu_I9p_1;
+    dMatrixT		fKu_I9p_2;
+    dMatrixT		fKu_I9p_3;
+    dMatrixT		fKu_I9p_4;
+    dMatrixT		fKu_I9p_5;
+    dMatrixT		fKu_I9p_6;
+    dMatrixT		fKu_I9p_7;
+    dMatrixT		fKu_I9p_8;
+    dMatrixT		fKu_I9p_9;
+    dMatrixT		fKu_I9p_10;
+    dMatrixT		fKu_I9p_11;
+    dMatrixT		fKu_I9p_12;
+    dMatrixT		fKu_I9p_13;
+
+    dMatrixT		fKu_I10p_1;
+    dMatrixT		fKu_I10p_2;
+    dMatrixT		fKu_I10p_3;
+    dMatrixT		fKu_I10p_4;
+    dMatrixT		fKu_I10p_5;
+    dMatrixT		fKu_I10p_6;
+    dMatrixT		fKu_I10p_7;
+    dMatrixT		fKu_I10p_8;
+    dMatrixT		fKu_I10p_9;
+    dMatrixT		fKu_I10p_10;
+    dMatrixT		fKu_I10p_11;
+    dMatrixT		fKu_I10p_12;
+    dMatrixT		fKu_I10p_13;
+
+
+
+
+
+
+    void  Form_fV1p(void);
+    void  Form_fV1e(void);
+
+    void Form_IJe_1(void);
+    void Form_IJe_2(void);
+    void Form_IJe_3(void);
+    void Form_IJe_4(void);
+    void Form_IJe_5(void);
+    void Form_IJe_6(void);
+    void Form_IJe_7(void);
+    void Form_IJe_8(void);
+
+
+    void Form_I1p_1(void);
+    void Form_I1p_2(void);
+    void Form_I1p_3(void);
+    void Form_I1p_4(void);
+    void Form_I1p_5(void);
+    void Form_I1p_6(void);
+
+
+    void Form_I2p_1(void);
+    void Form_I2p_2(void);
+    void Form_I2p_3(void);
+    void Form_I2p_4(void);
+    void Form_I2p_5(void);
+    void Form_I2p_6(void);
+
+
+    void Form_I3p_1(void);
+    void Form_I3p_2(void);
+    void Form_I3p_3(void);
+    void Form_I3p_4(void);
+    void Form_I3p_5(void);
+    void Form_I3p_6(void);
+
+
+    void Form_I4p_1(void);
+    void Form_I4p_2(void);
+    void Form_I4p_3(void);
+    void Form_I4p_4(void);
+    void Form_I4p_5(void);
+    void Form_I4p_6(void);
+
+
+    void Form_I5p_1(void);
+    void Form_I5p_2(void);
+    void Form_I5p_3(void);
+    void Form_I5p_4(void);
+    void Form_I5p_5(void);
+    void Form_I5p_6(void);
+
+
+    void Form_I6p_1(void);
+    void Form_I6p_2(void);
+    void Form_I6p_3(void);
+    void Form_I6p_4(void);
+    void Form_I6p_5(void);
+    void Form_I6p_6(void);
+
+
+    void Form_I7p_1(void);
+    void Form_I7p_2(void);
+    void Form_I7p_3(void);
+    void Form_I7p_4(void);
+    void Form_I7p_5(void);
+    void Form_I7p_6(void);
+    void Form_I7p_7(void);
+    void Form_I7p_8(void);
+    void Form_I7p_9(void);
+    void Form_I7p_10(void);
+    void Form_I7p_11(void);
+    void Form_I7p_12(void);
+    void Form_I7p_13(void);
+
+
+    void Form_I8p_1(void);
+    void Form_I8p_2(void);
+    void Form_I8p_3(void);
+    void Form_I8p_4(void);
+    void Form_I8p_5(void);
+    void Form_I8p_6(void);
+    void Form_I8p_7(void);
+    void Form_I8p_8(void);
+    void Form_I8p_9(void);
+    void Form_I8p_10(void);
+    void Form_I8p_11(void);
+    void Form_I8p_12(void);
+    void Form_I8p_13(void);
+
+
+    void Form_I9p_1(void);
+    void Form_I9p_2(void);
+    void Form_I9p_3(void);
+    void Form_I9p_4(void);
+    void Form_I9p_5(void);
+    void Form_I9p_6(void);
+    void Form_I9p_7(void);
+    void Form_I9p_8(void);
+    void Form_I9p_9(void);
+    void Form_I9p_10(void);
+    void Form_I9p_11(void);
+    void Form_I9p_12(void);
+    void Form_I9p_13(void);
+
+
+    void Form_I10p_1(void);
+    void Form_I10p_2(void);
+    void Form_I10p_3(void);
+    void Form_I10p_4(void);
+    void Form_I10p_5(void);
+    void Form_I10p_6(void);
+    void Form_I10p_7(void);
+    void Form_I10p_8(void);
+    void Form_I10p_9(void);
+    void Form_I10p_10(void);
+    void Form_I10p_11(void);
+    void Form_I10p_12(void);
+    void Form_I10p_13(void);
+
+
+
+
+
+
+    ///////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////
+
 
 
     //////////////////////////////////////////////////////////
@@ -704,7 +1232,7 @@ private:
     dMatrixT psi;// micro-deformation tensor in current config.
 
     //plasticity parameters may be needed in the future
-   double Apsi;
+
    double Apsi_chi;
    double dYieldTrialTol;
    int iPlasticityCheck;
@@ -815,16 +1343,15 @@ private:
         /* to store fEulerian_strain_IPs for each of the 27 IPs of each element */
         dArray2DT   fEulerian_strain_IPs;
         /* to store fCauchy_stress_tensor_current_IP */
-        dMatrixT    fCauchy_stress_tensor_current_IP;
         /* to store fCauchy_stress_IPs for each of the 27 IPs of each element */
-        dArray2DT   fCauchy_stress_IPs;
+
         ////////////////////////////////////
         dArray2DT  fE_values_IPs;
         dArray2DT  fVarepsilon_IPs;
         ////////////////////////////////////
 
         dArray2DT   fEulerian_strain_Elements_IPs;
-        dArray2DT   fCauchy_stress_Elements_IPs;
+
 
         /////////////////////////////////////////
         dArray2DT  fE_values_Element_IPs;
