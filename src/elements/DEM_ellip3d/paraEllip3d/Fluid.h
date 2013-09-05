@@ -36,20 +36,15 @@ namespace dem {
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;
     bool reflecting;   // 0 - non-reflecting; 1 - reflecting
-    REAL rhoL, uL, pL; // known as IC
-    REAL rhoR, uR, pR; // only uR is known as IC
+    REAL rhoL, uL, pL; // unknown
+    REAL rhoR, uR, pR; // known
+    REAL mach;         // shock Mach number, known
     REAL shockSpeed;   // unknown
+    REAL etab;         // penalization parameter
     REAL z0;           // initial discontinuity plane in Z direction
 
     std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
     std::size_t var_mom[3], var_vel[3];
-
-    Array4D arrayGridCoord; 
-    // fluid compute grid coordinates, 4-dimensional
-    // nx, ny, nz, n_dim
-    // arrayMesh[i][j][k][0]: coord_x
-    // arrayMesh[i][j][k][1]: coord_y
-    // arrayMesh[i][j][k][2]: coord_z
 
     Array4D arrayU;
     Array4D arrayUtmp;
@@ -67,6 +62,20 @@ namespace dem {
     // arrayU[i][j][k][8]: var_prs
     // (b) extended:
     // arrayU[i][j][k][9]: var_msk
+
+    Array4D arrayGridCoord; 
+    // fluid grid coordinates, 4-dimensional
+    // nx, ny, nz, n_dim
+    // arrayGridCoord[i][j][k][0]: coord_x
+    // arrayGridCoord[i][j][k][1]: coord_y
+    // arrayGridCoord[i][j][k][2]: coord_z
+
+    Array4D arrayPenalForce;
+    // fluid grid forces, 4-dimensional
+    // nx, ny, nz, n_dim
+    // arrayPenalForce[i][j][k][0]: coord_x
+    // arrayPenalForce[i][j][k][1]: coord_y
+    // arrayPenalForce[i][j][k][2]: coord_z
 
     Array4D arrayFlux;
     // 4-dimensional
@@ -117,6 +126,7 @@ namespace dem {
     void getParticleInfo(std::vector<Particle *> &ptcls);
     void runOneStep();
     void calcParticleForce(std::vector<Particle *> &ptcls);
+    void penalize();
     void plot(const char *) const;
     
   };

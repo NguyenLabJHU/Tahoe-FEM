@@ -20,11 +20,11 @@ namespace dem {
     nx = static_cast<std::size_t> (ceil((maxX - minX) / dx));
     ny = static_cast<std::size_t> (ceil((maxY - minY) / dy));
     nz = static_cast<std::size_t> (ceil((maxZ - minZ) / dz));
-
+    /*
     nx = 2;
     ny = 2;
     nz = 50;
-
+    */
     dx = (maxX - minX) / nx;
     dy = (maxY - minY) / ny;
     dz = (maxZ - minZ) / nz;
@@ -37,10 +37,11 @@ namespace dem {
     CFL   = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
     reflecting = dem::Parameter::getSingleton().parameter["reflecting"];
-    rhoL = dem::Parameter::getSingleton().parameter["leftDensity"];
-    uL   = dem::Parameter::getSingleton().parameter["leftVelocity"];
-    pL   = dem::Parameter::getSingleton().parameter["leftPressure"];
+    rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
+    pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
+    mach = dem::Parameter::getSingleton().parameter["MachNumber"];
+    etab = dem::Parameter::getSingleton().parameter["etab"];
     z0   = minZ + 0.25*(maxZ - minZ);
 
     // fixed
@@ -63,29 +64,31 @@ namespace dem {
     var_msk = n_var++;
 
     /*
-    std::cout << "dx=" << dx << std::endl;
-    std::cout << "dt=" << dt << std::endl;
-    std::cout << "CFL=" << CFL << std::endl;
-    std::cout << "gamma=" << gamma << std::endl;
-    std::cout << "reflecting=" << reflecting << std::endl;
-    std::cout << "rhoL=" << rhoL << std::endl;
-    std::cout << "uL=" << uL << std::endl;
-    std::cout << "pL=" << pL << std::endl;
-    std::cout << "uR=" << uR << std::endl;
-    std::cout << "z0=" << z0 << std::endl;
+    debugInf << "printed from Fluid.cpp:"<< std::endl;
+    debugInf << "dx=" << dx << std::endl;
+    debugInf << "dt=" << dt << std::endl;
+    debugInf << "CFL=" << CFL << std::endl;
+    debugInf << "gamma=" << gamma << std::endl;
+    debugInf << "reflecting=" << reflecting << std::endl;
+    debugInf << "rhoR=" << rhoR << std::endl;
+    debugInf << "uR=" << uR << std::endl;
+    debugInf << "pR=" << pR << std::endl;
+    debugInf << "Mach=" << mach << std::endl;
+    debugInf << "etab=" << etab << std::endl;
+    debugInf << "z0=" << z0 << std::endl;
 
-    std::cout << "n_var = " << n_var << std::endl;
-    std::cout << "n_integ = " << n_integ << std::endl;
-    std::cout << "var_den = " << var_den  << std::endl;    
-    std::cout << "var_mom[0] = " << var_mom[0] << std::endl;    
-    std::cout << "var_mom[1] = " << var_mom[1] << std::endl;
-    std::cout << "var_mom[2] = " << var_mom[2] << std::endl;    
-    std::cout << "var_eng = " << var_eng  << std::endl;    
-    std::cout << "var_vel[0] = " << var_vel[0] << std::endl;    
-    std::cout << "var_vel[1] = " << var_vel[1] << std::endl;    
-    std::cout << "var_vel[2] = " << var_vel[2] << std::endl;    
-    std::cout << "var_prs = " << var_prs  << std::endl;    
-    std::cout << "var_msk = " << var_msk  << std::endl;    
+    debugInf << "n_var = " << n_var << std::endl;
+    debugInf << "n_integ = " << n_integ << std::endl;
+    debugInf << "var_den = " << var_den  << std::endl;    
+    debugInf << "var_mom[0] = " << var_mom[0] << std::endl;    
+    debugInf << "var_mom[1] = " << var_mom[1] << std::endl;
+    debugInf << "var_mom[2] = " << var_mom[2] << std::endl;    
+    debugInf << "var_eng = " << var_eng  << std::endl;    
+    debugInf << "var_vel[0] = " << var_vel[0] << std::endl;    
+    debugInf << "var_vel[1] = " << var_vel[1] << std::endl;    
+    debugInf << "var_vel[2] = " << var_vel[2] << std::endl;    
+    debugInf << "var_prs = " << var_prs  << std::endl;    
+    debugInf << "var_msk = " << var_msk  << std::endl;    
     */
 
     // nx, ny, nz, n_dim
@@ -107,6 +110,17 @@ namespace dem {
 	  arrayGridCoord[i][j][k][1] = (minY - dy/2) + j * dy;
 	  arrayGridCoord[i][j][k][2] = (minZ - dz/2) + k * dz;
 	}
+
+    // nx, ny, nz, n_dim
+    arrayPenalForce.resize(nx);
+    for (std::size_t i = 0; i < arrayPenalForce.size(); ++i) {
+      arrayPenalForce[i].resize(ny);
+      for (std::size_t j = 0; j < arrayPenalForce[i].size(); ++j) {
+	arrayPenalForce[i][j].resize(nz);
+	for (std::size_t k = 0; k < arrayPenalForce[i][j].size(); ++k) 
+	  arrayPenalForce[i][j][k].resize(n_dim);
+      }
+    }
 
     // nx, ny, nz, n_var
     arrayU.resize(nx);
@@ -263,10 +277,9 @@ namespace dem {
 				    + dt / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
 	}
 
-
-
     // calculate primitive after finding conservative variables
     UtoW(); 
+
     /*
     for (std::size_t k = 1; k < nz; ++k) {
       for (std::size_t j = 1; j < ny; ++j) {
@@ -280,6 +293,17 @@ namespace dem {
     */
   }
   
+  void Fluid::penalize() {
+    // Brinkman penalization
+    for (std::size_t i = 1; i < nx - 1 ; ++i)
+      for (std::size_t j = 1; j < ny - 1; ++j)
+	for (std::size_t k = 1; k < nz - 1; ++k) {
+	  for (std::size_t m = 0; m < n_dim; ++m)
+	    arrayU[i][j][k][var_mom[m]] = (1-arrayU[i][j][k][var_msk])*arrayU[i][j][k][var_vel[m]]
+	                        - arrayU[i][j][k][var_msk]*arrayPenalForce[i][j][k][m];
+	}
+  }
+
   void Fluid::addGhostPoints() {
 
     // non-reflecting BCs
@@ -308,7 +332,7 @@ namespace dem {
     if (reflecting) {
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k)
-	  for (std::size_t m = 0; m < n_dim; ++m) {
+	  for (std::size_t m = 0; m < 1; ++m) { // x-direction
 	    arrayU[0][j][k][var_mom[m]]    = -arrayU[1][j][k][var_mom[m]]; 
 	    arrayU[nx-1][j][k][var_mom[m]] = -arrayU[nx-2][j][k][var_mom[m]]; 
 	    arrayU[0][j][k][var_vel[m]]    = -arrayU[1][j][k][var_vel[m]]; 
@@ -317,7 +341,7 @@ namespace dem {
 
       for (std::size_t i = 1; i < nx - 1; ++i)
 	for (std::size_t k = 1; k < nz - 1; ++k)
-	  for (std::size_t m = 0; m < n_dim; ++m) {
+	  for (std::size_t m = 1; m < 2; ++m) { // y-direction
 	    arrayU[i][0][k][var_mom[m]]    = -arrayU[i][1][k][var_mom[m]]; 
 	    arrayU[i][ny-1][k][var_mom[m]] = -arrayU[i][ny-2][k][var_mom[m]];
 	    arrayU[i][0][k][var_vel[m]]    = -arrayU[i][1][k][var_vel[m]]; 
@@ -326,7 +350,7 @@ namespace dem {
 
       for (std::size_t i = 1; i < nx - 1; ++i)
 	for (std::size_t j = 1; j < ny - 1; ++j)
-	  for (std::size_t m = 0; m < n_dim; ++m) {
+	  for (std::size_t m = 2; m < 3; ++m) { // z-direction
 	    arrayU[i][j][0][var_mom[m]]    = -arrayU[i][j][1][var_mom[m]]; 
 	    arrayU[i][j][nz-1][var_mom[m]] = -arrayU[i][j][nz-2][var_mom[m]]; 
 	    arrayU[i][j][0][var_vel[m]]    = -arrayU[i][j][1][var_vel[m]]; 
@@ -397,20 +421,16 @@ namespace dem {
   }
 
   void Fluid::RankineHugoniot() {
-    REAL alpha = rhoL * pow(uL - uR ,2);
-    REAL beta  = sqrt(16*pL*gamma/(alpha*(1+gamma)*(1+gamma)) + 1);
-    rhoR = rhoL*(4*pL*gamma + alpha*(1+gamma)*(1-beta)) / (2*(alpha*(gamma-1) + 2*pL*gamma));
-    pR = pL - alpha * (1+gamma) * (beta-1) / 4;
-    shockSpeed = uR + (uL - uR) * (3-gamma + (1+gamma)*beta) / 4;
-
-    /*
-    debugInf << "alpla=" << alpha << std::endl;
-    debugInf << "beta=" << beta << std::endl;
-    debugInf << "rhoR=" << rhoR << std::endl;
-    debugInf << "uR=" << uR << std::endl;
-    debugInf << "pR=" << pR << std::endl;
-    debugInf << "shock=" << shockSpeed << std::endl;
-    */
+    shockSpeed = mach*sqrt(gamma*pR/rhoR);
+    pL = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
+    rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
+    uL = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
+    ///*
+    debugInf << "rhoL=" << rhoL << std::endl;
+    debugInf << "uL=" << uL << std::endl;
+    debugInf << "pL=" << pL << std::endl;
+    debugInf << "shockSpeed=" << shockSpeed << std::endl;
+    //*/
   }
 
   void Fluid::flux() {
@@ -534,7 +554,7 @@ namespace dem {
 	  REAL z = arrayGridCoord[i][j][k][2];
 	  for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
 	    if ( (*it)->surfaceError(Vec(x,y,z)) < 0 ) {// inside particle surface
-	      arrayU[i][j][k][var_msk] = 1;     
+	      arrayU[i][j][k][var_msk] = 1; 
 	      (*it)->recordFluidGrid(i, j, k);
 	    }
 	  }
@@ -561,11 +581,14 @@ namespace dem {
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	REAL fx = (uxFluid - ux) * 0; // coef
-	REAL fy = (uyFluid - uy) * 0;
-	REAL fz = (uzFluid - uz) * 0;
+	REAL fx = (uxFluid - ux) / etab;
+	REAL fy = (uyFluid - uy) / etab;
+	REAL fz = (uzFluid - uz) / etab;
 
-	(*it)->addForce(Vec(fx, fy, fz) * (dx*dy*dz));
+	arrayPenalForce[i][j][k][0] = fx;
+	arrayPenalForce[i][j][k][1] = fy;
+	arrayPenalForce[i][j][k][2] = fz;
+	//(*it)->addForce(Vec(fx, fy, fz) * (dx*dy*dz));
       }
 
 
