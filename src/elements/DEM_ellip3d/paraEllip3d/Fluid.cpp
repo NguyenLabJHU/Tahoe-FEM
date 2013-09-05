@@ -279,28 +279,18 @@ namespace dem {
 
     // calculate primitive after finding conservative variables
     UtoW(); 
-
-    /*
-    for (std::size_t k = 1; k < nz; ++k) {
-      for (std::size_t j = 1; j < ny; ++j) {
-	for (std::size_t i = 1; i < nx; ++i) {
-	  std::cout << arrayU[i][j][k][var_den] << " ";
-	}
-	debugInf << std::endl;
-      }
-      debugInf << "----------------------" << std::endl;
-    }
-    */
   }
   
   void Fluid::penalize() {
     // Brinkman penalization
-    for (std::size_t i = 1; i < nx - 1 ; ++i)
-      for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < n_dim; ++m)
-	    arrayU[i][j][k][var_mom[m]] = (1-arrayU[i][j][k][var_msk])*arrayU[i][j][k][var_vel[m]]
+    for (std::size_t i = 0; i < nx - 0 ; ++i)
+      for (std::size_t j = 0; j < ny - 0; ++j)
+	for (std::size_t k = 0; k < nz - 0; ++k) {
+	  for (std::size_t m = 2; m < n_dim; ++m) {
+	    arrayU[i][j][k][var_vel[m]] = (1-arrayU[i][j][k][var_msk])*arrayU[i][j][k][var_vel[m]]
 	                        - arrayU[i][j][k][var_msk]*arrayPenalForce[i][j][k][m];
+	    arrayU[i][j][k][var_mom[m]] = arrayU[i][j][k][var_den] * arrayU[i][j][k][var_vel[m]];
+	  }
 	}
   }
 
@@ -588,6 +578,10 @@ namespace dem {
 	arrayPenalForce[i][j][k][0] = fx;
 	arrayPenalForce[i][j][k][1] = fy;
 	arrayPenalForce[i][j][k][2] = fz;
+
+	if (fx !=0 || fy !=0 || fz!=0)
+	  debugInf << "iter i j k mask ux uy uz=" << iteration << " " << i << " " << j << " "<< k << " " << arrayU[i][j][k][var_msk]
+		   << " " << uxFluid << " " << uyFluid << " " << uzFluid << std::endl;
 	//(*it)->addForce(Vec(fx, fy, fz) * (dx*dy*dz));
       }
 
@@ -617,6 +611,9 @@ namespace dem {
 	<< std::setw(OWID) << "\"velocity_z\""
 	<< std::setw(OWID) << "\"pressure\""
 	<< std::setw(OWID) << "\"mask\""
+	<< std::setw(OWID) << "\"fx\""
+	<< std::setw(OWID) << "\"fy\""
+	<< std::setw(OWID) << "\"fz\""
 	<< std::endl;
 
     ofs << "ZONE I=" << nx -2
@@ -640,7 +637,11 @@ namespace dem {
 	      << std::setw(OWID) << arrayU[i][j][k][6]
 	      << std::setw(OWID) << arrayU[i][j][k][7]
 	      << std::setw(OWID) << arrayU[i][j][k][8]
-	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  << std::endl;
+	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  
+	      << std::setw(OWID) << arrayPenalForce[i][j][k][0] 
+	      << std::setw(OWID) << arrayPenalForce[i][j][k][1] 
+	      << std::setw(OWID) << arrayPenalForce[i][j][k][2] 
+	      << std::endl;
 	  //printf("%A ", arrayU[i][j][k][1]);
 	}
 
@@ -648,3 +649,16 @@ namespace dem {
   }
   
 } // name space dem
+
+
+    /*
+    for (std::size_t k = 1; k < nz; ++k) {
+      for (std::size_t j = 1; j < ny; ++j) {
+	for (std::size_t i = 1; i < nx; ++i) {
+	  std::cout << arrayU[i][j][k][var_den] << " ";
+	}
+	debugInf << std::endl;
+      }
+      debugInf << "----------------------" << std::endl;
+    }
+    */
