@@ -24,6 +24,7 @@ namespace dem {
     REAL maxX;
     REAL maxY;
     REAL maxZ;
+    REAL arrayBC[6];
 
     std::size_t nx; // nx = total cellcenters = parts + two boundary points in x direction
     std::size_t ny; // ny = total cellcenters = parts + two boundary points in y direction
@@ -35,7 +36,6 @@ namespace dem {
 
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;
-    bool reflecting;   // 0 - non-reflecting; 1 - reflecting
     REAL rhoL, uL, pL; // unknown
     REAL rhoR, uR, pR; // known
     REAL mach;         // shock Mach number, known
@@ -52,13 +52,13 @@ namespace dem {
     // nx, ny, nz, n_var
     // (a) fixed:
     // arrayU[i][j][k][0]: var_den
-    // arrayU[i][j][k][1]: var_mom[1]
-    // arrayU[i][j][k][2]: var_mom[2]
-    // arrayU[i][j][k][3]: var_mom[3]
+    // arrayU[i][j][k][1]: var_mom[0]
+    // arrayU[i][j][k][2]: var_mom[1]
+    // arrayU[i][j][k][3]: var_mom[2]
     // arrayU[i][j][k][4]: var_eng
-    // arrayU[i][j][k][5]: var_vel[1]
-    // arrayU[i][j][k][6]: var_vel[2]
-    // arrayU[i][j][k][7]: var_vel[3]
+    // arrayU[i][j][k][5]: var_vel[0]
+    // arrayU[i][j][k][6]: var_vel[1]
+    // arrayU[i][j][k][7]: var_vel[2]
     // arrayU[i][j][k][8]: var_prs
     // (b) extended:
     // arrayU[i][j][k][9]: var_msk
@@ -73,26 +73,33 @@ namespace dem {
     Array4D arrayPenalForce;
     // fluid grid forces, 4-dimensional
     // nx, ny, nz, n_dim
-    // arrayPenalForce[i][j][k][0]: coord_x
-    // arrayPenalForce[i][j][k][1]: coord_y
-    // arrayPenalForce[i][j][k][2]: coord_z
+    // arrayPenalForce[i][j][k][0]: force_x
+    // arrayPenalForce[i][j][k][1]: force_y
+    // arrayPenalForce[i][j][k][2]: force_z
+
+    Array4D arrayPressureGrad;
+    // fluid grid forces, 4-dimensional
+    // nx, ny, nz, n_dim
+    // arrayPressureGrad[i][j][k][0]: grad_x
+    // arrayPressureGrad[i][j][k][1]: grad_y
+    // arrayPressureGrad[i][j][k][2]: grad_z
 
     Array4D arrayFlux;
     // 4-dimensional
     // nx, ny, nz, n_integ
     // arrayFlux[i][j][k][0]: var_den
-    // arrayFlux[i][j][k][1]: var_mom[1]
-    // arrayFlux[i][j][k][2]: var_mom[2]
-    // arrayFlux[i][j][k][3]: var_mom[3]
+    // arrayFlux[i][j][k][1]: var_mom[0]
+    // arrayFlux[i][j][k][2]: var_mom[1]
+    // arrayFlux[i][j][k][3]: var_mom[2]
     // arrayFlux[i][j][k][4]: var_eng
 
     Array5D arrayRoeFlux; 
     // 5-dimensional
     // nx-1, ny-1, nz-1, n_integ, n_dim
     // arrayRoeFlux[i][j][k][0]: var_den
-    // arrayRoeFlux[i][j][k][1]: var_mom[1]
-    // arrayRoeFlux[i][j][k][2]: var_mom[2]
-    // arrayRoeFlux[i][j][k][3]: var_mom[3]
+    // arrayRoeFlux[i][j][k][1]: var_mom[0]
+    // arrayRoeFlux[i][j][k][2]: var_mom[1]
+    // arrayRoeFlux[i][j][k][3]: var_mom[2]
     // arrayRoeFlux[i][j][k][4]: var_eng
 
     Array4D arrayRoeFluxTmp;

@@ -36,13 +36,18 @@ namespace dem {
     
     CFL   = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
-    reflecting = dem::Parameter::getSingleton().parameter["reflecting"];
     rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
     pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
     mach = dem::Parameter::getSingleton().parameter["MachNumber"];
     etab = dem::Parameter::getSingleton().parameter["etab"];
-    z0   = minZ + 0.25*(maxZ - minZ);
+    z0   = minZ + (maxZ - minZ) * dem::Parameter::getSingleton().parameter["z0Ratio"];
+    arrayBC[0] = dem::Parameter::getSingleton().parameter["x1Reflecting"];
+    arrayBC[1] = dem::Parameter::getSingleton().parameter["x2Reflecting"];
+    arrayBC[2] = dem::Parameter::getSingleton().parameter["y1Reflecting"];
+    arrayBC[3] = dem::Parameter::getSingleton().parameter["y2Reflecting"];
+    arrayBC[4] = dem::Parameter::getSingleton().parameter["z1Reflecting"];
+    arrayBC[5] = dem::Parameter::getSingleton().parameter["z2Reflecting"];
 
     // fixed
     n_dim = 3;
@@ -63,13 +68,17 @@ namespace dem {
     // extended
     var_msk = n_var++;
 
-    /*
-    debugInf << "printed from Fluid.cpp:"<< std::endl;
+    ///*
     debugInf << "dx=" << dx << std::endl;
     debugInf << "dt=" << dt << std::endl;
     debugInf << "CFL=" << CFL << std::endl;
     debugInf << "gamma=" << gamma << std::endl;
-    debugInf << "reflecting=" << reflecting << std::endl;
+    debugInf << "x1Rflecting=" << arrayBC[0] << std::endl;
+    debugInf << "x2Rflecting=" << arrayBC[1] << std::endl;
+    debugInf << "y1Rflecting=" << arrayBC[2] << std::endl;
+    debugInf << "y2Rflecting=" << arrayBC[3] << std::endl;
+    debugInf << "z1Rflecting=" << arrayBC[4] << std::endl;
+    debugInf << "z2Rflecting=" << arrayBC[5] << std::endl;
     debugInf << "rhoR=" << rhoR << std::endl;
     debugInf << "uR=" << uR << std::endl;
     debugInf << "pR=" << pR << std::endl;
@@ -89,7 +98,7 @@ namespace dem {
     debugInf << "var_vel[2] = " << var_vel[2] << std::endl;    
     debugInf << "var_prs = " << var_prs  << std::endl;    
     debugInf << "var_msk = " << var_msk  << std::endl;    
-    */
+    //*/
 
     // nx, ny, nz, n_dim
     arrayGridCoord.resize(nx);
@@ -119,6 +128,17 @@ namespace dem {
 	arrayPenalForce[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayPenalForce[i][j].size(); ++k) 
 	  arrayPenalForce[i][j][k].resize(n_dim);
+      }
+    }
+
+    // nx, ny, nz, n_dim
+    arrayPressureGrad.resize(nx);
+    for (std::size_t i = 0; i < arrayPressureGrad.size(); ++i) {
+      arrayPressureGrad[i].resize(ny);
+      for (std::size_t j = 0; j < arrayPressureGrad[i].size(); ++j) {
+	arrayPressureGrad[i][j].resize(nz);
+	for (std::size_t k = 0; k < arrayPressureGrad[i][j].size(); ++k) 
+	  arrayPressureGrad[i][j][k].resize(n_dim);
       }
     }
 
@@ -208,7 +228,7 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     dt = std::min(dem::Parameter::getSingleton().parameter["timeStep"], timeStep());
-    //std::cout << "iter=" <<  std::setw(7) << iteration << " dt=" << dt << std::endl;
+    debugInf << "iter=" << std::setw(OWID) << iteration << " dt=" << std::setw(OWID) << dt << std::endl;
     enthalpy();
 
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
@@ -283,19 +303,14 @@ namespace dem {
   
   void Fluid::penalize() {
     // Brinkman penalization
-    for (std::size_t i = 0; i < nx - 0 ; ++i)
-      for (std::size_t j = 0; j < ny - 0; ++j)
-	for (std::size_t k = 0; k < nz - 0; ++k) {
-	  for (std::size_t m = 2; m < n_dim; ++m) {
-	    arrayU[i][j][k][var_vel[m]] = (1-arrayU[i][j][k][var_msk])*arrayU[i][j][k][var_vel[m]]
-	                        - arrayU[i][j][k][var_msk]*arrayPenalForce[i][j][k][m];
-	    arrayU[i][j][k][var_mom[m]] = arrayU[i][j][k][var_den] * arrayU[i][j][k][var_vel[m]];
-	  }
-	}
+    for (std::size_t i = 0; i < nx; ++i)
+      for (std::size_t j = 0; j < ny; ++j)
+	for (std::size_t k = 0; k < nz; ++k)
+	  for (std::size_t m = 0; m < n_dim; ++m)
+	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk]*arrayPenalForce[i][j][k][m]*dt;
   }
-
+  
   void Fluid::addGhostPoints() {
-
     // non-reflecting BCs
     for (std::size_t j = 1; j < ny - 1; ++j)
       for (std::size_t k = 1; k < nz - 1; ++k)
@@ -319,36 +334,45 @@ namespace dem {
 	}
 
     // reflecting BCs
+    bool reflecting = false;
+    for (std::size_t it = 0; it < 6; ++it) {
+      if (arrayBC[it] > 0) {
+	reflecting = true;
+	break;
+      }
+    }
+
     if (reflecting) {
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k)
 	  for (std::size_t m = 0; m < 1; ++m) { // x-direction
-	    arrayU[0][j][k][var_mom[m]]    = -arrayU[1][j][k][var_mom[m]]; 
-	    arrayU[nx-1][j][k][var_mom[m]] = -arrayU[nx-2][j][k][var_mom[m]]; 
-	    arrayU[0][j][k][var_vel[m]]    = -arrayU[1][j][k][var_vel[m]]; 
-	    arrayU[nx-1][j][k][var_vel[m]] = -arrayU[nx-2][j][k][var_vel[m]]; 
+	    arrayU[0][j][k][var_mom[m]]    *= (1-2*arrayBC[0]); 
+	    arrayU[nx-1][j][k][var_mom[m]] *= (1-2*arrayBC[1]); 
+	    arrayU[0][j][k][var_vel[m]]    *= (1-2*arrayBC[0]); 
+	    arrayU[nx-1][j][k][var_vel[m]] *= (1-2*arrayBC[1]); 
 	  }
 
       for (std::size_t i = 1; i < nx - 1; ++i)
 	for (std::size_t k = 1; k < nz - 1; ++k)
 	  for (std::size_t m = 1; m < 2; ++m) { // y-direction
-	    arrayU[i][0][k][var_mom[m]]    = -arrayU[i][1][k][var_mom[m]]; 
-	    arrayU[i][ny-1][k][var_mom[m]] = -arrayU[i][ny-2][k][var_mom[m]];
-	    arrayU[i][0][k][var_vel[m]]    = -arrayU[i][1][k][var_vel[m]]; 
-	    arrayU[i][ny-1][k][var_vel[m]] = -arrayU[i][ny-2][k][var_vel[m]];  
+	    arrayU[i][0][k][var_mom[m]]    *= (1-2*arrayBC[2]); 
+	    arrayU[i][ny-1][k][var_mom[m]] *= (1-2*arrayBC[3]);
+	    arrayU[i][0][k][var_vel[m]]    *= (1-2*arrayBC[2]); 
+	    arrayU[i][ny-1][k][var_vel[m]] *= (1-2*arrayBC[3]);  
 	  }
 
       for (std::size_t i = 1; i < nx - 1; ++i)
 	for (std::size_t j = 1; j < ny - 1; ++j)
 	  for (std::size_t m = 2; m < 3; ++m) { // z-direction
-	    arrayU[i][j][0][var_mom[m]]    = -arrayU[i][j][1][var_mom[m]]; 
-	    arrayU[i][j][nz-1][var_mom[m]] = -arrayU[i][j][nz-2][var_mom[m]]; 
-	    arrayU[i][j][0][var_vel[m]]    = -arrayU[i][j][1][var_vel[m]]; 
-	    arrayU[i][j][nz-1][var_vel[m]]  = -arrayU[i][j][nz-2][var_vel[m]]; 
+	    arrayU[i][j][0][var_mom[m]]    *= (1-2*arrayBC[4]); 
+	    arrayU[i][j][nz-1][var_mom[m]] *= (1-2*arrayBC[5]); 
+	    arrayU[i][j][0][var_vel[m]]    *= (1-2*arrayBC[4]); 
+	    arrayU[i][j][nz-1][var_vel[m]] *= (1-2*arrayBC[5]); 
 	  }
     }
+    
   }
-
+  
   REAL Fluid::timeStep() {
     std::valarray<REAL> allGrid(nx * ny * nz);
     for (std::size_t i = 0; i < nx ; ++i)
@@ -535,9 +559,10 @@ namespace dem {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
-    for (std::size_t i = 1; i < arrayGridCoord.size() - 1 ; ++i)
-      for (std::size_t j = 1; j <  arrayGridCoord[i].size() - 1; ++j)
-	for (std::size_t k = 1; k <  arrayGridCoord[i][j].size() -1; ++k) {
+    // 0 ~ (n-1), including boundaries
+    for (std::size_t i = 0; i < arrayGridCoord.size() ; ++i)
+      for (std::size_t j = 0; j <  arrayGridCoord[i].size(); ++j)
+	for (std::size_t k = 0; k <  arrayGridCoord[i][j].size(); ++k) {
 	  arrayU[i][j][k][var_msk] = 0;
 	  REAL x = arrayGridCoord[i][j][k][0];
 	  REAL y = arrayGridCoord[i][j][k][1];
@@ -571,18 +596,25 @@ namespace dem {
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	REAL fx = (uxFluid - ux) / etab;
-	REAL fy = (uyFluid - uy) / etab;
-	REAL fz = (uzFluid - uz) / etab;
+	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etab;
+	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etab;
+	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etab;
 
-	arrayPenalForce[i][j][k][0] = fx;
-	arrayPenalForce[i][j][k][1] = fy;
-	arrayPenalForce[i][j][k][2] = fz;
+	arrayPressureGrad[i][j][k][0] = (arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
+	arrayPressureGrad[i][j][k][1] = (arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
+	arrayPressureGrad[i][j][k][2] = (arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
 
+	/*
 	if (fx !=0 || fy !=0 || fz!=0)
 	  debugInf << "iter i j k mask ux uy uz=" << iteration << " " << i << " " << j << " "<< k << " " << arrayU[i][j][k][var_msk]
 		   << " " << uxFluid << " " << uyFluid << " " << uzFluid << std::endl;
-	//(*it)->addForce(Vec(fx, fy, fz) * (dx*dy*dz));
+	*/
+
+	/*
+	(*it)->addForce(Vec(arrayPenalForce[i][j][k][0] + arrayPressureGrad[i][j][k][0], 
+			    arrayPenalForce[i][j][k][1] + arrayPressureGrad[i][j][k][1],
+			    arrayPenalForce[i][j][k][2] + arrayPressureGrad[i][j][k][2]) * (dx*dy*dz));
+	*/
       }
 
 
@@ -610,10 +642,14 @@ namespace dem {
 	<< std::setw(OWID) << "\"velocity_y\""
 	<< std::setw(OWID) << "\"velocity_z\""
 	<< std::setw(OWID) << "\"pressure\""
+	<< std::setw(OWID) << "\"temperature\""
 	<< std::setw(OWID) << "\"mask\""
-	<< std::setw(OWID) << "\"fx\""
-	<< std::setw(OWID) << "\"fy\""
-	<< std::setw(OWID) << "\"fz\""
+	<< std::setw(OWID) << "\"dragFx\""
+	<< std::setw(OWID) << "\"pressureFx\""
+	<< std::setw(OWID) << "\"dragFy\""
+	<< std::setw(OWID) << "\"pressureFy\""
+	<< std::setw(OWID) << "\"dragFz\""
+	<< std::setw(OWID) << "\"pressureFz\""
 	<< std::endl;
 
     ofs << "ZONE I=" << nx -2
@@ -629,20 +665,23 @@ namespace dem {
 	      << std::setw(OWID) << arrayGridCoord[i][j][k][1]
 	      << std::setw(OWID) << arrayGridCoord[i][j][k][2]
 	      << std::setw(OWID) << arrayU[i][j][k][var_den]
-	      << std::setw(OWID) << arrayU[i][j][k][1]
-	      << std::setw(OWID) << arrayU[i][j][k][2]
-	      << std::setw(OWID) << arrayU[i][j][k][3]
-	      << std::setw(OWID) << arrayU[i][j][k][4]
-	      << std::setw(OWID) << arrayU[i][j][k][5]
-	      << std::setw(OWID) << arrayU[i][j][k][6]
-	      << std::setw(OWID) << arrayU[i][j][k][7]
-	      << std::setw(OWID) << arrayU[i][j][k][8]
+	      << std::setw(OWID) << arrayU[i][j][k][var_mom[0]]
+	      << std::setw(OWID) << arrayU[i][j][k][var_mom[1]]
+	      << std::setw(OWID) << arrayU[i][j][k][var_mom[2]]
+	      << std::setw(OWID) << arrayU[i][j][k][var_eng]
+	      << std::setw(OWID) << arrayU[i][j][k][var_vel[0]]
+	      << std::setw(OWID) << arrayU[i][j][k][var_vel[1]]
+	      << std::setw(OWID) << arrayU[i][j][k][var_vel[2]]
+	      << std::setw(OWID) << arrayU[i][j][k][var_prs]
+	      << std::setw(OWID) << arrayU[i][j][k][var_prs]/(8.31*arrayU[i][j][k][var_den])
 	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][0] 
+	      << std::setw(OWID) << arrayPressureGrad[i][j][k][0] 
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][1] 
+	      << std::setw(OWID) << arrayPressureGrad[i][j][k][1] 
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][2] 
+	      << std::setw(OWID) << arrayPressureGrad[i][j][k][2] 
 	      << std::endl;
-	  //printf("%A ", arrayU[i][j][k][1]);
 	}
 
     ofs.close();
