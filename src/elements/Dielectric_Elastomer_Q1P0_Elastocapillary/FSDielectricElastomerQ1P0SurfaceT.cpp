@@ -2,7 +2,6 @@
 #include "FSDEMatQ1P0T.h"
 #include "FSDEMatSupportQ1P0T.h"
 #include "ShapeFunctionT.h"
-//#include "FSDEMatQ1P0ElastocapillaryT.h"
 
 /* From TLCBSurfaceT */
 #include "ModelManagerT.h"
@@ -388,11 +387,11 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 				/* MAPPING/DEFORMATION */
 
 					/* reference coordinate mapping on face */
-					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					surf_shape.DomainJacobian(face_curr_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 				
 					/* face normal (for all face IPs) */
-					surf_shape.DomainJacobian(face_curr_coords, face_ip, jacobian);
+//					surf_shape.DomainJacobian(face_curr_coords, face_ip, jacobian);
 					surf_shape.SurfaceJacobian(jacobian, Q);	// Last column of Q is normal vector to surface
 				
 					/* ip coordinates on face */
@@ -459,10 +458,10 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 		fAmm_mat2.Expand(fAmm_geo2, NumDOF(), dMatrixT::kAccumulate);			
 
 		/* Assemble into fLHS, or element stiffness matrix */
-		fLHS.AddBlock(0, 0, fAmm_mat2);
+//		fLHS.AddBlock(0, 0, fAmm_mat2);
 		
 		/* assemble stiffness */
-		ElementSupport().AssembleLHS(Group(), fLHS, element_card.Equations());			
+//		ElementSupport().AssembleLHS(Group(), fLHS, element_card.Equations());			
 	}		
   }
 
@@ -495,7 +494,9 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	dArray2DT surfGradNa1(nsd, nen);
 	iArrayT face_nodes(nfn), face_nodes_index(nfn);
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	LocalArrayT face_curr_coords(LocalArrayT::kCurrCoords, nfn, nsd);	
 	ElementSupport().RegisterCoordinates(face_coords);
+	ElementSupport().RegisterCoordinates(face_curr_coords);	
 	dArrayT ip_coords_X(nsd);
 	dArrayT ip_coords_Xi(nsd);
 	dArrayT Na(nen);
@@ -507,7 +508,8 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	/* matrix alias to NEEvec */
 	dArrayT NEEvec(NumSD()*NumElementNodes());
 	NEEvec = 0.0;
-	dMatrixT WP(NumSD(), fAmm_geo2.Rows(), NEEvec.Pointer());
+//	dMatrixT WP(NumSD(), fAmm_geo2.Rows(), NEEvec.Pointer());
+	dMatrixT WP(NumElementNodes(), NumSD(), NEEvec.Pointer());
 
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
 	{
@@ -531,20 +533,22 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 				shape.NodesOnFacet(j, face_nodes_index);	// fni = 4 nodes of surface face
 				face_nodes.Collect(face_nodes_index, element_card.NodesX());
 				face_coords.SetLocal(face_nodes);
+				face_curr_coords.SetLocal(face_nodes);
 
 				/* integrate over the face */
 				int face_ip;
 				fSurfaceCBSupport->SetCurrIP(face_ip);
 				const double* w = surf_shape.Weight();	
 				int count = 0;		
+
 				for (face_ip = 0; face_ip < nsi; face_ip++) {
 
 				/* MAPPING/DEFORMATION */
 
-					/* reference coordinate mapping on face */
-					surf_shape.DomainJacobian(face_coords, face_ip, jacobian);
+					/* current coordinate mapping on face */
+					surf_shape.DomainJacobian(face_curr_coords, face_ip, jacobian);
 					double detj = surf_shape.SurfaceJacobian(jacobian);
-					surf_shape.SurfaceJacobian(jacobian, Q);	// using reference face_coords
+					surf_shape.SurfaceJacobian(jacobian, Q);	// using current face_coords
 					
 					/* ip coordinates on face */
 					surf_shape.Interpolate(face_coords, ip_coords_X, face_ip);
@@ -569,29 +573,27 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 					else
 						F_inv.Inverse(F);
 					
-					/* stress at the surface */
-//					fSurfaceCB->s_ij().ToMatrix(cauchy);
+					/* shape function gradient wrt current configuration */
+					shape.TransformDerivatives(F_inv, DNa_X, DNa_x);
+					
+					/* cauchy stress at the surface */
 					cauchysym = Surf_Tension_Stress();
 					cauchysym.ToMatrix(cauchy);
-
-					/* compute PK1/J */
-					PK1.MultABT(cauchy, F_inv);
 					
-					/* Wi,J PiJ */
-					shape.GradNa(DNa_X, fGradNa);
-					/* Get surface shape function gradients in undeformed configuration */
+					/* Get current surface shape function matrix */
+					shape.GradNa(DNa_x, fGradNa);
+					/* Get surface shape function gradients in current configuration */
 					surfGradNa = Surf_BMatrix(fGradNa, Q);
+						
+					/* B^T x cauchy */
+					WP.MultATB(surfGradNa, cauchy);
 
-//					WP.MultAB(PK1, fGradNa);
-					WP.MultAB(PK1, surfGradNa);
-
-					/* accumulate */
+					/* accumulate (should this be -J or +J?) */
 					Rmech2.AddScaled(-J*constK*w[face_ip]*detj, NEEvec);
 				}			
 			}
-
- 		Rtotal2.CopyIn(0, Rmech2);
-
+			
+// 		Rtotal2.CopyIn(0, Rmech2);
 		fRHS += Rtotal2;
 		
 		/* assemble forces */
@@ -606,6 +608,8 @@ dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_BMatrix(const dMatrixT& B_origi
 	dMatrixT surfb(NumSD(), NumElementNodes());
 	dMatrixT surfb1(NumSD(), NumElementNodes());
 	dMatrixT surfb2(NumSD());
+	dMatrixT surfb3(NumSD());
+	surfb3.Identity();
 	dArrayT normal(NumSD());
 	
 	/* extract normal from Q */
@@ -614,9 +618,9 @@ dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_BMatrix(const dMatrixT& B_origi
 	/* modify B matrix using surface gradient */
 	surfb = B_original;
 	surfb2.Outer(normal, normal);
-	surfb1.MultAB(surfb2, B_original);
-	surfb-=surfb1;
-	
+	surfb3-=surfb2;
+	surfb.MultAB(surfb3, B_original);
+
 	return surfb;
 }
 
@@ -643,7 +647,6 @@ dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_Tension_Stiffness(dMatrixT& For
 	dArray2DT basis(nsd, nsd, basis_list[nsd]);
 
 	/* work space */
-//	dMatrixT& F = const_cast<dMatrixT&>(fFSMatSupport->DeformationGradient());
 	dMatrixT& F = Foriginal;
 	F_0_ = F;
 
@@ -669,7 +672,6 @@ dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_Tension_Stiffness(dMatrixT& For
 		double J = F.Det();
 
 		/* compute stress */
-//		stress_.SetToScaled(J, s_ij());
 		stress_.SetToScaled(J, Surf_Tension_Stress());
 
 		/* write into modulus */
@@ -679,7 +681,6 @@ dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_Tension_Stiffness(dMatrixT& For
 	/* restore nominal state of deformation and stress */
 	F = F_0_;
 
-//	stress_.SetToScaled(J_0, s_ij());
 	stress_.SetToScaled(J_0, Surf_Tension_Stress());
 	
 	/* compute finite difference and geometric contribution (2.18) */
@@ -710,7 +711,6 @@ dMatrixT FSDielectricElastomerQ1P0SurfaceT::Surf_Tension_Stiffness(dMatrixT& For
 
 	/* J factor */
 	tempstiff /= J_0;
-//	cout << "tempstiff = " << tempstiff << endl;
 	return tempstiff;
 }
 
