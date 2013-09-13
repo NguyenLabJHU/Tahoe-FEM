@@ -484,14 +484,12 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
     
     /* Define mechanical and electrical residuals */
 	dArrayT Rtotal2((nsd+1)*nen);
-	Rtotal2 = 0.0;
 	dArrayT Rmech2(nen*nsd);
 	
 	/* loop over surface elements */
 	dMatrixT Q(nsd);	
 	dMatrixT jacobian(nsd, nsd-1);
-	dMatrixT surfGradNa(nsd, nen);
-	dArray2DT surfGradNa1(nsd, nen);
+	dMatrixT surfGradNa(nsd, nen), surfGradNa1(nen,nsd);
 	iArrayT face_nodes(nfn), face_nodes_index(nfn);
 	LocalArrayT face_coords(LocalArrayT::kInitCoords, nfn, nsd);
 	LocalArrayT face_curr_coords(LocalArrayT::kCurrCoords, nfn, nsd);	
@@ -507,8 +505,6 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 
 	/* matrix alias to NEEvec */
 	dArrayT NEEvec(NumSD()*NumElementNodes());
-	NEEvec = 0.0;
-//	dMatrixT WP(NumSD(), fAmm_geo2.Rows(), NEEvec.Pointer());
 	dMatrixT WP(NumElementNodes(), NumSD(), NEEvec.Pointer());
 
 	for (int i = 0; i < fSurfaceElements.Length(); i++)
@@ -521,6 +517,7 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 	
 		/* integrate surface contribution to nodal forces */
 		Rmech2 = 0.0;
+		Rtotal2 = 0.0;
 		for (int j = 0; j < fSurfaceElementNeighbors.MinorDim(); j++) /* loop over faces */
 			if (fSurfaceElementNeighbors(i,j) == -1) /* no neighbor => surface */
 //			if (fSurfaceElementNeighbors(i,j) == -1 && (fSurfaceElementFacesType(i,j) == 2 || fSurfaceElementFacesType(i,j) == 3)) /* no neighbor => surface */
@@ -582,22 +579,25 @@ void FSDielectricElastomerQ1P0SurfaceT::DefineSubs(SubListT& sub_list) const
 					
 					/* Get current surface shape function matrix */
 					shape.GradNa(DNa_x, fGradNa);
+					
 					/* Get surface shape function gradients in current configuration */
 					surfGradNa = Surf_BMatrix(fGradNa, Q);
-						
-					/* B^T x cauchy */
-					WP.MultATB(surfGradNa, cauchy);
+					surfGradNa1.Transpose(surfGradNa);
+					
+					/* F_surf = surface grad (N) * surface tension */
+					surfGradNa1*=fSurfTension;
+					WP = surfGradNa1;		
 
 					/* accumulate (should this be -J or +J?) */
 					Rmech2.AddScaled(-J*constK*w[face_ip]*detj, NEEvec);
 				}			
 			}
 			
-// 		Rtotal2.CopyIn(0, Rmech2);
+ 		Rtotal2.CopyIn(0, Rmech2);
 		fRHS += Rtotal2;
 		
 		/* assemble forces */
-		ElementSupport().AssembleRHS(Group(), fRHS, element_card.Equations());	
+//		ElementSupport().AssembleRHS(Group(), fRHS, element_card.Equations());	
 	}		
   }
 /***********************************************************************
