@@ -77,12 +77,12 @@ namespace dem {
     // arrayPenalForce[i][j][k][1]: force_y
     // arrayPenalForce[i][j][k][2]: force_z
 
-    Array4D arrayPressureGrad;
+    Array4D arrayPressureForce;
     // fluid grid forces, 4-dimensional
     // nx, ny, nz, n_dim
-    // arrayPressureGrad[i][j][k][0]: grad_x
-    // arrayPressureGrad[i][j][k][1]: grad_y
-    // arrayPressureGrad[i][j][k][2]: grad_z
+    // arrayPressureForce[i][j][k][0]: force_x
+    // arrayPressureForce[i][j][k][1]: force_y
+    // arrayPressureForce[i][j][k][2]: force_z
 
     Array4D arrayFlux;
     // 4-dimensional
@@ -132,7 +132,7 @@ namespace dem {
 
     void getParticleInfo(std::vector<Particle *> &ptcls);
     void runOneStep();
-    void calcParticleForce(std::vector<Particle *> &ptcls);
+    void calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs);
     void penalize();
     void plot(const char *) const;
     

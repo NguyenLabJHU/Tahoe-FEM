@@ -132,13 +132,13 @@ namespace dem {
     }
 
     // nx, ny, nz, n_dim
-    arrayPressureGrad.resize(nx);
-    for (std::size_t i = 0; i < arrayPressureGrad.size(); ++i) {
-      arrayPressureGrad[i].resize(ny);
-      for (std::size_t j = 0; j < arrayPressureGrad[i].size(); ++j) {
-	arrayPressureGrad[i][j].resize(nz);
-	for (std::size_t k = 0; k < arrayPressureGrad[i][j].size(); ++k) 
-	  arrayPressureGrad[i][j][k].resize(n_dim);
+    arrayPressureForce.resize(nx);
+    for (std::size_t i = 0; i < arrayPressureForce.size(); ++i) {
+      arrayPressureForce[i].resize(ny);
+      for (std::size_t j = 0; j < arrayPressureForce[i].size(); ++j) {
+	arrayPressureForce[i][j].resize(nz);
+	for (std::size_t k = 0; k < arrayPressureForce[i][j].size(); ++k) 
+	  arrayPressureForce[i][j][k].resize(n_dim);
       }
     }
 
@@ -555,7 +555,6 @@ namespace dem {
   }
 
   void Fluid::getParticleInfo(std::vector<Particle *> &ptcls) {
-
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
@@ -576,9 +575,9 @@ namespace dem {
 	}
   }
 
-  void Fluid::calcParticleForce(std::vector<Particle *> &ptcls) {
-
+  void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      Vec penalForce = 0, presForce = 0;
       std::vector<std::vector<std::size_t>  > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
 	std::size_t i = fluidGrid[iter][0];
@@ -596,31 +595,38 @@ namespace dem {
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etab;
-	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etab;
-	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etab;
+	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etab * (dx*dy*dz);
+	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etab * (dx*dy*dz);
+	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etab * (dx*dy*dz);
 
-	arrayPressureGrad[i][j][k][0] = (arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
-	arrayPressureGrad[i][j][k][1] = (arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
-	arrayPressureGrad[i][j][k][2] = (arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
+	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx) * (dx*dy*dz);
+	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy) * (dx*dy*dz);
+	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz) * (dx*dy*dz);
 
-	/*
-	if (fx !=0 || fy !=0 || fz!=0)
-	  debugInf << "iter i j k mask ux uy uz=" << iteration << " " << i << " " << j << " "<< k << " " << arrayU[i][j][k][var_msk]
-		   << " " << uxFluid << " " << uyFluid << " " << uzFluid << std::endl;
-	*/
+	//(*it)->addMoment();
+	//(*it)->addMoment();
 
-	/*
-	(*it)->addForce(Vec(arrayPenalForce[i][j][k][0] + arrayPressureGrad[i][j][k][0], 
-			    arrayPenalForce[i][j][k][1] + arrayPressureGrad[i][j][k][1],
-			    arrayPenalForce[i][j][k][2] + arrayPressureGrad[i][j][k][2]) * (dx*dy*dz));
-	*/
+	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
+	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
       }
 
+      (*it)->addForce(penalForce);
+      (*it)->addForce(presForce);
 
-      // (*it)->getCurrPos();
-      // (*it)->getCurrVeloc();
-      // (*it)->getCurrOmea();
+      ofs << std::setw(OWID) << iteration
+	  << std::setw(OWID) << penalForce.getX()
+	  << std::setw(OWID) << penalForce.getY()
+	  << std::setw(OWID) << penalForce.getZ()
+	  << std::setw(OWID) << presForce.getX()
+	  << std::setw(OWID) << presForce.getY()
+	  << std::setw(OWID) << presForce.getZ()
+	  << std::setw(OWID) << (*it)->getCurrVeloc().getX()
+	  << std::setw(OWID) << (*it)->getCurrVeloc().getY()
+	  << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
+	  << std::setw(OWID) << vfabs(penalForce)
+	  << std::setw(OWID) << vfabs(presForce)
+	  << std::setw(OWID) << vfabs((*it)->getCurrVeloc())
+	  << std::endl;     
     }    
   }
 
@@ -644,11 +650,11 @@ namespace dem {
 	<< std::setw(OWID) << "\"pressure\""
 	<< std::setw(OWID) << "\"temperature\""
 	<< std::setw(OWID) << "\"mask\""
-	<< std::setw(OWID) << "\"dragFx\""
+	<< std::setw(OWID) << "\"penalFx\""
+	<< std::setw(OWID) << "\"penalFy\""
+	<< std::setw(OWID) << "\"penalFz\""
 	<< std::setw(OWID) << "\"pressureFx\""
-	<< std::setw(OWID) << "\"dragFy\""
 	<< std::setw(OWID) << "\"pressureFy\""
-	<< std::setw(OWID) << "\"dragFz\""
 	<< std::setw(OWID) << "\"pressureFz\""
 	<< std::endl;
 
@@ -676,11 +682,11 @@ namespace dem {
 	      << std::setw(OWID) << arrayU[i][j][k][var_prs]/(8.31*arrayU[i][j][k][var_den])
 	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][0] 
-	      << std::setw(OWID) << arrayPressureGrad[i][j][k][0] 
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][1] 
-	      << std::setw(OWID) << arrayPressureGrad[i][j][k][1] 
-	      << std::setw(OWID) << arrayPenalForce[i][j][k][2] 
-	      << std::setw(OWID) << arrayPressureGrad[i][j][k][2] 
+	      << std::setw(OWID) << arrayPenalForce[i][j][k][2]
+	      << std::setw(OWID) << arrayPressureForce[i][j][k][0] 
+	      << std::setw(OWID) << arrayPressureForce[i][j][k][1] 
+	      << std::setw(OWID) << arrayPressureForce[i][j][k][2] 
 	      << std::endl;
 	}
 
