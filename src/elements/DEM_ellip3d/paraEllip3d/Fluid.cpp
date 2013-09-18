@@ -40,7 +40,7 @@ namespace dem {
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
     pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
     mach = dem::Parameter::getSingleton().parameter["MachNumber"];
-    etab = dem::Parameter::getSingleton().parameter["etab"];
+    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
     z0   = minZ + (maxZ - minZ) * dem::Parameter::getSingleton().parameter["z0Ratio"];
     arrayBC[0] = dem::Parameter::getSingleton().parameter["x1Reflecting"];
     arrayBC[1] = dem::Parameter::getSingleton().parameter["x2Reflecting"];
@@ -83,7 +83,7 @@ namespace dem {
     debugInf << "uR=" << uR << std::endl;
     debugInf << "pR=" << pR << std::endl;
     debugInf << "Mach=" << mach << std::endl;
-    debugInf << "etab=" << etab << std::endl;
+    debugInf << "Cd=" << Cd << std::endl;
     debugInf << "z0=" << z0 << std::endl;
 
     debugInf << "n_var = " << n_var << std::endl;
@@ -577,6 +577,7 @@ namespace dem {
 
   void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      REAL etaB = 8.0/3.0 * (*it)->getC() / Cd;
       Vec penalForce = 0, presForce = 0;
       std::vector<std::vector<std::size_t>  > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
@@ -595,13 +596,13 @@ namespace dem {
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etab * (dx*dy*dz);
-	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etab * (dx*dy*dz);
-	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etab * (dx*dy*dz);
+	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etaB;
+	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etaB;
+	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etaB;
 
-	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx) * (dx*dy*dz);
-	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy) * (dx*dy*dz);
-	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz) * (dx*dy*dz);
+	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
+	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
+	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
 
 	//(*it)->addMoment();
 	//(*it)->addMoment();
@@ -610,6 +611,8 @@ namespace dem {
 	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
       }
 
+      penalForce *= dx*dy*dz;
+      presForce  *= dx*dy*dz;
       (*it)->addForce(penalForce);
       (*it)->addForce(presForce);
 

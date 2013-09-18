@@ -40,7 +40,7 @@ namespace dem {
     REAL rhoR, uR, pR; // known
     REAL mach;         // shock Mach number, known
     REAL shockSpeed;   // unknown
-    REAL etab;         // penalization parameter
+    REAL Cd;           // drag coefficient
     REAL z0;           // initial discontinuity plane in Z direction
 
     std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
