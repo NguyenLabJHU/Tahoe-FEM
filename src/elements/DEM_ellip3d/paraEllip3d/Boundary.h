@@ -178,8 +178,11 @@ namespace dem {
     void clearStatForce();
     void clearContactInfo();
 
-    // do nothing temporarily; change to pure virtual function when implementing cylinderPlane
-    virtual void updateLocation(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
+    // temporarily do nothing; change to pure virtual function when implementing cylinderPlane
+    virtual void updateIsotropic(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
+    virtual void updateOdometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
+    virtual void updateTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
+    virtual void updateTrueTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ, REAL sigmaX, REAL sigmaY) {}
     virtual Vec  getPoint() const {}
     virtual Vec  getVeloc() const {}
     virtual Vec  getPrevPoint() const {}
@@ -232,7 +235,10 @@ namespace dem {
     void print(std::ostream &os);
     void printContactInfo(std::ostream &os);
 
-    void updateLocation(REAL sigma, REAL areaX, REAL areaY, REAL areaZ);
+    void updateIsotropic(REAL sigma, REAL areaX, REAL areaY, REAL areaZ);
+    void updateOdometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
+    void updateTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
+    void updateTrueTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ, REAL sigmaX, REAL sigmaY);
     void findBdryContact(std::vector<Particle *> &ptcls);
     void boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap);
 

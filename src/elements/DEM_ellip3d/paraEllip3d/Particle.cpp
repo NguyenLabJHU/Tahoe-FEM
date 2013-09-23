@@ -467,7 +467,6 @@ void Particle::clearContactForce() {
 // central difference integration method
 void Particle::update() {
 
-  REAL timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
   REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
   REAL momentDamp = dem::Parameter::getSingleton().parameter["momentDamp"];
   REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];
@@ -780,7 +779,7 @@ void Particle::planeRBForce(planeBoundary *plane,
     REAL G0 = young/2/(1+poisson);
     // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; 
     //      here global frame is used for better convenience.
-    Vec relaDispInc = (currVeloc + currOmga * ((pt1+pt2)/2 - currPos)) * dem::Parameter::getSingleton().parameter["timeStep"];  
+    Vec relaDispInc = (currVeloc + currOmga * ((pt1+pt2)/2 - currPos)) * timeStep;
     Vec tgtDispInc  = relaDispInc - (relaDispInc % normalDirc) * normalDirc;
     Vec tgtDisp     = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkin
     Vec TgtDirc;

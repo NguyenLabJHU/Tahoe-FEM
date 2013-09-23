@@ -25,31 +25,37 @@ namespace dem {
   private:
 
     // particles property
-    std::size_t trimHistoryNum;                     // historical maximum numbering before trimming
-    Gradation               gradation;       // particles gradation
-    std::vector<Particle *> allParticleVec;  // all particles
+    Gradation               gradation;       // particles gradation, broadcast among processes for once
+    std::vector<Particle *> allParticleVec;  // all particles, only meaningful to root process
     std::vector<Particle *> particleVec;     // particles per process
+    std::size_t             trimHistoryNum;  // historical maximum numbering before trimming, only meaningful to root process
 
     std::vector<Contact>    contactVec;      // contacts per process
     std::vector<ContactTgt> contactTgtVec;   // tangential contact force and displacement per process
+    std::size_t             allContactNum;   // estimated total contact number, only meaningful to root process
     
     std::vector< std::vector< std::vector<Particle *> > > memBoundary; // membrane particle boundaries
     std::vector<Spring *>   springVec;       // springs connecting membrane particles
-    
-    // fluid property
-    Fluid fluid;
 
     // container property
-    Rectangle allContainer;// whole container
+    Rectangle allContainer;// whole container, broadcast among processes for once
     Rectangle container;   // container per process
     Rectangle cavity;      // cavity inside container
-    Rectangle grid;        // adaptive compute grid
+    Rectangle grid;        // adaptive compute grid, broadcast among processes for once, updated per process
     
     // boundaries property
-    std::vector<Boundary *> boundaryVec;       // rigid boundaries
+    std::vector<Boundary *> boundaryVec;       // rigid boundaries, broadcast among processes upon changed.
     std::vector<Boundary *> mergeBoundaryVec;  // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
     std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
+   
+    // fluid property
+    Fluid fluid;
+
+    // average data
+    REAL avgNormal;
+    REAL avgShear;
+    REAL avgPenetr;
 
     // energy data
     REAL transEnergy;
@@ -57,7 +63,11 @@ namespace dem {
     REAL kinetEnergy;
     REAL graviEnergy;
     REAL mechaEnergy; 
-    
+
+    // time step
+    REAL vibraTimeStep;
+    REAL impactTimeStep;
+
     // MPI data
     boost::mpi::communicator boostWorld;
     MPI_Comm mpiWorld, cartComm;
@@ -80,11 +90,12 @@ namespace dem {
     std::vector<Particle *> rParticleX2Y1Z1, rParticleX2Y1Z2, rParticleX2Y2Z1, rParticleX2Y2Z2; 
     std::vector<Particle *> recvParticleVec;  // received particles per process
     std::vector<Particle *> mergeParticleVec; // merged particles per process
-    
-    
+      
   public:
     Assembly()
-      :trimHistoryNum(0)
+      :trimHistoryNum(0), allContactNum(0), avgNormal(0), avgShear(0), avgPenetr(0),
+      transEnergy(0), rotatEnergy(0), kinetEnergy(0), graviEnergy(0), mechaEnergy(0), 
+      vibraTimeStep(0), impactTimeStep(0)
       {}
     
     ~Assembly() {
@@ -131,10 +142,14 @@ namespace dem {
 	      const char *trmParticle);
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
+    void proceedFromPreset();
     void coupleWithSonicFluid();    
 
     void isotropic();
-    bool tractionErrorTol(REAL sigmaVar);
+    void odometer();
+    void triaxial();
+    void trueTriaxial();
+    bool tractionErrorTol(REAL sigma, std::string type, REAL sigmaX=0, REAL sigmaY=0);
     void getStartDimension(REAL &distX, REAL &distY, REAL &distZ);
 
     void setCavity(Rectangle cav) { cavity = cav; }
@@ -164,6 +179,7 @@ namespace dem {
     void printDepositProg(std::ofstream &ofs);
     void openCompressProg(std::ofstream &ofs, const char *str);
     void printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REAL distZ);
+    void openParticleProg(std::ofstream &ofs, const char *str);
     void closeProg(std::ofstream &ofs);
 
     void trimCavity(bool toRebuild, const char *Particlefile, const char *cavParticle);
@@ -187,13 +203,16 @@ namespace dem {
     REAL ellipPileTipZ();
     REAL ellipPilePeneVol();
   
-    void updateBoundary(REAL simga);
+    void updateBoundary(REAL simga, std::string type, REAL sigmaX=0, REAL sigmaY=0);
     
     REAL getMass() const; 
     REAL getAvgPenetr() const;
-    REAL getVibraTimeStep() const;
-    REAL getImpactTimeStep() const;
     REAL getParticleVolume() const;
+
+    void calcTimeStep();
+    void calcVibraTimeStep();
+    void calcImpactTimeStep();
+    void calcContactNum();
 
     REAL getAvgTransVelocity() const;
     REAL getAvgRotatVelocity() const;
@@ -369,44 +388,6 @@ namespace dem {
 			     const char *balancedfile ="iso_balanced",
 			     const char *debugfile    ="iso_debug");
   
-   // The specimen has been isotropically compressed to confining pressure sigma_3. This function
-  // increases confining pressure step by step to sigma_1, thus making it possible to find out
-  // balanced status where top and bottom particle pressure equals major principle stress. 
-  // Side boundaries are fixed, top and bottom plates are force-controlled.
-  void odometer(std::size_t         total_steps    =100000,
-		std::size_t         snapNum      =100,
-		std::size_t         interval       =10,
-		REAL  sigma_3        =1.0e+4,
-		REAL  sigma_1        =1.0e+5,
-		std::size_t         sigma_division =100,		  
-		const char *iniptclfile    ="iso_particle_10k",
-		const char *inibdryfile    ="iso_boundary_10k",
-		const char *Particlefile   ="odo_particle", 
-		const char *boundaryfile   ="odo_boundary", 
-		const char *contactfile    ="odo_contact",
-		const char *progressfile   ="odo_progress",
-		const char *balancedfile   ="odo_balanced", 
-		const char *debugfile      ="odo_debug");
-  
-  // The specimen has been isotropically compressed to confining pressure sigma_3. This function
-  // increases confining pressure step by step to sigma_1, thus making it possible to find out
-  // balanced status where top and bottom particle pressure equals major principle stress. 
-  // Side boundaries are fixed, top and bottom plates are force-controlled. Unloading is applied.
-  void odometer(std::size_t         total_steps,
-		std::size_t         snapNum,
-		std::size_t         interval,
-		std::size_t         sigma_points,			  
-		REAL  sigma_values[],
-		std::size_t         sigma_division=100,		  
-		const char *iniptclfile   ="iso_particle_10k",
-		const char *inibdryfile   ="iso_boundary_10k",
-		const char *Particlefile  ="odo_particle", 
-		const char *boundaryfile  ="odo_boundary", 
-		const char *contactfile   ="odo_contact",
-		const char *progressfile  ="odo_progress",
-		const char *balancedfile  ="odo_balanced", 
-		const char *debugfile     ="odo_debug");
-  
   // The confining pressure is 500kPa. This function initializes triaxial compression test.
   void triaxialPtclBdryIni(std::size_t         total_steps  =10000,
 			   std::size_t         snapNum    =100,
@@ -433,39 +414,7 @@ namespace dem {
 			const char *progressfile ="tri_progress",
 			const char *balancedfile ="tri_balanced", 
 			const char *debugfile    ="tri_debug");
-  
-  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
-  // performs triaxial compression test. Displacement boundaries are used in axial direction.
-  void triaxial(std::size_t         total_steps  =100000,
-		std::size_t         snapNum    =100,
-		std::size_t         interval     =10,
-		REAL  sigma_a      =1.0e+5,
-		const char *iniptclfile  ="iso_particle_100k",
-		const char *inibdryfile  ="iso_boundary_100k",
-		const char *Particlefile ="tri_particle", 
-		const char *boundaryfile ="tri_boundary", 
-		const char *contactfile  ="tri_contact",
-		const char *progressfile ="tri_progress",
-		const char *balancedfile ="tri_balanced", 
-		const char *debugfile    ="tri_debug");
-  
-  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
-  // performs triaxial compression test with unloading. Displacement boundaries are used in 
-  // axial direction.
-  void triaxial(std::size_t         total_steps  =200000,
-		std::size_t         unload_step  =100000,
-		std::size_t         snapNum    =100,
-		std::size_t         interval     =10,
-		REAL  sigma_a      =3.0e+5,
-		const char *iniptclfile  ="iso_particle_300k",
-		const char *inibdryfile  ="iso_boundary_300k",
-		const char *Particlefile ="tri_particle", 
-		const char *boundaryfile ="tri_boundary", 
-		const char *contactfile  ="tri_contact",
-		const char *progressfile ="tri_progress",
-		const char *balancedfile ="tri_balanced", 
-		const char *debugfile    ="tri_debug");
-  
+   
   // The specimen has been deposited with gravitation within boundaries composed of particles.
   // A rectangular pile is then drived into the particles using displacement control.
   void rectPile_Disp(std::size_t         total_steps  =50000,
@@ -531,23 +480,6 @@ namespace dem {
 		       const char *progressfile ="pile_progress",
 		       const char *balancedfile ="pile_balanced",
 		       const char *debugfile    ="pile_debug");
-
-  void truetriaxial(std::size_t         total_steps   =1000000,
-		    std::size_t         snapNum     =100,
-		    std::size_t         interval      =10,
-		    REAL  sigma_a       =1.0e+4,
-		    REAL  sigma_w       =1.0e+5,
-		    REAL  sigma_l       =1.0e+5,	
-		    REAL  sigma_h       =1.0e+5,	
-		    std::size_t         sigma_division=100,			  
-		    const char *iniptclfile   ="iso_particle_10k",
-		    const char *inibdryfile   ="iso_boundary_10k",
-		    const char *Particlefile  ="tru_particle", 
-		    const char *boundaryfile  ="tru_boundary", 
-		    const char *contactfile   ="tru_contact",
-		    const char *progressfile  ="tru_progress",
-		    const char *balancedfile  ="tru_balanced", 
-		    const char *debugfile     ="tru_debug");
 
   public:
     void findParticleInRectangle(const Rectangle &container,

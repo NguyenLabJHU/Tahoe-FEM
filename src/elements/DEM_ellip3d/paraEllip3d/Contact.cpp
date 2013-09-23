@@ -157,7 +157,6 @@ namespace dem {
       REAL contactCohesion = dem::Parameter::getSingleton().parameter["contactCohesion"];
       REAL contactDamp = dem::Parameter::getSingleton().parameter["contactDamp"];
       REAL contactFric = dem::Parameter::getSingleton().parameter["contactFric"];
-      REAL timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
 
       // obtain normal force, using absolute equation instead of stiffness method
       p1->setContactNum(p1->getContactNum() + 1);
@@ -199,7 +198,7 @@ namespace dem {
 	       << " penetr=" << penetr
 	       << " cohesionForce=" << vfabs(cohesionForce)
 	       << " normalForce=" << vfabs(normalForce)
-	       << " accumulated time=" << iteration*timeStep
+	       << " accumulated time=" << iteration * timeStep
 	       << std::endl;
       */
       
@@ -214,7 +213,7 @@ namespace dem {
       Vec cntDampingForce = contactDamp * dampCritical * ((veloc1-veloc2)%normalDirc)*normalDirc;
       vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
       impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) % normalDirc);
-      
+
       // apply normal damping force
       p1->addForce(-cntDampingForce);
       p2->addForce(cntDampingForce);
@@ -224,7 +223,7 @@ namespace dem {
       if (contactFric != 0) {
 	// obtain tangential force
 	G0 = young/2/(1+poisson);              // RelaDispInc points along point1's displacement relative to point2
-	Vec RelaDispInc = (veloc1-veloc2)*timeStep;
+	Vec RelaDispInc = (veloc1-veloc2) * timeStep;
 	Vec tgtDispInc = RelaDispInc - (RelaDispInc%normalDirc)*normalDirc;
 	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPrevTgt()
 	if (vfabs(tgtDisp) == 0)

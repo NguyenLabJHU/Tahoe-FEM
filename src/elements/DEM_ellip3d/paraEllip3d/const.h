@@ -21,6 +21,7 @@ extern const std::size_t OPREC;
 // other global variables
 extern std::ofstream debugInf;
 extern std::size_t iteration;
+extern REAL timeStep;
 
 }
 #endif

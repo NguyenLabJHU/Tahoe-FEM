@@ -18,5 +18,6 @@ const std::size_t OPREC = 6;    // 10, output precision, number of digits after 
 // other global variables
 std::ofstream debugInf;         // debug info
 std::size_t iteration;          // iteration number
+REAL timeStep;                  // time step
 
 }

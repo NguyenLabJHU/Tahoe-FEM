@@ -109,7 +109,7 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> str2;
       datafile[str] = str2;
     }
-    for (std::size_t i = 0; i < 5; ++i) {
+    for (std::size_t i = 0; i < 6; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
       ssline >> str >> val;
@@ -158,17 +158,134 @@ void Parameter::readIn(const char *input) {
       ssline >> str >> val;
       parameter[str] = val;
     }
-
     break;
 
-  case 100: // couple with sonic fluid flow
+  case 9: // odometer 1
     for (std::size_t i = 0; i < 2; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
       ssline >> str >> str2;
       datafile[str] = str2;
     }
-    for (std::size_t i = 0; i < 8; ++i) {
+    for (std::size_t i = 0; i < 7; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 10: // odometer 2
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 3; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    for (std::size_t i = 0; i < (std::size_t) parameter["sigmaPoints"]; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      REAL sigma;
+      ssline >> sigma;
+      sigmaPath.push_back(sigma);
+    } 
+    for (std::size_t i = 0; i < 3; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 11: // triaxial 1
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 5; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 12: // triaxial 2
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 6; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 13: // true triaxial 1
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 9; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 14: // true triaxial 2
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 10; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 15: // proceed from preset state
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 1; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> val;
+      parameter[str] = val;
+    }
+    break;
+
+  case 50: // couple with sonic fluid flow
+    for (std::size_t i = 0; i < 2; ++i) {
+      while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+      ssline.clear(); ssline.str(line);
+      ssline >> str >> str2;
+      datafile[str] = str2;
+    }
+    for (std::size_t i = 0; i < 15; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
       ssline >> str >> val;
