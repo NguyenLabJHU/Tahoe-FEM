@@ -32,7 +32,6 @@ namespace dem {
     REAL dx;
     REAL dy;
     REAL dz;
-    REAL dt;
 
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;
@@ -120,7 +119,7 @@ namespace dem {
     void initParameter(Rectangle &container, Gradation &gradation);
     void initialize();
     void initialCondition();
-    REAL timeStep();
+    REAL calcTimeStep();
     void RankineHugoniot();
     void addGhostPoints();
     void soundSpeed();

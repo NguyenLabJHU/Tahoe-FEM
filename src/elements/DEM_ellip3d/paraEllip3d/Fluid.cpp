@@ -28,7 +28,6 @@ namespace dem {
     dx = (maxX - minX) / nx;
     dy = (maxY - minY) / ny;
     dz = (maxZ - minZ) / nz;
-    dt = dem::Parameter::getSingleton().parameter["timeStep"];
 
     nx += 2;
     ny += 2;
@@ -70,7 +69,6 @@ namespace dem {
 
     ///*
     debugInf << "dx=" << dx << std::endl;
-    debugInf << "dt=" << dt << std::endl;
     debugInf << "CFL=" << CFL << std::endl;
     debugInf << "gamma=" << gamma << std::endl;
     debugInf << "x1Rflecting=" << arrayBC[0] << std::endl;
@@ -227,8 +225,8 @@ namespace dem {
   void Fluid::runOneStep() { 
     addGhostPoints();
     soundSpeed();
-    dt = std::min(dem::Parameter::getSingleton().parameter["timeStep"], timeStep());
-    debugInf << "iter=" << std::setw(OWID) << iteration << " dt=" << std::setw(OWID) << dt << std::endl;
+    timeStep = std::min(timeStep, calcTimeStep());
+    debugInf << "iter=" << std::setw(8) << iteration << " dt=" << std::setw(OWID) << timeStep << std::endl;
     enthalpy();
 
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
@@ -292,9 +290,9 @@ namespace dem {
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
 	  for (std::size_t m = 0; m < n_integ; ++m)
-	    arrayU[i][j][k][m] -= (   dt / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
-				    + dt / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
-				    + dt / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
+	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
+				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
+				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
 	}
 
     // calculate primitive after finding conservative variables
@@ -307,7 +305,7 @@ namespace dem {
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
 	  for (std::size_t m = 0; m < n_dim; ++m)
-	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk]*arrayPenalForce[i][j][k][m]*dt;
+	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
   }
   
   void Fluid::addGhostPoints() {
@@ -373,7 +371,7 @@ namespace dem {
     
   }
   
-  REAL Fluid::timeStep() {
+  REAL Fluid::calcTimeStep() {
     std::valarray<REAL> allGrid(nx * ny * nz);
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
