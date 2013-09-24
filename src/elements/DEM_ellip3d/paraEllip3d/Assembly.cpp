@@ -3292,12 +3292,13 @@ void Assembly::findContact() { // various implementations
 
 
 void Assembly::internalForce(){
-  if(contactVec.size() == 0){
-    avgNormal = 0;
-    avgShear  = 0;
-    avgPenetr = 0;
+  REAL pAvg[3], sum[3];
+  for (std::size_t i = 0; i < 3; ++i) {
+    pAvg[i] = 0;
+    sum[i]  = 0;
   }
-  else{
+
+  if(contactVec.size() > 0) {
     for (std::vector<Contact>::iterator it = contactVec.begin(); it != contactVec.end(); ++it)
       it->checkinPrevTgt(contactTgtVec); // checkin previous tangential force and displacment    
     
@@ -3309,20 +3310,23 @@ void Assembly::internalForce(){
     for (std::vector<Contact>::iterator it = contactVec.begin(); it != contactVec.end(); ++ it){
       it->contactForce();             // cannot be parallelized as it may change a particle's force simultaneously.
       it->checkoutTgt(contactTgtVec); // checkout current tangential force and displacment
-      avgNormal += it->getNormalForce();
-      avgShear  += it->getTgtForce();
-      avgPenetr += it->getPenetration();
+      pAvg[0] += it->getNormalForce();
+      pAvg[1] += it->getTgtForce();
+      pAvg[2] += it->getPenetration();
     }
-    avgNormal /= contactVec.size();
-    avgShear  /= contactVec.size();
-    avgPenetr /= contactVec.size();
+    for (std::size_t i = 0; i < 3; ++i)
+      pAvg[i] /= contactVec.size();
     
 #ifdef TIME_PROFILE
     gettimeofday(&time_p2,NULL);
     debugInf << std::setw(OWID) << "internalForce=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::endl; 
-#endif
-    
+#endif   
   }
+
+  MPI_Reduce(pAvg, sum, 3, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
+  avgNormal = sum[0]/mpiSize;
+  avgShear  = sum[1]/mpiSize;
+  avgPenetr = sum[2]/mpiSize;
 }
 
 

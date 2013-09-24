@@ -53,20 +53,20 @@ namespace dem {
     Fluid fluid;
 
     // average data
-    REAL avgNormal;
-    REAL avgShear;
-    REAL avgPenetr;
+    REAL avgNormal;        // only meaningful to root process
+    REAL avgShear;         // only meaningful to root process
+    REAL avgPenetr;        // only meaningful to root process
 
     // energy data
-    REAL transEnergy;
-    REAL rotatEnergy;
-    REAL kinetEnergy;
-    REAL graviEnergy;
-    REAL mechaEnergy; 
+    REAL transEnergy;      // only meaningful to root process
+    REAL rotatEnergy;      // only meaningful to root process
+    REAL kinetEnergy;      // only meaningful to root process
+    REAL graviEnergy;      // only meaningful to root process
+    REAL mechaEnergy;      // only meaningful to root process
 
     // time step
-    REAL vibraTimeStep;
-    REAL impactTimeStep;
+    REAL vibraTimeStep;    // meaningful to all processes
+    REAL impactTimeStep;   // meaningful to all processes
 
     // MPI data
     boost::mpi::communicator boostWorld;
