@@ -312,9 +312,9 @@ namespace dem {
   //squeeze paticles inside a container by moving the boundaries
   void squeeze(std::size_t        total_steps  =20000,               // total_steps
 	       std::size_t        init_steps   =5000,                // initial_steps to reach equilibrium
-	       std::size_t        snapNum    =100,                 // number of snapNum   
+	       std::size_t        snapNum      =100,                 // number of snapNum   
 	       std::size_t        interval     =10,                  // print interval 
-	       std::size_t        flag         =-1,                  // -1 squeeze; +1 loosen
+	       int                flag         =-1,                  // -1 squeeze; +1 loosen
 	       const char *iniptclfile  ="flo_particle_end",  // input file, initial particles
 	       const char *inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
 	       const char *Particlefile ="dep_particle",      // output file, resulted particles, including snapNum 
