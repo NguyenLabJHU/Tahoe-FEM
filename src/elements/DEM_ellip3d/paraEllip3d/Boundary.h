@@ -178,17 +178,16 @@ namespace dem {
     void clearStatForce();
     void clearContactInfo();
 
-    // temporarily do nothing; change to pure virtual function when implementing cylinderPlane
     virtual void updateIsotropic(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateOdometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateTrueTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ, REAL sigmaX, REAL sigmaY) {}
-    virtual Vec  getPoint() const {}
-    virtual Vec  getVeloc() const {}
-    virtual Vec  getPrevPoint() const {}
-    virtual Vec  getPrevVeloc() const {}
-    virtual void setPoint(Vec pnt) {}
-    virtual void setVeloc(Vec vel) {}
+    virtual Vec  getPoint() const = 0;
+    virtual Vec  getVeloc() const = 0;
+    virtual Vec  getPrevPoint() const = 0;
+    virtual Vec  getPrevVeloc() const = 0;
+    virtual void setPoint(Vec pnt) = 0;
+    virtual void setVeloc(Vec vel) = 0;
   };
 
   ///////////////////////////////////////
@@ -249,6 +248,9 @@ namespace dem {
   private:
     Vec  direc;
     Vec  point;
+    Vec  prevPoint;
+    Vec  veloc;
+    Vec  prevVeloc;    
     REAL radius;
     
   private:
@@ -263,17 +265,21 @@ namespace dem {
     
   public:
     cylinderBoundary()
-      :Boundary(), direc(0), point(0), radius(0)
+      :Boundary(), direc(0), point(0), prevPoint(0), veloc(0), prevVeloc(0), radius(0)
       {}
 
     cylinderBoundary(std::size_t type, std::ifstream &ifs);
 
     Vec getDirec() const { return direc; }
     Vec getPoint() const { return point; }
+    Vec getVeloc() const { return veloc; }
+    Vec getPrevPoint() const { return prevPoint; }
+    Vec getPrevVeloc() const { return prevVeloc; }
     REAL getRadius() const { return radius; }
 
     void setDirec(Vec dir) { direc = dir; }
     void setPoint(Vec pnt) { point = pnt; }
+    void setVeloc(Vec vel) { veloc = vel; }
  
     void print(std::ostream &os) {
       Boundary::print(os);
