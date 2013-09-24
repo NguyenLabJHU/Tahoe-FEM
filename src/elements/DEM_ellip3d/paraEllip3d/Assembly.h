@@ -219,11 +219,11 @@ namespace dem {
     REAL getAvgForce() const;
     REAL getAvgMoment() const;
 
-    REAL getTransEnergy() const;
-    REAL getRotatEnergy() const;
-    REAL getKinetEnergy() const;
-    REAL getGraviEnergy(REAL ref) const;
-    REAL getMechaEnergy(REAL ref) const;
+    void calcTransEnergy();
+    void calcRotatEnergy();
+    void calcKinetEnergy();
+    void calcGraviEnergy(REAL ref);
+    void calcMechaEnergy();
     void gatherEnergy();
     
     void setTrimHistoryNum(std::size_t n) { trimHistoryNum = n; }

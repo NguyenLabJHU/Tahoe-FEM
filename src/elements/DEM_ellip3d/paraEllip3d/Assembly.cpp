@@ -199,12 +199,11 @@ void Assembly::deposit(const char *inputBoundary,
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
 
+    calcTimeStep(); // use values from last step, must call before findConact
     findContact();
     if (isBdryProcess()) findBdryContact();
 
     clearContactForce();
-    calcTimeStep(); // use values from last step
-
     internalForce();
     if (isBdryProcess()) boundaryForce();
 
@@ -358,17 +357,16 @@ void Assembly::isotropic()
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
 
+    calcTimeStep(); // use values from last step, must call before findConact
     findContact();
     if (isBdryProcess()) findBdryContact();
 
     clearContactForce();
-    calcTimeStep(); // use values from last step
-
     internalForce();
     if (isBdryProcess()) boundaryForce();
 
     updateParticle();
-    gatherBdryContact(); // must do this before updateBoundary
+    gatherBdryContact(); // must call before updateBoundary
     updateBoundary(sigmaVar, "isotropic");
     updateGrid();
    
@@ -521,17 +519,16 @@ void Assembly::odometer()
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
 
+    calcTimeStep(); // use values from last step, must call before findConact
     findContact();
     if (isBdryProcess()) findBdryContact();
 
     clearContactForce();
-    calcTimeStep();
-
     internalForce();
     if (isBdryProcess()) boundaryForce();
 
     updateParticle();
-    gatherBdryContact(); // must do this before updateBoundary
+    gatherBdryContact(); // must call before updateBoundary
     updateBoundary(sigmaVar, "odometer");
     updateGrid();
    
@@ -653,17 +650,16 @@ void Assembly::triaxial()
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
 
+    calcTimeStep(); // use values from last step, must call before findConact
     findContact();
     if (isBdryProcess()) findBdryContact();
 
     clearContactForce();
-    calcTimeStep();
-
     internalForce();
     if (isBdryProcess()) boundaryForce();
 
     updateParticle();
-    gatherBdryContact(); // must do this before updateBoundary
+    gatherBdryContact(); // must call before updateBoundary
     updateBoundary(sigmaConf, "triaxial");
     updateGrid();
    
@@ -787,17 +783,16 @@ void Assembly::trueTriaxial()
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
 
+    calcTimeStep(); // use values from last step, must call before findConact
     findContact();
     if (isBdryProcess()) findBdryContact();
 
     clearContactForce();
-    calcTimeStep();
-
     internalForce();
     if (isBdryProcess()) boundaryForce();
 
     updateParticle();
-    gatherBdryContact(); // must do this before updateBoundary
+    gatherBdryContact(); // must call before updateBoundary
 
     if (trueTriaxialType == 1)
       updateBoundary(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY);
@@ -1020,11 +1015,11 @@ void Assembly::coupleWithSonicFluid()
     commuParticle();
     time2 = MPI_Wtime(); commuT = time2 - time1;
 
+    calcTimeStep(); // use values from last step, must call before findConact
     findContact();
     if (isBdryProcess()) findBdryContact();
 
     clearContactForce();
-    calcTimeStep(); // use values from last step
 
     /*4*/ fluid.getParticleInfo(particleVec); // not allParticleVec
     /*5*/ fluid.runOneStep();
@@ -2462,11 +2457,11 @@ void Assembly::printBdryContact(const char *str) const {
 
 
 void Assembly::gatherEnergy() {
-  transEnergy = getTransEnergy();
-  rotatEnergy = getRotatEnergy();
-  kinetEnergy = getKinetEnergy();
-  graviEnergy = getGraviEnergy(allContainer.getMinCorner().getZ());
-  mechaEnergy = getMechaEnergy(allContainer.getMinCorner().getZ());
+  calcTransEnergy();
+  calcRotatEnergy();
+  calcKinetEnergy();
+  calcGraviEnergy(allContainer.getMinCorner().getZ());
+  calcMechaEnergy();
 }
 
 
@@ -3511,60 +3506,52 @@ void Assembly::printContact(char *str) const
 }
 
 
-REAL Assembly::getTransEnergy() const {
+void Assembly::calcTransEnergy() {
   REAL pEngy = 0;
-  REAL engy = 0;
   std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
       pEngy += (*it)->getTransEnergy();
   }
-  MPI_Allreduce(&pEngy, &engy, 1, MPI_DOUBLE, MPI_SUM, mpiWorld);
-  return engy;
+  MPI_Reduce(&pEngy, &transEnergy, 1, MPI_DOUBLE, MPI_SUM, 0,  mpiWorld);
 }
 
 
-REAL Assembly::getRotatEnergy() const {
+void Assembly::calcRotatEnergy() {
   REAL pEngy = 0;
-  REAL engy = 0;
   std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin(); it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
       pEngy += (*it)->getRotatEnergy();
   }
-  MPI_Allreduce(&pEngy, &engy, 1, MPI_DOUBLE, MPI_SUM, mpiWorld);
-  return engy;
+  MPI_Reduce(&pEngy, &rotatEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
 }
 
 
-REAL Assembly::getKinetEnergy() const {
+void Assembly::calcKinetEnergy() {
   REAL pEngy = 0;
-  REAL engy = 0;
   std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin();it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
       pEngy += (*it)->getKinetEnergy();
   }
-  MPI_Allreduce(&pEngy, &engy, 1, MPI_DOUBLE, MPI_SUM, mpiWorld);
-  return engy;
+  MPI_Reduce(&pEngy, &kinetEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
 }
 
 
-REAL Assembly::getGraviEnergy(REAL ref) const {
+void Assembly::calcGraviEnergy(REAL ref) {
   REAL pEngy = 0;
-  REAL engy = 0;
   std::vector<Particle*>::const_iterator it;
   for (it = particleVec.begin();it != particleVec.end(); ++it) {
     if ((*it)->getType() == 0)
 	    pEngy += (*it)->getPotenEnergy(ref);
   }
-  MPI_Allreduce(&pEngy, &engy, 1, MPI_DOUBLE, MPI_SUM, mpiWorld);
-  return engy;
+  MPI_Reduce(&pEngy, &graviEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
 }
 
 
-REAL Assembly::getMechaEnergy(REAL ref) const {
-  return getKinetEnergy() +  getGraviEnergy(ref);
+void Assembly::calcMechaEnergy() {
+  mechaEnergy = kinetEnergy +  graviEnergy;
 }
 
 
@@ -3601,7 +3588,7 @@ void Assembly::calcTimeStep() {
 
 void Assembly::calcContactNum() {
   std::size_t pContactNum = contactVec.size();
-  MPI_Allreduce(&pContactNum, &allContactNum, 1, MPI_INT, MPI_SUM, mpiWorld);
+  MPI_Reduce(&pContactNum, &allContactNum, 1, MPI_INT, MPI_SUM, 0, mpiWorld);
 }
 
 
