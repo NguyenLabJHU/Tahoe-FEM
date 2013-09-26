@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixQ8P8T.h,v 1.1 2012-11-26 23:17:14 tahoe.regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixQ8P8T.h,v 1.2 2013-09-26 20:30:04 tahoe.regueiro Exp $ */ 
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_Q8P8_T_H_ 
 #define _FS_SOLID_FLUID_MIX_Q8P8_T_H_ 
@@ -472,6 +472,7 @@ private:
 	dMatrixT	fI_ij_column_matrix;
 	dMatrixT	fa_ij_column_matrix;
 	dMatrixT	fShapeFluid_row_matrix;
+	dMatrixT	fShapeFluid_row_matrix_temp;
 	dMatrixT	fJmath_temp_matrix;
 	dMatrixT	fWp_temp_matrix;
 	dMatrixT	fJmath_prim_temp_matrix;
@@ -522,7 +523,16 @@ private:
 	dMatrixT	fAleph_temp_matrix; 
 	dMatrixT	press_dot_column_matrix;
 	dMatrixT	fImath_temp_matrix;  
-	dMatrixT	fPf_0_matrix;   
+	dMatrixT	fPf_0_matrix;
+
+	/* for stabilization */
+	dArrayT		fShape_fluid_projected;
+	dArrayT		fShape_fluid_projected_n;
+	dArrayT		fShapeFluid_proj;
+	dMatrixT	fShapeFluid_row_matrix_proj;
+	double		fPore_fluid_pressure_projected;
+	dMatrixT	fK_thetatheta_HStab_matrix;
+	dArrayT		fFtheta_int_Stab_vector;
 
 	//store at IPs
 	dMatrixT	fEulerian_effective_strain_tensor_current_IP;
@@ -533,10 +543,26 @@ private:
 	dArray2DT	fCauchy_effective_stress_Elements_IPs;
 	dArray2DT	fPhysical_pore_water_pressure_IPs;
 	dArray2DT	fPhysical_pore_water_pressure_Elements_IPs;
+	dArray2DT	fPhysical_pore_water_pressure_n_IPs;
+	dArray2DT	fPhysical_pore_water_pressure_n_Elements_IPs;
+	/* projected values constant at IPs, but variable between Elements */
+	dArray2DT	fPore_fluid_pressure_projected_IPs;
+	dArray2DT	fPore_fluid_pressure_projected_Elements_IPs;
+	dArray2DT	fPore_fluid_pressure_projected_n_IPs;
+	dArray2DT	fPore_fluid_pressure_projected_n_Elements_IPs;
+	dArray2DT	fShape_fluid_projected_IPs;
+	dArray2DT	fShape_fluid_projected_Elements_IPs;
+	dArray2DT	fShape_fluid_projected_n_IPs;
+	dArray2DT	fShape_fluid_projected_n_Elements_IPs;
+	/*  */
 	dArray2DT	fState_variables_IPs;
 	dArray2DT	fState_variables_Elements_IPs;
 	dArray2DT	fState_variables_n_IPs;
 	dArray2DT	fState_variables_n_Elements_IPs;
+	dArray2DT	fElement_Volume_IPs;
+	dArray2DT	fElement_Volume_Elements_IPs;
+	dArray2DT	fElement_Volume_n_IPs;
+	dArray2DT	fElement_Volume_n_Elements_IPs;
 	dArray2DT	fFp_IPs;
 	dArray2DT	fFp_Elements_IPs;
 	dArray2DT	fFp_n_IPs;
