@@ -997,8 +997,7 @@ void Assembly::coupleWithSonicFluid()
     printBdryContact(combineString(cstr0, "couple_bdrycntc_", iterSnap -1, 3));
     /*3*/ fluid.plot(strcat(combineString(cstr0, "couple_fluidplot_", iterSnap -1, 3), ".dat")); 
   }
-  //while (timeAccrued < timeTotal) { 
-  while (iteration <= endStep) {
+  while (timeAccrued < timeTotal) { 
     commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
     commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
@@ -1021,8 +1020,7 @@ void Assembly::coupleWithSonicFluid()
 
     timeCount += timeStep;
     timeAccrued += timeStep;
-    //if (timeCount >= timeTotal/netSnap) { 
-    if (iteration % (netStep / netSnap) == 0) {
+    if (timeCount >= timeTotal/netSnap) { 
       time1 = MPI_Wtime();
       gatherParticle();
       gatherBdryContact();
@@ -2824,12 +2822,16 @@ void  Assembly::openParticleProg(std::ofstream &ofs, const char *str) {
       << std::setw(OWID) << "pressureFx"
       << std::setw(OWID) << "pressureFy"
       << std::setw(OWID) << "pressureFz"
+      << std::setw(OWID) << "penalMx"
+      << std::setw(OWID) << "penalMy"
+      << std::setw(OWID) << "penalMz"
+      << std::setw(OWID) << "pressureMx"
+      << std::setw(OWID) << "pressureMy"
+      << std::setw(OWID) << "pressureMz"
       << std::setw(OWID) << "velocX"
       << std::setw(OWID) << "velocY"
       << std::setw(OWID) << "velocZ"
-      << std::setw(OWID) << "penalF"
-      << std::setw(OWID) << "pressureF"
-      << std::setw(OWID) << "veloc"
+
       << std::endl;
 }
 
