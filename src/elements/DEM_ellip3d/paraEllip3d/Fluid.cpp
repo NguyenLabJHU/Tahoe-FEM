@@ -606,7 +606,7 @@ namespace dem {
 	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
 	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
 
-	// r X F
+	// r X F,  * is overloaded as cross product
 	penalMoment += dist * Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
 	presMoment  += dist * Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
       }
@@ -618,23 +618,30 @@ namespace dem {
 
       penalMoment *= dx*dy*dz;
       presMoment  *= dx*dy*dz;
-      //(*it)->addMoment(penalMoment);
-      //(*it)->addMoment(presMoment);
+      (*it)->addMoment(penalMoment);
+      (*it)->addMoment(presMoment);
 
       if ((*it)->getId() == 1) {
 	ofs << std::setw(OWID) << iteration
+
 	    << std::setw(OWID) << penalForce.getX()
 	    << std::setw(OWID) << penalForce.getY()
 	    << std::setw(OWID) << penalForce.getZ()
 	    << std::setw(OWID) << presForce.getX()
 	    << std::setw(OWID) << presForce.getY()
 	    << std::setw(OWID) << presForce.getZ()
+
+	    << std::setw(OWID) << penalMoment.getX()
+	    << std::setw(OWID) << penalMoment.getY()
+	    << std::setw(OWID) << penalMoment.getZ()
+	    << std::setw(OWID) << presMoment.getX()
+	    << std::setw(OWID) << presMoment.getY()
+	    << std::setw(OWID) << presMoment.getZ()
+
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getX()
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getY()
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
-	    << std::setw(OWID) << vfabs(penalForce)
-	    << std::setw(OWID) << vfabs(presForce)
-	    << std::setw(OWID) << vfabs((*it)->getCurrVeloc())
+
 	    << std::endl;    
       } 
     }    
