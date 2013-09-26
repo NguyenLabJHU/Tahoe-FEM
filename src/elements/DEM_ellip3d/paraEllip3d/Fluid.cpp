@@ -577,7 +577,8 @@ namespace dem {
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       REAL etaB = 8.0/3.0 * (*it)->getC() / Cd;
       Vec penalForce = 0, presForce = 0;
-      std::vector<std::vector<std::size_t>  > fluidGrid = (*it)->getFluidGrid();
+      Vec penalMoment = 0, presMoment = 0;
+      std::vector<std::vector<std::size_t> > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
 	std::size_t i = fluidGrid[iter][0];
 	std::size_t j = fluidGrid[iter][1];
@@ -588,7 +589,7 @@ namespace dem {
 	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
 	
 	Vec dist = Vec(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]) - (*it)->getCurrPos();
-	Vec omgar = (*it)->getCurrOmga() * dist; // Omga*distVector, where * is overloaded as cross product
+	Vec omgar = (*it)->getCurrOmga() * dist; // w X r = Omga*distVector, where * is overloaded as cross product
 
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
@@ -602,11 +603,12 @@ namespace dem {
 	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
 	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
 
-	//(*it)->addMoment();
-	//(*it)->addMoment();
-
 	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
 	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
+
+	// r X F
+	penalMoment += dist * Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
+	presMoment  += dist * Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
       }
 
       penalForce *= dx*dy*dz;
@@ -614,20 +616,27 @@ namespace dem {
       (*it)->addForce(penalForce);
       (*it)->addForce(presForce);
 
-      ofs << std::setw(OWID) << iteration
-	  << std::setw(OWID) << penalForce.getX()
-	  << std::setw(OWID) << penalForce.getY()
-	  << std::setw(OWID) << penalForce.getZ()
-	  << std::setw(OWID) << presForce.getX()
-	  << std::setw(OWID) << presForce.getY()
-	  << std::setw(OWID) << presForce.getZ()
-	  << std::setw(OWID) << (*it)->getCurrVeloc().getX()
-	  << std::setw(OWID) << (*it)->getCurrVeloc().getY()
-	  << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
-	  << std::setw(OWID) << vfabs(penalForce)
-	  << std::setw(OWID) << vfabs(presForce)
-	  << std::setw(OWID) << vfabs((*it)->getCurrVeloc())
-	  << std::endl;     
+      penalMoment *= dx*dy*dz;
+      presMoment  *= dx*dy*dz;
+      //(*it)->addMoment(penalMoment);
+      //(*it)->addMoment(presMoment);
+
+      if ((*it)->getId() == 1) {
+	ofs << std::setw(OWID) << iteration
+	    << std::setw(OWID) << penalForce.getX()
+	    << std::setw(OWID) << penalForce.getY()
+	    << std::setw(OWID) << penalForce.getZ()
+	    << std::setw(OWID) << presForce.getX()
+	    << std::setw(OWID) << presForce.getY()
+	    << std::setw(OWID) << presForce.getZ()
+	    << std::setw(OWID) << (*it)->getCurrVeloc().getX()
+	    << std::setw(OWID) << (*it)->getCurrVeloc().getY()
+	    << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
+	    << std::setw(OWID) << vfabs(penalForce)
+	    << std::setw(OWID) << vfabs(presForce)
+	    << std::setw(OWID) << vfabs((*it)->getCurrVeloc())
+	    << std::endl;    
+      } 
     }    
   }
 
