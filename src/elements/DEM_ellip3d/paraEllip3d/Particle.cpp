@@ -697,28 +697,28 @@ void Particle::planeRBForce(planeBoundary *plane,
     pt2 = rt[1];
   
   // obtain normal force
-  REAL penetration = vfabs(pt1 - pt2);
-  if (penetration / (2.0*getRadius(pt2) ) <= dem::Parameter::getSingleton().parameter["minRelaOverlap"])
+  REAL penetr = vfabs(pt1 - pt2);
+  if (penetr / (2.0*getRadius(pt2) ) <= dem::Parameter::getSingleton().parameter["minRelaOverlap"])
     return;
   
   REAL R0 = getRadius(pt2);
   REAL E0 = young/(1-poisson*poisson); // rigid wall has infinite young's modulus
   REAL allowedOverlap = 2.0 * R0 * dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
-  if (penetration > allowedOverlap) {
+  if (penetr > allowedOverlap) {
     debugInf << "Particle.cpp: iter=" << iteration 
 	     << " ptclId=" << getId()
 	     << " bdryId=" << plane->getId()
-	     << " penetr=" << penetration 
+	     << " penetr=" << penetr 
 	     << " allow="  << allowedOverlap << std::endl;
-    penetration = allowedOverlap;
+    penetr = allowedOverlap;
   }
   
   REAL measureOverlap = dem::Parameter::getSingleton().parameter["measureOverlap"];  
-  penetration = nearbyint (penetration/measureOverlap) * measureOverlap;
-  REAL contactRadius = sqrt(penetration*R0);
+  penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
+  REAL contactRadius = sqrt(penetr*R0);
   Vec normalDirc = -dirc;
-  // pow(penetration,1.5), a serious bug
-  Vec normalForce = sqrt(penetration * penetration * penetration) * sqrt(R0) * 4 * E0/3 * normalDirc;
+  // pow(penetr,1.5), a serious bug
+  Vec normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) * 4 * E0/3 * normalDirc;
   
   /*
   debugInf << ' ' << iteration
@@ -735,7 +735,7 @@ void Particle::planeRBForce(planeBoundary *plane,
 	   << ' ' << rt[1].getZ()
 	   << ' ' << vfabs(rt[0]-pt1)
 	   << ' ' << vfabs(rt[1]-pt1)
-	   << ' ' << penetration
+	   << ' ' << penetr
 	   << std::endl;
   */
   
@@ -746,8 +746,8 @@ void Particle::planeRBForce(planeBoundary *plane,
   // obtain normal damping force
   Vec veloc2 = getCurrVeloc() + getCurrOmga() * ((pt1 + pt2)/2 - getCurrPos());
   REAL kn = pow(6 * vfabs(normalForce) * R0 * pow(E0,2), 1.0/3.0);
-  REAL criticalDamp = 2 * sqrt(getMass() * kn); // critical damping
-  Vec cntDampingForce = dem::Parameter::getSingleton().parameter["contactDamp"] * criticalDamp * ((-veloc2) % normalDirc) * normalDirc;
+  REAL dampCritical = 2 * sqrt(getMass() * kn); // critical damping
+  Vec cntDampingForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * ((-veloc2) % normalDirc) * normalDirc;
   
   // apply normal damping force
   addForce(cntDampingForce);
@@ -803,8 +803,8 @@ void Particle::planeRBForce(planeBoundary *plane,
       // obtain tangential damping force
       Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
       Vec TgtVel  = relaVel - (relaVel % normalDirc) * normalDirc;
-      REAL criticalDamp = 2 * sqrt(getMass() * ks); // critical damping
-      fricDampingForce = 1.0 * criticalDamp * (-TgtVel);
+      REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
+      fricDampingForce = 1.0 * dampCritical * (-TgtVel);
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -858,8 +858,8 @@ void Particle::planeRBForce(planeBoundary *plane,
       // obtain tangential damping force
       Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
       Vec TgtVel  = relaVel - (relaVel % normalDirc) * normalDirc;
-      REAL criticalDamp = 2 * sqrt(getMass() * ks); // critical damping
-      fricDampingForce = 1.0 * criticalDamp * (-TgtVel);
+      REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
+      fricDampingForce = 1.0 * dampCritical * (-TgtVel);
     }
     
 #endif
@@ -892,7 +892,7 @@ void Particle::planeRBForce(planeBoundary *plane,
     
   }
   
-  plane->getContactInfo().push_back(BdryContact(this, pt1, -normalForce, -tgtForce, penetration));
+  plane->getContactInfo().push_back(BdryContact(this, pt1, -normalForce, -tgtForce, penetr));
   // update forces acting on boundary in class Boundary, not here
 }
   
@@ -943,7 +943,6 @@ void Particle::recordFluidGrid(std::size_t i, std::size_t j, std::size_t k) {
   vec.push_back(j);
   vec.push_back(k);
   fluidGrid.push_back(vec);
- }
-
+}
 
 } // namespace dem ends
