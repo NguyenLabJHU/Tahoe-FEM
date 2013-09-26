@@ -49,8 +49,6 @@ static struct timeval time_r1, time_r2; // for internal wall-clock time profilin
 
 namespace dem {
 
-std::ofstream progressInf, balancedInf;
-
 struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
   struct timeval diff;
   diff.tv_sec = time2.tv_sec - time1.tv_sec; 
@@ -185,21 +183,20 @@ void Assembly::deposit(const char *inputBoundary,
   iteration = startStep;
   std::size_t iterSnap = startSnap;
   char cstr0[50];
+  REAL timeTotal = timeStep * netStep;
+  REAL timeCount = 0;
+  timeAccrued = 0;
   if (mpiRank == 0) {
     plotBoundary(strcat(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3), ".dat"));
     plotGrid(strcat(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3), ".dat"));
     printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
     printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
   }
-  while (iteration <= endStep) {
-    time0 = MPI_Wtime();
-    commuT = migraT = gatherT = totalT = 0;
+  while (timeAccrued < timeTotal) { //while (iteration <= endStep) {
+    commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
+    commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-    time1 = MPI_Wtime();
-    commuParticle();
-    time2 = MPI_Wtime(); commuT = time2 - time1;
-
-    calcTimeStep(); // use values from last step, must call before findConact
+    calcTimeStep(); // use values from last step, must call before findConact (which clears data)
     findContact();
     if (isBdryProcess()) findBdryContact();
 
@@ -209,13 +206,14 @@ void Assembly::deposit(const char *inputBoundary,
 
     updateParticle();   
     updateGrid(); // universal; updateGridMaxZ() for deposition only
-   
-    if (iteration % (netStep / netSnap) == 0) {
+
+    timeCount += timeStep;
+    timeAccrued += timeStep;
+    if (timeCount >= timeTotal/netSnap) { //if (iteration % (netStep / netSnap) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
       gatherBdryContact();
-      gatherEnergy();
-      time2 = MPI_Wtime(); gatherT = time2 - time1;
+      gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
       char cstr[50];
       if (mpiRank == 0) {
@@ -227,21 +225,16 @@ void Assembly::deposit(const char *inputBoundary,
       }
       printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
       
+      timeCount = 0;
       ++iterSnap;
     }
 
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
-    migrateParticle();
-    time2 = MPI_Wtime(); migraT = time2 - time1;
- 
-    time2 = MPI_Wtime(); totalT = time2 - time0;
+    migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
     if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-	       << " commu=" << commuT
-	       << " gather=" << gatherT
-	       << " migra=" << migraT
-	       << " total=" << totalT 
+	       << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 	       << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 	       << std::scientific << std::setprecision(6) << std::endl;
 
@@ -392,9 +385,7 @@ void Assembly::isotropic()
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
     migrateParticle();
-    time2 = MPI_Wtime(); migraT = time2 - time1;
- 
-    time2 = MPI_Wtime(); totalT = time2 - time0;
+    time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
     if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
@@ -554,9 +545,7 @@ void Assembly::odometer()
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
     migrateParticle();
-    time2 = MPI_Wtime(); migraT = time2 - time1;
- 
-    time2 = MPI_Wtime(); totalT = time2 - time0;
+    time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
     if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
@@ -685,9 +674,7 @@ void Assembly::triaxial()
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
     migrateParticle();
-    time2 = MPI_Wtime(); migraT = time2 - time1;
- 
-    time2 = MPI_Wtime(); totalT = time2 - time0;
+    time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
     if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
@@ -832,9 +819,7 @@ void Assembly::trueTriaxial()
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
     migrateParticle();
-    time2 = MPI_Wtime(); migraT = time2 - time1;
- 
-    time2 = MPI_Wtime(); totalT = time2 - time0;
+    time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
     if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	       << " commu=" << commuT
@@ -978,10 +963,12 @@ bool Assembly::tractionErrorTol(REAL sigma, std::string type, REAL sigmaX, REAL 
 
 void Assembly::coupleWithSonicFluid() 
 {
+  std::ofstream particleInf;
   if (mpiRank == 0) {
     readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-    openParticleProg(progressInf, "particle_progress");
+    openDepositProg(progressInf, "couple_progress");
+    openParticleProg(particleInf, "particle_progress");
     /*1*/ fluid.initParameter(allContainer, gradation);
     /*2*/ fluid.initialize();
   }
@@ -1000,6 +987,9 @@ void Assembly::coupleWithSonicFluid()
   iteration = startStep;
   std::size_t iterSnap = startSnap;
   char cstr0[50];
+  REAL timeTotal = timeStep * netStep;
+  REAL timeCount = 0;
+  timeAccrued = 0;
   if (mpiRank == 0) {
     plotBoundary(strcat(combineString(cstr0, "couple_bdryplot_", iterSnap - 1, 3), ".dat"));
     plotGrid(strcat(combineString(cstr0, "couple_gridplot_", iterSnap - 1, 3), ".dat"));
@@ -1007,13 +997,10 @@ void Assembly::coupleWithSonicFluid()
     printBdryContact(combineString(cstr0, "couple_bdrycntc_", iterSnap -1, 3));
     /*3*/ fluid.plot(strcat(combineString(cstr0, "couple_fluidplot_", iterSnap -1, 3), ".dat")); 
   }
+  //while (timeAccrued < timeTotal) { 
   while (iteration <= endStep) {
-    time0 = MPI_Wtime();
-    commuT = migraT = gatherT = totalT = 0;
-
-    time1 = MPI_Wtime();
-    commuParticle();
-    time2 = MPI_Wtime(); commuT = time2 - time1;
+    commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
+    commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
     calcTimeStep(); // use values from last step, must call before findConact
     findContact();
@@ -1023,7 +1010,7 @@ void Assembly::coupleWithSonicFluid()
 
     /*4*/ fluid.getParticleInfo(particleVec); // not allParticleVec
     /*5*/ fluid.runOneStep();
-    /*6*/ fluid.calcParticleForce(particleVec, progressInf);// not allParticleVec
+    /*6*/ fluid.calcParticleForce(particleVec, particleInf);// not allParticleVec
     /*7*/ fluid.penalize();
 
     internalForce();
@@ -1031,13 +1018,15 @@ void Assembly::coupleWithSonicFluid()
 
     updateParticle();
     updateGridMaxZ();
-   
+
+    timeCount += timeStep;
+    timeAccrued += timeStep;
+    //if (timeCount >= timeTotal/netSnap) { 
     if (iteration % (netStep / netSnap) == 0) {
       time1 = MPI_Wtime();
       gatherParticle();
       gatherBdryContact();
-      gatherEnergy();
-      time2 = MPI_Wtime(); gatherT = time2 - time1;
+      gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
       char cstr[50];
       if (mpiRank == 0) {
@@ -1045,26 +1034,22 @@ void Assembly::coupleWithSonicFluid()
 	plotGrid(strcat(combineString(cstr, "couple_gridplot_", iterSnap, 3), ".dat"));
 	printParticle(combineString(cstr, "couple_particle_", iterSnap, 3));
 	printBdryContact(combineString(cstr, "couple_bdrycntc_", iterSnap, 3));
+	printDepositProg(progressInf);
 	/*8*/ fluid.plot(strcat(combineString(cstr, "couple_fluidplot_", iterSnap, 3), ".dat"));
       }
       printContact(combineString(cstr, "couple_contact_", iterSnap, 3));
       
+      timeCount = 0;
       ++iterSnap;
     }
 
     releaseRecvParticle(); // late release because printContact refers to received particles
     time1 = MPI_Wtime();
-    migrateParticle();
-    time2 = MPI_Wtime(); migraT = time2 - time1;
- 
-    time2 = MPI_Wtime(); totalT = time2 - time0;
+    migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
     /*
     if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
       debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-	       << " commu=" << commuT
-	       << " gather=" << gatherT
-	       << " migra=" << migraT
-	       << " total=" << totalT 
+	       << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 	       << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 	       << std::scientific << std::setprecision(6) << std::endl;
     */
@@ -1072,7 +1057,10 @@ void Assembly::coupleWithSonicFluid()
     ++iteration;
   } 
   
-  if (mpiRank == 0) closeProg(progressInf);
+  if (mpiRank == 0) {
+    closeProg(progressInf);
+    closeProg(particleInf);
+  }
 }
 
 
@@ -2503,15 +2491,16 @@ void  Assembly::openDepositProg(std::ofstream &ofs, const char *str) {
       << std::setw(OWID) << "avgShear"
       << std::setw(OWID) << "avgPenetr"
     
-      << std::setw(OWID) << "trans_energy"
-      << std::setw(OWID) << "rotat_energy"
-      << std::setw(OWID) << "kinet_energy"
-      << std::setw(OWID) << "gravi_energy"
-      << std::setw(OWID) << "mecha_energy"
+      << std::setw(OWID) << "transEnergy"
+      << std::setw(OWID) << "rotatEnergy"
+      << std::setw(OWID) << "kinetEnergy"
+      << std::setw(OWID) << "graviEnergy"
+      << std::setw(OWID) << "mechaEnergy"
 
-      << std::setw(OWID) << "vibra_dt"
-      << std::setw(OWID) << "impact_dt"
+      << std::setw(OWID) << "vibra_est_dt"
+      << std::setw(OWID) << "impact_est_dt"
       << std::setw(OWID) << "actual_dt"
+      << std::setw(OWID) << "accruedTime"
     
       << std::endl;
 }
@@ -2584,10 +2573,11 @@ void Assembly::printDepositProg(std::ofstream &ofs) {
       << std::setw(OWID) << graviEnergy
       << std::setw(OWID) << mechaEnergy;
 
-  // time step
+  // time
   ofs << std::setw(OWID) << vibraTimeStep
       << std::setw(OWID) << impactTimeStep
-      << std::setw(OWID) << timeStep;
+      << std::setw(OWID) << timeStep
+      << std::setw(OWID) << timeAccrued;
 
   ofs << std::endl;
 }
@@ -2670,14 +2660,20 @@ void  Assembly::openCompressProg(std::ofstream &ofs, const char *str) {
       << std::setw(OWID) << "penetr_z1"
       << std::setw(OWID) << "penetr_z2"
     
-      << std::setw(OWID) << "trans_energy"
-      << std::setw(OWID) << "rotat_energy"
-      << std::setw(OWID) << "kinet_energy"
-      << std::setw(OWID) << "gravi_energy"
-      << std::setw(OWID) << "mecha_energy"
+      << std::setw(OWID) << "avgNormal"
+      << std::setw(OWID) << "avgShear"
+      << std::setw(OWID) << "avgPenetr"
 
-      << std::setw(OWID) << "vibra_dt"
-      << std::setw(OWID) << "impact_dt"
+      << std::setw(OWID) << "transEnergy"
+      << std::setw(OWID) << "rotatEnergy"
+      << std::setw(OWID) << "kinetEnergy"
+      << std::setw(OWID) << "graviEnergy"
+      << std::setw(OWID) << "mechaEnergy"
+
+      << std::setw(OWID) << "vibra_est_dt"
+      << std::setw(OWID) << "impact_est_dt"
+      << std::setw(OWID) << "actual_dt"
+      << std::setw(OWID) << "accruedTime"
     
       << std::endl;
 }
@@ -2793,6 +2789,11 @@ void Assembly::printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REA
   for (std::size_t i = 0; i < 6; ++i)
     ofs << std::setw(OWID) << var[i];
   
+  // average data
+  ofs << std::setw(OWID) << avgNormal
+      << std::setw(OWID) << avgShear
+      << std::setw(OWID) << avgPenetr;
+
   // energy
   ofs << std::setw(OWID) << transEnergy
       << std::setw(OWID) << rotatEnergy
@@ -2800,9 +2801,11 @@ void Assembly::printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REA
       << std::setw(OWID) << graviEnergy
       << std::setw(OWID) << mechaEnergy;
 
-  // time step
+  // time
   ofs << std::setw(OWID) << vibraTimeStep
-      << std::setw(OWID) << impactTimeStep;
+      << std::setw(OWID) << impactTimeStep
+      << std::setw(OWID) << timeStep
+      << std::setw(OWID) << timeAccrued;
 
   ofs << std::endl;
 }
@@ -3209,7 +3212,6 @@ void Assembly::plotGrid(const char *str) const {
 
 
 void Assembly::findContact() { // various implementations
-
   int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 
   if (ompThreads == 1) { // non-openmp single-thread version, time complexity bigO(n x n), n is the number of particles.  

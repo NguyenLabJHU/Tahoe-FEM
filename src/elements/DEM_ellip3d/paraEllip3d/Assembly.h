@@ -67,6 +67,7 @@ namespace dem {
     // time step
     REAL vibraTimeStep;    // meaningful to all processes
     REAL impactTimeStep;   // meaningful to all processes
+    REAL timeAccrued;      // only meaningful to root process
 
     // MPI data
     boost::mpi::communicator boostWorld;
@@ -91,6 +92,10 @@ namespace dem {
     std::vector<Particle *> recvParticleVec;  // received particles per process
     std::vector<Particle *> mergeParticleVec; // merged particles per process
       
+    // stream
+    std::ofstream progressInf;
+    std::ofstream balancedInf;
+
   public:
     Assembly()
       :trimHistoryNum(0), allContactNum(0), avgNormal(0), avgShear(0), avgPenetr(0),
