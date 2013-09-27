@@ -3585,10 +3585,11 @@ void Assembly::calcTimeStep() {
   calcImpactTimeStep();
   calcContactNum();
 
+  REAL CFL = 0.5;
   std::valarray<REAL> dt(3);
   dt[0] = dem::Parameter::getSingleton().parameter["timeStep"];
-  dt[1] = vibraTimeStep;
-  dt[2] = impactTimeStep;
+  dt[1] = CFL * vibraTimeStep;
+  dt[2] = CFL * impactTimeStep;
 
   timeStep = dt.min();
 }
