@@ -196,9 +196,9 @@ REAL Particle::getTransEnergy() const {
   
 REAL Particle::getRotatEnergy() const {
   Vec currLocalOmga, tmp;
-  tmp = vcos(currDirecA); currLocalOmga.setX(tmp % currOmga);
-  tmp = vcos(currDirecB); currLocalOmga.setY(tmp % currOmga);
-  tmp = vcos(currDirecC); currLocalOmga.setZ(tmp % currOmga);
+  tmp = vcos(currDirecA); currLocalOmga.setX(tmp * currOmga);
+  tmp = vcos(currDirecB); currLocalOmga.setY(tmp * currOmga);
+  tmp = vcos(currDirecC); currLocalOmga.setZ(tmp * currOmga);
   
   return momentJ.getX()*pow(currLocalOmga.getX(),2)/2 
     + momentJ.getY()*pow(currLocalOmga.getY(),2)/2
@@ -488,9 +488,9 @@ void Particle::update() {
     
     // moment: angular kinetics (rotational) equations are in local frame,
     // so global values need to be converted to those in local frame when applying equations
-    tmp = vcos(getCurrDirecA()); localMoment.setX(tmp % moment); prevLocalOmga.setX(tmp % prevOmga); // l1,m1,n1
-    tmp = vcos(getCurrDirecB()); localMoment.setY(tmp % moment); prevLocalOmga.setY(tmp % prevOmga); // l2,m2,n2
-    tmp = vcos(getCurrDirecC()); localMoment.setZ(tmp % moment); prevLocalOmga.setZ(tmp % prevOmga); // l3,m3,n3
+    tmp = vcos(getCurrDirecA()); localMoment.setX(tmp * moment); prevLocalOmga.setX(tmp * prevOmga); // l1,m1,n1
+    tmp = vcos(getCurrDirecB()); localMoment.setY(tmp * moment); prevLocalOmga.setY(tmp * prevOmga); // l2,m2,n2
+    tmp = vcos(getCurrDirecC()); localMoment.setZ(tmp * moment); prevLocalOmga.setZ(tmp * prevOmga); // l3,m3,n3
     
     currLocalOmga.setX( prevLocalOmga.getX() * (2-atm) / (2+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep * 2 / (2+atm) ); 
     currLocalOmga.setY( prevLocalOmga.getY() * (2-atm) / (2+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep * 2 / (2+atm) );
@@ -498,13 +498,13 @@ void Particle::update() {
     
     // convert local angular velocities to those in global frame in order to rotate a particle in global space
     tmp = vcos( Vec(currDirecA.getX(),currDirecB.getX(),currDirecC.getX()) ); // l1,l2,l3
-    currOmga.setX(tmp % currLocalOmga);
+    currOmga.setX(tmp * currLocalOmga);
     
     tmp = vcos( Vec(currDirecA.getY(),currDirecB.getY(),currDirecC.getY()) ); // m1,m2,m3
-    currOmga.setY(tmp % currLocalOmga);   
+    currOmga.setY(tmp * currLocalOmga);   
     
     tmp = vcos( Vec(currDirecA.getZ(),currDirecB.getZ(),currDirecC.getZ()) ); // n1,n2,n3
-    currOmga.setZ(tmp % currLocalOmga);
+    currOmga.setZ(tmp * currLocalOmga);
     
     currDirecA = vacos(normalize(rotateVec(vcos(prevDirecA),currOmga * timeStep)));
     currDirecB = vacos(normalize(rotateVec(vcos(prevDirecB),currOmga * timeStep)));
@@ -522,9 +522,9 @@ void Particle::update() {
     if (iteration < START)
       currPos = prevPos + currVeloc * timeStep;	
     
-    tmp = vcos(getCurrDirecA()); localMoment.setX(tmp % moment); prevLocalOmga.setX(tmp % prevOmga); // l1,m1,n1
-    tmp = vcos(getCurrDirecB()); localMoment.setY(tmp % moment); prevLocalOmga.setY(tmp % prevOmga); // l2,m2,n2
-    tmp = vcos(getCurrDirecC()); localMoment.setZ(tmp % moment); prevLocalOmga.setZ(tmp % prevOmga); // l3,m3,n3
+    tmp = vcos(getCurrDirecA()); localMoment.setX(tmp * moment); prevLocalOmga.setX(tmp * prevOmga); // l1,m1,n1
+    tmp = vcos(getCurrDirecB()); localMoment.setY(tmp * moment); prevLocalOmga.setY(tmp * prevOmga); // l2,m2,n2
+    tmp = vcos(getCurrDirecC()); localMoment.setZ(tmp * moment); prevLocalOmga.setZ(tmp * prevOmga); // l3,m3,n3
     
     currLocalOmga.setX( prevLocalOmga.getX() * (2-atm) / (2+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep * 2 / (2+atm) ); 
     currLocalOmga.setY( prevLocalOmga.getY() * (2-atm) / (2+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep * 2 / (2+atm) );
@@ -532,13 +532,13 @@ void Particle::update() {
     
     if (iteration >= START) {	
       tmp = vcos( Vec(currDirecA.getX(),currDirecB.getX(),currDirecC.getX()) ); // l1,l2,l3
-      currOmga.setX(tmp % currLocalOmga);
+      currOmga.setX(tmp * currLocalOmga);
       
       tmp = vcos( Vec(currDirecA.getY(),currDirecB.getY(),currDirecC.getY()) ); // m1,m2,m3
-      currOmga.setY(tmp % currLocalOmga);   
+      currOmga.setY(tmp * currLocalOmga);   
       
       tmp = vcos( Vec(currDirecA.getZ(),currDirecB.getZ(),currDirecC.getZ()) ); // n1,n2,n3
-      currOmga.setZ(tmp % currLocalOmga);
+      currOmga.setZ(tmp * currLocalOmga);
       
       currDirecA = vacos(normalize(rotateVec(vcos(prevDirecA),currOmga * timeStep)));
       currDirecB = vacos(normalize(rotateVec(vcos(prevDirecB),currOmga * timeStep)));
@@ -563,11 +563,11 @@ void Particle::update() {
   // Below is needed for all cases
   // ensure three axles perpendicular to each other, and being unit vector
   if(currDirecA == 0)
-    currDirecA = vacos(normalize(vcos(currDirecB) * vcos(currDirecC)));
+    currDirecA = vacos(normalize(vcos(currDirecB) % vcos(currDirecC)));
   if(currDirecB == 0)
-    currDirecB = vacos(normalize(vcos(currDirecC) * vcos(currDirecA)));
+    currDirecB = vacos(normalize(vcos(currDirecC) % vcos(currDirecA)));
   if(currDirecC == 0)
-    currDirecC = vacos(normalize(vcos(currDirecA) * vcos(currDirecB)));
+    currDirecC = vacos(normalize(vcos(currDirecA) % vcos(currDirecB)));
   
   prevPos = currPos;
   prevDirecA = currDirecA;
@@ -671,7 +671,7 @@ void Particle::planeRBForce(planeBoundary *plane,
   p = dirc.getX();
   q = dirc.getY();
   r = dirc.getZ();
-  s = -dirc % plane->getPoint(); // plane equation: p(x-x0) + q(y-y0) + r(z-z0) = 0, that is, px + qy + rz + s = 0
+  s = -dirc * plane->getPoint(); // plane equation: p(x-x0) + q(y-y0) + r(z-z0) = 0, that is, px + qy + rz + s = 0
 
   Vec pt1;
   if (!nearestPTOnPlane(p, q, r, s, pt1)) // the particle and the plane does not intersect
@@ -741,17 +741,17 @@ void Particle::planeRBForce(planeBoundary *plane,
   
   // apply normal force
   addForce(normalForce);
-  addMoment(((pt1 + pt2)/2 - currPos) * normalForce);
+  addMoment(((pt1 + pt2)/2 - currPos) % normalForce);
   
   // obtain normal damping force
-  Vec veloc2 = getCurrVeloc() + getCurrOmga() * ((pt1 + pt2)/2 - getCurrPos());
+  Vec veloc2 = getCurrVeloc() + getCurrOmga() % ((pt1 + pt2)/2 - getCurrPos());
   REAL kn = pow(6 * vfabs(normalForce) * R0 * pow(E0,2), 1.0/3.0);
   REAL dampCritical = 2 * sqrt(getMass() * kn); // critical damping
-  Vec cntDampingForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * ((-veloc2) % normalDirc) * normalDirc;
+  Vec cntDampingForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * ((-veloc2) * normalDirc) * normalDirc;
   
   // apply normal damping force
   addForce(cntDampingForce);
-  addMoment(((pt1 + pt2)/2 - currPos) * cntDampingForce);
+  addMoment(((pt1 + pt2)/2 - currPos) % cntDampingForce);
   
   Vec tgtForce = 0;
   if (dem::Parameter::getSingleton().parameter["boundaryFric"] != 0) {
@@ -779,8 +779,8 @@ void Particle::planeRBForce(planeBoundary *plane,
     REAL G0 = young/2/(1+poisson);
     // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; 
     //      here global frame is used for better convenience.
-    Vec relaDispInc = (currVeloc + currOmga * ((pt1+pt2)/2 - currPos)) * timeStep;
-    Vec tgtDispInc  = relaDispInc - (relaDispInc % normalDirc) * normalDirc;
+    Vec relaDispInc = (currVeloc + currOmga % ((pt1+pt2)/2 - currPos)) * timeStep;
+    Vec tgtDispInc  = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
     Vec tgtDisp     = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkin
     Vec TgtDirc;
     
@@ -801,8 +801,8 @@ void Particle::planeRBForce(planeBoundary *plane,
     else { // adhered/slip case
       
       // obtain tangential damping force
-      Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
-      Vec TgtVel  = relaVel - (relaVel % normalDirc) * normalDirc;
+      Vec relaVel = currVeloc + currOmga % ((pt1 + pt2)/2 - currPos);  
+      Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
       REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
       fricDampingForce = 1.0 * dampCritical * (-TgtVel);
     }
@@ -814,7 +814,7 @@ void Particle::planeRBForce(planeBoundary *plane,
 #ifdef MINDLIN_ASSUMED
     REAL val = 0;
     fP = contactFric * vfabs(normalForce);
-    tgtLoading = (prevTgtDisp % tgtDispInc >= 0); 
+    tgtLoading = (prevTgtDisp * tgtDispInc >= 0); 
     
     if (tgtLoading) {       // loading
       if (!prevTgtLoading) { // pre-step is unloading
@@ -857,7 +857,7 @@ void Particle::planeRBForce(planeBoundary *plane,
       
       // obtain tangential damping force
       Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
-      Vec TgtVel  = relaVel - (relaVel % normalDirc) * normalDirc;
+      Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
       REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
       fricDampingForce = 1.0 * dampCritical * (-TgtVel);
     }
@@ -880,7 +880,7 @@ void Particle::planeRBForce(planeBoundary *plane,
     
     // apply tangential force
     addForce(tgtForce);
-    addMoment(((pt1 + pt2)/2 - currPos) * tgtForce); 
+    addMoment(((pt1 + pt2)/2 - currPos) % tgtForce); 
     
     // apply tangential damping force for adhered/slip case
     addForce(fricDampingForce);
@@ -914,7 +914,7 @@ Vec Particle::cylinderRBForce(std::size_t boundaryId, const Cylinder &S, int sid
   intersectWithLine(pt1, normalize(tmp), rt);
   Vec pt2;
   
-  if ((rt[0] - pt1) % tmp*side < 0)
+  if ((rt[0] - pt1) * tmp*side < 0)
     pt2 = rt[0];
   else
     pt2 = rt[1];
@@ -928,7 +928,7 @@ Vec Particle::cylinderRBForce(std::size_t boundaryId, const Cylinder &S, int sid
   Vec normalForce = nfc * normalDirc;
   
   addForce(normalForce);
-  addMoment(((pt1 + pt2)/2 - getCurrPos()) * normalForce);	    
+  addMoment(((pt1 + pt2)/2 - getCurrPos()) % normalForce);	    
   
   return normalForce;
 }

@@ -228,8 +228,8 @@ namespace dem {
     void setPoint(Vec pnt) { point = pnt; }
     void setVeloc(Vec vel) { veloc = vel; }
 
-    REAL distanceToBdry(Vec pos) const { return (pos - point) % normalize(direc); }
-    REAL distanceToBdry(Vec pos, Plane pn) const { return (pos - pn.getPoint()) % normalize(pn.getDirec()); }
+    REAL distanceToBdry(Vec pos) const { return (pos - point) * normalize(direc); }
+    REAL distanceToBdry(Vec pos, Plane pn) const { return (pos - pn.getPoint()) * normalize(pn.getDirec()); }
 
     void print(std::ostream &os);
     void printContactInfo(std::ostream &os);

@@ -48,7 +48,7 @@ namespace dem {
     return Vec(x-v.x, y-v.y, z-v.z);
   }
   
-  Vec Vec::operator*(Vec p) const{
+  Vec Vec::operator%(Vec p) const{
     return Vec(y*p.z-z*p.y, z*p.x-x*p.z, x*p.y-y*p.x);
   }
   
@@ -56,7 +56,7 @@ namespace dem {
     return Vec(x*d, y*d, z*d);
   }
   
-  REAL Vec::operator%(Vec p) const{
+  REAL Vec::operator*(Vec p) const{
     return (x*p.x + y*p.y + z*p.z);
   }
   
@@ -104,7 +104,7 @@ namespace dem {
       return v;
     
     Vec nx = ang/alf;
-    Vec vp = (v % nx) * nx;
+    Vec vp = (v * nx) * nx;
     Vec vv = v - vp;
     
     REAL theta = atan(vfabs(vv) / vfabs(vp));
@@ -119,7 +119,7 @@ namespace dem {
       return v;    
     
     Vec ny=normalize(vv);
-    Vec nz=normalize(nx*ny); // normalize, for higher precision
+    Vec nz=normalize(nx % ny); // normalize, for higher precision
     REAL l=vfabs(vv);
     return l * sin(alf) * nz + l * cos(alf) * ny + vp;
   }
@@ -130,14 +130,14 @@ namespace dem {
     //norm specify that the rotation must be around norm according to right hand rule,
     //even if the 180 < alf < 360
     REAL alf;
-    Vec crs = v1 * v2;
+    Vec crs = v1 % v2;
     alf = asin( vfabs(crs) / vfabs(v1) / vfabs(v2) ); // 0 < alf < 90
-    if(crs % norm > 0) { //0 <= alf <= 180
-      if(v1 % v2 < 0)   //90 < alf < 180
+    if(crs * norm > 0) { // 0 <= alf <= 180
+      if(v1 * v2 < 0)    // 90 < alf < 180
 	alf = Pi - alf;
     }
     else { // 180 < alf < 360
-      if(v1 % v2 > 0)   // 270 < alf < 360
+      if(v1 * v2 > 0)    // 270 < alf < 360
 	alf = 2*Pi - alf;
       else
 	alf = Pi + alf;

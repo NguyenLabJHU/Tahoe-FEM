@@ -589,7 +589,7 @@ namespace dem {
 	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
 	
 	Vec dist = Vec(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]) - (*it)->getCurrPos();
-	Vec omgar = (*it)->getCurrOmga() * dist; // w X r = Omga*distVector, where * is overloaded as cross product
+	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = Omga % distVector, where % is overloaded as cross product
 
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
@@ -606,9 +606,9 @@ namespace dem {
 	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
 	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
 
-	// r X F,  * is overloaded as cross product
-	penalMoment += dist * Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
-	presMoment  += dist * Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
+	// r X F,  % is overloaded as cross product
+	penalMoment += dist % Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
+	presMoment  += dist % Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
       }
 
       penalForce *= dx*dy*dz;

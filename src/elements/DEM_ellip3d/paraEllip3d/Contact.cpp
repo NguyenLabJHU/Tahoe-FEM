@@ -190,8 +190,8 @@ namespace dem {
       // apply normal force
       p1->addForce(normalForce);
       p2->addForce(-normalForce);
-      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) *   normalForce );
-      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) * (-normalForce) );	
+      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) % normalForce );
+      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % (-normalForce) );	
       
       /*
       debugInf << "Contact.h: iter=" << iteration
@@ -204,27 +204,27 @@ namespace dem {
       
       // obtain normal damping force
       Vec cp = (point1+point2)/2;        
-      Vec veloc1 = p1->getCurrVeloc() + p1->getCurrOmga()*(cp-p1->getCurrPos());
-      Vec veloc2 = p2->getCurrVeloc() + p2->getCurrOmga()*(cp-p2->getCurrPos());
+      Vec veloc1 = p1->getCurrVeloc() + p1->getCurrOmga() % (cp-p1->getCurrPos());
+      Vec veloc2 = p2->getCurrVeloc() + p2->getCurrOmga() % (cp-p2->getCurrPos());
       REAL m1 = getP1()->getMass();
       REAL m2 = getP2()->getMass();
       REAL kn = pow(6*vfabs(normalForce)*R0*pow(E0,2),1.0/3.0);
       REAL dampCritical = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
-      Vec cntDampingForce = contactDamp * dampCritical * ((veloc1-veloc2)%normalDirc)*normalDirc;
+      Vec cntDampingForce = contactDamp * dampCritical * ((veloc1-veloc2) * normalDirc)*normalDirc;
       vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
-      impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) % normalDirc);
+      impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) * normalDirc);
 
       // apply normal damping force
       p1->addForce(-cntDampingForce);
       p2->addForce(cntDampingForce);
-      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) * (-cntDampingForce) );
-      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) * cntDampingForce );
+      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) % (-cntDampingForce) );
+      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % cntDampingForce );
       
       if (contactFric != 0) {
 	// obtain tangential force
 	G0 = young/2/(1+poisson);              // RelaDispInc points along point1's displacement relative to point2
 	Vec RelaDispInc = (veloc1-veloc2) * timeStep;
-	Vec tgtDispInc = RelaDispInc - (RelaDispInc%normalDirc)*normalDirc;
+	Vec tgtDispInc = RelaDispInc - (RelaDispInc * normalDirc)*normalDirc;
 	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPrevTgt()
 	if (vfabs(tgtDisp) == 0)
 	  tgtDirc = 0;
@@ -250,7 +250,7 @@ namespace dem {
 #ifdef MINDLIN_ASSUMED
 	REAL val = 0;
 	fP = contactFric*vfabs(normalForce);
-	tgtLoading = (prevTgtDisp%tgtDispInc >= 0); 
+	tgtLoading = (prevTgtDisp * tgtDispInc >= 0); 
 	
 	if (tgtLoading) {              // loading
 	  if (!prevTgtLoading) {      // pre-step is unloading
@@ -366,8 +366,8 @@ namespace dem {
 	// apply tangential force
 	p1->addForce(tgtForce);
 	p2->addForce(-tgtForce);
-	p1->addMoment( ((point1+point2)/2-p1->getCurrPos())*tgtForce);
-	p2->addMoment(-((point1+point2)/2-p2->getCurrPos())*tgtForce);
+	p1->addMoment( ((point1+point2)/2-p1->getCurrPos()) % tgtForce);
+	p2->addMoment(-((point1+point2)/2-p2->getCurrPos()) % tgtForce);
       }
       
     }
