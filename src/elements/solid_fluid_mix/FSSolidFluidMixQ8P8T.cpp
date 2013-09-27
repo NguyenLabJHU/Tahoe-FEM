@@ -1346,9 +1346,8 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 				/* [fShape_fluid_projected] will be formed */
 				/* retrieve el_vol_n at integration point */
 				double fElement_Volume_n = fElement_Volume_n_IPs(IP,0);
-				double scale_vol;
-				if (fElement_Volume_n < 1e-10) scale_vol = 0.0;
-				else scale_vol = scale_const/fElement_Volume_n;
+				double scale_vol = 0.0;
+				if (fElement_Volume_n > 1e-14) scale_vol = scale_const/fElement_Volume_n;
 				fTemp_vector_nen_press.SetToScaled(scale_vol,fShapeFluid);
 				/* accumulate */
 				fShape_fluid_projected += fTemp_vector_nen_press;
@@ -2733,7 +2732,8 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 				fShapeFluid_proj = fShapeFluid;
 				/* retrieve Nf_n at integration point */
 				fShape_fluid_projected_n_IPs.RowCopy(IP,fShape_fluid_projected_n);
-				fShapeFluid_proj -= fShape_fluid_projected_n;
+				//fShapeFluid_proj -= fShape_fluid_projected_n;
+				fShapeFluid_proj -= fShape_fluid_projected;
 
 				/* convert fShapeFluid_proj to row-matrix form */
 				/* [fShapeFluid_row_matrix_proj] will be formed */
@@ -2921,7 +2921,7 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 		    fFtheta_int += fFtheta_int_N1_vector;
 		    fFtheta_int += fFtheta_int_N2_vector;
 		    fFtheta_int += fFtheta_int_H4_vector;
-		    fFtheta_int += fFtheta_int_Stab_vector; //stabilization
+		    fFtheta_int -= fFtheta_int_Stab_vector; //stabilization
 		    fFtheta_int *= -1;
 
 		    /* equations numbers */
