@@ -98,51 +98,32 @@ namespace dem {
     return v/(vfabs(v));
   }
   
-  Vec rotateVec(Vec v, Vec ang){
-    REAL alf = vfabs(ang);
+  // return what vector vec is rotated to by vector rot.
+  // note: that vec rotates along x, y, z axis by rot.x, rot.y, rot.z 
+  // is equivalent to that vec rotates along vector rot by vfabs(rot)
+  Vec rotateVec(Vec vec, Vec rot){
+    REAL alf = vfabs(rot);
     if (alf < EPS) // important, otherwise may cause numerical instability
-      return v;
+      return vec;
     
-    Vec nx = ang/alf;
-    Vec vp = (v * nx) * nx;
-    Vec vv = v - vp;
+    Vec nx = rot / alf;
+    Vec vx = (vec * nx) * nx;
+    Vec vy = vec - vx;
     
-    REAL theta = atan(vfabs(vv) / vfabs(vp));
-
+    REAL theta = atan(vfabs(vy) / vfabs(vx));
 #ifndef NDEBUG
     debugInf << "Vec.cpp: iter=" << iteration 
 	     << " alf=" << alf
 	     << " theta=" << theta << std::endl;
 #endif
-
     if (theta < EPS) // important, otherwise my cause numerical instability
-      return v;    
+      return vec;    
     
-    Vec ny=normalize(vv);
-    Vec nz=normalize(nx % ny); // normalize, for higher precision
-    REAL l=vfabs(vv);
-    return l * sin(alf) * nz + l * cos(alf) * ny + vp;
+    Vec ny = normalize(vy);
+    Vec nz = normalize(nx % ny); // normalize for higher precision
+    REAL radius = vfabs(vy);
+    return radius * sin(alf) * nz + radius * cos(alf) * ny + vx;
   }
   
-  REAL angle(Vec v1, Vec v2, Vec norm){
-    //calculate the angle between v1 and v2 if rotating v1 in the plane
-    //composed of v1 and v2 from itself to v2, the angle could be 0 < alf < 360.
-    //norm specify that the rotation must be around norm according to right hand rule,
-    //even if the 180 < alf < 360
-    REAL alf;
-    Vec crs = v1 % v2;
-    alf = asin( vfabs(crs) / vfabs(v1) / vfabs(v2) ); // 0 < alf < 90
-    if(crs * norm > 0) { // 0 <= alf <= 180
-      if(v1 * v2 < 0)    // 90 < alf < 180
-	alf = Pi - alf;
-    }
-    else { // 180 < alf < 360
-      if(v1 * v2 > 0)    // 270 < alf < 360
-	alf = 2*Pi - alf;
-      else
-	alf = Pi + alf;
-    }
-    return alf;
-  }
-  
+ 
 } // namespace dem

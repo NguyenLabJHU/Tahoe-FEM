@@ -57,9 +57,8 @@ namespace dem {
   REAL vfabs(Vec v);
   Vec  vcos(Vec v);
   Vec  vacos(Vec v);
-  Vec  rotateVec(Vec v, Vec alf); // find the exact Vector after v is rotated alf in space
+  Vec  rotateVec(Vec v, Vec alf);
   Vec  normalize(Vec v);
-  REAL angle(Vec v1, Vec v2, Vec norm); 
   
 } // namespace dem
 
