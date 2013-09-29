@@ -186,6 +186,24 @@ namespace dem {
     globalCoef();
   }
 
+
+  Vec Particle::globalToLocal(Vec input) const {
+    Vec lmn, local;
+    lmn = vcos(getCurrDirecA()); local.setX(lmn * input); // l1,m1,n1
+    lmn = vcos(getCurrDirecB()); local.setY(lmn * input); // l2,m2,n2
+    lmn = vcos(getCurrDirecC()); local.setZ(lmn * input); // l3,m3,n3
+    return local;
+  }
+
+
+  Vec Particle::localToGlobal(Vec input) const {
+    Vec lmn, global;
+    lmn = vcos( Vec(currDirecA.getX(),currDirecB.getX(),currDirecC.getX()) ); global.setX(lmn * input); // l1,l2,l3
+    lmn = vcos( Vec(currDirecA.getY(),currDirecB.getY(),currDirecC.getY()) ); global.setY(lmn * input); // m1,m2,n3
+    lmn = vcos( Vec(currDirecA.getZ(),currDirecB.getZ(),currDirecC.getZ()) ); global.setZ(lmn * input); // n1,n2,n3
+    return global;
+  }
+
   
   // 1: rotational energy is 1/2(I1*w1^2+I2*w2^2+I3*w3^2), where each term is expressed in local frame.
   // 2. angular velocities in global frame needs to be converted to those in local frame.
@@ -195,10 +213,7 @@ namespace dem {
   
   
   REAL Particle::getRotatEnergy() const {
-    Vec currLocalOmga, tmp;
-    tmp = vcos(currDirecA); currLocalOmga.setX(tmp * currOmga);
-    tmp = vcos(currDirecB); currLocalOmga.setY(tmp * currOmga);
-    tmp = vcos(currDirecC); currLocalOmga.setZ(tmp * currOmga);
+    Vec currLocalOmga = globalToLocal(currOmga);
   
     return momentJ.getX()*pow(currLocalOmga.getX(),2)/2 
       + momentJ.getY()*pow(currLocalOmga.getY(),2)/2
@@ -463,11 +478,6 @@ namespace dem {
 #endif
   }
   
-  Vec Particle::globalToLocal(Vec input) {
-  }
-
-  Vec Particle::localToGlobal(Vec input) {
-  }
   
   // central difference integration method
   void Particle::update() {
@@ -483,7 +493,6 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      Vec tmp;
       REAL atf = forceDamp * timeStep; 
       REAL atm = momentDamp * timeStep; 
     
@@ -493,23 +502,15 @@ namespace dem {
     
       // moment: angular kinetics (rotational) equations are in local frame,
       // so global values need to be converted to those in local frame when applying equations
-      tmp = vcos(getCurrDirecA()); localMoment.setX(tmp * moment); prevLocalOmga.setX(tmp * prevOmga); // l1,m1,n1
-      tmp = vcos(getCurrDirecB()); localMoment.setY(tmp * moment); prevLocalOmga.setY(tmp * prevOmga); // l2,m2,n2
-      tmp = vcos(getCurrDirecC()); localMoment.setZ(tmp * moment); prevLocalOmga.setZ(tmp * prevOmga); // l3,m3,n3
+      localMoment = globalToLocal(moment);
+      prevLocalOmga = globalToLocal(prevOmga);
     
       currLocalOmga.setX( prevLocalOmga.getX() * (2-atm) / (2+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep * 2 / (2+atm) ); 
       currLocalOmga.setY( prevLocalOmga.getY() * (2-atm) / (2+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep * 2 / (2+atm) );
       currLocalOmga.setZ( prevLocalOmga.getZ() * (2-atm) / (2+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep * 2 / (2+atm) );
     
       // convert local angular velocities to those in global frame in order to rotate a particle in global space
-      tmp = vcos( Vec(currDirecA.getX(),currDirecB.getX(),currDirecC.getX()) ); // l1,l2,l3
-      currOmga.setX(tmp * currLocalOmga);
-    
-      tmp = vcos( Vec(currDirecA.getY(),currDirecB.getY(),currDirecC.getY()) ); // m1,m2,m3
-      currOmga.setY(tmp * currLocalOmga);   
-    
-      tmp = vcos( Vec(currDirecA.getZ(),currDirecB.getZ(),currDirecC.getZ()) ); // n1,n2,n3
-      currOmga.setZ(tmp * currLocalOmga);
+      currOmga = localToGlobal(currLocalOmga);
     
       currDirecA = vacos(normalize(rotateVec(vcos(prevDirecA),currOmga * timeStep)));
       currDirecB = vacos(normalize(rotateVec(vcos(prevDirecB),currOmga * timeStep)));
@@ -520,30 +521,21 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      Vec tmp;
       REAL atf = forceDamp * timeStep; 
       REAL atm = momentDamp * timeStep; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       if (iteration < START)
-	currPos = prevPos + currVeloc * timeStep;	
-    
-      tmp = vcos(getCurrDirecA()); localMoment.setX(tmp * moment); prevLocalOmga.setX(tmp * prevOmga); // l1,m1,n1
-      tmp = vcos(getCurrDirecB()); localMoment.setY(tmp * moment); prevLocalOmga.setY(tmp * prevOmga); // l2,m2,n2
-      tmp = vcos(getCurrDirecC()); localMoment.setZ(tmp * moment); prevLocalOmga.setZ(tmp * prevOmga); // l3,m3,n3
+	currPos = prevPos + currVeloc * timeStep;
+	
+      localMoment = globalToLocal(moment);
+      prevLocalOmga = globalToLocal(prevOmga);
     
       currLocalOmga.setX( prevLocalOmga.getX() * (2-atm) / (2+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep * 2 / (2+atm) ); 
       currLocalOmga.setY( prevLocalOmga.getY() * (2-atm) / (2+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep * 2 / (2+atm) );
       currLocalOmga.setZ( prevLocalOmga.getZ() * (2-atm) / (2+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep * 2 / (2+atm) );
     
       if (iteration >= START) {	
-	tmp = vcos( Vec(currDirecA.getX(),currDirecB.getX(),currDirecC.getX()) ); // l1,l2,l3
-	currOmga.setX(tmp * currLocalOmga);
-      
-	tmp = vcos( Vec(currDirecA.getY(),currDirecB.getY(),currDirecC.getY()) ); // m1,m2,m3
-	currOmga.setY(tmp * currLocalOmga);   
-      
-	tmp = vcos( Vec(currDirecA.getZ(),currDirecB.getZ(),currDirecC.getZ()) ); // n1,n2,n3
-	currOmga.setZ(tmp * currLocalOmga);
+	currOmga = localToGlobal(currLocalOmga);
       
 	currDirecA = vacos(normalize(rotateVec(vcos(prevDirecA),currOmga * timeStep)));
 	currDirecB = vacos(normalize(rotateVec(vcos(prevDirecB),currOmga * timeStep)));
