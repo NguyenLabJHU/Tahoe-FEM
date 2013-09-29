@@ -128,6 +128,9 @@ namespace dem {
     void addForce(Vec vv) {force += vv;}
     void addMoment(Vec vv) {moment += vv;}
     void update();
+
+    Vec globalToLocal(Vec input);
+    Vec localToGlobal(Vec input);
     
     // update global coefficients in the following form based on position/dimensions/orientations
     // a0 x^2 + a1 y^2 + a2 z^2 + a3 xy + a4 yz + a5 zx + a6 x + a7 y + a8 z + a9 = 0

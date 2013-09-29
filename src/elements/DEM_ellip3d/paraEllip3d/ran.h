@@ -3,7 +3,7 @@
 
 #include "realtypes.h"
 
-namespace dem{
+namespace dem {
   REAL ran(long* idum);
 }
 #endif

@@ -4,14 +4,14 @@
 
 namespace dem {
 
-void Cylinder::print() const{
+  void Cylinder::print() const{
     std::cout << "radius=" << radius << std::endl;
     std::cout << "height=" << height << std::endl;
     std::cout << "center=";
     center.print();
-}
+  }
 
-Vec Cylinder::randomPoint() const{
+  Vec Cylinder::randomPoint() const{
     REAL rand1 = ran(&idum);
     REAL rand2 = ran(&idum);
     REAL rand3 = ran(&idum);
@@ -21,6 +21,6 @@ Vec Cylinder::randomPoint() const{
     REAL x = center.getX() + r*cos(theta);
     REAL y = center.getY() + r*sin(theta);
     return Vec(x,y,z); 
-}
+  }
 
 }
