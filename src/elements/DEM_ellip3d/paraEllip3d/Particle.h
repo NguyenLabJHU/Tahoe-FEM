@@ -27,11 +27,11 @@ namespace dem {
     std::size_t  id;
     std::size_t  type;            
     REAL a, b, c;    // three semi-axle length, must satisfy a >= b >= c
-    REAL young;
+    REAL young;      // note: a(currDirecA), b(currDirecB), c(currDirecC) corresponds to x, y, z in local frame, respectively
     REAL poisson;
     Vec  currPos;    // particle center
     Vec  prevPos;
-    Vec  currDirecA, currDirecB, currDirecC; // the direction of the three axles, in radian
+    Vec  currDirecA, currDirecB, currDirecC; // direction of the three axles, in radian
     Vec  prevDirecA, prevDirecB, prevDirecC;
     Vec  currVeloc;  // the velocity of the mass center
     Vec  prevVeloc;
@@ -137,11 +137,6 @@ namespace dem {
     void globalCoef();  
     void getGlobalCoef(REAL coef[]) const; // retrieve global coeffs into coef[]
     REAL surfaceError(Vec pt) const;
-    Vec  localVec(Vec) const;   // transform a vector in global coordinates into local coordinates
-    Vec  globalVec(Vec) const;  // transform a vector in local coordinates into global coordinates
-    
-    // Assumption: a particle only intersects a plane a little and it cannot pass through the plane
-    // with most of its body, this is guaranteed by contact force.
     
     // v is the point the line passing through, dirc is the unit vector parallel to the line
     bool intersectWithLine(Vec v, Vec dirc, Vec rt[]) const;
@@ -150,7 +145,7 @@ namespace dem {
     // of the plane, true means intersection; false means no intersection.
     bool nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const;
     
-    //calculate the normal force between particle and a plane rigid boundary
+    // calculate the normal force between particle and a plane rigid boundary
     void planeRBForce(planeBoundary *plane,
 		      std::map<std::size_t,std::vector<BoundaryTgt> > &BoundarytgtMap,
 		      std::vector<BoundaryTgt> &vtmp);

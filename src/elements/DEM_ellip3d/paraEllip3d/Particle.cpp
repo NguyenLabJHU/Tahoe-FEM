@@ -68,7 +68,7 @@ namespace dem {
     force = prevForce = 0;
     moment = prevMoment = 0;
     constForce = constMoment = 0;
-    density = dem::Parameter::getSingleton().parameter["specificG"] * 1.0e3;
+    density = dem::Parameter::getSingleton().parameter["specificG"] * 1.0e+3;
     volume = 4/3.0*Pi*a*b*c;
     mass = density*volume;
     momentJ = Vec(mass/5*(b*b+c*c), mass/5*(a*a+c*c), mass/5*(a*a+b*b));
@@ -76,56 +76,6 @@ namespace dem {
     inContact = false;
     globalCoef();
   }
-
-
-  /*
-    void Particle::init () {
-    // generate orientation of axle a/b/c
-    REAL l1, m1, n1, l2, m2, n2, mod, A, B, C;
-
-    while (1) {
-    l1 = ran(&idum)*2 - 1;
-    m1 = ran(&idum)*2 - 1;
-    n1 = ran(&idum)*2 - 1;
-    mod = sqrt(l1*l1 + m1*m1 + n1*n1);
-    l1 /= mod;
-    m1 /= mod;
-    n1 /= mod;
-    
-    l2 = ran(&idum)*2 - 1;
-    // solve n2
-    A = m1*m1 + n1*n1;
-    B = 2 * l1 * l2 * n1;
-    C = l1*l1*l2*l2 + m1*m1*l2*l2 - m1*m1;
-    if (B*B - 4*A*C > EPS)
-    break;
-    }
-
-    int sign = 2*ran(&idum)-1 > 0 ? 1:-1;
-    n2 = (-B + sign*sqrt(B*B - 4*A*C) ) / (2*A);
-    m2 = - (l1*l2 + n1*n2) / m1;
-    currDirecA = Vec(acos(l1), acos(m1), acos(n1));
-    currDirecB = Vec(acos(l2), acos(m2), acos(n2));
-    currDirecC = vacos(normalize(vcos(currDirecA) * vcos(currDirecB)));
-
-    prevPos = currPos;
-    prevDirecA = currDirecA;
-    prevDirecB = currDirecB;
-    prevDirecC = currDirecC;
-    prevVeloc = currVeloc = 0;
-    prevOmga = currOmga = 0;
-    force = prevForce = 0;
-    moment = prevMoment = 0;
-    constForce = constMoment = 0;
-    density = dem::Parameter::getSingleton().parameter["specificG"] * 1.0e3;
-    volume = 4/3.0*Pi*a*b*c;
-    mass = density*volume;
-    momentJ = Vec(mass/5*(b*b+c*c), mass/5*(a*a+c*c), mass/5*(a*a+b*b));
-    contactNum = 0;
-    inContact = false;
-    globalCoef();
-    }
-  */
 
 
   Particle::Particle(std::size_t n, std::size_t tp, Vec center, REAL r, REAL yng, REAL poi)
@@ -146,7 +96,7 @@ namespace dem {
     REAL sievenum = grad.getSieveNum();
     for (std::size_t k = 0; k < sievenum; ++k) {
       if (ran(&idum) <= grad.getPercent()[sievenum-1-k]) {
-	a = grad.getSize()[sievenum-1-k];
+	a = grad.getSize()[sievenum-1-k]; // use a for sieving (where a >= b >= c) 
 	break;
       }
     }
@@ -579,24 +529,7 @@ namespace dem {
     globalCoef(); // every time the particle is updated, the algebra expression is also updated
   }
   
-  
-  Vec Particle::localVec(Vec v) const {
-    // v is a vector in global coordinates, it is to be transformed into local coordinates
-    Vec l = vcos(Vec(currDirecA.getX(), currDirecB.getX(), currDirecC.getX()));
-    Vec m = vcos(Vec(currDirecA.getY(), currDirecB.getY(), currDirecC.getY()));
-    Vec n = vcos(Vec(currDirecA.getZ(), currDirecB.getZ(), currDirecC.getZ()));
-    return l * v.getX() + m * v.getY() + n * v.getZ();
-  }
 
-
-  Vec Particle::globalVec(Vec v) const {
-    Vec l = vcos(currDirecA);
-    Vec m = vcos(currDirecB);
-    Vec n = vcos(currDirecC);
-    return l * v.getX() + m * v.getY() + n * v.getZ();
-  }
-
-  
   bool Particle::nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const {
     if(a == b && b == c) {
       Vec tnm = Vec(p,q,r) / sqrt(p * p + q * q + r * r);
