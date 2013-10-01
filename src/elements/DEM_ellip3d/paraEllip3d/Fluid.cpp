@@ -575,7 +575,10 @@ namespace dem {
 
   void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-      REAL etaB = 8.0/3.0 * (*it)->getC() / Cd;
+      REAL etaBx = 8.0/3.0 * (*it)->getA() / Cd; // local direction x (i.e. a)
+      REAL etaBy = 8.0/3.0 * (*it)->getB() / Cd; // local direction y (i.e. b)
+      REAL etaBz = 8.0/3.0 * (*it)->getC() / Cd; // local direction z (i.e. c)
+
       Vec penalForce = 0, presForce = 0;
       Vec penalMoment = 0, presMoment = 0;
       std::vector<std::vector<std::size_t> > fluidGrid = (*it)->getFluidGrid();
@@ -589,15 +592,31 @@ namespace dem {
 	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
 	
 	Vec dist = Vec(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]) - (*it)->getCurrPos();
-	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = Omga % distVector, where % is overloaded as cross product
+	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
 
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etaB;
-	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etaB;
-	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etaB;
+	///*
+	Vec globalDelta = Vec(fabs(uxFluid - ux)*(uxFluid - ux), fabs(uyFluid - uy)*(uyFluid - uy), fabs(uzFluid - uz)*(uzFluid - uz));
+	Vec localDelta = (*it)->globalToLocal(globalDelta);
+	Vec localPenal, globalPenal;
+	// localDelta needs to project in local frame in order to calculate local penalization forces
+	localPenal.setX(arrayU[i][j][k][var_den] * localDelta.getX() / etaBx);
+	localPenal.setY(arrayU[i][j][k][var_den] * localDelta.getY() / etaBy);
+	localPenal.setZ(arrayU[i][j][k][var_den] * localDelta.getZ() / etaBz);
+	globalPenal = (*it)->localToGlobal(localPenal);
+	arrayPenalForce[i][j][k][0] = globalPenal.getX();
+	arrayPenalForce[i][j][k][1] = globalPenal.getY();
+	arrayPenalForce[i][j][k][2] = globalPenal.getZ();
+	//*/
+
+	/*
+	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etaBx;
+	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etaBy;
+	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etaBz;
+	*/
 
 	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
 	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
