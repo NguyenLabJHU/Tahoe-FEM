@@ -717,12 +717,12 @@ void FSMicromorphic3DCurrConfigT::RegisterOutput(void)
     // enter what values you need at integration points
     // stress and strain
   //  const char* slabels3D[] = {"s11", "s22", "s33","s23","s13","s12","e11","e22","e33","e23","e13","e12"};
-    const char* slabels3D[] = {"s11","s22","s33","s12","s13","s21","s23","s31","s32","e11","e22","e33","e12","e13","e21","e23","e31","e32"};
+    const char* slabels3D[] = {"s11","s12","s13","s21","s22","s23","s31","s32","s33","e11","e22","e33","e12","e13","e21","e23","e31","e32"};
 
 
   //  if(iConstitutiveModelType==3)
    //  {
-    const char* svlabels3D[] = {"kc","khc","kc_chi","khc_chi","kDelgamma","kDelgammachi","trSigma","||dev(Sigma)||","trRel","||dev(Rel)||","||trm||","||dev(m)||","trSPK","||dev(SPK)||","trSIGMA_S","||dev(SIGMA_S)||","||trM||","||dev(M)||","||PHI||","||GPHI||","treps","deveps","invtrgammastn","invdevgammastn"};
+    const char* svlabels3D[] = {"kc","khc","kc_chi","khc_chi","kDelgamma","kDelgammachi","trCauchy_Stress","||dev(Cauchy_Stress)||","trRel","||dev(Rel)||","||trm||","||dev(m)||","trSPK","||dev(SPK)||","trSIGMA_S","||dev(SIGMA_S)||","||trM||","||dev(M)||","||PHI||","||GPHI||","treps","deveps","invtrgammastn","invdevgammastn"};
 //          ,"kF11","kF12","kF13","kF21","kF22","kF23","kF31","kF32","kF33","kFe11","kFe12","kFe13","kFe21","kFe22","kFe23","kFe31","kFe32","kFe33",
 //          "kX11","kX12","kX13","kX21","kX22","kX23","kX31","kX32","kX33","kXe11","kXe12","kXe13","kXe21","kXe22","kXe23","kXe31","kXe32","kXe33"};
   //  }
@@ -962,6 +962,31 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
     fV1e = 0.0;
     fdGdCauchy_Stress = 0.0;
     fdGdCauchy_Stress_tr = 0.0;
+    fdGdCauchy_Stress_tr_Transpose = 0.0;
+    fdGdCauchy_Stress_tr_trace = 0.0;
+    fCauchy_stress_tensor_current_IP_tr = 0.0;
+    mean_Cauchy_stress_tr = 0.0;
+    dev_Cauchy_stress_tr = 0.0;
+    fNorm_dev_Cauchy_stress_tensor_current_IP_tr = 0.0;
+    Vintp_1_temp = 0.0;
+    Vintp_1 = 0.0;
+    Vinte_1_temp = 0.0;
+    Vinte_1 = 0.0;
+    fTemp_matrix_one_x_one = 0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+    fVelocity_Gradient_current_IP = 0.0;
+    Comp11 = 0.0;
+    Comp22 = 0.0;
+    Comp33 = 0.0;
+    Comp44 = 0.0;
+    fCauchy_stress_tensor_current_IP = 0.0;
+    fNorm_dev_Cauchy_stress_tensor_current_IP = 0.0;
+    fdev_Cauchy_stress_tensor_current_IP = 0.0;
+    fElastic_Velocity_Gradient_current_IP = 0.0;
+
+
     IJe_1 = 0.0;
     IJe_2 = 0.0;
     IJe_3 = 0.0;
@@ -1080,7 +1105,369 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
     I10p_13 = 0.0;
 
 
+    I_temp_11p_1 = 0.0;
+    I_temp_11p_2 = 0.0;
+    I_temp_11p_3 = 0.0;
+    I_temp_11p_4 = 0.0;
+    I_temp_11p_5 = 0.0;
+    I_temp_11p_6 = 0.0;
+    I_temp_11p_7 = 0.0;
+    I_temp_11p_8 = 0.0;
+    I_temp_11p_9 = 0.0;
+    I_temp_11p_10 = 0.0;
+    I_temp_11p_11 = 0.0;
+    I_temp_11p_12 = 0.0;
+    I_temp_11p_13 = 0.0;
+    I_temp_11p_4_Transpose = 0.0;
 
+
+    I11p_1 = 0.0;
+    I11p_2 = 0.0;
+
+    I12p_1 = 0.0;
+    I12p_2 = 0.0;
+    I12p_3 = 0.0;
+    I12p_4 = 0.0;
+    I12p_5 = 0.0;
+    I12p_6 = 0.0;
+
+    I13p_1 = 0.0;
+    I13p_2 = 0.0;
+    I13p_3 = 0.0;
+    I13p_4 = 0.0;
+    I13p_5 = 0.0;
+    I13p_6 = 0.0;
+////////////////////////////Test///////////////////////
+    I12p_test_2 = 0.0;
+    I12p_test_3 = 0.0;
+    I12p_test_4 = 0.0;
+    I_temp_11p_test_1 = 0.0;
+    I_temp_11p_test_2 = 0.0;
+    I_temp_11p_test_3 = 0.0;
+    I_temp_11p_test_4 = 0.0;
+    I_temp_11p_20 = 0.0;
+    I_temp_11p_21 = 0.0;
+    I_temp_11p_22 = 0.0;
+    I_temp_11p_23 = 0.0;
+    I_temp_11p_24 = 0.0;
+
+   	II_temp_11p_1_1 = 0.0;
+    II_temp_11p_1_2 = 0.0;
+    II_temp_11p_1_3 = 0.0;
+    II_temp_11p_1_4 = 0.0;
+    II_temp_11p_1_5 = 0.0;
+    II_temp_11p_1_6 = 0.0;
+
+   	II_temp_11p_2_1 = 0.0;
+    II_temp_11p_2_2 = 0.0;
+    II_temp_11p_2_3 = 0.0;
+    II_temp_11p_2_4 = 0.0;
+    II_temp_11p_2_5 = 0.0;
+    II_temp_11p_2_6 = 0.0;
+
+   	II_temp_11p_3_1 = 0.0;
+    II_temp_11p_3_2 = 0.0;
+    II_temp_11p_3_3 = 0.0;
+    II_temp_11p_3_4 = 0.0;
+    II_temp_11p_3_5 = 0.0;
+    II_temp_11p_3_6 = 0.0;
+
+   	II_temp_11p_4_1 = 0.0;
+    II_temp_11p_4_2 = 0.0;
+    II_temp_11p_4_3 = 0.0;
+    II_temp_11p_4_4 = 0.0;
+    II_temp_11p_4_5 = 0.0;
+    II_temp_11p_4_6 = 0.0;
+
+   	II_temp_11p_5_1 = 0.0;
+    II_temp_11p_5_2 = 0.0;
+    II_temp_11p_5_3 = 0.0;
+    II_temp_11p_5_4 = 0.0;
+    II_temp_11p_5_5 = 0.0;
+    II_temp_11p_5_6 = 0.0;
+
+   	II_temp_11p_6_1 = 0.0;
+    II_temp_11p_6_2 = 0.0;
+    II_temp_11p_6_3 = 0.0;
+    II_temp_11p_6_4 = 0.0;
+    II_temp_11p_6_5 = 0.0;
+    II_temp_11p_6_6 = 0.0;
+
+   	II_temp_11p_7_1 = 0.0;
+    II_temp_11p_7_2 = 0.0;
+    II_temp_11p_7_3 = 0.0;
+    II_temp_11p_7_4 = 0.0;
+    II_temp_11p_7_5 = 0.0;
+    II_temp_11p_7_6 = 0.0;
+
+   	II_temp_11p_8_1 = 0.0;
+    II_temp_11p_8_2 = 0.0;
+    II_temp_11p_8_3 = 0.0;
+    II_temp_11p_8_4 = 0.0;
+    II_temp_11p_8_5 = 0.0;
+    II_temp_11p_8_6 = 0.0;
+
+   	II_temp_11p_9_1 = 0.0;
+    II_temp_11p_9_2 = 0.0;
+    II_temp_11p_9_3 = 0.0;
+    II_temp_11p_9_4 = 0.0;
+    II_temp_11p_9_5 = 0.0;
+    II_temp_11p_9_6 = 0.0;
+
+   	II_temp_11p_10_1 = 0.0;
+    II_temp_11p_10_2 = 0.0;
+    II_temp_11p_10_3 = 0.0;
+    II_temp_11p_10_4 = 0.0;
+    II_temp_11p_10_5 = 0.0;
+    II_temp_11p_10_6 = 0.0;
+
+   	II_temp_11p_11_1 = 0.0;
+    II_temp_11p_11_2 = 0.0;
+    II_temp_11p_11_3 = 0.0;
+    II_temp_11p_11_4 = 0.0;
+    II_temp_11p_11_5 = 0.0;
+    II_temp_11p_11_6 = 0.0;
+
+   	II_temp_11p_12_1 = 0.0;
+    II_temp_11p_12_2 = 0.0;
+    II_temp_11p_12_3 = 0.0;
+    II_temp_11p_12_4 = 0.0;
+    II_temp_11p_12_5 = 0.0;
+    II_temp_11p_12_6 = 0.0;
+
+   	II_temp_11p_13_1 = 0.0;
+    II_temp_11p_13_2 = 0.0;
+    II_temp_11p_13_3 = 0.0;
+    II_temp_11p_13_4 = 0.0;
+    II_temp_11p_13_5 = 0.0;
+    II_temp_11p_13_6 = 0.0;
+
+
+
+    fKu_I_temp_11p_1_1 = 0.0;
+    fKu_I_temp_11p_1_2 = 0.0;
+    fKu_I_temp_11p_1_3 = 0.0;
+    fKu_I_temp_11p_1_4 = 0.0;
+    fKu_I_temp_11p_1_5 = 0.0;
+    fKu_I_temp_11p_1_6 = 0.0;
+
+    fKu_I_temp_11p_2_1 = 0.0;
+    fKu_I_temp_11p_2_2 = 0.0;
+    fKu_I_temp_11p_2_3 = 0.0;
+    fKu_I_temp_11p_2_4 = 0.0;
+    fKu_I_temp_11p_2_5 = 0.0;
+    fKu_I_temp_11p_2_6 = 0.0;
+
+    fKu_I_temp_11p_3_1 = 0.0;
+    fKu_I_temp_11p_3_2 = 0.0;
+    fKu_I_temp_11p_3_3 = 0.0;
+    fKu_I_temp_11p_3_4 = 0.0;
+    fKu_I_temp_11p_3_5 = 0.0;
+    fKu_I_temp_11p_3_6 = 0.0;
+
+    fKu_I_temp_11p_4_1 = 0.0;
+    fKu_I_temp_11p_4_2 = 0.0;
+    fKu_I_temp_11p_4_3 = 0.0;
+    fKu_I_temp_11p_4_4 = 0.0;
+    fKu_I_temp_11p_4_5 = 0.0;
+    fKu_I_temp_11p_4_6 = 0.0;
+
+    fKu_I_temp_11p_5_1 = 0.0;
+    fKu_I_temp_11p_5_2 = 0.0;
+    fKu_I_temp_11p_5_3 = 0.0;
+    fKu_I_temp_11p_5_4 = 0.0;
+    fKu_I_temp_11p_5_5 = 0.0;
+    fKu_I_temp_11p_5_6 = 0.0;
+
+    fKu_I_temp_11p_6_1 = 0.0;
+    fKu_I_temp_11p_6_2 = 0.0;
+    fKu_I_temp_11p_6_3 = 0.0;
+    fKu_I_temp_11p_6_4 = 0.0;
+    fKu_I_temp_11p_6_5 = 0.0;
+    fKu_I_temp_11p_6_6 = 0.0;
+
+    fKu_I_temp_11p_7_1 = 0.0;
+    fKu_I_temp_11p_7_2 = 0.0;
+    fKu_I_temp_11p_7_3 = 0.0;
+    fKu_I_temp_11p_7_4 = 0.0;
+    fKu_I_temp_11p_7_5 = 0.0;
+    fKu_I_temp_11p_7_6 = 0.0;
+
+    fKu_I_temp_11p_8_1 = 0.0;
+    fKu_I_temp_11p_8_2 = 0.0;
+    fKu_I_temp_11p_8_3 = 0.0;
+    fKu_I_temp_11p_8_4 = 0.0;
+    fKu_I_temp_11p_8_5 = 0.0;
+    fKu_I_temp_11p_8_6 = 0.0;
+
+    fKu_I_temp_11p_9_1 = 0.0;
+    fKu_I_temp_11p_9_2 = 0.0;
+    fKu_I_temp_11p_9_3 = 0.0;
+    fKu_I_temp_11p_9_4 = 0.0;
+    fKu_I_temp_11p_9_5 = 0.0;
+    fKu_I_temp_11p_9_6 = 0.0;
+
+    fKu_I_temp_11p_10_1 = 0.0;
+    fKu_I_temp_11p_10_2 = 0.0;
+    fKu_I_temp_11p_10_3 = 0.0;
+    fKu_I_temp_11p_10_4 = 0.0;
+    fKu_I_temp_11p_10_5 = 0.0;
+    fKu_I_temp_11p_10_6 = 0.0;
+
+    fKu_I_temp_11p_11_1 = 0.0;
+    fKu_I_temp_11p_11_2 = 0.0;
+    fKu_I_temp_11p_11_3 = 0.0;
+    fKu_I_temp_11p_11_4 = 0.0;
+    fKu_I_temp_11p_11_5 = 0.0;
+    fKu_I_temp_11p_11_6 = 0.0;
+
+    fKu_I_temp_11p_12_1 = 0.0;
+    fKu_I_temp_11p_12_2 = 0.0;
+    fKu_I_temp_11p_12_3 = 0.0;
+    fKu_I_temp_11p_12_4 = 0.0;
+    fKu_I_temp_11p_12_5 = 0.0;
+    fKu_I_temp_11p_12_6 = 0.0;
+
+    fKu_I_temp_11p_13_1 = 0.0;
+    fKu_I_temp_11p_13_2 = 0.0;
+    fKu_I_temp_11p_13_3 = 0.0;
+    fKu_I_temp_11p_13_4 = 0.0;
+    fKu_I_temp_11p_13_5 = 0.0;
+    fKu_I_temp_11p_13_6 = 0.0;
+
+
+    //////////////////////some other comparison which is made/////////////////
+	I_temp_11p_test_2_1_1 = 0.0;
+	I_temp_11p_test_2_1_2 = 0.0;
+	I_temp_11p_test_2_1_3 = 0.0;
+	I_temp_11p_test_2_1_4 = 0.0;
+
+	I_temp_11p_test_2_2_1 = 0.0;
+	I_temp_11p_test_2_2_2 = 0.0;
+   	I_temp_11p_test_2_2_3 = 0.0;
+	I_temp_11p_test_2_2_4 = 0.0;
+
+	I_temp_11p_test_2_3_1 = 0.0;
+	I_temp_11p_test_2_3_2 = 0.0;
+
+
+	I_temp_11p_test_2_4_1 = 0.0;
+	I_temp_11p_test_2_4_2 = 0.0;
+	I_temp_11p_test_2_4_3 = 0.0;
+	I_temp_11p_test_2_4_4 = 0.0;
+
+	I_temp_11p_test_2_5_1 = 0.0;
+	I_temp_11p_test_2_5_2 = 0.0;
+
+
+	I_temp_11p_test_2_6_1 = 0.0;
+	I_temp_11p_test_2_6_2 = 0.0;
+	I_temp_11p_test_2_6_3 = 0.0;
+	I_temp_11p_test_2_6_4 = 0.0;
+
+	I_temp_11p_test_2_7_1 = 0.0;
+	I_temp_11p_test_2_7_2 = 0.0;
+
+
+	I_temp_11p_test_2_8_1 = 0.0;
+	I_temp_11p_test_2_8_2 = 0.0;
+	I_temp_11p_test_2_8_3 = 0.0;
+	I_temp_11p_test_2_8_4 = 0.0;
+
+	I_temp_11p_test_2_9_1 = 0.0;
+	I_temp_11p_test_2_9_2 = 0.0;
+	I_temp_11p_test_2_9_3 = 0.0;
+	I_temp_11p_test_2_9_4 = 0.0;
+
+	I_temp_11p_test_2_10_1 = 0.0;
+	I_temp_11p_test_2_10_2 = 0.0;
+	I_temp_11p_test_2_10_3 = 0.0;
+	I_temp_11p_test_2_10_4 = 0.0;
+
+	I_temp_11p_test_2_11_1 = 0.0;
+	I_temp_11p_test_2_11_2 = 0.0;
+	I_temp_11p_test_2_11_3 = 0.0;
+	I_temp_11p_test_2_11_4 = 0.0;
+
+	I_temp_11p_test_2_12_1 = 0.0;
+	I_temp_11p_test_2_12_2 = 0.0;
+	I_temp_11p_test_2_12_3 = 0.0;
+	I_temp_11p_test_2_12_4 = 0.0;
+
+
+	I_temp_11p_test_2_13_1 = 0.0;
+	I_temp_11p_test_2_13_2 = 0.0;
+	I_temp_11p_test_2_13_3 = 0.0;
+	I_temp_11p_test_2_13_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_1_1 = 0.0;
+    fKu_I_temp_11p_test_2_1_2 = 0.0;
+    fKu_I_temp_11p_test_2_1_3 = 0.0;
+    fKu_I_temp_11p_test_2_1_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_2_1 = 0.0;
+    fKu_I_temp_11p_test_2_2_2 = 0.0;
+    fKu_I_temp_11p_test_2_2_3 = 0.0;
+    fKu_I_temp_11p_test_2_2_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_3_1 = 0.0;
+    fKu_I_temp_11p_test_2_3_2 = 0.0;
+
+
+    fKu_I_temp_11p_test_2_4_1 = 0.0;
+    fKu_I_temp_11p_test_2_4_2 = 0.0;
+    fKu_I_temp_11p_test_2_4_3 = 0.0;
+    fKu_I_temp_11p_test_2_4_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_5_1 = 0.0;
+    fKu_I_temp_11p_test_2_5_2 = 0.0;
+
+
+    fKu_I_temp_11p_test_2_6_1 = 0.0;
+    fKu_I_temp_11p_test_2_6_2 = 0.0;
+    fKu_I_temp_11p_test_2_6_3 = 0.0;
+    fKu_I_temp_11p_test_2_6_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_7_1 = 0.0;
+    fKu_I_temp_11p_test_2_7_2 = 0.0;
+
+
+    fKu_I_temp_11p_test_2_8_1 = 0.0;
+    fKu_I_temp_11p_test_2_8_2 = 0.0;
+    fKu_I_temp_11p_test_2_8_3 = 0.0;
+    fKu_I_temp_11p_test_2_8_4 = 0.0;
+
+
+    fKu_I_temp_11p_test_2_9_1 = 0.0;
+    fKu_I_temp_11p_test_2_9_2 = 0.0;
+    fKu_I_temp_11p_test_2_9_3 = 0.0;
+    fKu_I_temp_11p_test_2_9_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_10_1 = 0.0;
+    fKu_I_temp_11p_test_2_10_2 = 0.0;
+    fKu_I_temp_11p_test_2_10_3 = 0.0;
+    fKu_I_temp_11p_test_2_10_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_11_1 = 0.0;
+    fKu_I_temp_11p_test_2_11_2 = 0.0;
+    fKu_I_temp_11p_test_2_11_3 = 0.0;
+    fKu_I_temp_11p_test_2_11_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_12_1 = 0.0;
+    fKu_I_temp_11p_test_2_12_2 = 0.0;
+    fKu_I_temp_11p_test_2_12_3 = 0.0;
+    fKu_I_temp_11p_test_2_12_4 = 0.0;
+
+    fKu_I_temp_11p_test_2_13_1 = 0.0;
+    fKu_I_temp_11p_test_2_13_2 = 0.0;
+    fKu_I_temp_11p_test_2_13_3 = 0.0;
+    fKu_I_temp_11p_test_2_13_4 = 0.0;
+
+
+    fKdd_previous = 0.0;
+    fKdd_full_implemet = 0.0;
+    difference = 0.0;
+    /////////////////////////////////////////////////////////
 
 
     fKu_IJe_1 = 0.0;
@@ -1206,16 +1593,19 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
     fKu_I10p_13 = 0.0;
 
 
+    fKu_I12p_1 = 0.0;
+    fKu_I12p_2 = 0.0;
+    fKu_I12p_3 = 0.0;
+    fKu_I12p_4 = 0.0;
+    fKu_I12p_5 = 0.0;
+    fKu_I12p_6 = 0.0;
 
-
-    Vintp_1_temp = 0.0;
-    Vintp_1 = 0.0;
-
-    Vinte_1_temp = 0.0;
-    Vinte_1 = 0.0;
-
-
-
+    fKu_I13p_1 = 0.0;
+    fKu_I13p_2 = 0.0;
+    fKu_I13p_3 = 0.0;
+    fKu_I13p_4 = 0.0;
+    fKu_I13p_5 = 0.0;
+    fKu_I13p_6 = 0.0;
 
 
     Sigma=0.0;
@@ -1414,8 +1804,8 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
           out_variable[21]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khc_chi);
           out_variable[22]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma);
           out_variable[23]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammachi);
-          out_variable[24]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrSigma);
-          out_variable[25]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kSigma_inv);
+          out_variable[24]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrCauchy_Stress);
+          out_variable[25]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kNorm_Dev_Cauchy_Stress);
           out_variable[26]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrRel);
           out_variable[27]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kRel_inv);
           out_variable[28]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrm);
@@ -1490,8 +1880,8 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 const double* shapes_displ_X = fShapes_displ->IPShapeX();
                 /* [fShapeDispl] will be formed */
                 Form_solid_shape_functions(shapes_displ_X);//output:fShapeDispl
-
-                //   fShapeDispl_Tr.Transpose(fShapeDispl);
+                Form_Gradient_of_solid_shape_functions(fShapeDisplGrad_temp);//output:fShapeDisplGrad in Reference config.
+                Form_GRAD_Nuw_matrix(fShapeDisplGrad_temp) ;//output:GRAD_Nuw
 
                 fShapes_displ->GradNa(fShapeDisplGrad_temp);
                 /* [fShapeDisplGrad] will be formed *///in reference config
@@ -1658,10 +2048,10 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 					////////////////////////////////////////////////////////////////////////////
 					////////////////////////////////////////////////////////////////////////////
 					fdGdCauchy_Stress_tr = 0.0;
-					fdGdCauchy_Stress_tr.SetToScaled(Bpsi*1/3,fIdentity_matrix);
-                    fTemp_matrix_nsd_x_nsd.SetToScaled(1/fNorm_dev_Cauchy_stress_tensor_current_IP_tr,dev_Cauchy_stress_tr);
-                    fdGdCauchy_Stress_tr+=fTemp_matrix_nsd_x_nsd;
-                    fdGdCauchy_Stress_tr_Transpose.Transpose(fdGdCauchy_Stress_tr);
+					fdGdCauchy_Stress_tr.SetToScaled(Bpsi*1.0/3.0,fIdentity_matrix);
+					fTemp_matrix_nsd_x_nsd.SetToScaled(1/fNorm_dev_Cauchy_stress_tensor_current_IP_tr,dev_Cauchy_stress_tr);
+					fdGdCauchy_Stress_tr+=fTemp_matrix_nsd_x_nsd;
+					fdGdCauchy_Stress_tr_Transpose.Transpose(fdGdCauchy_Stress_tr);
                     fdGdCauchy_Stress_tr_trace = fdGdCauchy_Stress_tr.Trace();
 					////////////////////////////////////////////////////////////////////////////
 
@@ -1703,7 +2093,6 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 			{
 
 				fs_micromorph3D_out<<"Macro-Plasticity at the Current Configuration" <<endl;
-				PlasticityCondition=1;
 				// initialize before iteration
 				fYield_function=fYield_function_tr;
 				fCauchy_stress_tensor_current_IP=fCauchy_stress_tensor_current_IP_tr;
@@ -1774,7 +2163,7 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 						fTemp_matrix_nsd_x_nsd.MultAB(fElastic_Velocity_Gradient_current_IP,fCauchy_stress_tensor_current_n_IP);
 						fCauchy_stress_tensor_current_IP+= fTemp_matrix_nsd_x_nsd;
 
-						fTemp_matrix_nsd_x_nsd.MultABT(fCauchy_stress_tensor_current_n_IP,fElastic_Velocity_Gradient_current_IP);
+						fTemp_matrix_nsd_x_nsd.MultAB(fCauchy_stress_tensor_current_n_IP,fElastic_Velocity_Gradient_current_IP_transpose);
 						fCauchy_stress_tensor_current_IP+= fTemp_matrix_nsd_x_nsd;
 
 						fTemp_matrix_one_x_one = fMaterial_Params[kLambda];
@@ -2105,8 +2494,9 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 					fs_micromorph3D_out  << "Current residual = " << fabs(fYield_function) << endl;
 				}
                 fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
+                fs_micromorph3D_out  << "Yield Function= " << fabs(fYield_function) << endl;
 
-			if (abs(fYield_function) > 1e-6)
+			if (abs(fYield_function) > 1e-5)
 			{
 				fs_micromorph3D_out << "Local Delgamma Newton-Raphson algorithm did not converge" << endl;
 				ExceptionT::GeneralFail(caller,"The value of Yield function is %d .", fYield_function);
@@ -2137,12 +2527,9 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                             /* Total Lagraingian strain tensor is saved as Eulerian strain tensor for plotting purposes */
 
                             Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
-
-                            /* Save Eulerian strain tensor of the current IP */
+                             /* Save Eulerian strain tensor of the current IP */
                             fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
 
-                            if(PlasticityCondition==1)
-                            {
 
                                 if(fNorm_dev_Cauchy_stress_tensor_current_IP==0.0)
                                 {
@@ -2161,7 +2548,7 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                                     fTemp_matrix_nsd_x_nsd.SetToScaled(1/fNorm_dev_Cauchy_stress_tensor_current_IP,fdev_Cauchy_stress_tensor_current_IP);
                                     fdGdCauchy_Stress+=fTemp_matrix_nsd_x_nsd;
                                 }
-                            }
+
                             fdFYdc=-Aphi;
                             fTemp_matrix_nsd_x_nsd.SetToScaled(fdGdCauchy_Stress_tr_trace,fCauchy_stress_tensor_current_n_IP);
                             fTemp_matrix_nsd_x_nsd*= -1;
@@ -2189,7 +2576,7 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                             Comp11 = 1.0/Comp11;
 
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                 /////////////////////////////////dev Cauchy Stress_n////////////////////////////////////////////////
+				/////////////////////////////////dev Cauchy Stress_n////////////////////////////////////////////////
                             mean_Cauchy_stress_n = fCauchy_stress_tensor_current_n_IP.Trace()/3;
                             fTemp_matrix_nsd_x_nsd.SetToScaled(mean_Cauchy_stress_n,fIdentity_matrix);
                             fdev_Cauchy_stress_tensor_current_n_IP = fCauchy_stress_tensor_current_n_IP;
@@ -2208,21 +2595,22 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                             Comp44 = fNorm_dev_Cauchy_stress_tensor_current_IP_tr;
                             Comp44 = 1.0/Comp44;
 
-                            fDel_Deformation_Gradient = fDeformation_Gradient;
-                            fDel_Deformation_Gradient-= fDeformation_Gradient_n;
 
                             // saving Fp, Ce, dG/dS and dF/dS, etc. at each IP of the current element
                             fdGdCauchy_Stress_IPs.SetRow(IP,fdGdCauchy_Stress);
                             fDeformation_Gradient_IPs.SetRow(IP,fDeformation_Gradient);
+                            //Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
                             fCauchy_stress_IPs.SetRow(IP,fCauchy_stress_tensor_current_IP);
+                            //fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
                             fdFYdCauchy_Stress_IPs.SetRow(IP,fdFYdCauchy_Stress);
 
 
                             Form_fV1p();
                             fShapeDisplGrad.MultTx(fV1p,Vintp_1_temp);
                             scale=scale_const*J;
-                            Vintp_1_temp*=scale;
-                            Vintp_1 +=Vintp_1_temp;
+                            Vintp_1_temp*= scale;
+                            Vintp_1+= Vintp_1_temp;
+
 
                             Form_IJe_1();
                             Form_IJe_2();
@@ -2337,7 +2725,364 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                             Form_I10p_12();
                             Form_I10p_13();
 
+/*
+                            fs_micromorph3D_out << "I9p_1 = " << I9p_1 << endl;
+                            fs_micromorph3D_out << "I9p_2 = " << I9p_2 << endl;
+                            fs_micromorph3D_out << "I9p_3 = " << I9p_3 << endl;
+                            fs_micromorph3D_out << "I9p_4 = " << I9p_4 << endl;
+                            fs_micromorph3D_out << "I9p_5 = " << I9p_5 << endl;
+                            fs_micromorph3D_out << "I9p_6 = " << I9p_6 << endl;
+                            fs_micromorph3D_out << "I9p_7 = " << I9p_7 << endl;
+                            fs_micromorph3D_out << "I9p_8 = " << I9p_8 << endl;
+                            fs_micromorph3D_out << "I9p_9 = " << I9p_9 << endl;
+                            fs_micromorph3D_out << "I9p_10 = " << I9p_10 << endl;
+                            fs_micromorph3D_out << "I9p_11 = " << I9p_11 << endl;
+                            fs_micromorph3D_out << "I9p_12 = " << I9p_12 << endl;
+                            fs_micromorph3D_out << "I9p_13 = " << I9p_13 << endl;
 
+                            fs_micromorph3D_out << "I10p_1 = " << I10p_1 << endl;
+                            fs_micromorph3D_out << "I10p_2 = " << I10p_2 << endl;
+                            fs_micromorph3D_out << "I10p_3 = " << I10p_3 << endl;
+                            fs_micromorph3D_out << "I10p_4 = " << I10p_4 << endl;
+                            fs_micromorph3D_out << "I10p_5 = " << I10p_5 << endl;
+                            fs_micromorph3D_out << "I10p_6 = " << I10p_6 << endl;
+                            fs_micromorph3D_out << "I10p_7 = " << I10p_7 << endl;
+                            fs_micromorph3D_out << "I10p_8 = " << I10p_8 << endl;
+                            fs_micromorph3D_out << "I10p_9 = " << I10p_9 << endl;
+                            fs_micromorph3D_out << "I10p_10 = " << I10p_10 << endl;
+                            fs_micromorph3D_out << "I10p_11 = " << I10p_11 << endl;
+                            fs_micromorph3D_out << "I10p_12 = " << I10p_12 << endl;
+                            fs_micromorph3D_out << "I10p_13 = " << I10p_13 << endl;
+
+*/
+
+
+                            Form_I_temp_11p_1();
+                            Form_I_temp_11p_2();
+                            Form_I_temp_11p_3();
+                            Form_I_temp_11p_4();
+                            Form_I_temp_11p_5();
+                            Form_I_temp_11p_6();
+                            Form_I_temp_11p_7();
+                            Form_I_temp_11p_8();
+                            Form_I_temp_11p_9();
+                            Form_I_temp_11p_10();
+                            Form_I_temp_11p_11();
+                            Form_I_temp_11p_12();
+                            Form_I_temp_11p_13();
+
+     /*
+                            I_temp_11p_1*= -1;
+                            I_temp_11p_3*= -1.0/3.0;
+                            I_temp_11p_5*= -1.0/3.0;
+                            I_temp_11p_6*= fMaterial_Params[kMu];
+                            I_temp_11p_7*= -2.0/3.0;
+                            I_temp_11p_7*= fMaterial_Params[kMu];
+                            I_temp_11p_8*= fMaterial_Params[kMu];
+                            I_temp_11p_10*= -1;
+                            I_temp_11p_11*= -1;
+                            I_temp_11p_12*= -1;
+                            I_temp_11p_12*= fMaterial_Params[kMu];
+                            I_temp_11p_13*= -1;
+                            I_temp_11p_13*= fMaterial_Params[kMu];
+
+
+                            I11p_1 = I_temp_11p_1;
+                            I11p_1+= I_temp_11p_2;
+                            I11p_1+= I_temp_11p_3;
+                            I11p_1+= I_temp_11p_4;
+                            I11p_1+= I_temp_11p_5;
+                            I11p_1+= I_temp_11p_6;
+                            I11p_1+= I_temp_11p_7;
+                            I11p_1+= I_temp_11p_8;
+
+
+
+                            I11p_1*= Comp44;
+                            fs_micromorph3D_out << "I11p_1 = " << I11p_1 << endl;
+                            fs_micromorph3D_out << "Comp44 = " << Comp44 << endl;
+                            I11p_2 = I_temp_11p_9;
+                            I11p_2+= I_temp_11p_10;
+                            I11p_2+= I_temp_11p_11;
+                            I11p_2+= I_temp_11p_12;
+                            I11p_2+= I_temp_11p_13;
+                            I11p_2*= Comp33;
+                            I11p_1+= I11p_2;
+
+
+
+                            Form_I12p_1();
+                            Form_I12p_2();
+                            Form_I12p_3();
+                            Form_I12p_4();
+                            Form_I12p_5();
+                            Form_I12p_6();
+*/
+
+
+                            Form_I13p_1();
+                            Form_I13p_2();
+                            Form_I13p_3();
+                            Form_I13p_4();
+                            Form_I13p_5();
+                            Form_I13p_6();
+
+                            Form_II_temp_11p_1_1();
+                            Form_II_temp_11p_1_2();
+                            Form_II_temp_11p_1_3();
+                            Form_II_temp_11p_1_4();
+                            Form_II_temp_11p_1_5();
+                            Form_II_temp_11p_1_6();
+
+                            Form_II_temp_11p_2_1();
+                            Form_II_temp_11p_2_2();
+                            Form_II_temp_11p_2_3();
+                            Form_II_temp_11p_2_4();
+                            Form_II_temp_11p_2_5();
+                            Form_II_temp_11p_2_6();
+
+                            Form_II_temp_11p_3_1();
+                            Form_II_temp_11p_3_2();
+                            Form_II_temp_11p_3_3();
+                            Form_II_temp_11p_3_4();
+                            Form_II_temp_11p_3_5();
+                            Form_II_temp_11p_3_6();
+
+                            Form_II_temp_11p_4_1();
+                            Form_II_temp_11p_4_2();
+                            Form_II_temp_11p_4_3();
+                            Form_II_temp_11p_4_4();
+                            Form_II_temp_11p_4_5();
+                            Form_II_temp_11p_4_6();
+
+                            Form_II_temp_11p_5_1();
+                            Form_II_temp_11p_5_2();
+                            Form_II_temp_11p_5_3();
+                            Form_II_temp_11p_5_4();
+                            Form_II_temp_11p_5_5();
+                            Form_II_temp_11p_5_6();
+
+                            Form_II_temp_11p_6_1();
+                            Form_II_temp_11p_6_2();
+                            Form_II_temp_11p_6_3();
+                            Form_II_temp_11p_6_4();
+                            Form_II_temp_11p_6_5();
+                            Form_II_temp_11p_6_6();
+
+                            Form_II_temp_11p_7_1();
+                            Form_II_temp_11p_7_2();
+                            Form_II_temp_11p_7_3();
+                            Form_II_temp_11p_7_4();
+                            Form_II_temp_11p_7_5();
+                            Form_II_temp_11p_7_6();
+
+                            Form_II_temp_11p_8_1();
+                            Form_II_temp_11p_8_2();
+                            Form_II_temp_11p_8_3();
+                            Form_II_temp_11p_8_4();
+                            Form_II_temp_11p_8_5();
+                            Form_II_temp_11p_8_6();
+
+                            Form_II_temp_11p_9_1();
+                            Form_II_temp_11p_9_2();
+                            Form_II_temp_11p_9_3();
+                            Form_II_temp_11p_9_4();
+                            Form_II_temp_11p_9_5();
+                            Form_II_temp_11p_9_6();
+
+                            Form_II_temp_11p_10_1();
+                            Form_II_temp_11p_10_2();
+                            Form_II_temp_11p_10_3();
+                            Form_II_temp_11p_10_4();
+                            Form_II_temp_11p_10_5();
+                            Form_II_temp_11p_10_6();
+
+                            Form_II_temp_11p_11_1();
+                            Form_II_temp_11p_11_2();
+                            Form_II_temp_11p_11_3();
+                            Form_II_temp_11p_11_4();
+                            Form_II_temp_11p_11_5();
+                            Form_II_temp_11p_11_6();
+
+                            Form_II_temp_11p_12_1();
+                            Form_II_temp_11p_12_2();
+                            Form_II_temp_11p_12_3();
+                            Form_II_temp_11p_12_4();
+                            Form_II_temp_11p_12_5();
+                            Form_II_temp_11p_12_6();
+
+                            Form_II_temp_11p_13_1();
+                            Form_II_temp_11p_13_2();
+                            Form_II_temp_11p_13_3();
+                            Form_II_temp_11p_13_4();
+                            Form_II_temp_11p_13_5();
+                            Form_II_temp_11p_13_6();
+
+
+/*
+                            ////////////////////////////comparison///////////////////////////////
+                            Form_I_temp_11p_test_2_1_1();
+                            Form_I_temp_11p_test_2_1_2();
+                            Form_I_temp_11p_test_2_1_3();
+                            Form_I_temp_11p_test_2_1_4();
+
+                            Form_I_temp_11p_test_2_2_1();
+                            Form_I_temp_11p_test_2_2_2();
+                            Form_I_temp_11p_test_2_2_3();
+                            Form_I_temp_11p_test_2_2_4();
+
+
+                            Form_I_temp_11p_test_2_3_1();
+                            Form_I_temp_11p_test_2_3_2();
+
+
+                            Form_I_temp_11p_test_2_4_1();
+                            Form_I_temp_11p_test_2_4_2();
+                            Form_I_temp_11p_test_2_4_3();
+                            Form_I_temp_11p_test_2_4_4();
+
+
+                            Form_I_temp_11p_test_2_5_1();
+                            Form_I_temp_11p_test_2_5_2();
+
+
+                            Form_I_temp_11p_test_2_6_1();
+                            Form_I_temp_11p_test_2_6_2();
+                            Form_I_temp_11p_test_2_6_3();
+                            Form_I_temp_11p_test_2_6_4();
+
+
+                            Form_I_temp_11p_test_2_7_1();
+                            Form_I_temp_11p_test_2_7_2();
+
+
+                            Form_I_temp_11p_test_2_8_1();
+                            Form_I_temp_11p_test_2_8_2();
+                            Form_I_temp_11p_test_2_8_3();
+                            Form_I_temp_11p_test_2_8_4();
+
+                            Form_I_temp_11p_test_2_9_1();
+                            Form_I_temp_11p_test_2_9_2();
+                            Form_I_temp_11p_test_2_9_3();
+                            Form_I_temp_11p_test_2_9_4();
+
+                            Form_I_temp_11p_test_2_10_1();
+                            Form_I_temp_11p_test_2_10_2();
+                            Form_I_temp_11p_test_2_10_3();
+                            Form_I_temp_11p_test_2_10_4();
+
+                            Form_I_temp_11p_test_2_11_1();
+                            Form_I_temp_11p_test_2_11_2();
+                            Form_I_temp_11p_test_2_11_3();
+                            Form_I_temp_11p_test_2_11_4();
+
+                            Form_I_temp_11p_test_2_12_1();
+                            Form_I_temp_11p_test_2_12_2();
+                            Form_I_temp_11p_test_2_12_3();
+                            Form_I_temp_11p_test_2_12_4();
+
+                            Form_I_temp_11p_test_2_13_1();
+                            Form_I_temp_11p_test_2_13_2();
+                            Form_I_temp_11p_test_2_13_3();
+                            Form_I_temp_11p_test_2_13_4();
+*/
+/*
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_1_2;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_1_3;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_1_4;
+
+                            I_temp_11p_test_2_2_1+= I_temp_11p_test_2_2_2;
+                            I_temp_11p_test_2_2_1+= I_temp_11p_test_2_2_3;
+                            I_temp_11p_test_2_2_1+= I_temp_11p_test_2_2_4;
+
+                            I_temp_11p_test_2_3_1+= I_temp_11p_test_2_3_2;
+
+                            I_temp_11p_test_2_4_1+= I_temp_11p_test_2_4_2;
+                            I_temp_11p_test_2_4_1+= I_temp_11p_test_2_4_3;
+                            I_temp_11p_test_2_4_1+= I_temp_11p_test_2_4_4;
+
+                            I_temp_11p_test_2_5_1+= I_temp_11p_test_2_5_2;
+
+                            I_temp_11p_test_2_6_1+= I_temp_11p_test_2_6_2;
+                            I_temp_11p_test_2_6_1+= I_temp_11p_test_2_6_3;
+                            I_temp_11p_test_2_6_1+= I_temp_11p_test_2_6_4;
+
+                            I_temp_11p_test_2_7_1+= I_temp_11p_test_2_7_2;
+
+                            I_temp_11p_test_2_8_1+= I_temp_11p_test_2_8_2;
+                            I_temp_11p_test_2_8_1+= I_temp_11p_test_2_8_3;
+                            I_temp_11p_test_2_8_1+= I_temp_11p_test_2_8_4;
+
+                            fs_micromorph3D_out << "II_temp_11p_1_2 = " << II_temp_11p_1_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_1_1 = " << I_temp_11p_test_2_1_1 << endl;
+
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_2_1;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_3_1;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_4_1;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_5_1;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_6_1;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_7_1;
+                            I_temp_11p_test_2_1_1+= I_temp_11p_test_2_8_1;
+
+
+
+
+
+
+       //                     I12p_2+= I13p_2;
+
+
+
+
+
+                            fs_micromorph3D_out << "II_temp_11p_2_2 = " << II_temp_11p_2_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_2_1 = " << I_temp_11p_test_2_2_1 << endl;
+
+                            fs_micromorph3D_out << "II_temp_11p_3_2 = " << II_temp_11p_3_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_3_1 = " << I_temp_11p_test_2_3_1 << endl;
+
+                            fs_micromorph3D_out << "II_temp_11p_4_2 = " << II_temp_11p_4_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_4_1 = " << I_temp_11p_test_2_4_1 << endl;
+
+                            fs_micromorph3D_out << "II_temp_11p_5_2 = " << II_temp_11p_5_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_5_1 = " << I_temp_11p_test_2_5_1 << endl;
+
+                            fs_micromorph3D_out << "II_temp_11p_6_2 = " << II_temp_11p_6_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_6_1 = " << I_temp_11p_test_2_6_1 << endl;
+
+                            fs_micromorph3D_out << "II_temp_11p_7_2 = " << II_temp_11p_7_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_7_1 = " << I_temp_11p_test_2_7_1 << endl;
+
+                            fs_micromorph3D_out << "II_temp_11p_8_2 = " << II_temp_11p_8_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_8_1 = " << I_temp_11p_test_2_8_1 << endl;
+
+
+                            fs_micromorph3D_out << "I12p_2 = " << I12p_2 << endl;
+                            fs_micromorph3D_out << "I_temp_11p_test_2_1_1 = " << I_temp_11p_test_2_1_1 << endl;
+
+*/
+                            //////////////////////////////////////////Test///////////////////////////////////////////
+/*                            Form_I_temp_11p_test_1();
+                            Form_I_temp_11p_test_2();
+                            Form_I_temp_11p_test_3();
+                            Form_I_temp_11p_test_4();
+                            Form_I12p_test_2();
+
+                            I_temp_11p_test_4*= fMaterial_Params[kMu];
+                            I_temp_11p_test_3*= fMaterial_Params[kMu];
+                            I_temp_11p_test_4+= I_temp_11p_test_3;
+                            I_temp_11p_test_4+= I_temp_11p_test_2;
+                            I_temp_11p_test_4+= I_temp_11p_test_1;
+
+
+                            I12p_test_4 = I12p_test_3;
+                            I12p_test_4-= I_temp_11p_test_4;
+
+
+                            fs_micromorph3D_out << "I_temp_11p_test_4 = " << I_temp_11p_test_4 << endl;
+                            fs_micromorph3D_out << "I12p_test_3 = " << I12p_test_3 << endl;
+                            fs_micromorph3D_out << "I12p_test_4 = " << I12p_test_4 << endl;
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////Elastic Part of Consistant Tangent////////////////////////////////////////////////////
@@ -2853,6 +3598,728 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                             fTemp_matrix_nudof_x_nudof*= scale;
                             fKu_I10p_13+= fTemp_matrix_nudof_x_nudof;
 
+
+							////////////////////////////////////////////////////////////////////////////
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I12p_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I12p_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I12p_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I12p_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I12p_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I12p_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I12p_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I12p_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I12p_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I12p_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I12p_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I12p_6+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I13p_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I13p_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I13p_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I13p_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I13p_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I13p_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I13p_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I13p_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I13p_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I13p_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I13p_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I13p_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_1_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_1_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_1_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_1_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_1_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_1_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_1_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_1_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_1_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_1_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_1_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_1_6+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_2_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_2_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_2_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_2_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_2_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_2_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_2_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_2_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_2_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_2_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_2_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_2_6+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_3_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_3_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_3_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_3_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_3_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_3_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_3_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_3_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_3_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_3_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_3_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_3_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_4_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_4_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_4_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_4_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_4_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_4_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_4_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_4_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_4_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_4_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_4_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_4_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_5_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_5_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_5_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_5_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_5_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_5_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_5_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_5_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_5_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_5_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_5_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*1.0/3.0;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_5_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_6_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_6_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_6_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_6_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_6_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_6_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_6_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_6_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_6_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_6_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_6_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_6_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_7_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*2.0/3.0*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_7_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_7_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*2.0/3.0*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_7_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_7_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*2.0/3.0*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_7_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_7_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J*2.0/3.0*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_7_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_7_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*2.0/3.0*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_7_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_7_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*2.0/3.0*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_7_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_8_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_8_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_8_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_8_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_8_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_8_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_8_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kLambda]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_8_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_8_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_8_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_8_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_8_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_9_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_9_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_9_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_9_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_9_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_9_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_9_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_9_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_9_5,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_9_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_9_6,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_9_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_10_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_10_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_10_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_10_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_10_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_10_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_10_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_10_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_10_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_10_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_10_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_10_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_11_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_11_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_11_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_11_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_11_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_11_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_11_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kLambda]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_11_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_11_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_11_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_11_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_11_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_12_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_12_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_12_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_12_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_12_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_12_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_12_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kLambda]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_12_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_12_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_12_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_12_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_12_6+= fTemp_matrix_nudof_x_nudof;
+
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_13_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_13_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_13_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_13_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_13_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_13_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_13_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kLambda]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_13_4+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_13_5,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_13_5+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,II_temp_11p_13_6,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fMaterial_Params[kMu]*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_13_6+= fTemp_matrix_nudof_x_nudof;
+
+/*
+//////////////////////////////////////constructing full implementation//////////////////////////////////////////////////////
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_1_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_1_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_1_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_1_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_1_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_1_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_1_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_1_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_2_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_2_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_2_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_2_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_2_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_2_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_2_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_2_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_3_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*(1.0/3.0);
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_3_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_3_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*(1.0/3.0);
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_3_2+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_4_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_4_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_4_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_4_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_4_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_4_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_4_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_4_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_5_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*(1.0/3.0);
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_5_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_5_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*(1.0/3.0);
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_5_2+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_6_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_6_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_6_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_6_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_6_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_6_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_6_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_6_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_7_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*(2.0/3.0)*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_7_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_7_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp44)*fDelgamma*J*(2.0/3.0)*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_7_2+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_8_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_8_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_8_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_8_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_8_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_8_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_8_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp44)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_8_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_9_1,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_9_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_9_2,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_9_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_9_3,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_9_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_9_4,fShapeDisplGrad);
+                            scale = scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_9_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_10_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_10_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_10_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_10_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_10_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_10_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_10_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_10_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_11_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_11_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_11_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_11_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_11_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_11_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_11_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J;
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_11_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_12_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_12_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_12_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_12_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_12_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_12_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_12_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_12_4+= fTemp_matrix_nudof_x_nudof;
+
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_13_1,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_13_1+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_13_2,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_13_2+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_13_3,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_13_3+= fTemp_matrix_nudof_x_nudof;
+
+                            fTemp_matrix_nudof_x_nudof.MultATBC(fShapeDisplGrad,I_temp_11p_test_2_13_4,fShapeDisplGrad);
+                            scale = -1*scale_const*(Comp11)*(Comp33)*fDelgamma*J*fMaterial_Params[kMu];
+                            fTemp_matrix_nudof_x_nudof*= scale;
+                            fKu_I_temp_11p_test_2_13_4+= fTemp_matrix_nudof_x_nudof;
+*/
+                      /////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                             /////////////////////////////////////////////////////////////////
                             /////////////////////////////////////////////////////////////////
@@ -2879,7 +4346,13 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
         					fNorm_dev_Cauchy_stress_tensor_current_IP = sqrt(fNorm_dev_Cauchy_stress_tensor_current_IP);
 
                             fDeformation_Gradient_IPs.SetRow(IP,fDeformation_Gradient);
+
+                            //Extract_six_values_from_symmetric_tensor(fCauchy_stress_tensor_current_IP,fTemp_nine_values);
+                           // fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
                             fCauchy_stress_IPs.SetRow(IP,fCauchy_stress_tensor_current_IP);
+
+                            fs_micromorph3D_out  << "Gauss Point = " << IP << endl;
+                            fs_micromorph3D_out  << "fCauchy_stress_tensor_current_IP= " << fCauchy_stress_tensor_current_IP << endl;
 
                             if(fYield_function_tr < dAbsTol && time > 0.0 )
 								{
@@ -2918,21 +4391,12 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                                     fRight_Cauchy_Green_tensor = fIdentity_matrix;
 
 
-                            //fs_micromorph3D_out << "fVelocity_Gradient_current_IP = " << fVelocity_Gradient_current_IP << endl;
-                           // fs_micromorph3D_out << "fSymmetric_part_Velocity_Gradient_current_IP = " << fSymmetric_part_Velocity_Gradient_current_IP << endl;
-                           // fs_micromorph3D_out << "fDel_Deformation_Gradient = " << fDel_Deformation_Gradient << endl;
-							//fs_micromorph3D_out << "Current Deformation Gradient = " << fDeformation_Gradient << endl;
-							//fs_micromorph3D_out << "Previous time step Deformation Gradient = " << fDeformation_Gradient_n << endl;
-							//fs_micromorph3D_out << "Cauchy_stress_tensor_current = " << fCauchy_stress_tensor_current_IP << endl;
-							//fs_micromorph3D_out << "Previous time step Cauchy_stress_tensor_current = " << fCauchy_stress_tensor_current_n_IP << endl;
-
-
-
                             //Extract_nine_values (fEulerian_strain_tensor_current_IP,fTemp_six_values);
                             Extract_six_values_from_symmetric_tensor(fEulerian_strain_tensor_current_IP,fTemp_nine_values);
 
                             /* Save Eulerian strain tensor of the current IP */
                             fEulerian_strain_IPs.SetRow(IP,fTemp_nine_values);
+
 
                             Form_IJe_1();
                             Form_IJe_2();
@@ -3481,8 +4945,8 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 }//constitutive loop ends here
 
 
-                fState_variables_IPs(IP,ktrSigma)=trsigma;
-                fState_variables_IPs(IP,kSigma_inv)=Cauchy_inv;
+                fState_variables_IPs(IP,ktrCauchy_Stress)=fCauchy_stress_tensor_current_IP_trace;
+                fState_variables_IPs(IP,kNorm_Dev_Cauchy_Stress)=fNorm_dev_Cauchy_stress_tensor_current_IP;
                 fState_variables_IPs(IP,ktrRel)=trs_sigma;
                 fState_variables_IPs(IP,kRel_inv)=Rel_strs_inv;
                 fState_variables_IPs(IP,ktrm)=trmklm;
@@ -3680,9 +5144,220 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
             fKdd+=  fKu_I10p_12;
             fKdd+=  fKu_I10p_13;
 
+/*
+            fKdd+= 	fKu_I12p_1;
+            fKdd+=  fKu_I12p_2;
+            fKdd+=  fKu_I12p_3;
+            fKdd+=  fKu_I12p_4;
+            fKdd+=  fKu_I12p_5;
+            fKdd+=  fKu_I12p_6;
+*/
+
+            fKdd+= 	fKu_I13p_1;
+			fKdd+=  fKu_I13p_2;
+			fKdd+=  fKu_I13p_3;
+			fKdd+=  fKu_I13p_4;
+			fKdd+=  fKu_I13p_5;
+			fKdd+=  fKu_I13p_6;
+
+
+			fKdd+=  fKu_I_temp_11p_1_1;
+			fKdd+=  fKu_I_temp_11p_1_2;
+			fKdd+=  fKu_I_temp_11p_1_3;
+			fKdd+=  fKu_I_temp_11p_1_4;
+			fKdd+=  fKu_I_temp_11p_1_5;
+			fKdd+=  fKu_I_temp_11p_1_6;
+
+
+			fKdd+=  fKu_I_temp_11p_2_1;
+			fKdd+=  fKu_I_temp_11p_2_2;
+			fKdd+=  fKu_I_temp_11p_2_3;
+			fKdd+=  fKu_I_temp_11p_2_4;
+			fKdd+=  fKu_I_temp_11p_2_5;
+			fKdd+=  fKu_I_temp_11p_2_6;
+
+			fKdd+=  fKu_I_temp_11p_3_1;
+			fKdd+=  fKu_I_temp_11p_3_2;
+			fKdd+=  fKu_I_temp_11p_3_3;
+			fKdd+=  fKu_I_temp_11p_3_4;
+			fKdd+=  fKu_I_temp_11p_3_5;
+			fKdd+=  fKu_I_temp_11p_3_6;
+
+			fKdd+=  fKu_I_temp_11p_4_1;
+			fKdd+=  fKu_I_temp_11p_4_2;
+			fKdd+=  fKu_I_temp_11p_4_3;
+			fKdd+=  fKu_I_temp_11p_4_4;
+			fKdd+=  fKu_I_temp_11p_4_5;
+			fKdd+=  fKu_I_temp_11p_4_6;
+
+			fKdd+=  fKu_I_temp_11p_5_1;
+			fKdd+=  fKu_I_temp_11p_5_2;
+			fKdd+=  fKu_I_temp_11p_5_3;
+			fKdd+=  fKu_I_temp_11p_5_4;
+			fKdd+=  fKu_I_temp_11p_5_5;
+			fKdd+=  fKu_I_temp_11p_5_6;
+
+			fKdd+=  fKu_I_temp_11p_6_1;
+			fKdd+=  fKu_I_temp_11p_6_2;
+			fKdd+=  fKu_I_temp_11p_6_3;
+			fKdd+=  fKu_I_temp_11p_6_4;
+			fKdd+=  fKu_I_temp_11p_6_5;
+			fKdd+=  fKu_I_temp_11p_6_6;
+
+			fKdd+=  fKu_I_temp_11p_7_1;
+			fKdd+=  fKu_I_temp_11p_7_2;
+			fKdd+=  fKu_I_temp_11p_7_3;
+			fKdd+=  fKu_I_temp_11p_7_4;
+			fKdd+=  fKu_I_temp_11p_7_5;
+			fKdd+=  fKu_I_temp_11p_7_6;
+
+            fKdd+= 	fKu_I_temp_11p_8_1;
+            fKdd+=  fKu_I_temp_11p_8_2;
+            fKdd+=  fKu_I_temp_11p_8_3;
+            fKdd+=  fKu_I_temp_11p_8_4;
+            fKdd+=  fKu_I_temp_11p_8_5;
+            fKdd+=  fKu_I_temp_11p_8_6;
+
+            fKdd+= 	fKu_I_temp_11p_9_1;
+            fKdd+=  fKu_I_temp_11p_9_2;
+            fKdd+=  fKu_I_temp_11p_9_3;
+            fKdd+=  fKu_I_temp_11p_9_4;
+            fKdd+=  fKu_I_temp_11p_9_5;
+            fKdd+=  fKu_I_temp_11p_9_6;
+
+            fKdd+= 	fKu_I_temp_11p_10_1;
+            fKdd+=  fKu_I_temp_11p_10_2;
+            fKdd+=  fKu_I_temp_11p_10_3;
+            fKdd+=  fKu_I_temp_11p_10_4;
+            fKdd+=  fKu_I_temp_11p_10_5;
+            fKdd+=  fKu_I_temp_11p_10_6;
+
+            fKdd+= 	fKu_I_temp_11p_11_1;
+            fKdd+=  fKu_I_temp_11p_11_2;
+            fKdd+=  fKu_I_temp_11p_11_3;
+            fKdd+=  fKu_I_temp_11p_11_4;
+            fKdd+=  fKu_I_temp_11p_11_5;
+            fKdd+=  fKu_I_temp_11p_11_6;
+
+            fKdd+= 	fKu_I_temp_11p_12_1;
+            fKdd+=  fKu_I_temp_11p_12_2;
+            fKdd+=  fKu_I_temp_11p_12_3;
+            fKdd+=  fKu_I_temp_11p_12_4;
+            fKdd+=  fKu_I_temp_11p_12_5;
+            fKdd+=  fKu_I_temp_11p_12_6;
+
+            fKdd+= 	fKu_I_temp_11p_13_1;
+            fKdd+=  fKu_I_temp_11p_13_2;
+            fKdd+=  fKu_I_temp_11p_13_3;
+            fKdd+=  fKu_I_temp_11p_13_4;
+            fKdd+=  fKu_I_temp_11p_13_5;
+            fKdd+=  fKu_I_temp_11p_13_6;
+
+
+/*
+
+            fKdd_previous =  fKu_I13p_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_1_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_2_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_3_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_4_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_5_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_6_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_7_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_8_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_9_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_10_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_11_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_12_2;
+
+            fKdd_previous+=  fKu_I_temp_11p_13_2;
 
 
 
+
+
+            fKdd_full_implemet = fKu_I_temp_11p_test_2_1_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_1_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_1_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_1_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_2_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_2_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_2_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_2_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_3_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_3_2;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_4_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_4_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_4_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_4_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_5_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_5_2;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_6_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_6_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_6_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_6_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_7_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_7_2;
+
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_8_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_8_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_8_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_8_4;
+
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_9_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_9_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_9_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_9_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_10_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_10_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_10_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_10_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_11_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_11_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_11_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_11_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_12_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_12_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_12_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_12_4;
+
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_13_1;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_13_2;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_13_3;
+            fKdd_full_implemet+= fKu_I_temp_11p_test_2_13_4;
+
+            difference = fKdd_full_implemet;
+            difference-= fKdd_previous;
+
+            fs_micromorph3D_out << "fKdd_full_implemet = " << fKdd_full_implemet << endl;
+            fs_micromorph3D_out << "fKdd_previous = " << fKdd_previous << endl;
+            fs_micromorph3D_out << "difference = " << difference << endl;
+
+            //fs_micromorph3D_out << "Global Tangent = " << fKdd << endl;
+*/
 //******************************************************************
 //******************************************************************
 //******************************************************************
@@ -4840,6 +6515,371 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
        I10p_13.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
 
 
+       ////////////////////////////Test///////////////////////////
+       /////////////////comparison////////////////////////////////
+       I_temp_11p_test_2_1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_1_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_1_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_1_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_2_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_2_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_2_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_2_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_3_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_3_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+
+       I_temp_11p_test_2_4_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_4_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_4_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_4_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_5_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_5_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+
+       I_temp_11p_test_2_6_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_6_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_6_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_6_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_7_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_7_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+
+       I_temp_11p_test_2_8_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_8_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_8_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_8_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_9_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_9_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_9_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_9_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_10_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_10_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_10_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_10_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_11_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_11_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_11_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_11_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_12_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_12_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_12_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_12_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I_temp_11p_test_2_13_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_13_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_13_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2_13_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+
+       fKu_I_temp_11p_test_2_1_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_1_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_1_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_1_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_2_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_2_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_2_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_2_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_3_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_3_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+
+       fKu_I_temp_11p_test_2_4_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_4_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_4_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_4_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_5_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_5_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+
+       fKu_I_temp_11p_test_2_6_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_6_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_6_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_6_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_7_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_7_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+
+       fKu_I_temp_11p_test_2_8_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_8_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_8_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_8_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_9_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_9_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_9_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_9_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_10_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_10_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_10_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_10_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_11_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_11_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_11_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_11_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_12_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_12_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_12_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_12_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_test_2_13_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_13_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_13_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_test_2_13_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       ///////////////////////////////////////////////////////////
+       I_temp_11p_test_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_test_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_test_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_test_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_test_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I_temp_11p_20.Dimension(n_sd,n_sd);
+       I_temp_11p_21.Dimension(n_sd,n_sd);
+       I_temp_11p_22.Dimension(n_sd,n_sd);
+       I_temp_11p_23.Dimension(n_sd,n_sd);
+       I_temp_11p_24.Dimension(n_sd,n_sd);
+       I_temp_11p_4_Transpose.Dimension(n_sd,n_sd);
+
+       II_temp_11p_1_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_1_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_1_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_1_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_1_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_1_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_2_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_2_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_2_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_2_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_2_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_2_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_3_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_3_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_3_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_3_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_3_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_3_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_4_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_4_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_4_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_4_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_4_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_4_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_5_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_5_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_5_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_5_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_5_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_5_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_6_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_6_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_6_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_6_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_6_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_6_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_7_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_7_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_7_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_7_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_7_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_7_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_8_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_8_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_8_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_8_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_8_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_8_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_9_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_9_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_9_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_9_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_9_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_9_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_10_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_10_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_10_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_10_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_10_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_10_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_11_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_11_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_11_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_11_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_11_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_11_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_12_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_12_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_12_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_12_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_12_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_12_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       II_temp_11p_13_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_13_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_13_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_13_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_13_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       II_temp_11p_13_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+
+
+       fKu_I_temp_11p_1_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_1_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_1_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_1_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_1_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_1_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_2_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_2_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_2_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_2_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_2_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_2_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_3_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_3_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_3_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_3_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_3_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_3_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_4_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_4_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_4_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_4_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_4_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_4_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_5_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_5_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_5_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_5_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_5_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_5_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_6_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_6_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_6_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_6_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_6_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_6_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_7_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_7_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_7_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_7_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_7_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_7_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_8_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_8_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_8_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_8_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_8_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_8_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_9_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_9_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_9_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_9_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_9_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_9_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_10_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_10_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_10_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_10_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_10_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_10_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_11_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_11_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_11_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_11_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_11_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_11_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_12_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_12_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_12_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_12_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_12_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_12_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I_temp_11p_13_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_13_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_13_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_13_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_13_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I_temp_11p_13_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKdd_previous.Dimension( n_en_displ_x_n_sd, n_en_displ_x_n_sd );
+       fKdd_full_implemet.Dimension( n_en_displ_x_n_sd, n_en_displ_x_n_sd );
+       difference.Dimension( n_en_displ_x_n_sd, n_en_displ_x_n_sd );
+
+       ///////////////////////////////////////////////////////////
+
+
+       I_temp_11p_1.Dimension(n_sd,n_sd);
+       I_temp_11p_2.Dimension(n_sd,n_sd);
+       I_temp_11p_3.Dimension(n_sd,n_sd);
+       I_temp_11p_4.Dimension(n_sd,n_sd);
+       I_temp_11p_5.Dimension(n_sd,n_sd);
+       I_temp_11p_6.Dimension(n_sd,n_sd);
+       I_temp_11p_7.Dimension(n_sd,n_sd);
+       I_temp_11p_8.Dimension(n_sd,n_sd);
+       I_temp_11p_9.Dimension(n_sd,n_sd);
+       I_temp_11p_10.Dimension(n_sd,n_sd);
+       I_temp_11p_11.Dimension(n_sd,n_sd);
+       I_temp_11p_12.Dimension(n_sd,n_sd);
+       I_temp_11p_13.Dimension(n_sd,n_sd);
+
+
+       I11p_1.Dimension(n_sd,n_sd);
+       I11p_2.Dimension(n_sd,n_sd);
+
+       I12p_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I12p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
+       I13p_1.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I13p_2.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I13p_3.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I13p_4.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I13p_5.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+       I13p_6.Dimension(n_sd_x_n_sd,n_sd_x_n_sd);
+
        fKu_I1p_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
        fKu_I1p_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
        fKu_I1p_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
@@ -4957,6 +6997,20 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
        fKu_I10p_11.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
        fKu_I10p_12.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
        fKu_I10p_13.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I12p_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I12p_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I12p_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I12p_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I12p_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I12p_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+
+       fKu_I13p_1.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I13p_2.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I13p_3.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I13p_4.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I13p_5.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
+       fKu_I13p_6.Dimension(n_en_displ_x_n_sd,n_en_displ_x_n_sd);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -5092,8 +7146,8 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgamma)=0.0;
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammachi)=0.0;
              //fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammaGchi)=0.0;// Micro Gradient Pl.
-             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrSigma)=0.0;
-             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kSigma_inv)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrCauchy_Stress)=0.0;
+             fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kNorm_Dev_Cauchy_Stress)=0.0;
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+ktrRel)=0.0;
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kRel_inv)=0.0;
              fState_variables_n_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvtrM)=0.0;
@@ -6960,7 +9014,7 @@ void FSMicromorphic3DCurrConfigT:: Form_Mm_71_matrix()
                             {
                                 for(int s=0;s<3;s++)
                                 {
-                                                            Mm_71(row,col)+=CCof[k][l][m][p][r][s]*Finv[T][s]*ChiInv[A][r];
+                                    Mm_71(row,col)+=CCof[k][l][m][p][r][s]*Finv[T][s]*ChiInv[A][r];
                                 }
                             }
                             row++;
@@ -9440,13 +11494,12 @@ void FSMicromorphic3DCurrConfigT:: Form_I2p_2()
 								{
 									for(int m=0;m<3;m++)
 									{
-											for(int j=0;j<3;j++)
-											{
-												I2p_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)*fCauchy_stress_tensor_current_n_IP(p,k)
-												*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(K,l)
-												*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(i,n);
-											}
-
+										for(int j=0;j<3;j++)
+										{
+											I2p_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)*fCauchy_stress_tensor_current_n_IP(p,k)
+											*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(K,l)
+											*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(i,n);
+										}
 									}
 								}
 							}
@@ -9490,7 +11543,7 @@ void FSMicromorphic3DCurrConfigT:: Form_I2p_3()
 										for(int j=0;j<3;j++)
 										{
 												I2p_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)*fCauchy_stress_tensor_current_n_IP(p,k)
-												*fdFYdCauchy_Stress(m,q)*fCauchy_stress_tensor_current_n_IP(m,n)*fDel_Deformation_Gradient(q,K)*fDeformation_Gradient_Inverse(K,l)
+												*fdFYdCauchy_Stress(m,q)*fCauchy_stress_tensor_current_n_IP(m,n)*fDeformation_Gradient_n(q,K)*fDeformation_Gradient_Inverse(K,l)
 												*fDeformation_Gradient_Inverse(I,n);
 										}
 									}
@@ -10299,7 +12352,7 @@ void FSMicromorphic3DCurrConfigT:: Form_I5p_3()
 										for(int j=0;j<3;j++)
 										{
 												I5p_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
-												*fdFYdCauchy_Stress(m,q)*fCauchy_stress_tensor_current_n_IP(m,n)*fDel_Deformation_Gradient(q,K)*fDeformation_Gradient_Inverse(K,l)
+												*fdFYdCauchy_Stress(m,q)*fCauchy_stress_tensor_current_n_IP(m,n)*fDeformation_Gradient_n(q,K)*fDeformation_Gradient_Inverse(K,l)
 												*fDeformation_Gradient_Inverse(I,n);
 										}
 									}
@@ -10717,18 +12770,17 @@ void FSMicromorphic3DCurrConfigT:: Form_I7p_1()
 					for(int K=0;K<3;K++)
 					{
 						for(int i=0;i<3;i++)
+						{
+							for(int n=0;n<3;n++)
 							{
-								for(int n=0;n<3;n++)
-									{
-										for(int j=0;j<3;j++)
-											{
-												I7p_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(K,l)
-												*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(j,n)
-												*fCauchy_stress_tensor_current_n_IP(n,k);
-											}
-
-									}
+								for(int j=0;j<3;j++)
+								{
+									I7p_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(K,l)
+									*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(j,n)
+									*fCauchy_stress_tensor_current_n_IP(n,k);
+								}
 							}
+						}
 					}
 				 row++;
 				}
@@ -11194,21 +13246,21 @@ void FSMicromorphic3DCurrConfigT:: Form_I7p_13()
 					for(int K=0;K<3;K++)
 					{
 						for(int n=0;n<3;n++)
+						{
+							for(int j=0;j<3;j++)
 							{
-								for(int j=0;j<3;j++)
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
 									{
-										for(int a=0;a<3;a++)
-											{
-											for(int b=0;b<3;b++)
-												{
-													I7p_13(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(b,K)
-													*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,a)
-													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(j,n)
-													*fCauchy_stress_tensor_current_n_IP(n,k);
-												}
-											}
+										I7p_13(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(b,K)
+										*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,a)
+										*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(j,n)
+										*fCauchy_stress_tensor_current_n_IP(n,k);
 									}
+								}
 							}
+						}
 					}
 				 row++;
 				}
@@ -11406,7 +13458,7 @@ void FSMicromorphic3DCurrConfigT:: Form_I8p_5()
 													{
 														I8p_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,n)
 														*fCauchy_stress_tensor_current_n_IP(p,i)*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(K,l)
-														*fDeformation_Gradient_Inverse(I,i)*fIdentity_matrix(n,k);
+														*fDeformation_Gradient_Inverse(I,i)*fIdentity_matrix(k,n);
 													}
 											}
 
@@ -11592,8 +13644,7 @@ void FSMicromorphic3DCurrConfigT:: Form_I8p_10()
 											{
 											for(int b=0;b<3;b++)
 												{
-													I8p_10(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,n)
-													*fDeformation_Gradient_n(a,K)
+													I8p_10(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,n)*fDeformation_Gradient_n(a,K)
 													*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(i,b)
 													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(k,n);
 												}
@@ -12415,10 +14466,10 @@ void FSMicromorphic3DCurrConfigT:: Form_I10p_6()
 					for(int K=0;K<3;K++)
 					{
 						for(int j=0;j<3;j++)
-							{
-									I10p_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(k,K)
-									*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,j);
-							}
+						{
+							I10p_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(k,K)
+							*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,j);
+						}
 					}
 				 row++;
 				}
@@ -12446,13 +14497,13 @@ void FSMicromorphic3DCurrConfigT:: Form_I10p_7()
 					for(int K=0;K<3;K++)
 					{
 						for(int p=0;p<3;p++)
+						{
+							for(int j=0;j<3;j++)
 							{
-								for(int j=0;j<3;j++)
-									{
-										I10p_7(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(p,K)
-										*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,p)*fIdentity_matrix(k,j);
-									}
+									I10p_7(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(p,K)
+									*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,p)*fIdentity_matrix(k,j);
 							}
+						}
 					}
 				 row++;
 				}
@@ -12666,17 +14717,3818 @@ void FSMicromorphic3DCurrConfigT:: Form_I10p_13()
 				{
 					for(int K=0;K<3;K++)
 					{
-							for(int j=0;j<3;j++)
+						for(int j=0;j<3;j++)
+						{
+							for(int a=0;a<3;a++)
 							{
-									for(int a=0;a<3;a++)
+								for(int b=0;b<3;b++)
+								{
+									I10p_13(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(b,K)
+									*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,a)
+									*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(k,j);
+								}
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_1=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+								*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(m,p)
+								*fCauchy_stress_tensor_current_n_IP(p,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+								*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(m,p)*fdev_Cauchy_stress_tensor_current_n_IP(n,p);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+							*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(m,n);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							I_temp_11p_1(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+							*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(n,m);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_1*= fMaterial_Params[kMu];
+
+		I_temp_11p_1+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_1+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_1+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_2=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+								*fDeformation_Gradient_n(m,K)*fCauchy_stress_tensor_current_n_IP(i,p)
+								*fCauchy_stress_tensor_current_n_IP(p,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+								*fCauchy_stress_tensor_current_n_IP(m,p)*fDeformation_Gradient_n(n,K)*fCauchy_stress_tensor_current_n_IP(i,p);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)*fDeformation_Gradient_n(m,K)
+							*fCauchy_stress_tensor_current_n_IP(i,n);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							I_temp_11p_2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)*fDeformation_Gradient_n(n,K)
+							*fCauchy_stress_tensor_current_n_IP(i,m);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_2*= fMaterial_Params[kMu];
+
+		I_temp_11p_2+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_2+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_2+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_3=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,p)
+								*fCauchy_stress_tensor_current_n_IP(p,i)*fCauchy_stress_tensor_current_n_IP(m,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd*= 2;
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								I_temp_11p_3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,p)
+								*fCauchy_stress_tensor_current_n_IP(p,i)*fIdentity_matrix(m,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_3*= 2;
+		I_temp_11p_3*= fMaterial_Params[kMu];
+		I_temp_11p_3+= fTemp_matrix_nsd_x_nsd;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_4=0.0;
+    I_temp_11p_4_Transpose = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+		for(int I=0;I<3;I++)
+		{
+			row=0;
+			for(int K=0;K<3;K++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								I_temp_11p_4_Transpose(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+								*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(p,K)*fCauchy_stress_tensor_current_n_IP(p,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+								*fCauchy_stress_tensor_current_n_IP(m,p)*fCauchy_stress_tensor_current_n_IP(n,i)*fDeformation_Gradient_n(p,K);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(m,i)
+							*fDeformation_Gradient_n(n,K);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							I_temp_11p_4(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(n,i)
+							*fDeformation_Gradient_n(m,K);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_4*= fMaterial_Params[kMu];
+
+		I_temp_11p_4+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_4+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_5()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_5=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(p,i)
+								*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(m,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd*= 2;
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								I_temp_11p_5(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(p,i)
+								*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(I,i)*fIdentity_matrix(m,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_5*= fMaterial_Params[kMu];
+		I_temp_11p_5*= 2;
+		I_temp_11p_5+= fTemp_matrix_nsd_x_nsd;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_6()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_6=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(I,p)
+							*fCauchy_stress_tensor_current_n_IP(p,n);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+							*fDeformation_Gradient_n(n,K)*fDeformation_Gradient_Inverse(I,p);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(I,n);
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						I_temp_11p_6(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)*fDeformation_Gradient_Inverse(I,m);
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_6*= fMaterial_Params[kMu];
+
+		I_temp_11p_6+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_6+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_6+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_7()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_7=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)
+							*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(I,p)*fCauchy_stress_tensor_current_n_IP(m,n);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd*= 2;
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							I_temp_11p_7(row,col)+=fdFYdCauchy_Stress(m,n)
+							*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(I,p)*fIdentity_matrix(m,n);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_7*= fMaterial_Params[kMu];
+		I_temp_11p_7*= 2;
+		I_temp_11p_7+= fTemp_matrix_nsd_x_nsd;
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_8()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_8=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)*fDeformation_Gradient_Inverse(I,p)
+							*fCauchy_stress_tensor_current_n_IP(p,m);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(n,p)
+							*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(I,p);
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)*fDeformation_Gradient_Inverse(I,m);
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						I_temp_11p_8(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(I,n);
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_8*= fMaterial_Params[kMu];
+		I_temp_11p_8+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_8+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_8+= fTemp_matrix_nsd_x_nsd3;
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_9()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_9=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
 									{
-										for(int b=0;b<3;b++)
+										fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+										*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+										*fCauchy_stress_tensor_current_n_IP(p,n);
+									}
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+										*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)*fCauchy_stress_tensor_current_n_IP(m,p)
+										*dev_Cauchy_stress_tr(n,p);
+									}
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+									*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)
+									*dev_Cauchy_stress_tr(m,n);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									I_temp_11p_9(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+									*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)
+									*dev_Cauchy_stress_tr(n,m);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_9*= fMaterial_Params[kMu];
+		I_temp_11p_9+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_9+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_9+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_10()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_10=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+										*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+										*fCauchy_stress_tensor_current_n_IP(p,n);
+									}
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+										*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*fCauchy_stress_tensor_current_n_IP(m,p)
+										*dev_Cauchy_stress_tr(n,p);
+									}
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+									*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									I_temp_11p_10(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+									*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_10*= fMaterial_Params[kMu];
+		I_temp_11p_10+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_10+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_10+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_11()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_11=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(a,i)
+										*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)
+										*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)*fCauchy_stress_tensor_current_n_IP(p,n);
+									}
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int p=0;p<3;p++)
+					{
+						for(int n=0;n<3;n++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int a=0;a<3;a++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(a,i)
+										*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)*dev_Cauchy_stress_tr(a,b)
+										*fCauchy_stress_tensor_current_n_IP(m,p)*dev_Cauchy_stress_tr(n,p);
+									}
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(a,i)
+									*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)*dev_Cauchy_stress_tr(a,b)
+									*dev_Cauchy_stress_tr(m,n);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int i=0;i<3;i++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									I_temp_11p_11(row,col)+=fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(a,i)
+									*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)*dev_Cauchy_stress_tr(a,b)
+									*dev_Cauchy_stress_tr(n,m);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_11*= fMaterial_Params[kMu];
+
+		I_temp_11p_11+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_11+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_11+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_12()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_12=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)
+									*fDeformation_Gradient_Inverse(I,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+									*fCauchy_stress_tensor_current_n_IP(p,n);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)
+									*fDeformation_Gradient_Inverse(I,b)*dev_Cauchy_stress_tr(a,b)
+									*fCauchy_stress_tensor_current_n_IP(m,p)*dev_Cauchy_stress_tr(n,p);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						for(int a=0;a<3;a++)
+						{
+							for(int b=0;b<3;b++)
+							{
+								fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)
+								*fDeformation_Gradient_Inverse(I,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						for(int a=0;a<3;a++)
+						{
+							for(int b=0;b<3;b++)
+							{
+								I_temp_11p_12(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)
+								*fDeformation_Gradient_Inverse(I,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_12*= fMaterial_Params[kMu];
+
+		I_temp_11p_12+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_12+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_12+= fTemp_matrix_nsd_x_nsd3;
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_13()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_13=0.0;
+    fTemp_matrix_nsd_x_nsd = 0.0;
+    fTemp_matrix_nsd_x_nsd2 = 0.0;
+    fTemp_matrix_nsd_x_nsd3 = 0.0;
+
+
+    for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(b,K)
+									*fDeformation_Gradient_Inverse(I,a)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+									*fCauchy_stress_tensor_current_n_IP(p,n);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int p=0;p<3;p++)
+				{
+					for(int n=0;n<3;n++)
+					{
+						for(int m=0;m<3;m++)
+						{
+							for(int a=0;a<3;a++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									fTemp_matrix_nsd_x_nsd2(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(b,K)
+									*fDeformation_Gradient_Inverse(I,a)*dev_Cauchy_stress_tr(a,b)
+									*fCauchy_stress_tensor_current_n_IP(m,p)*dev_Cauchy_stress_tr(n,p);
+								}
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						for(int a=0;a<3;a++)
+						{
+							for(int b=0;b<3;b++)
+							{
+								fTemp_matrix_nsd_x_nsd3(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(b,K)
+								*fDeformation_Gradient_Inverse(I,a)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		fTemp_matrix_nsd_x_nsd3*= fMaterial_Params[kMu];
+		row=0;
+		col=0;
+
+		for(int K=0;K<3;K++)
+		{
+			row=0;
+			for(int I=0;I<3;I++)
+			{
+				for(int n=0;n<3;n++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						for(int a=0;a<3;a++)
+						{
+							for(int b=0;b<3;b++)
+							{
+								I_temp_11p_13(row,col)+=fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(b,K)
+								*fDeformation_Gradient_Inverse(I,a)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m);
+							}
+						}
+					}
+				}
+			row++;
+			}
+		col++;
+		}
+		I_temp_11p_13*= fMaterial_Params[kMu];
+		I_temp_11p_13+= fTemp_matrix_nsd_x_nsd;
+		I_temp_11p_13+= fTemp_matrix_nsd_x_nsd2;
+		I_temp_11p_13+= fTemp_matrix_nsd_x_nsd3;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_1_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_1_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
 										{
-											I10p_13(row,col)+=fDeformation_Gradient_Inverse(L,j)*fDeformation_Gradient_n(b,K)
-											*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,a)
-											*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(k,j);
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_1_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+												*fdev_Cauchy_stress_tensor_current_n_IP(m,p)*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+											}
 										}
 									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_1_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_1_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_1_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+												*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(m,p)*fdev_Cauchy_stress_tensor_current_n_IP(n,p)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_1_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_1_3=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int K=0;K<3;K++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int q=0;q<3;q++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+													I_temp_11p_test_2_1_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+													*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(m,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+		}
+	}
+	    I_temp_11p_test_2_1_3*= fMaterial_Params[kMu];
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_1_4()
+{
+
+	int row=0;
+	int col=0;
+	I_temp_11p_test_2_1_4=0.0;
+
+	for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							for(int i=0;i<3;i++)
+							{
+								for(int q=0;q<3;q++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+												I_temp_11p_test_2_1_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)
+												*fDeformation_Gradient_Inverse(I,i)*fdev_Cauchy_stress_tensor_current_n_IP(n,m)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+		col++;
+		}
+	}
+	I_temp_11p_test_2_1_4*= fMaterial_Params[kMu];
+}
+
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_2_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_2_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_2_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(I,i)
+												*fCauchy_stress_tensor_current_n_IP(i,p)*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_2_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_2_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_2_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)*fDeformation_Gradient_n(n,K)
+												*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(i,p)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_2_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_2_3=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int K=0;K<3;K++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int q=0;q<3;q++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+													I_temp_11p_test_2_2_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)
+													*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(i,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+		}
+	}
+	    I_temp_11p_test_2_2_3*= fMaterial_Params[kMu];
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_2_4()
+{
+
+	int row=0;
+	int col=0;
+	I_temp_11p_test_2_2_4=0.0;
+
+	for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							for(int i=0;i<3;i++)
+							{
+								for(int q=0;q<3;q++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+												I_temp_11p_test_2_2_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)
+												*fDeformation_Gradient_Inverse(I,i)*fCauchy_stress_tensor_current_n_IP(i,m)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+		col++;
+		}
+	}
+	I_temp_11p_test_2_2_4*= fMaterial_Params[kMu];
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_3_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_3_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_3_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,p)
+												*fCauchy_stress_tensor_current_n_IP(p,i)*fCauchy_stress_tensor_current_n_IP(m,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_3_1*= 2.0;
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_3_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_3_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_3_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,p)
+												*fCauchy_stress_tensor_current_n_IP(p,i)*fIdentity_matrix(m,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_3_2*= 2.0;
+    I_temp_11p_test_2_3_2*= fMaterial_Params[kMu];
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_4_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_4_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int i=0;i<3;i++)
+					{
+						for(int p=0;p<3;p++)
+						{
+							for(int n=0;n<3;n++)
+							{
+								for(int m=0;m<3;m++)
+								{
+									for(int j=0;j<3;j++)
+									{
+										for(int q=0;q<3;q++)
+										{
+											for(int K=0;K<3;K++)
+											{
+												I_temp_11p_test_2_4_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(p,K)
+												*fDeformation_Gradient_Inverse(K,l)*fDeformation_Gradient_Inverse(I,i)
+												*fCauchy_stress_tensor_current_n_IP(p,n);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_4_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_4_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int i=0;i<3;i++)
+					{
+						for(int p=0;p<3;p++)
+						{
+							for(int n=0;n<3;n++)
+							{
+								for(int m=0;m<3;m++)
+								{
+									for(int j=0;j<3;j++)
+									{
+										for(int q=0;q<3;q++)
+										{
+											for(int K=0;K<3;K++)
+											{
+												I_temp_11p_test_2_4_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+												*fCauchy_stress_tensor_current_n_IP(n,i)*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(K,l)
+												*fDeformation_Gradient_Inverse(I,i);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_4_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_4_3=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int i=0;i<3;i++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int n=0;n<3;n++)
+								{
+									for(int m=0;m<3;m++)
+									{
+										for(int j=0;j<3;j++)
+										{
+											for(int q=0;q<3;q++)
+											{
+													I_temp_11p_test_2_4_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,i)
+													*fDeformation_Gradient_n(n,K)*fDeformation_Gradient_Inverse(K,l)
+													*fDeformation_Gradient_Inverse(I,i);
+											}
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+			}
+		}
+	    I_temp_11p_test_2_4_3*= fMaterial_Params[kMu];
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_4_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_4_4=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int i=0;i<3;i++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int n=0;n<3;n++)
+								{
+									for(int m=0;m<3;m++)
+									{
+										for(int j=0;j<3;j++)
+										{
+											for(int q=0;q<3;q++)
+											{
+													I_temp_11p_test_2_4_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(n,i)
+													*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(K,l)
+													*fDeformation_Gradient_Inverse(I,i);
+											}
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+			}
+		}
+	    I_temp_11p_test_2_4_4*= fMaterial_Params[kMu];
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_5_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_5_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_5_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(p,i)
+												*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(I,i)
+												*fCauchy_stress_tensor_current_n_IP(m,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_5_1*= 2.0;
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_5_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_5_2=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int K=0;K<3;K++)
+						{
+							for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									for(int i=0;i<3;i++)
+									{
+										for(int q=0;q<3;q++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+														I_temp_11p_test_2_5_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(p,i)*fDeformation_Gradient_n(p,K)
+														*fDeformation_Gradient_Inverse(I,i)*fIdentity_matrix(m,n)*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+		}
+	}
+	    I_temp_11p_test_2_5_2*= 2.0;
+	    I_temp_11p_test_2_5_2*= fMaterial_Params[kMu];
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_6_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_6_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int p=0;p<3;p++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+											I_temp_11p_test_2_6_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)*fDeformation_Gradient_Inverse(I,p)
+											*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_6_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_6_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int p=0;p<3;p++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+											I_temp_11p_test_2_6_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)*fDeformation_Gradient_n(n,K)
+											*fDeformation_Gradient_Inverse(I,p)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_6_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_6_3=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int K=0;K<3;K++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								for(int q=0;q<3;q++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+												I_temp_11p_test_2_6_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)
+												*fDeformation_Gradient_Inverse(I,n)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+		}
+	}
+	    I_temp_11p_test_2_6_3*= fMaterial_Params[kMu];
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_6_4()
+{
+
+	int row=0;
+	int col=0;
+	I_temp_11p_test_2_6_4=0.0;
+
+	for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							for(int q=0;q<3;q++)
+							{
+								for(int n=0;n<3;n++)
+								{
+									for(int m=0;m<3;m++)
+									{
+											I_temp_11p_test_2_6_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)
+											*fDeformation_Gradient_Inverse(I,m)*fDeformation_Gradient_Inverse(K,l);
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+		col++;
+		}
+	}
+	I_temp_11p_test_2_6_4*= fMaterial_Params[kMu];
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_7_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_7_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int p=0;p<3;p++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+											I_temp_11p_test_2_7_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+											*fDeformation_Gradient_n(p,K)*fDeformation_Gradient_Inverse(I,p)
+											*fCauchy_stress_tensor_current_n_IP(m,n)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_7_1*= 2.0;
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_7_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_7_2=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int K=0;K<3;K++)
+						{
+							for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									for(int p=0;p<3;p++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_7_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(p,K)
+												*fDeformation_Gradient_Inverse(I,p)*fIdentity_matrix(m,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+		}
+	}
+	    I_temp_11p_test_2_7_2*= 2.0;
+	    I_temp_11p_test_2_7_2*= fMaterial_Params[kMu];
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_8_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_8_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int p=0;p<3;p++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+											I_temp_11p_test_2_8_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)*fDeformation_Gradient_Inverse(I,p)
+											*fCauchy_stress_tensor_current_n_IP(p,m)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_8_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_8_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int p=0;p<3;p++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+											I_temp_11p_test_2_8_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(n,p)*fDeformation_Gradient_n(m,K)
+											*fDeformation_Gradient_Inverse(I,p)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_8_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_8_3=0.0;
+
+	    for (int I=0;I<3;I++)
+		{
+			for(int l=0;l<3;l++)
+			{
+				row=0;
+				for(int L=0;L<3;L++)
+				{
+					for(int k=0;k<3;k++)
+					{
+						for(int K=0;K<3;K++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								for(int q=0;q<3;q++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int m=0;m<3;m++)
+										{
+												I_temp_11p_test_2_8_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(n,K)
+												*fDeformation_Gradient_Inverse(I,m)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					row++;
+					}
+				}
+			col++;
+		}
+	}
+	    I_temp_11p_test_2_8_3*= fMaterial_Params[kMu];
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_8_4()
+{
+
+	int row=0;
+	int col=0;
+	I_temp_11p_test_2_8_4=0.0;
+
+	for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							for(int q=0;q<3;q++)
+							{
+								for(int n=0;n<3;n++)
+								{
+									for(int m=0;m<3;m++)
+									{
+											I_temp_11p_test_2_8_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+											*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(m,K)
+											*fDeformation_Gradient_Inverse(I,n)*fDeformation_Gradient_Inverse(K,l);
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+		col++;
+		}
+	}
+	I_temp_11p_test_2_8_4*= fMaterial_Params[kMu];
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_9_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_9_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												for(int n=0;n<3;n++)
+												{
+													for(int m=0;m<3;m++)
+													{
+														I_temp_11p_test_2_9_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+														*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+														*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_9_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_9_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												for(int n=0;n<3;n++)
+												{
+													for(int m=0;m<3;m++)
+													{
+														I_temp_11p_test_2_9_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+														*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+														*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,p)
+														*fDeformation_Gradient_Inverse(K,l);
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_9_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_9_3=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_9_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+													*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+													*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_9_3*= fMaterial_Params[kMu];
+}
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_9_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_9_4=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_9_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+													*fDeformation_Gradient_n(i,K)*fDeformation_Gradient_Inverse(I,i)
+													*fdev_Cauchy_stress_tensor_current_n_IP(a,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_9_4*= fMaterial_Params[kMu];
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_10_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_10_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												for(int n=0;n<3;n++)
+												{
+													for(int m=0;m<3;m++)
+													{
+														I_temp_11p_test_2_10_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+														*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+														*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_10_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_10_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												for(int n=0;n<3;n++)
+												{
+													for(int m=0;m<3;m++)
+													{
+														I_temp_11p_test_2_10_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+														*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+														*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,p)
+														*fDeformation_Gradient_Inverse(K,l);
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_10_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_10_3=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_10_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+													*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+													*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_10_3*= fMaterial_Params[kMu];
+}
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_10_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_10_4=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_10_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+													*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,i)
+													*fCauchy_stress_tensor_current_n_IP(i,b)*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_10_4*= fMaterial_Params[kMu];
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_11_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_11_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												for(int n=0;n<3;n++)
+												{
+													for(int m=0;m<3;m++)
+													{
+														I_temp_11p_test_2_11_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(a,i)
+														*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)
+														*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+														*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_11_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_11_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												for(int n=0;n<3;n++)
+												{
+													for(int m=0;m<3;m++)
+													{
+														I_temp_11p_test_2_11_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+														*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+														*fCauchy_stress_tensor_current_n_IP(a,i)*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)
+														*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,p)
+														*fDeformation_Gradient_Inverse(K,l);
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_11_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_11_3=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_11_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(a,i)
+													*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)
+													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_11_3*= fMaterial_Params[kMu];
+}
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_11_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_11_4=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int i=0;i<3;i++)
+								{
+									for(int b=0;b<3;b++)
+									{
+										for(int a=0;a<3;a++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_11_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+													*fCauchy_stress_tensor_current_n_IP(a,i)*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,i)
+													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_11_4*= fMaterial_Params[kMu];
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_12_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_12_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int p=0;p<3;p++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_12_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,b)
+													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+													*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_12_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_12_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int p=0;p<3;p++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_12_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+													*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,b)
+													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,p)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_12_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_12_3=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_12_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+												*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,b)
+												*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n)
+												*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_12_3*= fMaterial_Params[kMu];
+}
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_12_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_12_4=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_12_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+												*fDeformation_Gradient_n(a,K)*fDeformation_Gradient_Inverse(I,b)
+												*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m)
+												*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_12_4*= fMaterial_Params[kMu];
+}
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_13_1()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_13_1=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int p=0;p<3;p++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_13_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,a)
+													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,p)
+													*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_13_2()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_13_2=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int p=0;p<3;p++)
+										{
+											for(int n=0;n<3;n++)
+											{
+												for(int m=0;m<3;m++)
+												{
+													I_temp_11p_test_2_13_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+													*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)*fCauchy_stress_tensor_current_n_IP(m,p)
+													*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,a)
+													*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,p)
+													*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_13_3()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_13_3=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_13_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+												*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,a)
+												*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(m,n)
+												*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+			col++;
+		}
+	}
+    I_temp_11p_test_2_13_3*= fMaterial_Params[kMu];
+}
+void FSMicromorphic3DCurrConfigT:: Form_I_temp_11p_test_2_13_4()
+{
+
+    int row=0;
+    int col=0;
+    I_temp_11p_test_2_13_4=0.0;
+
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int j=0;j<3;j++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int K=0;K<3;K++)
+							{
+								for(int b=0;b<3;b++)
+								{
+									for(int a=0;a<3;a++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int m=0;m<3;m++)
+											{
+												I_temp_11p_test_2_13_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,q)
+												*fCauchy_stress_tensor_current_n_IP(q,k)*fdFYdCauchy_Stress(m,n)
+												*fDeformation_Gradient_n(b,K)*fDeformation_Gradient_Inverse(I,a)
+												*dev_Cauchy_stress_tr(a,b)*dev_Cauchy_stress_tr(n,m)
+												*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				row++;
+				}
+			}
+		col++;
+		}
+	}
+    I_temp_11p_test_2_13_4*= fMaterial_Params[kMu];
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////New Try for the contribution of variation of flow rule on the variation of Del gamma///////////
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_1_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_1_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_1_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
 							}
 					}
 				 row++;
@@ -12687,3 +18539,3270 @@ void FSMicromorphic3DCurrConfigT:: Form_I10p_13()
 	}
 }
 
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_1_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_1_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_1_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_1_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_1_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_1_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_1_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_1_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_1_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_1_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_1_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_1_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_1_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_1_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_1_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_2_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_2_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_2_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_2(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_2_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_2_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_2_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_2(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_2_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_2_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_2_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_2(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_2_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_2_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_2_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_2(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_2_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_2_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_2_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_2(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_2_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_2_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_2_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_2(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_3_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_3_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_3_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_3(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_3_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_3_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_3_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_3(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_3_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_3_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_3_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_3(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_3_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_3_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_3_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_3(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_3_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_3_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_3_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_3(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_3_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_3_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_3_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_3(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_4_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_4_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_4_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_4_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_4_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_4_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_4_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_4_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_4_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_4_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_4_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_4_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_4_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_4_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_4_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_4_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_4_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_4_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_5_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_5_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_5_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_5(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_5_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_5_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_5_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_5(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_5_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_5_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_5_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_5(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_5_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_5_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_5_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_5(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_5_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_5_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_5_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_5(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_5_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_5_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_5_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_5(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_6_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_6_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_6_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_6(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_6_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_6_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_6_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_6(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_6_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_6_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_6_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_6(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_6_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_6_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_6_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_6(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_6_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_6_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_6_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_6(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_6_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_6_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_6_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_6(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_7_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_7_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_7_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_7(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_7_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_7_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_7_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_7(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_7_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_7_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_7_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_7(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_7_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_7_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_7_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_7(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_7_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_7_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_7_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_7(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_7_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_7_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_7_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_7(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_8_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_8_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_8_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_8(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_8_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_8_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_8_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_8(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_8_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_8_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_8_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_8(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_8_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_8_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_8_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_8(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_8_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_8_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_8_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_8(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_8_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_8_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_8_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_8(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_9_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_9_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_9_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_9(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_9_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_9_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_9_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_9(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_9_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_9_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_9_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_9(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_9_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_9_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_9_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_9(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_9_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_9_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_9_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_9(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_9_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_9_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_9_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_9(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_10_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_10_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_10_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_10(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_10_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_10_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_10_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_10(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_10_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_10_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_10_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_10(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_10_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_10_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_10_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_10(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_10_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_10_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_10_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_10(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_10_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_10_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_10_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_10(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_11_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_11_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_11_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_11(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_11_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_11_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_11_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_11(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_11_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_11_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_11_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_11(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_11_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_11_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_11_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_11(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_11_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_11_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_11_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_11(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_11_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_11_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_11_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_11(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_12_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_12_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_12_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_12(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_12_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_12_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_12_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_12(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_12_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_12_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_12_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_12(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_12_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_12_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_12_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_12(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_12_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_12_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_12_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_12(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_12_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_12_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_12_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_12(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_13_1()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_13_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_13_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I_temp_11p_13(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_13_2()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_13_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_13_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_13(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_13_3()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_13_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									II_temp_11p_13_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I_temp_11p_13(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_13_4()
+{
+
+    int row=0;
+    int col=0;
+    II_temp_11p_13_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								II_temp_11p_13_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I_temp_11p_13(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_13_5()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_13_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_13_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I_temp_11p_13(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_II_temp_11p_13_6()
+{
+    int row=0;
+    int col=0;
+    II_temp_11p_13_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							II_temp_11p_13_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I_temp_11p_13(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FSMicromorphic3DCurrConfigT:: Form_I12p_1()
+{
+
+    int row=0;
+    int col=0;
+    I12p_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									I12p_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+									*fCauchy_stress_tensor_current_n_IP(j,k)*I11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I12p_2()
+{
+
+    int row=0;
+    int col=0;
+    I12p_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									I12p_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I12p_3()
+{
+
+    int row=0;
+    int col=0;
+    I12p_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									I12p_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+									*fdGdCauchy_Stress_tr(k,p)*I11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I12p_4()
+{
+
+    int row=0;
+    int col=0;
+    I12p_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								I12p_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+								*fIdentity_matrix(j,k)*I11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I12p_5()
+{
+    int row=0;
+    int col=0;
+    I12p_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							I12p_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+							*I11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I12p_6()
+{
+    int row=0;
+    int col=0;
+    I12p_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							I12p_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+							*I11p_1(I,K)*fDeformation_Gradient_Inverse(K,l);
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+void FSMicromorphic3DCurrConfigT:: Form_I13p_1()
+{
+
+    int row=0;
+    int col=0;
+    I13p_1=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									for(int m=0;m<3;m++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int i=0;i<3;i++)
+											{
+												for(int p=0;p<3;p++)
+												{
+													I13p_1(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+													*fCauchy_stress_tensor_current_n_IP(j,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+													*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(p,K)*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I13p_2()
+{
+
+    int row=0;
+    int col=0;
+    I13p_2=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									for(int m=0;m<3;m++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int i=0;i<3;i++)
+											{
+												for(int q=0;q<3;q++)
+												{
+														I13p_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+														*fCauchy_stress_tensor_current_n_IP(p,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+														*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(q,K)*fCauchy_stress_tensor_current_n_IP(q,n)*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+/*
+
+*/
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I13p_3()
+{
+
+    int row=0;
+    int col=0;
+    I13p_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									for(int m=0;m<3;m++)
+									{
+										for(int n=0;n<3;n++)
+										{
+											for(int i=0;i<3;i++)
+											{
+												for(int q=0;q<3;q++)
+												{
+													I13p_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fCauchy_stress_tensor_current_n_IP(j,p)
+													*fdGdCauchy_Stress_tr(k,p)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+													*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(q,K)*fCauchy_stress_tensor_current_n_IP(q,n)*fDeformation_Gradient_Inverse(K,l);
+												}
+											}
+										}
+									}
+								}
+
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I13p_4()
+{
+
+    int row=0;
+    int col=0;
+    I13p_4=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int q=0;q<3;q++)
+						{
+							for(int j=0;j<3;j++)
+							{
+								for(int m=0;m<3;m++)
+								{
+									for(int n=0;n<3;n++)
+									{
+										for(int i=0;i<3;i++)
+										{
+											for(int p=0;p<3;p++)
+											{
+												I13p_4(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(q,q)
+												*fIdentity_matrix(j,k)*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+												*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(p,K)*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I13p_5()
+{
+    int row=0;
+    int col=0;
+    I13p_5=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int n=0;n<3;n++)
+								{
+									for(int i=0;i<3;i++)
+									{
+										for(int p=0;p<3;p++)
+										{
+											I13p_5(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,k)
+											*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+											*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(p,K)*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+
+
+void FSMicromorphic3DCurrConfigT:: Form_I13p_6()
+{
+    int row=0;
+    int col=0;
+    I13p_6=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int j=0;j<3;j++)
+						{
+							for(int m=0;m<3;m++)
+							{
+								for(int n=0;n<3;n++)
+								{
+									for(int i=0;i<3;i++)
+									{
+										for(int p=0;p<3;p++)
+										{
+											I13p_6(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(k,j)
+											*fdFYdCauchy_Stress(m,n)*fDeformation_Gradient_Inverse(I,i)
+											*fCauchy_stress_tensor_current_n_IP(m,i)*fDeformation_Gradient_n(p,K)*fCauchy_stress_tensor_current_n_IP(p,n)*fDeformation_Gradient_Inverse(K,l);
+										}
+									}
+								}
+							}
+						}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+void FSMicromorphic3DCurrConfigT:: Form_I12p_test_2()
+{
+
+    int row=0;
+    int col=0;
+    I12p_test_2=0.0;
+    I12p_test_3=0.0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									I12p_test_2(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_4(I,K)*fDeformation_Gradient_Inverse(K,l);
+								}
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+
+    col=0;
+    row=0;
+    for (int I=0;I<3;I++)
+	{
+		for(int l=0;l<3;l++)
+		{
+			row=0;
+			for(int L=0;L<3;L++)
+			{
+				for(int k=0;k<3;k++)
+				{
+					for(int K=0;K<3;K++)
+					{
+						for(int p=0;p<3;p++)
+							{
+								for(int j=0;j<3;j++)
+								{
+									I12p_test_3(row,col)+=fDeformation_Gradient_Inverse(L,j)*fdGdCauchy_Stress_tr(j,p)
+									*fCauchy_stress_tensor_current_n_IP(p,k)*I_temp_11p_4_Transpose(K,I)*fDeformation_Gradient_Inverse(K,l);
+								}
+							}
+					}
+				 row++;
+				}
+			}
+		col++;
+		}
+	}
+    I12p_test_3+= I12p_test_2;
+}
+*/
