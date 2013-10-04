@@ -33,6 +33,7 @@ namespace dem {
     REAL dy;
     REAL dz;
 
+    REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;
     REAL rhoL, uL, pL; // unknown
@@ -93,6 +94,8 @@ namespace dem {
     // arrayFlux[i][j][k][4]: var_eng
 
     Array5D arrayRoeFlux; 
+    Array5D arrayRoeFluxStep2; 
+    Array5D arrayRoeFluxStep3; 
     // 5-dimensional
     // nx-1, ny-1, nz-1, n_integ, n_dim
     // arrayRoeFlux[i][j][k][0]: var_den
@@ -128,6 +131,10 @@ namespace dem {
     void RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim,  std::size_t i, std::size_t j, std::size_t k);
     void UtoW(); // U - integrated; W - primitive
     void WtoU();
+    void rotateIJK();
+    void inteStep1();
+    void inteStep2();
+    void inteStep3();
 
     void getParticleInfo(std::vector<Particle *> &ptcls);
     void runOneStep();

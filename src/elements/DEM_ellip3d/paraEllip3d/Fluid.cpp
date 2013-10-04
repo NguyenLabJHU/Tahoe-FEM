@@ -33,7 +33,8 @@ namespace dem {
     ny += 2;
     nz += 2;
     
-    CFL   = dem::Parameter::getSingleton().parameter["CFL"];
+    RK   = dem::Parameter::getSingleton().parameter["RK"];
+    CFL  = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
     rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
@@ -187,6 +188,38 @@ namespace dem {
       }
     }
 
+    if (RK >= 1) {
+      // nx-1, ny-1, nz-1, n_integ, n_dim
+      arrayRoeFluxStep2.resize(nx-1);
+      for (std::size_t i = 0; i < arrayRoeFluxStep2.size(); ++i) {
+	arrayRoeFluxStep2[i].resize(ny-1);
+	for (std::size_t j = 0; j < arrayRoeFluxStep2[i].size(); ++j) {
+	  arrayRoeFluxStep2[i][j].resize(nz-1);
+	  for (std::size_t k = 0; k < arrayRoeFluxStep2[i][j].size(); ++k) {
+	    arrayRoeFluxStep2[i][j][k].resize(n_integ);
+	    for (std::size_t m = 0; m < arrayRoeFluxStep2[i][j][k].size(); ++m)
+	      arrayRoeFluxStep2[i][j][k][m].resize(n_dim);
+	  }
+	}
+      }
+    }
+
+    if (RK == 2) {
+      // nx-1, ny-1, nz-1, n_integ, n_dim
+      arrayRoeFluxStep3.resize(nx-1);
+      for (std::size_t i = 0; i < arrayRoeFluxStep3.size(); ++i) {
+	arrayRoeFluxStep3[i].resize(ny-1);
+	for (std::size_t j = 0; j < arrayRoeFluxStep3[i].size(); ++j) {
+	  arrayRoeFluxStep3[i][j].resize(nz-1);
+	  for (std::size_t k = 0; k < arrayRoeFluxStep3[i][j].size(); ++k) {
+	    arrayRoeFluxStep3[i][j][k].resize(n_integ);
+	    for (std::size_t m = 0; m < arrayRoeFluxStep3[i][j][k].size(); ++m)
+	      arrayRoeFluxStep3[i][j][k][m].resize(n_dim);
+	  }
+	}
+      }
+    }
+
     // nx-1, ny-1, nz-1, n_integ
     arrayRoeFluxTmp.resize(nx-1);
     for (std::size_t i = 0; i < arrayRoeFluxTmp.size(); ++i) {
@@ -222,13 +255,93 @@ namespace dem {
     initialCondition(); 
   }
 
-  void Fluid::runOneStep() { 
+  void Fluid::runOneStep() {
+    inteStep1();
+
+    if (RK >= 1) {
+      arrayRoeFluxStep2 = arrayRoeFlux;
+      inteStep2();
+      if (RK == 2) {
+	arrayRoeFluxStep3 = arrayRoeFlux;    
+	inteStep3();
+      }
+    }
+  }
+
+  void Fluid::inteStep1() { 
     addGhostPoints();
     soundSpeed();
     timeStep = std::min(timeStep, calcTimeStep());
     debugInf << "iter=" << std::setw(8) << iteration << " dt=" << std::setw(OWID) << timeStep << std::endl;
     enthalpy();
+    rotateIJK();
 
+    // update conservative variables at the next time step
+    for (std::size_t i = 1; i < nx - 1 ; ++i)
+      for (std::size_t j = 1; j < ny - 1; ++j)
+	for (std::size_t k = 1; k < nz - 1; ++k) {
+	  for (std::size_t m = 0; m < n_integ; ++m)
+	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
+				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
+				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
+	}
+
+    // calculate primitive after finding conservative variables
+    UtoW(); 
+  }
+  
+  void Fluid::inteStep2() { 
+    addGhostPoints();
+    soundSpeed();
+    enthalpy();
+    rotateIJK();
+
+    // update conservative variables at the next time step
+    for (std::size_t i = 1; i < nx - 1 ; ++i)
+      for (std::size_t j = 1; j < ny - 1; ++j)
+	for (std::size_t k = 1; k < nz - 1; ++k) {
+	  for (std::size_t m = 0; m < n_integ; ++m)
+	    arrayU[i][j][k][m] -= (   timeStep / (2*RK*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0] 
+						        + (arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0]) )
+				    + timeStep / (2*RK*dy) * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1] 
+						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1]) )
+				    + timeStep / (2*RK*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2] 
+						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])) );
+	}
+
+    // calculate primitive after finding conservative variables
+    UtoW(); 
+  }
+
+  void Fluid::inteStep3() { 
+    addGhostPoints();
+    soundSpeed();
+    enthalpy();
+    rotateIJK();
+
+    // update conservative variables at the next time step
+    for (std::size_t i = 1; i < nx - 1 ; ++i)
+      for (std::size_t j = 1; j < ny - 1; ++j)
+	for (std::size_t k = 1; k < nz - 1; ++k) {
+	  for (std::size_t m = 0; m < n_integ; ++m)
+	    arrayU[i][j][k][m] -= (   timeStep / (6*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0]
+						         +(arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0])
+						      + 4*(arrayRoeFluxStep3[i][j][k][m][0] - arrayRoeFluxStep3[i-1][j][k][m][0]))
+				      
+				    + timeStep / (6*dy) * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1]
+						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1])
+						      + 4*(arrayRoeFluxStep3[i][j][k][m][1] - arrayRoeFluxStep3[i][j-1][k][m][1]))
+
+				    + timeStep / (6*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]
+						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])
+						     + 4*( arrayRoeFluxStep3[i][j][k][m][2] - arrayRoeFluxStep3[i][j][k-1][m][2])) );
+	}
+
+    // calculate primitive after finding conservative variables
+    UtoW(); 
+  }
+
+  void Fluid::rotateIJK() {
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
 
     // for x, y, z directions
@@ -284,21 +397,8 @@ namespace dem {
 
     } // end of for x, y, z directions
 
-
-    // update conservative variables at the next time step
-    for (std::size_t i = 1; i < nx - 1 ; ++i)
-      for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < n_integ; ++m)
-	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
-				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
-				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
-	}
-
-    // calculate primitive after finding conservative variables
-    UtoW(); 
   }
-  
+
   void Fluid::penalize() {
     // Brinkman penalization
     for (std::size_t i = 0; i < nx; ++i)
@@ -642,6 +742,7 @@ namespace dem {
 
       if ((*it)->getId() == 1) {
 	ofs << std::setw(OWID) << iteration
+	    << std::setw(OWID) << timeAccrued
 
 	    << std::setw(OWID) << penalForce.getX()
 	    << std::setw(OWID) << penalForce.getY()
@@ -656,6 +757,10 @@ namespace dem {
 	    << std::setw(OWID) << presMoment.getX()
 	    << std::setw(OWID) << presMoment.getY()
 	    << std::setw(OWID) << presMoment.getZ()
+
+	    << std::setw(OWID) << (*it)->getAccel().getX()
+	    << std::setw(OWID) << (*it)->getAccel().getY()
+	    << std::setw(OWID) << (*it)->getAccel().getZ()
 
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getX()
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getY()
@@ -730,16 +835,3 @@ namespace dem {
   }
   
 } // name space dem
-
-
-    /*
-    for (std::size_t k = 1; k < nz; ++k) {
-      for (std::size_t j = 1; j < ny; ++j) {
-	for (std::size_t i = 1; i < nx; ++i) {
-	  std::cout << arrayU[i][j][k][var_den] << " ";
-	}
-	debugInf << std::endl;
-      }
-      debugInf << "----------------------" << std::endl;
-    }
-    */
