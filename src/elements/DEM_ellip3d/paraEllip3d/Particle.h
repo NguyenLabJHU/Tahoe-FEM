@@ -84,6 +84,7 @@ namespace dem {
     Vec  getPrevOmga() const {return prevOmga;}
     Vec  getForce() const {return force;}
     Vec  getMoment() const {return moment;}
+    Vec  getAccel() const {return force/mass;}
     Vec  getConstForce() const {return constForce;}
     Vec  getConstMoment() const {return constMoment;}
     Vec  getmomentJ() const {return momentJ;}
