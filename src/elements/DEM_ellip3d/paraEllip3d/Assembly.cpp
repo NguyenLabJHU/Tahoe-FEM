@@ -975,7 +975,7 @@ namespace dem {
 
       /*4*/ fluid.getParticleInfo(particleVec); // not allParticleVec
       /*5*/ fluid.runOneStep();
-      /*6*/ fluid.calcParticleForce(particleVec, particleInf);// not allParticleVec
+      /*6*/ fluid.calcParticleForce(particleVec, particleInf); // not allParticleVec
       /*7*/ fluid.penalize();
 
       internalForce();
@@ -2782,6 +2782,7 @@ namespace dem {
     ofs.precision(OPREC);
 
     ofs << std::setw(OWID) << "iteration"
+	<< std::setw(OWID) << "accruedTime"
 	<< std::setw(OWID) << "penalFx"
 	<< std::setw(OWID) << "penalFy"
 	<< std::setw(OWID) << "penalFz"
@@ -2794,10 +2795,12 @@ namespace dem {
 	<< std::setw(OWID) << "pressureMx"
 	<< std::setw(OWID) << "pressureMy"
 	<< std::setw(OWID) << "pressureMz"
+	<< std::setw(OWID) << "accelX"
+	<< std::setw(OWID) << "accelY"
+	<< std::setw(OWID) << "accelZ"
 	<< std::setw(OWID) << "velocX"
 	<< std::setw(OWID) << "velocY"
 	<< std::setw(OWID) << "velocZ"
-
 	<< std::endl;
   }
 

@@ -67,7 +67,6 @@ namespace dem {
     // time step
     REAL vibraTimeStep;    // meaningful to all processes
     REAL impactTimeStep;   // meaningful to all processes
-    REAL timeAccrued;      // only meaningful to root process
 
     // MPI data
     boost::mpi::communicator boostWorld;

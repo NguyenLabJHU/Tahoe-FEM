@@ -19,5 +19,5 @@ namespace dem {
   std::ofstream debugInf;         // debug info
   std::size_t iteration;          // iteration number
   REAL timeStep;                  // time step
-
+  REAL timeAccrued;               // accurued time
 }

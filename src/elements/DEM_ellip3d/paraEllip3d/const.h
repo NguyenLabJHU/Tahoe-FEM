@@ -22,6 +22,7 @@ namespace dem {
   extern std::ofstream debugInf;
   extern std::size_t iteration;
   extern REAL timeStep;
+  extern REAL timeAccrued;
 
 }
 #endif
