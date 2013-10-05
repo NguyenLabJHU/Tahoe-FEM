@@ -5,26 +5,40 @@
 namespace dem {
 
   void Fluid::initParameter(Rectangle &container, Gradation &gradation) {
+    
+    RK = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["RK"]);
+    CFL = dem::Parameter::getSingleton().parameter["CFL"];
+    gamma = dem::Parameter::getSingleton().parameter["airGamma"];
+    arrayBC[0] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["x1Reflecting"]);
+    arrayBC[1] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["x2Reflecting"]);
+    arrayBC[2] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["y1Reflecting"]);
+    arrayBC[3] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["y2Reflecting"]);
+    arrayBC[4] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["z1Reflecting"]);
+    arrayBC[5] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["z2Reflecting"]);
+    rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
+    pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
+    uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
+    mach = dem::Parameter::getSingleton().parameter["MachNumber"];
+    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
+    std::size_t ptclFree = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclFree"]);
+    std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
 
-    minX = container.getMinCorner().getX();
-    minY = container.getMinCorner().getY();
-    minZ = container.getMinCorner().getZ();
-    maxX = container.getMaxCorner().getX();
-    maxY = container.getMaxCorner().getY();
-    maxZ = container.getMaxCorner().getZ();
+    REAL minX = container.getMinCorner().getX();
+    REAL minY = container.getMinCorner().getY();
+    REAL minZ = container.getMinCorner().getZ();
+    REAL maxX = container.getMaxCorner().getX();
+    REAL maxY = container.getMaxCorner().getY();
+    REAL maxZ = container.getMaxCorner().getZ();
     REAL minR = gradation.getPtclMinRadius();
+    z0 = minZ + (maxZ - minZ) * dem::Parameter::getSingleton().parameter["z0Ratio"];
 
-    dx = (minR * 2) / 4; // minimum diameter divided by 4
+    dx = (minR * 2) / ptclGrid;
     dy = dx;
     dz = dx;
     nx = static_cast<std::size_t> (ceil((maxX - minX) / dx));
     ny = static_cast<std::size_t> (ceil((maxY - minY) / dy));
     nz = static_cast<std::size_t> (ceil((maxZ - minZ) / dz));
-    /*
-    nx = 2;
-    ny = 2;
-    nz = 50;
-    */
+
     dx = (maxX - minX) / nx;
     dy = (maxY - minY) / ny;
     dz = (maxZ - minZ) / nz;
@@ -32,22 +46,6 @@ namespace dem {
     nx += 2;
     ny += 2;
     nz += 2;
-    
-    RK   = dem::Parameter::getSingleton().parameter["RK"];
-    CFL  = dem::Parameter::getSingleton().parameter["CFL"];
-    gamma = dem::Parameter::getSingleton().parameter["airGamma"];
-    rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
-    uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
-    pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
-    mach = dem::Parameter::getSingleton().parameter["MachNumber"];
-    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
-    z0   = minZ + (maxZ - minZ) * dem::Parameter::getSingleton().parameter["z0Ratio"];
-    arrayBC[0] = dem::Parameter::getSingleton().parameter["x1Reflecting"];
-    arrayBC[1] = dem::Parameter::getSingleton().parameter["x2Reflecting"];
-    arrayBC[2] = dem::Parameter::getSingleton().parameter["y1Reflecting"];
-    arrayBC[3] = dem::Parameter::getSingleton().parameter["y2Reflecting"];
-    arrayBC[4] = dem::Parameter::getSingleton().parameter["z1Reflecting"];
-    arrayBC[5] = dem::Parameter::getSingleton().parameter["z2Reflecting"];
 
     // fixed
     n_dim = 3;
@@ -69,35 +67,39 @@ namespace dem {
     var_msk = n_var++;
 
     ///*
-    debugInf << "dx=" << dx << std::endl;
-    debugInf << "CFL=" << CFL << std::endl;
-    debugInf << "gamma=" << gamma << std::endl;
-    debugInf << "x1Rflecting=" << arrayBC[0] << std::endl;
-    debugInf << "x2Rflecting=" << arrayBC[1] << std::endl;
-    debugInf << "y1Rflecting=" << arrayBC[2] << std::endl;
-    debugInf << "y2Rflecting=" << arrayBC[3] << std::endl;
-    debugInf << "z1Rflecting=" << arrayBC[4] << std::endl;
-    debugInf << "z2Rflecting=" << arrayBC[5] << std::endl;
-    debugInf << "rhoR=" << rhoR << std::endl;
-    debugInf << "uR=" << uR << std::endl;
-    debugInf << "pR=" << pR << std::endl;
-    debugInf << "Mach=" << mach << std::endl;
-    debugInf << "Cd=" << Cd << std::endl;
-    debugInf << "z0=" << z0 << std::endl;
+    debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << RK << std::endl;
+    debugInf << std::setw(OWID) << "CFL" << std::setw(OWID) << CFL << std::endl;
+    debugInf << std::setw(OWID) << "gamma" << std::setw(OWID) << gamma << std::endl;
+    debugInf << std::setw(OWID) << "x1Rflecting" << std::setw(OWID) << arrayBC[0] << std::endl;
+    debugInf << std::setw(OWID) << "x2Rflecting" << std::setw(OWID) << arrayBC[1] << std::endl;
+    debugInf << std::setw(OWID) << "y1Rflecting" << std::setw(OWID) << arrayBC[2] << std::endl;
+    debugInf << std::setw(OWID) << "y2Rflecting" << std::setw(OWID) << arrayBC[3] << std::endl;
+    debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << arrayBC[4] << std::endl;
+    debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << arrayBC[5] << std::endl;
+    debugInf << std::setw(OWID) << "z0" << std::setw(OWID) << z0 << std::endl;
+    debugInf << std::setw(OWID) << "rhoR" << std::setw(OWID) << rhoR << std::endl;
+    debugInf << std::setw(OWID) << "pR" << std::setw(OWID) << pR << std::endl;
+    debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
+    debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << mach << std::endl;
+    debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
+    debugInf << std::setw(OWID) << "ptclFree" << std::setw(OWID) << ptclFree << std::endl;
+    debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
+    debugInf << std::setw(OWID) << "gridSize" << std::setw(OWID) << dx << std::endl;
 
-    debugInf << "n_var = " << n_var << std::endl;
-    debugInf << "n_integ = " << n_integ << std::endl;
-    debugInf << "var_den = " << var_den  << std::endl;    
-    debugInf << "var_mom[0] = " << var_mom[0] << std::endl;    
-    debugInf << "var_mom[1] = " << var_mom[1] << std::endl;
-    debugInf << "var_mom[2] = " << var_mom[2] << std::endl;    
-    debugInf << "var_eng = " << var_eng  << std::endl;    
-    debugInf << "var_vel[0] = " << var_vel[0] << std::endl;    
-    debugInf << "var_vel[1] = " << var_vel[1] << std::endl;    
-    debugInf << "var_vel[2] = " << var_vel[2] << std::endl;    
-    debugInf << "var_prs = " << var_prs  << std::endl;    
-    debugInf << "var_msk = " << var_msk  << std::endl;    
-    //*/
+    /*
+    debugInf << "n_var " << n_var << std::endl;
+    debugInf << "n_integ " << n_integ << std::endl;
+    debugInf << "var_den " << var_den  << std::endl;    
+    debugInf << "var_mom[0] " << var_mom[0] << std::endl;    
+    debugInf << "var_mom[1] " << var_mom[1] << std::endl;
+    debugInf << "var_mom[2] " << var_mom[2] << std::endl;    
+    debugInf << "var_eng " << var_eng  << std::endl;    
+    debugInf << "var_vel[0] " << var_vel[0] << std::endl;    
+    debugInf << "var_vel[1] " << var_vel[1] << std::endl;    
+    debugInf << "var_vel[2] " << var_vel[2] << std::endl;    
+    debugInf << "var_prs " << var_prs  << std::endl;    
+    debugInf << "var_msk " << var_msk  << std::endl;   
+    */ 
 
     // nx, ny, nz, n_dim
     arrayGridCoord.resize(nx);
@@ -272,7 +274,7 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     timeStep = std::min(timeStep, calcTimeStep());
-    debugInf << "iter=" << std::setw(8) << iteration << " dt=" << std::setw(OWID) << timeStep << std::endl;
+    debugInf << std::setw(OWID) << iteration << std::setw(OWID) << timeStep << std::endl;
     enthalpy();
     rotateIJK();
 
@@ -538,10 +540,10 @@ namespace dem {
     rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
     uL = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
     ///*
-    debugInf << "rhoL=" << rhoL << std::endl;
-    debugInf << "uL=" << uL << std::endl;
-    debugInf << "pL=" << pL << std::endl;
-    debugInf << "shockSpeed=" << shockSpeed << std::endl;
+    debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+    debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
+    debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;
+    debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl << std::endl;
     //*/
   }
 

@@ -18,14 +18,6 @@ namespace dem {
     typedef std::valarray< std::valarray< std::valarray <std::valarray< std::valarray<REAL>  > > > > Array5D;
 
   private:
-    REAL minX;
-    REAL minY;
-    REAL minZ;
-    REAL maxX;
-    REAL maxY;
-    REAL maxZ;
-    REAL arrayBC[6];
-
     std::size_t nx; // nx = total cellcenters = parts + two boundary points in x direction
     std::size_t ny; // ny = total cellcenters = parts + two boundary points in y direction
     std::size_t nz; // nz = total cellcenters = parts + two boundary points in z direction
@@ -33,15 +25,16 @@ namespace dem {
     REAL dy;
     REAL dz;
 
-    REAL RK;           // Runge-Kutta scheme
+    std::size_t RK;    // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
-    REAL gamma;
+    REAL gamma;        // ration of specific heat
+    std::size_t arrayBC[6]; // boundary condition
+    REAL z0;           // initial discontinuity plane in Z direction
     REAL rhoL, uL, pL; // unknown
     REAL rhoR, uR, pR; // known
     REAL mach;         // shock Mach number, known
     REAL shockSpeed;   // unknown
     REAL Cd;           // drag coefficient
-    REAL z0;           // initial discontinuity plane in Z direction
 
     std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
     std::size_t var_mom[3], var_vel[3];
