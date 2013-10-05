@@ -2512,7 +2512,7 @@ namespace dem {
       var[id - 1] = (*it)->getContactNum();
     }
     for (std::size_t i = 0; i < 6; ++i)
-      ofs << std::setw(OWID) << (std::size_t) var[i];
+      ofs << std::setw(OWID) << static_cast<std::size_t> (var[i]);
     ofs << std::setw(OWID) << allContactNum;
   
     // avgPenetr
@@ -2740,7 +2740,7 @@ namespace dem {
       var[id - 1] = (*it)->getContactNum();
     }
     for (std::size_t i = 0; i < 6; ++i)
-      ofs << std::setw(OWID) << (std::size_t) var[i];
+      ofs << std::setw(OWID) << static_cast<std::size_t> (var[i]);
     ofs << std::setw(OWID) << allContactNum;
   
     // avgPenetr
