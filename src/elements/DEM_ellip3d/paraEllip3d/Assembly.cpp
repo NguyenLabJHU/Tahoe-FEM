@@ -945,6 +945,7 @@ namespace dem {
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
     std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
+    std::size_t ptclFree = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclFree"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
@@ -981,8 +982,10 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
-      updateParticle();
-      updateGridMaxZ();
+      if (ptclFree == 1) {
+	updateParticle();
+	updateGridMaxZ();
+      }
 
       timeCount += timeStep;
       timeAccrued += timeStep;

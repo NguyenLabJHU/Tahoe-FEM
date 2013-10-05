@@ -274,7 +274,7 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     timeStep = std::min(timeStep, calcTimeStep());
-    debugInf << std::setw(OWID) << iteration << std::setw(OWID) << timeStep << std::endl;
+    debugInf << std::setw(OWID) << iteration << std::setw(OWID) << timeStep << std::setw(OWID) << timeAccrued << std::endl;
     enthalpy();
     rotateIJK();
 
