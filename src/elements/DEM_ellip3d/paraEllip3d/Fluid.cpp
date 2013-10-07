@@ -20,7 +20,6 @@ namespace dem {
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
     mach = dem::Parameter::getSingleton().parameter["MachNumber"];
     Cd   = dem::Parameter::getSingleton().parameter["Cd"];
-    std::size_t ptclFree = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclFree"]);
     std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
 
     REAL minX = container.getMinCorner().getX();
@@ -82,7 +81,6 @@ namespace dem {
     debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
     debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << mach << std::endl;
     debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
-    debugInf << std::setw(OWID) << "ptclFree" << std::setw(OWID) << ptclFree << std::endl;
     debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
     debugInf << std::setw(OWID) << "gridSize" << std::setw(OWID) << dx << std::endl;
 
@@ -274,7 +272,9 @@ namespace dem {
     addGhostPoints();
     soundSpeed();
     timeStep = std::min(timeStep, calcTimeStep());
-    debugInf << std::setw(OWID) << iteration << std::setw(OWID) << timeStep << std::setw(OWID) << timeAccrued << std::endl;
+    debugInf << std::setw(OWID) << iteration 
+	     << std::setw(OWID) << timeStep 
+	     << std::setw(OWID) << timeAccrued << std::endl;
     enthalpy();
     rotateIJK();
 
