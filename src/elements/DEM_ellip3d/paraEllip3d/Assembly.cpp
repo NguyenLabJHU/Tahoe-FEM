@@ -174,7 +174,6 @@ namespace dem {
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
-    std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
@@ -183,9 +182,9 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     char cstr0[50];
-    /**/REAL timeTotal = timeStep * netStep;
     /**/REAL timeCount = 0;
-    /**/timeAccrued = 0;
+    /**/timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
+    /**/REAL timeTotal = timeAccrued + timeStep * netStep;
     if (mpiRank == 0) {
       plotBoundary(strcat(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3), ".dat"));
       plotGrid(strcat(combineString(cstr0, "deposit_gridplot_", iterSnap - 1, 3), ".dat"));
@@ -306,7 +305,6 @@ namespace dem {
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
-    std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
@@ -459,7 +457,6 @@ namespace dem {
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
-    std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
@@ -596,7 +593,6 @@ namespace dem {
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
-    std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1; 
     REAL sigmaConf = dem::Parameter::getSingleton().parameter["sigmaConf"];
@@ -659,7 +655,7 @@ namespace dem {
 		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 		 << std::scientific << std::setprecision(6) << std::endl;
 
-      if (mpiRank == 0 && iteration % statInterv == 0)
+      if (mpiRank == 0 && iteration % 10 == 0)
 	printCompressProg(progressInf, distX, distY, distZ);
 
       // no break condition, just through top/bottom displacement control
@@ -692,7 +688,6 @@ namespace dem {
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
-    std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1; 
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
@@ -944,7 +939,6 @@ namespace dem {
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
     std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
-    std::size_t statInterv= static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["statInterv"]);
     std::size_t netStep   = endStep - startStep + 1;
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
@@ -953,9 +947,9 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     char cstr0[50];
-    REAL timeTotal = timeStep * netStep;
     REAL timeCount = 0;
-    timeAccrued = 0;
+    timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
+    REAL timeTotal = timeAccrued + timeStep * netStep;
     if (mpiRank == 0) {
       plotBoundary(strcat(combineString(cstr0, "couple_bdryplot_", iterSnap - 1, 3), ".dat"));
       plotGrid(strcat(combineString(cstr0, "couple_gridplot_", iterSnap - 1, 3), ".dat"));
@@ -2637,7 +2631,6 @@ namespace dem {
 	<< std::setw(OWID) << "vibra_est_dt"
 	<< std::setw(OWID) << "impact_est_dt"
 	<< std::setw(OWID) << "actual_dt"
-	<< std::setw(OWID) << "accruedTime"
     
 	<< std::endl;
   }
@@ -2768,8 +2761,7 @@ namespace dem {
     // time
     ofs << std::setw(OWID) << vibraTimeStep
 	<< std::setw(OWID) << impactTimeStep
-	<< std::setw(OWID) << timeStep
-	<< std::setw(OWID) << timeAccrued;
+	<< std::setw(OWID) << timeStep;
 
     ofs << std::endl;
   }
