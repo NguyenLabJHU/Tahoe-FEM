@@ -4,6 +4,8 @@
 
 namespace dem {
 
+  const REAL Fluid::Rs;
+
   void Fluid::initParameter(Rectangle &container, Gradation &gradation) {
     
     RK = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["RK"]);
@@ -822,7 +824,7 @@ namespace dem {
 	      << std::setw(OWID) << arrayU[i][j][k][var_vel[1]]
 	      << std::setw(OWID) << arrayU[i][j][k][var_vel[2]]
 	      << std::setw(OWID) << arrayU[i][j][k][var_prs]
-	      << std::setw(OWID) << arrayU[i][j][k][var_prs]/(8.31*arrayU[i][j][k][var_den])
+	      << std::setw(OWID) << arrayU[i][j][k][var_prs]/(Rs*arrayU[i][j][k][var_den])
 	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][0] 
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][1] 

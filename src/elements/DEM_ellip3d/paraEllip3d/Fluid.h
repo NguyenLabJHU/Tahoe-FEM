@@ -18,6 +18,8 @@ namespace dem {
     typedef std::valarray< std::valarray< std::valarray <std::valarray< std::valarray<REAL>  > > > > Array5D;
 
   private:
+    static const REAL Rs = 287.06; // specific gas constant
+
     std::size_t nx; // nx = total cellcenters = parts + two boundary points in x direction
     std::size_t ny; // ny = total cellcenters = parts + two boundary points in y direction
     std::size_t nz; // nz = total cellcenters = parts + two boundary points in z direction
