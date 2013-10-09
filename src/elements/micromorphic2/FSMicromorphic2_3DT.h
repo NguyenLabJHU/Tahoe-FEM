@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.2 2013-07-10 21:03:39 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.3 2013-10-09 03:20:50 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -438,6 +438,12 @@ private:
     dMatrixT        fTemp_matrix_nsd_x_nsd;
     dMatrixT        fTemp_matrix_nsd_x_nsd2;
     dMatrixT        fTemp_matrix_nsd_x_nsd3;
+    dMatrixT        fTemp_matrix_nsd_x_nsd4;
+    dMatrixT        fTemp_matrix_nsd_x_nsd5;
+    dMatrixT        fTemp_matrix_nsd_x_nsd6;
+    dMatrixT        fTemp_matrix_nsd_x_nsd7;
+    dMatrixT        fTemp_matrix_nsd_x_nsd8;
+    dMatrixT        fTemp_matrix_nsd_x_nsd9;
 
     dMatrixT        fShapeMicro_row_matrix;
 
@@ -474,8 +480,7 @@ private:
     dMatrixT		dev_Cauchy_stress_tr;
     double			Cauchy_Stress_Norm_tr;
     dMatrixT		fdGdCauchy_Stress_tr;
-    dMatrixT		fdGdS_tr;
-    dMatrixT		fdGdS_tr_transpose;
+
     double			mean_Cauchy_stress_n;
     double			mean_Cauchy_stress;
 
@@ -518,6 +523,8 @@ private:
     dMatrixT    	fLeft_Cauchy_Green_tensor_current_IP_transpose;
     dMatrixT		fLeft_Cauchy_Green_tensor_current_IP_Inverse;
     double			fLeft_Cauchy_Green_tensor_current_IP_Trace;
+
+    dMatrixT		fRight_Elastic_Cauchy_Green_tensor_Inverse;
 
 
 
@@ -1060,6 +1067,191 @@ private:
     /***************************************************/
     /***************************************************/
     /***************************************************/
+    //////////////////Variables Defined due to the trial plasticity flow direction//////
+    double			fNorm_devSPK_tr;
+    double			Comp33;
+    double			Comp44;
+    dMatrixT		fdGdS_tr;
+    dMatrixT		fdGdS_tr_transpose;
+    double			fdGdS_tr_trace;
+    dMatrixT		I2p_trial_1;
+    dMatrixT		I2p_trial_2;
+    dMatrixT		I2p_trial_3;
+    dMatrixT		I2p_trial_4;
+    dMatrixT		I2p_trial_5;
+
+    dMatrixT		I3p_trial_1;
+    dMatrixT		I3p_trial_2;
+    dMatrixT		I3p_trial_3;
+    dMatrixT		I3p_trial_4;
+    dMatrixT		I3p_trial_5;
+
+    dMatrixT		I4p_trial_1;
+    dMatrixT		I4p_trial_2;
+    dMatrixT		I4p_trial_3;
+    dMatrixT		I4p_trial_4;
+    dMatrixT		I4p_trial_5;
+    dMatrixT		I4p_trial_6;
+    dMatrixT		I4p_trial_7;
+    dMatrixT		I4p_trial_8;
+    dMatrixT		I4p_trial_9;
+    dMatrixT		I4p_trial_10;
+    dMatrixT		I4p_trial_11;
+    dMatrixT		I4p_trial_12;
+    dMatrixT		I4p_trial_13;
+    dMatrixT		I4p_trial_14;
+    dMatrixT		I4p_trial_15;
+
+    dMatrixT		I5p_trial_1;
+    dMatrixT		I5p_trial_2;
+    dMatrixT		I5p_trial_3;
+    dMatrixT		I5p_trial_4;
+    dMatrixT		I5p_trial_5;
+
+
+
+    dMatrixT		fKu_I2p_trial_1;
+    dMatrixT		fKu_I2p_trial_2;
+    dMatrixT		fKu_I2p_trial_3;
+    dMatrixT		fKu_I2p_trial_4;
+    dMatrixT		fKu_I2p_trial_5;
+
+    dMatrixT		fKu_I3p_trial_1;
+    dMatrixT		fKu_I3p_trial_2;
+    dMatrixT		fKu_I3p_trial_3;
+    dMatrixT		fKu_I3p_trial_4;
+    dMatrixT		fKu_I3p_trial_5;
+
+    dMatrixT		fKu_I4p_trial_1;
+    dMatrixT		fKu_I4p_trial_2;
+    dMatrixT		fKu_I4p_trial_3;
+    dMatrixT		fKu_I4p_trial_4;
+    dMatrixT		fKu_I4p_trial_5;
+    dMatrixT		fKu_I4p_trial_6;
+    dMatrixT		fKu_I4p_trial_7;
+    dMatrixT		fKu_I4p_trial_8;
+    dMatrixT		fKu_I4p_trial_9;
+    dMatrixT		fKu_I4p_trial_10;
+    dMatrixT		fKu_I4p_trial_11;
+    dMatrixT		fKu_I4p_trial_12;
+    dMatrixT		fKu_I4p_trial_13;
+    dMatrixT		fKu_I4p_trial_14;
+    dMatrixT		fKu_I4p_trial_15;
+
+    dMatrixT		fKu_I5p_trial_1;
+    dMatrixT		fKu_I5p_trial_2;
+    dMatrixT		fKu_I5p_trial_3;
+    dMatrixT		fKu_I5p_trial_4;
+    dMatrixT		fKu_I5p_trial_5;
+
+    dMatrixT		I_temp_DelGamma_dGdStrial_1;
+    dMatrixT		I_temp_DelGamma_dGdStrial_2;
+
+    dMatrixT		I6p_trial_1;
+    dMatrixT		I6p_trial_2;
+
+    dMatrixT		I7p_trial_1;
+    dMatrixT		I7p_trial_2;
+
+    dMatrixT		I8p_trial_1;
+    dMatrixT		I8p_trial_2;
+
+    dMatrixT		I9p_trial_1;
+    dMatrixT		I9p_trial_2;
+
+    dMatrixT		I10p_trial_1;
+    dMatrixT		I10p_trial_2;
+
+    dMatrixT		I11p_trial_1;
+    dMatrixT		I11p_trial_2;
+
+    dMatrixT		fKu_I6p_trial_1;
+    dMatrixT		fKu_I6p_trial_2;
+
+    dMatrixT		fKu_I7p_trial_1;
+    dMatrixT		fKu_I7p_trial_2;
+
+    dMatrixT		fKu_I8p_trial_1;
+    dMatrixT		fKu_I8p_trial_2;
+
+    dMatrixT		fKu_I9p_trial_1;
+    dMatrixT		fKu_I9p_trial_2;
+
+    dMatrixT		fKu_I10p_trial_1;
+    dMatrixT		fKu_I10p_trial_2;
+
+    dMatrixT		fKu_I11p_trial_1;
+    dMatrixT		fKu_I11p_trial_2;
+
+
+    void Form_I2p_trial_1(void);
+    void Form_I2p_trial_2(void);
+    void Form_I2p_trial_3(void);
+    void Form_I2p_trial_4(void);
+    void Form_I2p_trial_5(void);
+
+    void Form_I3p_trial_1(void);
+    void Form_I3p_trial_2(void);
+    void Form_I3p_trial_3(void);
+    void Form_I3p_trial_4(void);
+    void Form_I3p_trial_5(void);
+
+    void Form_I4p_trial_1(void);
+    void Form_I4p_trial_2(void);
+    void Form_I4p_trial_3(void);
+    void Form_I4p_trial_4(void);
+    void Form_I4p_trial_5(void);
+    void Form_I4p_trial_6(void);
+    void Form_I4p_trial_7(void);
+    void Form_I4p_trial_8(void);
+    void Form_I4p_trial_9(void);
+    void Form_I4p_trial_10(void);
+    void Form_I4p_trial_11(void);
+    void Form_I4p_trial_12(void);
+    void Form_I4p_trial_13(void);
+    void Form_I4p_trial_14(void);
+    void Form_I4p_trial_15(void);
+
+    void Form_I5p_trial_1(void);
+    void Form_I5p_trial_2(void);
+    void Form_I5p_trial_3(void);
+    void Form_I5p_trial_4(void);
+    void Form_I5p_trial_5(void);
+
+    void Form_I_temp_DelGamma_dGdStrial(void);
+    void Form_I_temp_DelGamma_dGdStrial_transpose(void);
+
+    void Form_I6p_trial_1(void);
+    void Form_I6p_trial_2(void);
+    void Form_I7p_trial_1(void);
+    void Form_I7p_trial_2(void);
+    void Form_I8p_trial_1(void);
+    void Form_I8p_trial_2(void);
+    void Form_I9p_trial_1(void);
+    void Form_I9p_trial_2(void);
+    void Form_I10p_trial_1(void);
+    void Form_I10p_trial_2(void);
+    void Form_I11p_trial_1(void);
+    void Form_I11p_trial_2(void);
+
+
+    void Form_I2p_trial_1_5(void);
+    void Form_I3p_trial_1_5(void);
+    void Form_I4p_trial_1_5(void);
+    void Form_I4p_trial_6_10(void);
+    void Form_I4p_trial_11_15(void);
+    void Form_I5p_trial_1_5(void);
+
+
+    void Form_I6p_trial_1_2(void);
+    void Form_I7p_trial_1_2(void);
+    void Form_I8p_trial_1_2(void);
+    void Form_I9p_trial_1_2(void);
+    void Form_I10p_trial_1_2(void);
+    void Form_I11p_trial_1_2(void);
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
 
 
 
