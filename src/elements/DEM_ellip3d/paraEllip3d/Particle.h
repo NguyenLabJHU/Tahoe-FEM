@@ -23,6 +23,7 @@ namespace dem {
     //   3 - special case 3 (displacemental ellipsoidal pile): translate in vertical direction only
     //   4 - special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only
     //   5 - free boundary particle
+    //   6 - translate only, no rotation
     //  10 - ghost particle
     std::size_t  id;
     std::size_t  type;            

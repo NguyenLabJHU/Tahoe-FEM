@@ -506,6 +506,11 @@ namespace dem {
       currVeloc.setY(0);
       currPos = prevPos + currVeloc * timeStep;
     }
+    else if (getType() == 6) { // translation only, no rotation
+      REAL atf = forceDamp * timeStep; 
+      currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
+      currPos = prevPos + currVeloc * timeStep;
+    }
   
     // Below is needed for all cases
     // ensure three axles perpendicular to each other, and being unit vector
