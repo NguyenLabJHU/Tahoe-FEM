@@ -1051,7 +1051,8 @@ namespace dem {
     REAL z1 = allContainer.getMinCorner().getZ() + diameter;
     REAL x2 = allContainer.getMaxCorner().getX() - edge;
     REAL y2 = allContainer.getMaxCorner().getY() - edge;
-    REAL z2 = allContainer.getMaxCorner().getZ() - diameter;
+    //REAL z2 = allContainer.getMaxCorner().getZ() - diameter;
+    REAL z2 = dem::Parameter::getSingleton().parameter["floatMaxZ"] - diameter;
     REAL x0 = allContainer.getCenter().getX();
     REAL y0 = allContainer.getCenter().getY();
     REAL z0 = allContainer.getCenter().getZ();
