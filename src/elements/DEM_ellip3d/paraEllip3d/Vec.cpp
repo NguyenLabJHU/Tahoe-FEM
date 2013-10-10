@@ -60,8 +60,10 @@ namespace dem {
     return (x*p.x + y*p.y + z*p.z);
   }
   
-  void Vec::print() const{
-    std::cout << "(" << x <<" "<< y << " " << z << ")" << std::endl;
+  void Vec::print(std::ostream &ofs) const{
+    ofs << std::setw(OWID) << x 
+	<< std::setw(OWID) << y
+	<< std::setw(OWID) << z;
   }
   
   Vec operator*(REAL d, Vec v){

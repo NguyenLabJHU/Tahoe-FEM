@@ -178,7 +178,7 @@ namespace dem {
 
       penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
       contactRadius = sqrt(penetr*R0);
-      normalDirc = normalize(point1-point2);         // normalDirc points out of particle 1
+      normalDirc = normalize(point1-point2); // normalDirc points from particle 1 to particle 2
       normalForce = -sqrt(penetr*penetr*penetr)*sqrt(R0)*4*E0/3* normalDirc; // normalForce pointing to particle 1
       // pow(penetr, 1.5)
       

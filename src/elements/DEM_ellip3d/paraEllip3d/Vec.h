@@ -2,6 +2,8 @@
 #define VEC_H
 
 #include "realtypes.h"
+#include <iostream>
+#include <iomanip>
 #include <boost/mpi.hpp>
 
 namespace dem {
@@ -33,7 +35,7 @@ namespace dem {
     Vec  operator%(Vec p) const;   // cross product of this vector and p
     REAL operator*(Vec p) const;   // dot product of this vector and p
     Vec  operator*(REAL d) const;
-    void print() const;
+    void print(std::ostream &ofs) const;
     
   private:
     REAL x;

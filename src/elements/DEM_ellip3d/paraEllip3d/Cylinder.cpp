@@ -8,7 +8,7 @@ namespace dem {
     std::cout << "radius=" << radius << std::endl;
     std::cout << "height=" << height << std::endl;
     std::cout << "center=";
-    center.print();
+    center.print(std::cout);
   }
 
   Vec Cylinder::randomPoint() const{

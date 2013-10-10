@@ -98,12 +98,12 @@ namespace dem {
     Vec  point2;         // point2 on particle 2, innermost to particle 1
     REAL radius1;        // radius of osculating circles at point1
     REAL radius2;        // radius of osculating circles at point2
-    Vec  normalDirc;     // normal direction
+    Vec  normalDirc;     // normal direction, pointing from particle 1 to particle 2
     Vec  tgtDirc;        // tangential direction
 
     bool isInContact;    // are p1 and p1 in contact
     bool tgtLoading;     // tangential loading or unloading
-    Vec  normalForce;    // positive when pointing to paticle 1
+    Vec  normalForce;    // pointing from particle 2 to paticle 1
     Vec  tgtForce;       // TgtrDirc points along tangential forces exerted on particle 1
     Vec  tgtDisp;        // tangential relative displacment total vector
     Vec  tgtDispStart;   // displacement start value for each loading-unloading loop
