@@ -27,7 +27,7 @@ namespace dem {
     std::size_t simuType = static_cast<std::size_t> (parameter["simuType"]);
     switch (simuType) {
     case 1: // depositIntoContainer  
-      for (std::size_t i = 0; i < 11; ++i) {
+      for (std::size_t i = 0; i < 12; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -285,7 +285,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 17; ++i) {
+      for (std::size_t i = 0; i < 18; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;

@@ -27,11 +27,14 @@ namespace dem {
     REAL minX = container.getMinCorner().getX();
     REAL minY = container.getMinCorner().getY();
     REAL minZ = container.getMinCorner().getZ();
+    REAL z1Distance = dem::Parameter::getSingleton().parameter["z1Distance"];
+    minZ -= z1Distance;
+    z0 = minZ + z1Distance * dem::Parameter::getSingleton().parameter["z1Percent"];
+
     REAL maxX = container.getMaxCorner().getX();
     REAL maxY = container.getMaxCorner().getY();
     REAL maxZ = container.getMaxCorner().getZ();
     REAL minR = gradation.getPtclMinRadius();
-    z0 = minZ + (maxZ - minZ) * dem::Parameter::getSingleton().parameter["z0Ratio"];
 
     dx = (minR * 2) / ptclGrid;
     dy = dx;
