@@ -12,8 +12,8 @@ namespace dem {
   long idum       = -1;
 
   // output field width and precision
-  const std::size_t OWID  = 16;   // 20, output width
-  const std::size_t OPREC = 6;    // 10, output precision, number of digits after decimal dot
+  const std::size_t OWID  = 14;   // output width
+  const std::size_t OPREC = 6;    // output precision, number of digits after decimal dot
 
   // other global variables
   std::ofstream debugInf;         // debug info
