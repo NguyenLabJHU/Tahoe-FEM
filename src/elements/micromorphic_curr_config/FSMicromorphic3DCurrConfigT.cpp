@@ -2501,8 +2501,9 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
                 fs_micromorph3D_out  << "Yield Function= " << fabs(fYield_function) << endl;
 
-	//		if (abs(fYield_function) > 1e-5)
-			if (fabs(fYield_function/fYield_function_tr) > dRelTol)
+
+		//	if (fabs(fYield_function/fYield_function_tr) > dRelTol)
+			if (abs(fYield_function) > 1e-5)
 			{
 				fs_micromorph3D_out << "Local Delgamma Newton-Raphson algorithm did not converge" << endl;
 				ExceptionT::GeneralFail(caller,"The value of Yield function is %d .", fYield_function);
