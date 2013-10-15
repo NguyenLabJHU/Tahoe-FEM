@@ -558,7 +558,8 @@ void FSMicromorphic3DCurrConfigT::AddNodalForce(const FieldT& field, int node, d
             fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
             //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u);
             fCurrCoords_displ=fInitCoords_displ;
-            fShapes_displ->SetDerivatives_DN_DDN();
+            //fShapes_displ->SetDerivatives_DN_DDN(); Commented out for Q8P8
+            fShapes_displ->SetDerivatives();
 
             //
             fInitCoords_micro.SetLocal(fElementCards_micro[e].NodesX());
@@ -1762,7 +1763,8 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
     fInitCoords_displ.SetLocal(fElementCards_displ[e].NodesX());
     fCurrCoords_displ=fInitCoords_displ;
     //fCurrCoords_displ.SetToCombination (1.0, fInitCoords_displ, 1.0, u);
-    fShapes_displ->SetDerivatives_DN_DDN();
+    // fShapes_displ->SetDerivatives_DN_DDN(); Commented out for Q8P8
+    fShapes_displ->SetDerivatives();
     //
     fInitCoords_micro.SetLocal(fElementCards_micro[e].NodesX());
     fCurrCoords_micro=fInitCoords_micro;
@@ -2009,9 +2011,12 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
 					fSymmetric_part_Velocity_Gradient_current_IP*= 0.5;
 					fSymmetric_part_Velocity_Gradient_current_IP_trace = fSymmetric_part_Velocity_Gradient_current_IP.Trace();
 
-					//fs_micromorph3D_out << "Current Deformation Gradient = " << fDeformation_Gradient << endl;
-					//fs_micromorph3D_out << "Previous time step Deformation Gradient = " << fDeformation_Gradient_n << endl;
-					//fs_micromorph3D_out << "fCauchy_stress_tensor_current_n_IP = " << fCauchy_stress_tensor_current_n_IP << endl;
+					fs_micromorph3D_out << "Element = " << e << endl;
+					fs_micromorph3D_out << "Integration point = " << IP << endl;
+					fs_micromorph3D_out << "Global Iteration = " << global_iteration << endl;
+					fs_micromorph3D_out << "Current Deformation Gradient = " << fDeformation_Gradient << endl;
+					fs_micromorph3D_out << "Previous time step Deformation Gradient = " << fDeformation_Gradient_n << endl;
+					fs_micromorph3D_out << "fCauchy_stress_tensor_current_n_IP = " << fCauchy_stress_tensor_current_n_IP << endl;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2496,7 +2501,8 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                 fs_micromorph3D_out  << "Current relative residual = " << fabs(fYield_function/fYield_function_tr) << endl;
                 fs_micromorph3D_out  << "Yield Function= " << fabs(fYield_function) << endl;
 
-			if (abs(fYield_function) > 1e-5)
+	//		if (abs(fYield_function) > 1e-5)
+			if (fabs(fYield_function/fYield_function_tr) > dRelTol)
 			{
 				fs_micromorph3D_out << "Local Delgamma Newton-Raphson algorithm did not converge" << endl;
 				ExceptionT::GeneralFail(caller,"The value of Yield function is %d .", fYield_function);
@@ -4351,8 +4357,14 @@ void FSMicromorphic3DCurrConfigT::RHSDriver_monolithic(void)
                            // fCauchy_stress_IPs.SetRow(IP,fTemp_nine_values);
                             fCauchy_stress_IPs.SetRow(IP,fCauchy_stress_tensor_current_IP);
 
+
+                            fs_micromorph3D_out  << "Element = " << e << endl;
                             fs_micromorph3D_out  << "Gauss Point = " << IP << endl;
-                            fs_micromorph3D_out  << "fCauchy_stress_tensor_current_IP= " << fCauchy_stress_tensor_current_IP << endl;
+                            fs_micromorph3D_out  << "fDeformation_Gradient_n = " << fDeformation_Gradient_n << endl;
+                            fs_micromorph3D_out  << "fDeformation_Gradient = " << fDeformation_Gradient << endl;
+                            fs_micromorph3D_out  << "fCauchy_stress_tensor_current_n_IP = " << fCauchy_stress_tensor_current_n_IP << endl;
+                            fs_micromorph3D_out  << "fCauchy_stress_tensor_current_IP = " << fCauchy_stress_tensor_current_IP << endl;
+
 
                             if(fYield_function_tr < dAbsTol && time > 0.0 )
 								{
@@ -5488,7 +5500,8 @@ void FSMicromorphic3DCurrConfigT::SetGlobalShape(void)
     SetLocalX(fLocInitCoords);
 
     /* compute shape function derivatives */
-    fShapes_displ->SetDerivatives_DN_DDN();
+    //fShapes_displ->SetDerivatives_DN_DDN(); Commented out for Q8P8
+    fShapes_displ->SetDerivatives();
     fShapes_micro->SetDerivatives();
 
 }
@@ -5807,6 +5820,7 @@ void FSMicromorphic3DCurrConfigT::TakeParameterList(const ParameterListT& list)
     del_u.Dimension (n_en_displ, n_sd);
     n_en_displ_x_n_sd = n_en_displ*n_sd;
     n_sd_x_n_sd_x_n_sd=n_sd*n_sd*n_sd;
+    n_sd_x_n_sd = n_sd*n_sd;
     n_en_micro_x_n_sd=n_en_micro*n_sd;
     n_en_micro_x_n_sd_x_n_sd=n_en_micro*n_sd_x_n_sd;
     del_u_vec.Dimension (n_en_displ_x_n_sd);
@@ -7611,7 +7625,7 @@ void FSMicromorphic3DCurrConfigT::ApplyTractionBC(void)
 void FSMicromorphic3DCurrConfigT::Form_solid_shape_functions(const double* &shapes_displ_X)
 {
     fShapeDispl = 0.0;
-    for (int i=0; i<27; i++)
+    for (int i=0; i<8; i++)
     {
         fShapeDispl(0,i*3) = shapes_displ_X[i];
         fShapeDispl(1,1+i*3) = shapes_displ_X[i];
@@ -7622,7 +7636,7 @@ void FSMicromorphic3DCurrConfigT::Form_solid_shape_functions(const double* &shap
 void FSMicromorphic3DCurrConfigT::Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp)
 {
     fShapeDisplGrad = 0.0;
-    for(int i=0; i<27; i++)
+    for(int i=0; i<8; i++)
     {
         fShapeDisplGrad(0,i*3) = fShapeDisplGrad_temp(0,i);
         fShapeDisplGrad(1,1+i*3) = fShapeDisplGrad_temp(0,i);
@@ -8068,7 +8082,7 @@ void FSMicromorphic3DCurrConfigT:: Form_GRAD_Nuw_matrix(const dMatrixT &fShapeDi
     for(int j=0;j<3;j++)
     {
         col=j;
-        for(int i=0;i<27;i++)
+        for(int i=0;i<8;i++)
         {
             GRAD_Nuw(row,col)  =fShapeDisplGrad_temp(0,i);
             GRAD_Nuw(row+1,col)=fShapeDisplGrad_temp(1,i);
