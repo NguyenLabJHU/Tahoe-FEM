@@ -672,9 +672,9 @@ namespace dem {
 	  REAL y = arrayGridCoord[i][j][k][1];
 	  REAL z = arrayGridCoord[i][j][k][2];
 	  for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-	    if ( (*it)->surfaceError(Vec(x,y,z)) < 0 ) { // inside particle surface
+	    if ( (*it)->surfaceError(Vec(x,y,z)) <= 0 ) { // inside particle surface
 	      arrayU[i][j][k][var_msk] = 1; 
-	      (*it)->recordFluidGrid(i, j, k); 
+	      (*it)->recordFluidGrid(i, j, k); // no for break, as another particle could overlap and contain the grid center
 	    }
 	  }
 	}
