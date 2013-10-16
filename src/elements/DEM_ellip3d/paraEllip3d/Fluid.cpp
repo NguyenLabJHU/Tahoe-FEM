@@ -729,6 +729,7 @@ namespace dem {
 	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etaBz;
 	*/
 
+	// restrict pressure gradient grids
  	if (i+1 < nx && j+1 < ny && k+1 < nz &&
 	    i-1 >= 0  && j-1 >= 0 && k-1 >= 0 ) {
 	  arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
