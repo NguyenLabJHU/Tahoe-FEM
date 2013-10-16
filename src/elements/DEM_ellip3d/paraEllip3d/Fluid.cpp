@@ -737,6 +737,7 @@ namespace dem {
 	  arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
 	}
 
+	// calculate volume fraction of a grid
 	REAL volFraction = 1;
 	if ( (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z-dz/2)) > 0 ||
 	     (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z-dz/2)) > 0 ||
