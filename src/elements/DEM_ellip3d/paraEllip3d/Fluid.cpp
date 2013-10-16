@@ -681,6 +681,16 @@ namespace dem {
   }
 
   void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
+    // must clear forces each loop, otherwise Fluid::plot prints wrong values;
+    // but Fluid::penalize works OK since it uses masks.
+    for (std::size_t i = 0; i < nx ; ++i)
+      for (std::size_t j = 0; j < ny; ++j)
+	for (std::size_t k = 0; k < nz; ++k)
+	  for (std::size_t m = 0; m < n_dim; ++m) {
+	    arrayPenalForce[i][j][k][m] = 0;
+	    arrayPressureForce[i][j][k][m] = 0;
+	  }
+
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       REAL etaBx = 8.0/3.0 * (*it)->getA() / Cd; // local direction x (i.e. a)
       REAL etaBy = 8.0/3.0 * (*it)->getB() / Cd; // local direction y (i.e. b)
