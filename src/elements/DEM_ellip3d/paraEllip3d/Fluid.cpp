@@ -672,9 +672,9 @@ namespace dem {
 	  REAL y = arrayGridCoord[i][j][k][1];
 	  REAL z = arrayGridCoord[i][j][k][2];
 	  for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-	    if ( (*it)->surfaceError(Vec(x,y,z)) < 0 ) {// inside particle surface
+	    if ( (*it)->surfaceError(Vec(x,y,z)) < 0 ) { // inside particle surface
 	      arrayU[i][j][k][var_msk] = 1; 
-	      (*it)->recordFluidGrid(i, j, k);
+	      (*it)->recordFluidGrid(i, j, k); 
 	    }
 	  }
 	}
@@ -694,18 +694,22 @@ namespace dem {
 	std::size_t j = fluidGrid[iter][1];
 	std::size_t k = fluidGrid[iter][2];
 
+	REAL coord_x = arrayGridCoord[i][j][k][0];
+	REAL coord_y = arrayGridCoord[i][j][k][1];
+	REAL coord_z = arrayGridCoord[i][j][k][2];
+
 	REAL uxFluid = arrayU[i][j][k][var_vel[0]];
 	REAL uyFluid = arrayU[i][j][k][var_vel[1]];
 	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
 	
-	Vec dist = Vec(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]) - (*it)->getCurrPos();
+	Vec dist = Vec(coord_x, coord_y, coord_z) - (*it)->getCurrPos();
 	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
 
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	///*
+	///* principal axis decomposition
 	Vec globalDelta = Vec(fabs(uxFluid - ux)*(uxFluid - ux), fabs(uyFluid - uy)*(uyFluid - uy), fabs(uzFluid - uz)*(uzFluid - uz));
 	Vec localDelta = (*it)->globalToLocal(globalDelta);
 	Vec localPenal, globalPenal;
@@ -719,22 +723,47 @@ namespace dem {
 	arrayPenalForce[i][j][k][2] = globalPenal.getZ();
 	//*/
 
-	/*
+	/* no principal axis decomposition
 	arrayPenalForce[i][j][k][0] = arrayU[i][j][k][var_den]*fabs(uxFluid - ux)*(uxFluid - ux) / etaBx;
 	arrayPenalForce[i][j][k][1] = arrayU[i][j][k][var_den]*fabs(uyFluid - uy)*(uyFluid - uy) / etaBy;
 	arrayPenalForce[i][j][k][2] = arrayU[i][j][k][var_den]*fabs(uzFluid - uz)*(uzFluid - uz) / etaBz;
 	*/
 
-	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
-	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
-	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
+ 	if (i+1 < nx && j+1 < ny && k+1 < nz &&
+	    i-1 >= 0  && j-1 >= 0 && k-1 >= 0 ) {
+	  arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx);
+	  arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy);
+	  arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz);
+	}
 
-	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
-	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
+	REAL volFraction = 1;
+	if ( (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z-dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z-dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z-dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z-dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z+dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z+dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z+dz/2)) > 0 ||
+	     (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z+dz/2)) > 0 ) {
+	  std::size_t fineGrid = 5;
+	  std::size_t fineCount = 0;
+	  for (std::size_t vi = 0; vi < fineGrid; ++vi)
+	    for (std::size_t vj = 0; vj < fineGrid; ++vj)
+	      for (std::size_t vk = 0; vk < fineGrid; ++vk) {
+		if ((*it)->surfaceError(Vec(coord_x-dx/2 + (0.5+vi)*dx/fineGrid, 
+					    coord_y-dy/2 + (0.5+vj)*dy/fineGrid, 
+					    coord_z-dz/2 + (0.5+vk)*dz/fineGrid)) <= 0) 
+		  ++fineCount;
+	    }
+	  volFraction = fineCount / pow(fineGrid, 3); 
+	}
+
+	penalForce += volFraction * Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
+	presForce  += volFraction * Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
 
 	// r X F,  % is overloaded as cross product
-	penalMoment += dist % Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
-	presMoment  += dist % Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
+	penalMoment += volFraction * (dist % Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]));
+	presMoment  += volFraction * (dist % Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]));
       }
 
       penalForce *= dx*dy*dz;
