@@ -620,16 +620,18 @@ namespace dem {
       return;
   
     Vec pt2;
-    /*
-      if (p*rt[0].getX()+q*rt[0].getY()+r*rt[0].getZ()+s > 0)
+    ///* universal, allow for large overlap
+    if (p*rt[0].getX()+q*rt[0].getY()+r*rt[0].getZ()+s > 0)
       pt2 = rt[0];
-      else
+    else
       pt2 = rt[1];
-    */
+    //*/
+    /* not universal, only allow for small overlap
     if (vfabs(rt[0]-pt1) < vfabs(rt[1]-pt1) )
       pt2 = rt[0];
     else
       pt2 = rt[1];
+    */
   
     // obtain normal force
     REAL penetr = vfabs(pt1 - pt2);
