@@ -775,7 +775,7 @@ namespace dem {
 	// r X F,  % is overloaded as cross product
 	penalMoment += volFraction * (dist % Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]));
 	presMoment  += volFraction * (dist % Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]));
-      }
+      } // end of fluidGrid loop
 
       penalForce *= dx*dy*dz;
       presForce  *= dx*dy*dz;
@@ -815,7 +815,7 @@ namespace dem {
 
 	    << std::endl;    
       } 
-    }    
+    } // end of particle loop  
   }
 
   void Fluid::plot(const char *str) const {
