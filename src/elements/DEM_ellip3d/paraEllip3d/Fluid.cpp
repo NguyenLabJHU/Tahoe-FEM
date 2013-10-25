@@ -258,6 +258,7 @@ namespace dem {
   void Fluid::initialize() {
     RankineHugoniot();
     initialCondition(); 
+    soundSpeed(); // for printing mach
   }
 
   void Fluid::runOneStep() {
@@ -827,6 +828,7 @@ namespace dem {
     ofs	<< std::setw(OWID) << "VARIABLES = \"x\""
 	<< std::setw(OWID) << "\"y\""
 	<< std::setw(OWID) << "\"z\""
+	<< std::setw(OWID) << "\"mach\""
 	<< std::setw(OWID) << "\"density\""
 	<< std::setw(OWID) << "\"momentum_x\""
 	<< std::setw(OWID) << "\"momentum_y\""
@@ -858,6 +860,7 @@ namespace dem {
 	  ofs << std::setw(OWID) << arrayGridCoord[i][j][k][0]
 	      << std::setw(OWID) << arrayGridCoord[i][j][k][1]
 	      << std::setw(OWID) << arrayGridCoord[i][j][k][2]
+	      << std::setw(OWID) << vfabs( Vec(arrayU[i][j][k][var_vel[0]], arrayU[i][j][k][var_vel[1]], arrayU[i][j][k][var_vel[2]]) ) / arraySoundSpeed[i][j][k]
 	      << std::setw(OWID) << arrayU[i][j][k][var_den]
 	      << std::setw(OWID) << arrayU[i][j][k][var_mom[0]]
 	      << std::setw(OWID) << arrayU[i][j][k][var_mom[1]]
