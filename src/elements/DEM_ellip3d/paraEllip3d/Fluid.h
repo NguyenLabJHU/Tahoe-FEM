@@ -27,10 +27,10 @@ namespace dem {
     REAL dy;
     REAL dz;
 
-    std::size_t RK;    // Runge-Kutta scheme
+    REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;        // ration of specific heat
-    std::size_t arrayBC[6]; // boundary condition
+    REAL arrayBC[6];   // boundary condition
     REAL z0;           // initial discontinuity plane in Z direction
     REAL rhoL, uL, pL; // unknown
     REAL rhoR, uR, pR; // known

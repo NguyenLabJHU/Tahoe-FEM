@@ -8,15 +8,15 @@ namespace dem {
 
   void Fluid::initParameter(Rectangle &container, Gradation &gradation) {
     
-    RK = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["RK"]);
+    RK = dem::Parameter::getSingleton().parameter["RK"];
     CFL = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
-    arrayBC[0] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["x1Reflecting"]);
-    arrayBC[1] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["x2Reflecting"]);
-    arrayBC[2] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["y1Reflecting"]);
-    arrayBC[3] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["y2Reflecting"]);
-    arrayBC[4] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["z1Reflecting"]);
-    arrayBC[5] = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["z2Reflecting"]);
+    arrayBC[0] = dem::Parameter::getSingleton().parameter["x1Reflecting"];
+    arrayBC[1] = dem::Parameter::getSingleton().parameter["x2Reflecting"];
+    arrayBC[2] = dem::Parameter::getSingleton().parameter["y1Reflecting"];
+    arrayBC[3] = dem::Parameter::getSingleton().parameter["y2Reflecting"];
+    arrayBC[4] = dem::Parameter::getSingleton().parameter["z1Reflecting"];
+    arrayBC[5] = dem::Parameter::getSingleton().parameter["z2Reflecting"];
     rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
     pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
@@ -382,8 +382,8 @@ namespace dem {
 	      uR[m] = arrayUtmp[IR[0]] [IR[1]] [IR[2]] [m];
 	    }	
 	    for (std::size_t m = 0; m < n_integ; ++m) {
-	      FL[m] = arrayFlux [IL[0]] [IL[1]] [IL[2]] [m];
-	      FR[m] = arrayFlux [IR[0]] [IR[1]] [IR[2]] [m];
+	      FL[m] = arrayFlux[IL[0]] [IL[1]] [IL[2]] [m];
+	      FR[m] = arrayFlux[IR[0]] [IR[1]] [IR[2]] [m];
 	    }    
 	    RoeFlux(uL, uR, FL, FR, HL, HR, idim, i, j, k);
 	  }
@@ -572,6 +572,26 @@ namespace dem {
     REAL avgV   = (sqrt(uL[var_den])*uL[var_vel[1]] + sqrt(uR[var_den])*uR[var_vel[1]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgW   = (sqrt(uL[var_den])*uL[var_vel[2]] + sqrt(uR[var_den])*uR[var_vel[2]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
+    if ( (avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) < 0 ) 
+      debugInf << std::setw(3) << it
+	       << std::setw(3) << jt
+	       << std::setw(3) << kt
+	       << std::setw(OWID) << uL[var_den]
+	       << std::setw(OWID) << uR[var_den]
+	       << std::setw(OWID) << HL
+	       << std::setw(OWID) << HR
+	       << std::setw(OWID) << uL[var_vel[0]]
+	       << std::setw(OWID) << uR[var_vel[0]]
+	       << std::setw(OWID) << uL[var_vel[1]]
+	       << std::setw(OWID) << uR[var_vel[1]]
+	       << std::setw(OWID) << uL[var_vel[2]]
+	       << std::setw(OWID) << uR[var_vel[2]]
+	       << std::setw(OWID) << avgH
+	       << std::setw(OWID) << avgU
+	       << std::setw(OWID) << avgV
+	       << std::setw(OWID) << avgW
+	       << std::setw(OWID) << avgSoundSpeed
+	       << std::endl;
 
     REAL eigen[5];
     eigen[var_den]    = avgU - avgSoundSpeed;
