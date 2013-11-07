@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.34 2013-08-08 17:17:06 tahoe.vickynguyen Exp $
+# $Id: makefile,v 1.35 2013-11-07 17:07:02 tahoe.vickynguyen Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -18,7 +18,6 @@ OBJ = \
 	VWType.o \
 	ScaledCsch.o \
 	ScaledSinh.o \
-	LanirFiber.o \
 	PowerTrig.o \
 	LinearType.o 
 
@@ -41,7 +40,6 @@ SRC = \
 	FungType.cpp \
 	VWType.cpp \
 	ScaledCsch.cpp \
-	LanirFiber.cpp \
 	ScaledSinh.cpp \
 	PowerTrig.cpp \
 	LinearType.cpp  
@@ -61,7 +59,6 @@ HDR = \
 	VWType.h \
 	ScaledCsch.h \
 	ScaledSinh.h \
-	LanirFiber.h \
 	PowerTrig.h \
 	LinearType.h 
 
