@@ -874,11 +874,12 @@ namespace dem {
     fluidGrid.clear();
   }
 
-  void Particle::recordFluidGrid(std::size_t i, std::size_t j, std::size_t k) {
-    std::vector<std::size_t> vec;
-    vec.push_back(i);
-    vec.push_back(j);
-    vec.push_back(k);
+  void Particle::recordFluidGrid(std::size_t i, std::size_t j, std::size_t k, REAL volFrac) {
+    std::vector<REAL> vec;
+    vec.push_back(static_cast<REAL> (i));
+    vec.push_back(static_cast<REAL> (j));
+    vec.push_back(static_cast<REAL> (k));
+    vec.push_back(volFrac);
     fluidGrid.push_back(vec);
   }
 

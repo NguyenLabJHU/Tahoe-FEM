@@ -8,8 +8,11 @@
 #include "Rectangle.h"
 #include "Cylinder.h"
 #include "Boundary.h"
+#include <cstddef>
 #include <map>
+#include <vector>
 #include <boost/mpi.hpp>
+#include <boost/serialization/vector.hpp>
 
 namespace dem {
   
@@ -52,7 +55,7 @@ namespace dem {
     REAL kinetEnergy;// kinetic energy
     std::size_t  contactNum;
     bool inContact;  // in contact with other particle or boundary
-    std::vector<std::vector<std::size_t> > fluidGrid;
+    std::vector< std::vector<REAL> > fluidGrid;
 
   public:
     Particle();
@@ -155,8 +158,8 @@ namespace dem {
     // calculate the normal force between particle and a cylinder wall
     Vec cylinderRBForce(std::size_t boundaryId, const Cylinder &S, int side);
     void clearFluidGrid();
-    void recordFluidGrid(std::size_t i, std::size_t j, std::size_t k);
-    std::vector<std::vector<std::size_t> > & getFluidGrid() { return fluidGrid; }
+    void recordFluidGrid(std::size_t i, std::size_t j, std::size_t k, REAL volFrac);
+    std::vector< std::vector<REAL> > & getFluidGrid() { return fluidGrid; }
     
   private:
     void init();    
@@ -192,6 +195,7 @@ namespace dem {
       ar & kinetEnergy;
       ar & contactNum;
       ar & inContact;
+      ar & fluidGrid;
     }  
     
   };

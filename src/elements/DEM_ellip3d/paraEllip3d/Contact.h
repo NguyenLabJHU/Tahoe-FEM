@@ -3,6 +3,7 @@
 
 #include "realtypes.h"
 #include "Particle.h"
+#include <cstddef>
 #include <vector>
 #include <boost/functional/hash.hpp>
 

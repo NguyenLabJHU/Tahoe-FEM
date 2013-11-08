@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <cstddef>
 #include <cstdlib>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>

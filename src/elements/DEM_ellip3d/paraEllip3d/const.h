@@ -1,6 +1,7 @@
 #ifndef CONST_H
 #define CONST_H
 #include "realtypes.h"
+#include <cstddef>
 #include <fstream>
 
 namespace dem { 

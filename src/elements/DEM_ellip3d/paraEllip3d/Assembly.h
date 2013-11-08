@@ -13,6 +13,7 @@
 #include "Cylinder.h"
 #include "Spring.h"
 #include "Fluid.h"
+#include <cstddef>
 #include <map>
 #include <vector>
 #include <fstream>

@@ -3,6 +3,7 @@
 
 #include "realtypes.h"
 #include <vector>
+#include <cstddef>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
 

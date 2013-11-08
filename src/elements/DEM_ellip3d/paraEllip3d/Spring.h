@@ -4,6 +4,7 @@
 #include "realtypes.h"
 #include "Particle.h"
 #include "Vec.h"
+#include <cstddef>
 #include <cassert>
 
 namespace dem{

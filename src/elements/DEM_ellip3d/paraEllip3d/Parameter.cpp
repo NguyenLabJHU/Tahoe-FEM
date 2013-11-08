@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstddef>
 #include <cstdlib>
 
 namespace dem {
