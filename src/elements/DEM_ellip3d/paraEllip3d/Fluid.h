@@ -8,6 +8,7 @@
 #include "Rectangle.h"
 #include "Boundary.h"
 #include "Particle.h"
+#include <cstddef>
 #include <valarray>
 
 namespace dem {
