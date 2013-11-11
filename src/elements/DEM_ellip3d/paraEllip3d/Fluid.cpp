@@ -23,6 +23,7 @@ namespace dem {
     mach = dem::Parameter::getSingleton().parameter["MachNumber"];
     Cd   = dem::Parameter::getSingleton().parameter["Cd"];
     std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
+    volFrac = static_cast<int> (dem::Parameter::getSingleton().parameter["volFrac"]);
 
     REAL minX = container.getMinCorner().getX();
     REAL minY = container.getMinCorner().getY();
@@ -88,6 +89,7 @@ namespace dem {
     debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
     debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
     debugInf << std::setw(OWID) << "gridSize" << std::setw(OWID) << dx << std::endl;
+    debugInf << std::setw(OWID) << "volFrac" << std::setw(OWID) << volFrac << std::endl;
 
     /*
     debugInf << "n_var " << n_var << std::endl;
@@ -694,38 +696,52 @@ namespace dem {
 	  REAL coord_y = arrayGridCoord[i][j][k][1];
 	  REAL coord_z = arrayGridCoord[i][j][k][2];
 
-	  for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-	    bool in[8];
-	    in[0] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z-dz/2)) < 0;
-	    in[1] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z-dz/2)) < 0;
-	    in[2] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z-dz/2)) < 0;
-	    in[3] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z-dz/2)) < 0;
-	    in[4] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z+dz/2)) < 0;
-	    in[5] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z+dz/2)) < 0;
-	    in[6] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z+dz/2)) < 0;
-	    in[7] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z+dz/2)) < 0;
+	  if (volFrac == 0) {
 
-	    if (in[0] || in[1] || in[2] || in[3] || in[4] || in[5] || in[6] || in[7]) { // if any vertex is inside particle surface
-	      arrayU[i][j][k][var_msk] = 1; 
-
-	      REAL volFraction = 1;
-	      if ( !(in[0] && in[1] && in[2] && in[3] && in[4] && in[5] && in[6] && in[7]) ) { // if any vertex is outside particle surface
-		std::size_t fineGrid = 10;
-		std::size_t fineCount = 0;
-		for (std::size_t vi = 0; vi < fineGrid; ++vi)
-		  for (std::size_t vj = 0; vj < fineGrid; ++vj)
-		    for (std::size_t vk = 0; vk < fineGrid; ++vk) {
-		      if ((*it)->surfaceError(Vec(coord_x-dx/2 + (0.5+vi)*dx/fineGrid, 
-						  coord_y-dy/2 + (0.5+vj)*dy/fineGrid, 
-						  coord_z-dz/2 + (0.5+vk)*dz/fineGrid)) <= 0) 
-			++fineCount;
-		    }
-		volFraction = fineCount / pow(fineGrid, 3);
+	    for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it)
+	      if ( (*it)->surfaceError(Vec(coord_x, coord_y, coord_z)) <= 0 ) { // inside particle surface
+		arrayU[i][j][k][var_msk] = 1; 
+		(*it)->recordFluidGrid(i, j, k, 1.0);
 	      }
 
-	      (*it)->recordFluidGrid(i, j, k, volFraction); // no for break, as multiple particles could intrude into the same grid      
+	  } else if (volFrac == 1) {
+
+	    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+	      bool in[8];
+	      in[0] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z-dz/2)) < 0;
+	      in[1] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z-dz/2)) < 0;
+	      in[2] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z-dz/2)) < 0;
+	      in[3] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z-dz/2)) < 0;
+	      in[4] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z+dz/2)) < 0;
+	      in[5] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z+dz/2)) < 0;
+	      in[6] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z+dz/2)) < 0;
+	      in[7] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z+dz/2)) < 0;
+
+	      if (in[0] || in[1] || in[2] || in[3] || in[4] || in[5] || in[6] || in[7]) { // if any vertex is inside particle surface
+		arrayU[i][j][k][var_msk] = 1; 
+
+		REAL volFraction = 1;
+		if ( !(in[0] && in[1] && in[2] && in[3] && in[4] && in[5] && in[6] && in[7]) ) { // if any vertex is outside particle surface
+		  std::size_t fineGrid = 5;
+		  std::size_t fineCount = 0;
+		  for (std::size_t vi = 0; vi < fineGrid; ++vi)
+		    for (std::size_t vj = 0; vj < fineGrid; ++vj)
+		      for (std::size_t vk = 0; vk < fineGrid; ++vk) {
+			if ((*it)->surfaceError(Vec(coord_x-dx/2 + (0.5+vi)*dx/fineGrid, 
+						    coord_y-dy/2 + (0.5+vj)*dy/fineGrid, 
+						    coord_z-dz/2 + (0.5+vk)*dz/fineGrid)) <= 0) 
+			  ++fineCount;
+		      }
+		  volFraction = fineCount / pow(fineGrid, 3);
+		}
+
+		(*it)->recordFluidGrid(i, j, k, volFraction); // no for break, as multiple particles could intrude into the same grid      
+	      }
 	    }
-	  }
+
+	  } // end of if else
+
+
 	}
   }
 

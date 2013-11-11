@@ -38,6 +38,7 @@ namespace dem {
     REAL mach;         // shock Mach number, known
     REAL shockSpeed;   // unknown
     REAL Cd;           // drag coefficient
+    int  volFrac;      // use grid volume fraction or not
 
     std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
     std::size_t var_mom[3], var_vel[3];

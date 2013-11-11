@@ -286,7 +286,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 18; ++i) {
+      for (std::size_t i = 0; i < 19; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
