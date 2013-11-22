@@ -1,4 +1,4 @@
-/* $Id: ElasticHydrogelT.cpp,v 1.2 2013-02-01 17:03:24 tahoe.xiaorui Exp $ */
+/* $Id: ElasticHydrogelT.cpp,v 1.3 2013-11-22 22:12:24 tahoe.xiaorui Exp $ */
 /* created : RX (2/27/2012) */
 #include "ElasticHydrogelT.h"
 #include "ParameterContainerT.h"
@@ -319,45 +319,9 @@ void ElasticHydrogelT::ComputeOutput(dArrayT& output)
 	output[0] = *fSolidFraction;
 }
 
-double ElasticHydrogelT::Pressure(void)
-{const dMatrixT& F = F_total();
-	if (NumSD() == 2)
-	{
-		fF3D[0] = F[0];
-		fF3D[1] = F[1];
-		fF3D[2] = 0.0;
-	    
-		fF3D[3] = F[2];
-		fF3D[4] = F[3];
-		fF3D[5] = 0.0;
-	    
-		fF3D[6] = 0.0;
-		fF3D[7] = 0.0;
-		fF3D[8] = 1.0;
-	}
-	else fF3D = F;
-	fb.MultAAT(fF3D);
-	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
-	fEigs = fSpectralDecompSpat.Eigenvalues();
-
-	double J=sqrt(fEigs.Product());
-	
-   
-    ElementCardT& element = CurrentElement();
-    Load(element, CurrIP());
-    if (fFSMatSupport->RunState() == GlobalT::kFormRHS)
-	{
-    	CalculatePhi(*fSolidFraction, *fSolidFraction_n, J);
-		Store(element, CurrIP());
-	}
-	
-	fEigs_e = fEigs;
-	fEigs_e *= pow(*fSolidFraction,2.0*third);
-	
-
-	double Je = sqrt(fEigs_e.Product());
-	const dMatrixT& Ftotal = F_total();	
-	return fPot->MeanStress(Je)/Ftotal.Det();
+double ElasticHydrogelT::Pressure(void) const
+{
+    return fStress.Trace()/3.0;  
 }
 
 

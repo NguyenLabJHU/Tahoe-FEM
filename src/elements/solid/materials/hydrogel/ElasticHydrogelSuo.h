@@ -1,4 +1,4 @@
-/* $Id: ElasticHydrogelSuo.h,v 1.1 2013-02-01 17:03:24 tahoe.xiaorui Exp $ */
+/* $Id: ElasticHydrogelSuo.h,v 1.2 2013-11-22 22:12:24 tahoe.xiaorui Exp $ */
 /* created : RX (1/5/2012) */
 #ifndef _ElasticHydrogelSuo
 #define _ElasticHydrogelSuo
@@ -25,7 +25,7 @@ class ElasticHydrogelSuo: public FSSolidMatT
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij.  */
-/*	virtual double Pressure(void); */
+    virtual double Pressure(void) const;
 	
 	/** return true if the material has history variables */
 	virtual bool HasHistory(void) const { return true; };

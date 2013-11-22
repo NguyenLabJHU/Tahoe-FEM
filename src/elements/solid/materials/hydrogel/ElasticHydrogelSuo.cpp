@@ -1,4 +1,4 @@
-/* $Id: ElasticHydrogelSuo.cpp,v 1.1 2013-02-01 17:03:25 tahoe.xiaorui Exp $ */
+/* $Id: ElasticHydrogelSuo.cpp,v 1.2 2013-11-22 22:12:21 tahoe.xiaorui Exp $ */
 /* created : RX (1/5/2012) */
 #include "ElasticHydrogelSuo.h"
 #include "ParameterContainerT.h"
@@ -351,8 +351,11 @@ void ElasticHydrogelSuo::ComputeOutput(dArrayT& output)
 	output[0] = *fSolidFraction;
 }
 
-/*double ElasticHydrogelSuo::Pressure(void)
-{const dMatrixT& F = F_total();
+double ElasticHydrogelSuo::Pressure(void) const
+{
+    return fStress.Trace()/3.0;
+}
+/*{const dMatrixT& F = F_total();
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
