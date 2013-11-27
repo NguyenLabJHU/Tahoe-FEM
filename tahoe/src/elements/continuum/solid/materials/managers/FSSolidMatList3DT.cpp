@@ -1,7 +1,9 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.47 2013-05-09 14:44:11 hspark Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.48 2013-11-27 18:52:48 xiaorui Exp $ */
+/*Modified by RXiao 2013/11/26 by adding hydrogel and SMP-solvent  model*/
 #include "FSSolidMatList3DT.h"
 
 #include "SolidMaterialsConfig.h"
+
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentMaterialsConfig.h"
@@ -131,6 +133,11 @@
 #include "FSDEMatSupportQ1P0T.h"
 #endif
 
+// #ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+// #include "FSDielectricElastomerQ1P0SurfaceT.h"
+// #include "FSDEMatSupportQ1P0SurfaceT.h"
+// #endif
+
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
 #include "FSDielectricElastomerQ1P0ViscoT.h"
 #include "FSDEMatSupportQ1P0ViscoT.h"
@@ -148,17 +155,17 @@
 #include "FDSV_KStV3D.h"
 #include "SMP_simple.h"
 #include "SMP_multi.h"
-//#include "SMP_solvent.h"
-//#include "SMP_multisolvet.h"
-/*add the following sentence*/
+#include "SMP_solvent.h"
+#include "SMP_multisolvent.h"
 #include "ModBoyceVisco.h"
 #include "BergstromBoyce.h"
-// #include "ElasticHydrogelT.h"
-// #include "ElasticHydrogelSuo.h"
 #endif
 
-//#ifdef HYDROGEL
-//#endif
+#ifdef HYDROGEL
+#include "ElasticHydrogelT.h"
+#include "ElasticHydrogelSuo.h"
+#include "ElasticHydrogelSuoT.h"
+#endif
 
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
@@ -254,17 +261,17 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
 	    sub_lists.AddSub("SMP_multi");
-	    //		sub_lists.AddSub("SMP_solvent");
-	    //		sub_lists.AddSub("SMP_multisolvent");
-		/*add the following sentence*/
+		sub_lists.AddSub("SMP_solvent");
+		sub_lists.AddSub("SMP_multisolvent");
 		sub_lists.AddSub("ModBoyceVisco");
 		sub_lists.AddSub("BergstromBoyce");	
-//		sub_lists.AddSub("ElasticHydrogelT");
-//		sub_lists.AddSub("ElasticHydrogelSuo");
 #endif
 
-//#ifdef HYDROGEL
-//#endif
+#ifdef HYDROGEL
+        sub_lists.AddSub("ElasticHydrogelT");
+        sub_lists.AddSub("ElasticHydrogelSuo");
+        sub_lists.AddSub("ElasticHydrogelSuoT");
+#endif
 
 #ifdef BIO_MODELS
 		sub_lists.AddSub("veronda_westmann_potential");
@@ -327,6 +334,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef DIELECTRIC_ELASTOMER_Q1P0
 		sub_lists.AddSub(FSDEMatQ1P0T::Name);
 #endif
+
+// #ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+// 		sub_lists.AddSub(FSDEMatQ1P0SurfaceT::Name);
+// #endif
 
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
 		sub_lists.AddSub(FSDEMatQ1P0ViscoT::Name);
@@ -462,24 +473,25 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 		mat= new SMP_simple;
 	else if (name == "SMP_multi")
 	   mat= new SMP_multi;
-	//	else if (name == "SMP_solvent")
-	//		mat= new SMP_solvent;
-	//	else if (name == "SMP_multisolvent")
-	//		mat= new SMP_multisolvent;
+	else if (name == "SMP_solvent")
+		mat= new SMP_solvent;
+	else if (name == "SMP_multisolvent")
+		mat= new SMP_multisolvent;
 		/*add the following sentence*/
 	else if (name == "ModBoyceVisco")
 		mat= new ModBoyceVisco;
 	else if (name == "BergstromBoyce")
 		mat= new BergstromBoyce;
-//	else if (name =="ElasticHydrogelT")
-//		mat= new ElasticHydrogelT;
-//			else if (name =="ElasticHydrogelSuo")
-//		mat= new ElasticHydrogelSuo;
 #endif
 
-//#ifdef HYDROGEL
-	
-//#endif
+#ifdef HYDROGEL
+       else if (name =="ElasticHydrogelT")
+		mat= new ElasticHydrogelT;
+        else if (name =="ElasticHydrogelSuo")
+        mat= new ElasticHydrogelSuo;
+        else if (name =="ElasticHydrogelSuoT")
+            mat= new ElasticHydrogelSuoT;
+#endif
 
 #ifdef FINITE_ANISOTROPY
 	else if (name == "Bischoff-Arruda_WLC")
@@ -575,6 +587,18 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	  }
 	}
 #endif
+
+// #ifdef DIELECTRIC_ELASTOMER_Q1P0SURFACE
+// 	else if (name == FSDEMatQ1P0SurfaceT::Name) {
+// 	  FSDEMatQ1P0SurfaceT* dematqps = new FSDEMatQ1P0SurfaceT;
+// 	  if (dematqps != 0) {
+// 	    FSMatSupportT* demsqps = const_cast<FSMatSupportT*>(fFSMatSupport);
+// 	    const FSDEMatSupportQ1P0SurfaceT* ddemsqps = dynamic_cast<FSDEMatSupportQ1P0SurfaceT*>(demsqps);
+// 	    dematqps->SetFSDEMatSupportQ1P0Surface(ddemsqps);
+// 	    mat = dematqps;
+// 	  }
+// 	}
+// #endif
 
 #ifdef DIELECTRIC_ELASTOMER_Q1P0_VISCO
 	else if (name == FSDEMatQ1P0ViscoT::Name) {
