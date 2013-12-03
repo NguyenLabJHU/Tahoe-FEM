@@ -414,8 +414,10 @@ namespace dem {
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  for (std::size_t m = 0; m < n_dim; ++m)
+	  for (std::size_t m = 0; m < n_dim; ++m) {
 	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
+	    arrayU[i][j][k][var_eng] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][var_vel[m]] * timeStep;
+	  }
   }
   
   void Fluid::addGhostPoints() {
