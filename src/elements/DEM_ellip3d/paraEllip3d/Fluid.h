@@ -21,9 +21,9 @@ namespace dem {
   private:
     static const REAL Rs = 287.06; // specific gas constant
 
-    std::size_t nx; // nx = total cellcenters = parts + two boundary points in x direction
-    std::size_t ny; // ny = total cellcenters = parts + two boundary points in y direction
-    std::size_t nz; // nz = total cellcenters = parts + two boundary points in z direction
+    std::size_t nx; // nx = number of total cell centers = parts + two boundary points in x direction
+    std::size_t ny; // ny = number of total cell centers = parts + two boundary points in y direction
+    std::size_t nz; // nz = number of total cell centers = parts + two boundary points in z direction
     REAL dx;
     REAL dy;
     REAL dz;
@@ -45,7 +45,7 @@ namespace dem {
 
     Array4D arrayU;
     Array4D arrayUtmp;
-    // 4-dimensional
+    // 4-dimensional, defined at cell centers
     // nx, ny, nz, n_var
     // (a) fixed:
     // arrayU[i][j][k][0]: var_den
@@ -82,7 +82,7 @@ namespace dem {
     // arrayPressureForce[i][j][k][2]: force_z
 
     Array4D arrayFlux;
-    // 4-dimensional
+    // 4-dimensional, defined at cell centers
     // nx, ny, nz, n_integ
     // arrayFlux[i][j][k][0]: var_den
     // arrayFlux[i][j][k][1]: var_mom[0]
@@ -93,7 +93,7 @@ namespace dem {
     Array5D arrayRoeFlux; 
     Array5D arrayRoeFluxStep2; 
     Array5D arrayRoeFluxStep3; 
-    // 5-dimensional
+    // 5-dimensional, defined at cell faces
     // nx-1, ny-1, nz-1, n_integ, n_dim
     // arrayRoeFlux[i][j][k][0]: var_den
     // arrayRoeFlux[i][j][k][1]: var_mom[0]
@@ -106,7 +106,7 @@ namespace dem {
     // nx-1, ny-1, nz-1, n_integ
 
     Array3D arrayH; 
-    // Enthalpy, 3-dimensional
+    // Enthalpy, 3-dimensional, total enthalpy (not static enthalpy)
     // nx, ny, nz
 
     Array3D arraySoundSpeed; 
