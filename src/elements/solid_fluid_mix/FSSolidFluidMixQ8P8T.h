@@ -1,7 +1,7 @@
-/* $Id: FSSolidFluidMixQ8P8T.h,v 1.2 2013-09-26 20:30:04 tahoe.regueiro Exp $ */ 
+/* $Id: FSSolidFluidMixQ8P8T.h,v 1.3 2014-02-20 03:25:06 tahoe.mightzbn Exp $ */
 //DEVELOPMENT
-#ifndef _FS_SOLID_FLUID_MIX_Q8P8_T_H_ 
-#define _FS_SOLID_FLUID_MIX_Q8P8_T_H_ 
+#ifndef _FS_SOLID_FLUID_MIX_Q8P8_T_H_
+#define _FS_SOLID_FLUID_MIX_Q8P8_T_H_
 
 /* base classes */
 #include "ElementBaseT.h"
@@ -33,23 +33,23 @@ namespace Tahoe {
 
 /* forward declarations */
 class ShapeFunctionT;
-class Traction_CardT;	
+class Traction_CardT;
 class StringT;
 
 /** FSSolidFluidMixQ8P8T: This class contains a coupled finite deformation solid fluid
- * Total Lagrangian formulation in 3D.  It is assumed the mixture is saturated with 
+ * Total Lagrangian formulation in 3D.  It is assumed the mixture is saturated with
  * the fluid phase, and that the solid and fluid phases are incompressible, whereas
- * the mixture is not.  Currently, this implementation is limited to a simple 
+ * the mixture is not.  Currently, this implementation is limited to a simple
  * hyper-elastic, pressure-sensitive, cap plasticity model.
  * This element is an equal order Q8P8 element with stabilization.
  **/
 
 class FSSolidFluidMixQ8P8T: public ElementBaseT
 {
-	
+
 public:
 /* isotropic hydraulic conductivity assumed */
-	enum fMaterial_T 	{ 
+	enum fMaterial_T 	{
 	    kMu,
 	    kLambda,
 	    kRho_sR0,
@@ -85,8 +85,8 @@ public:
 		kAlpha,
 	    kNUM_FMATERIAL_TERMS
 	};
-	
-	enum fMaterialState_T 	{ 
+
+	enum fMaterialState_T 	{
 	    kkappa,
 	    kc,
 	    kZkappa,
@@ -104,24 +104,24 @@ public:
 	    kDelgamma,
 	    kNUM_FMATERIAL_STATE_TERMS
 	};
-									
-//	enum fIntegrate_T 	{ 
+
+//	enum fIntegrate_T 	{
 //	    kBeta,
 //	    kGamma,
-//	    kNUM_FINTEGRATE_TERMS	};								
+//	    kNUM_FINTEGRATE_TERMS	};
 
 	/** constructor */
-	FSSolidFluidMixQ8P8T( const ElementSupportT& support );				
+	FSSolidFluidMixQ8P8T( const ElementSupportT& support );
 
 	/** destructor */
 	~FSSolidFluidMixQ8P8T(void);
-	
+
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunctionDispl(void) const;
 	const ShapeFunctionT& ShapeFunctionPress(void) const;
 
 	/** echo input */
-	void Echo_Input_Data (void); 
+	void Echo_Input_Data (void);
 
 	/** return true if the element contributes to the solution of the
 	 * given group. ElementBaseT::InGroup returns true if group is the
@@ -133,7 +133,7 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	//virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
-	
+
 	/** element level reconfiguration for the current time increment */
 	//virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	/*@}*/
@@ -145,12 +145,12 @@ public:
 
 	/** return a const reference to the run state flag */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-	
+
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
-	
+
 	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void);
 
@@ -160,24 +160,24 @@ public:
 	virtual void RegisterOutput(void);
 
 	/** write element output */
-	virtual void WriteOutput(void);	
-	
+	virtual void WriteOutput(void);
+
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 	/*@}*/
-	
+
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
 
 	/** return the geometry code */
 	virtual GeometryT::CodeT GeometryCode(void) const;
-	
+
 	/*set active elements*/
 	//virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
-	
+
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
-	
+
 	/** mass types */
 	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
@@ -195,14 +195,14 @@ public:
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 	/*@}*/
-	
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
 				     SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
@@ -218,7 +218,7 @@ public:
 	/*@}*/
 
 protected:
-	
+
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the stiffness matrix */
@@ -227,51 +227,63 @@ protected:
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
 	/*@}*/
-	
+
 	/** compute shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
 	void Select_Equations ( const int &iBalLinMom, const int &iBalMass );
 
 private:
-	
+
 	/** \name solution methods.
 	 * Both of these drivers assemble the LHS as well as the residual.
 	 */
 	/*@{*/
 	/** driver for staggered solution */
 	void RHSDriver_staggered(void);
-	
+
 	/** driver for monolithic solution */
 	void RHSDriver_monolithic(void);
 	/*@}*/
-	
+
 protected:
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
-	
+
 	/* gravity body force */
 	const ScheduleT* fBodySchedule; /**< body force schedule */
-	
+
 private:
+
+// output to debug
+	ofstreamT fileFtheta_int_stab_vector;
+	ofstreamT fileK_thetatheta_HStab_matrix;
+
+	ofstreamT fileShape_fluid_projected;
+	ofstreamT filePore_fluid_pressure_projected;
+
+	ofstreamT fileFtheta_int;
+	ofstreamT fileKthetatheta;
+
 
 	/** Gradients and other matrices */
 	dMatrixT fgrad_u, fgrad_u_n;
 	dArrayT fgrad_theta, fgrad_theta_n;
-	
+
 	dMatrixT fShapeSolid, fShapeSolidGrad, fShapeSolidGrad_t,fShapeSolidGrad_t_Transpose;
 	dMatrixT fShapeSolidGradGrad, fShapeSolidGrad_temp;
 	dArrayT fShapeFluid;
 	dMatrixT fShapeFluidGrad;
-	
+	dMatrixT fShapeFluidgrad;	// change *************, B-P method
+
 	dMatrixT fDefGrad, fDefGradInv, fDefGradInvMatrix;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
 	/** element geometry */
-	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ, 
+	GeometryT::CodeT fGeometryCode_displ, fGeometryCodeSurf_displ,
 	    fGeometryCode_press, fGeometryCodeSurf_press;
 	int fGeometryCode_displ_int, fGeometryCodeSurf_displ_int;
 
@@ -286,7 +298,7 @@ private:
 	/*@{*/
 	LocalArrayT u;		//solid displacement
 	LocalArrayT u_n; 	//solid displacement from time t_n
-	LocalArrayT u_dot; 	//solid velocity 
+	LocalArrayT u_dot; 	//solid velocity
 	LocalArrayT u_dot_n; 	//solid velocity from time t_n
 	LocalArrayT u_dotdot; 	//solid acceleration
 	LocalArrayT u_dotdot_n; 	//solid acceleration from time t_n
@@ -294,15 +306,15 @@ private:
 	LocalArrayT press;	//fluid pore pressure
 	LocalArrayT press_dot;	//fluid pore pressure first derivative
 	LocalArrayT press_dot_n;	//fluid pore pressure first derivative from time t_n
-	LocalArrayT press_dotdot;	//fluid pore pressure second derivative  
-	LocalArrayT press_dotdot_n;	//fluid pore pressure second derivative from time t_n 
+	LocalArrayT press_dotdot;	//fluid pore pressure second derivative
+	LocalArrayT press_dotdot_n;	//fluid pore pressure second derivative from time t_n
 	LocalArrayT press_n;	//fluid pore pressure from time t_n
 	LocalArrayT del_press;	//pore pressure increment
-	dArrayT		del_u_vec;  	// vector form 
+	dArrayT		del_u_vec;  	// vector form
 	dArrayT		del_press_vec;	// vector form
-	dArrayT		u_vec;  	// solid displacement in vector form 
-	dArrayT		u_dot_vec;  	// solid velocity in vector form 
-	dArrayT		u_dotdot_vec;  	// solid acceleration in vector form 
+	dArrayT		u_vec;  	// solid displacement in vector form
+	dArrayT		u_dot_vec;  	// solid velocity in vector form
+	dArrayT		u_dotdot_vec;  	// solid acceleration in vector form
 	dArrayT		press_vec;	// fluid pressure in vector form
 	dArrayT		press_dot_vec;	// first derivative of fluid pressure in vector form
 	dArrayT		press_dotdot_vec;	// second derivative of fluid pressure in vector form
@@ -311,37 +323,37 @@ private:
 	// problem size definitions
 	int n_en_displ, n_en_press, n_en_displ_x_n_sd, n_sd_x_n_sd;
 	int n_el, n_sd, n_sd_surf, n_en_surf;
-	
+
 	int step_number;
 	int iConstitutiveModelType;
-	
+
 	//name of output vector
 	StringT output;
-	
+
 	dArrayT fForces_at_Node;
 	bool bStep_Complete;
-	
+
  	double time;
- 	
+
  	void Get_Fd_ext ( dArrayT &fFd_ext );
-	
-	//-- Material Parameters 
+
+	//-- Material Parameters
 	dArrayT fMaterial_Params;
 	double fRho_0,fRho_f,fRho;
 	double fC1,fC2,fC3;
-	
-	//-- Newmark Time Integration Parameters 
+
+	//-- Newmark Time Integration Parameters
 	dArrayT fIntegration_Params;
-	
+
 	/** \name shape functions wrt to current coordinates */
 	/*@{*/
-	/** shape functions and derivatives. The derivatives are wrt to the 
+	/** shape functions and derivatives. The derivatives are wrt to the
 	  * reference coordinates */
 	ShapeFunctionT* fShapes_displ;
 	ShapeFunctionT* fShapes_press;
 
 	/** reference coordinates */
-	LocalArrayT fInitCoords_displ, fInitCoords_press;     
+	LocalArrayT fInitCoords_displ, fInitCoords_press;
 	/** current coordinates */
 	LocalArrayT fCurrCoords_displ, fCurrCoords_press;
 	/*@}*/
@@ -393,7 +405,7 @@ private:
 	dMatrixT	fDev_Effective_Second_Piola_tensor;
 	dMatrixT	fTrial_Effective_Second_Piola_tensor;
 	dMatrixT	fTrial_Dev_Effective_Second_Piola_tensor;
-	
+
 	//F, Finv
 	dMatrixT	fDeformation_Gradient;
 	dMatrixT	fDefGradT_9x9_matrix;
@@ -408,7 +420,7 @@ private:
 	dMatrixT	fDefGradInv_Grad_grad;
 	dMatrixT	fDefGradInv_Grad_grad_Transpose;
 	dMatrixT	fIdentity_matrix;
-	
+
 	//for plasticity
 	dMatrixT	fFp_n,fFp,fdGdS_n,fdGdS,fdFdS,fdfds;
 	dMatrixT 	fFp_n_Inverse,fFp_Inverse;
@@ -420,7 +432,7 @@ private:
 	dMatrixT	dDevSdDelgamma, dSdDelgamma, dFedDelgamma, dCedDelgamma;
 	dMatrixT	fa_tensor, fb_tensor, fb_tensor_transpose;
 	//tweek
-	
+
 	//for localization analysis
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
@@ -513,16 +525,16 @@ private:
 	dMatrixT	fC_thetad_matrix;
 	dMatrixT 	fDefGradInv_column_matrix;
 	dMatrixT 	fDefGradInv_column_matrix_Transpose;
-	dMatrixT	u_dotdot_column_matrix;        
-	dMatrixT	fXi_temp_matrix;      
-	dMatrixT	fVarsigma_temp_matrix;   
-	dMatrixT	fI_ijkl_matrix; 
-	dMatrixT	u_dot_column_matrix;  
-	dMatrixT	u_dot_column_matrix_Transpose;  
-	dMatrixT	fGravity_column_matrix; 
-	dMatrixT	fAleph_temp_matrix; 
+	dMatrixT	u_dotdot_column_matrix;
+	dMatrixT	fXi_temp_matrix;
+	dMatrixT	fVarsigma_temp_matrix;
+	dMatrixT	fI_ijkl_matrix;
+	dMatrixT	u_dot_column_matrix;
+	dMatrixT	u_dot_column_matrix_Transpose;
+	dMatrixT	fGravity_column_matrix;
+	dMatrixT	fAleph_temp_matrix;
 	dMatrixT	press_dot_column_matrix;
-	dMatrixT	fImath_temp_matrix;  
+	dMatrixT	fImath_temp_matrix;
 	dMatrixT	fPf_0_matrix;
 
 	/* for stabilization */
@@ -532,7 +544,12 @@ private:
 	dMatrixT	fShapeFluid_row_matrix_proj;
 	double		fPore_fluid_pressure_projected;
 	dMatrixT	fK_thetatheta_HStab_matrix;
+	dMatrixT    fK_thetad_HStab_matrix;			// change ************ \delta J term
+	dMatrixT    fK_thetatheta_HStab_matrix_BP;	// change ************ B-P method
+	dMatrixT    fK_thetad_HStab_matrix_BP;		// change ************ B-P method
 	dArrayT		fFtheta_int_Stab_vector;
+	dArrayT     fFtheta_int_Stab_vector_2;		// change ************ \delta J term
+	dArrayT     fFtheta_int_Stab_vector_BP;		// change ************* B-P method
 
 	//store at IPs
 	dMatrixT	fEulerian_effective_strain_tensor_current_IP;
@@ -571,9 +588,9 @@ private:
 	dArray2DT	fdGdS_Elements_IPs;
 	dArray2DT	fdGdS_n_IPs;
 	dArray2DT	fdGdS_n_Elements_IPs;
-	
+
 	double phi_s, phi_f, theta;
-	
+
 	/* for plasticity solution */
 	double meanstress_tr, meanstress, devstress_inprod_tr, devstress_inprod;
 	double fXphi, fXphi_n, fXphi_m_kappa, fMacFunc, fFphicap_tr, fFphicap;
@@ -585,23 +602,23 @@ private:
 	double dFphicapdDelgamma, dXphikappadDelgamma, dkappadDelgamma, dAphidDelgamma;
 	double Je, Je_tr, Jp;
 	double fa_matrix_factor, fa_f_matrix_factor, fChi_bar;
-	
+
 	/* for local Newton-Raphson iteration */
 	int iIterationMax;
 	double dRelTol, dAbsTol;
-	
+
 	/* for local trial yield check */
 	double dYieldTrialTol;
 
 	/** the solid displacement field */
 	const FieldT* fDispl;
-	
+
 	/** the fluid pore pressure field */
 	const FieldT* fPress;
 
 	/** \name state variable storage *
-	 * State variables are handled ABAQUS-style. For every iteration, the state 
-	 * variables from the previous increment are passed to the element, which 
+	 * State variables are handled ABAQUS-style. For every iteration, the state
+	 * variables from the previous increment are passed to the element, which
 	 * updates the values in place. Each row in the array is the state variable
 	 * storage for all integration points for an element */
 	/*@{*/
@@ -636,7 +653,7 @@ private:
 	/** output ID */
 	int fOutputID;
 
-	/** integration point stresses. Calculated and stored during 
+	/** integration point stresses. Calculated and stored during
 	 * FSSolidFluidMixT::RHSDriver */
 	dArray2DT fIPVariable;
 	/*@}*/
@@ -644,29 +661,29 @@ private:
 	/** \name prescribed plastic gradient side set ID */
 	/*@{*/
 	ArrayT<StringT> fSideSetID;
-	
+
 	/** prescribed pore pressure weight over the side set;
 	    the direction is defined by {n1,n2,n3} ?? */
 	ArrayT<double> fPorePressureWght;
 
 	/** for each side set, the global nodes on the faces in the set */
 	ArrayT<iArray2DT> fPorePressureFaces;
-	
-	/** equation numbers for the nodes on each face */ 
+
+	/** equation numbers for the nodes on each face */
 	ArrayT<iArray2DT> fPorePressureFaceEqnos;
-	
-	/** side set elements */ 
+
+	/** side set elements */
 	ArrayT<iArrayT> fSideSetElements;
 
-	/** side set faces */ 
+	/** side set faces */
 	ArrayT<iArrayT> fSideSetFaces;
 	/*@}*/
-	
+
 	/** write output for debugging */
 	/*@{*/
 	/** output file stream */
 	ofstreamT fs_plast_mix_out;
-	
+
 	/** line output formating variables */
 	int outputPrecision, outputFileWidth;
 	/*@}*/
@@ -706,11 +723,23 @@ private:
 	void Form_Imath_temp_matrix(void);
 	void Compute_norm_of_array(double& norm,const LocalArrayT& B);
 
+
+//8888888888888888 preconditioner
+	dArrayT fFd_int_new, fFtheta_int_new;
+	ElementMatrixT fKdd_new;
+	ElementMatrixT fKthetatheta_new;
+	ElementMatrixT fKdtheta_new;
+	ElementMatrixT fKthetad_new;
+
+
+
+
+
 protected:
 
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
-	
+
 	/** apply traction boundary conditions to displacement equations */
 	void ApplyTractionBC(void);
 
@@ -720,11 +749,11 @@ protected:
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
-	
+
 	/** \name arrays with local ordering */
 	/*@{*/
 	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
-	LocalArrayT fLocDisp;	      /**< solid displacements with local ordering  */ 
+	LocalArrayT fLocDisp;	      /**< solid displacements with local ordering  */
 	/*@}*/
 
 	/** \name work space */
@@ -732,11 +761,11 @@ protected:
 	dArrayT fNEEvec; /**< work space vector: [element DOF] */
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
 	/*@}*/
-	
+
 };
 
 
-inline const ShapeFunctionT& FSSolidFluidMixQ8P8T::ShapeFunctionDispl(void) const 
+inline const ShapeFunctionT& FSSolidFluidMixQ8P8T::ShapeFunctionDispl(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fShapes_displ)
@@ -745,7 +774,7 @@ inline const ShapeFunctionT& FSSolidFluidMixQ8P8T::ShapeFunctionDispl(void) cons
 	return *fShapes_displ;
 }
 
-inline const ShapeFunctionT& FSSolidFluidMixQ8P8T::ShapeFunctionPress(void) const 
+inline const ShapeFunctionT& FSSolidFluidMixQ8P8T::ShapeFunctionPress(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fShapes_press)
@@ -760,7 +789,7 @@ inline GeometryT::CodeT FSSolidFluidMixQ8P8T::GeometryCode(void) const
 
 
 
-} // namespace Tahoe 
+} // namespace Tahoe
 #endif /* _FS_SOLID_FLUID_MIX_Q8P8_T_H_ */
 
 
