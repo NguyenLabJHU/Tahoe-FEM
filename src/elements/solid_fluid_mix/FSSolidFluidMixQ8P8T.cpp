@@ -990,6 +990,7 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 		fC_thetatheta_matrix = 0.0;
 		fC_thetad_matrix = 0.0;
 		fFtheta_int_H4_vector = 0.0;
+		fFtheta_int_H2_vector = 0.0;	// H2 term
 		fFtheta_int_M_vector = 0.0;
 		fFtheta_int_C1_vector = 0.0;
 		fFtheta_int_C2_vector = 0.0;
@@ -1022,7 +1023,9 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 		fK_thetatheta_HStab_matrix = 0.0;
 		fK_thetad_HStab_matrix = 0.0;			// change, \delta J term
 		fK_thetatheta_HStab_matrix_BP = 0.0;		// change, B-P method
-		fK_thetad_HStab_matrix_BP = 0.0;		// change, B-P method
+		fK_thetad_HStab_1_matrix_BP = 0.0;		// change, B-P method
+		fK_thetad_HStab_2_matrix_BP = 0.0;		// change, B-P method
+		fK_thetad_HStab_3_matrix_BP = 0.0;		// change, B-P method
 		fShape_fluid_projected = 0.0;
 		fShape_fluid_projected_n = 0.0;
 		fPore_fluid_pressure_projected = 0.0;
@@ -2721,12 +2724,76 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 				fK_thetatheta_HStab_matrix_BP += fTemp_matrix_nen_press_x_nen_press;
 
 
-				/* [fK_thetad_HStab_matrix_BP] will be formed */
+				/* {fGrad_theta_dot_vector} will be filled */
+				fShapeFluidGrad.Multx(press_dot_vec, fGrad_theta_dot_vector);
+
+				/* [fK_thetad_HStab_1_matrix_BP] will be formed */
+				// the first delta F_inverse term
+
+				// form fTemp_matrix_H_IaA_nsd_x_nsd2;
+				fTemp_matrix_H_IaA_nsd_x_nsd2 = 0.0;
+				int HTemp_row = 0;
+				int HTemp_col = 0;
+				for(int HTemp_A = 0; HTemp_A != 3; HTemp_A++){
+					for(int HTemp_a = 0; HTemp_a != 3; HTemp_a++){
+						HTemp_row = 0;
+						for(int HTemp_I = 0; HTemp_I != 3; HTemp_I++){
+							for(int HTemp_i = 0; HTemp_i != 3; HTemp_i++){
+								for(int HTemp_k = 0; HTemp_k != 3; HTemp_k++){
+									fTemp_matrix_H_IaA_nsd_x_nsd2(HTemp_row, HTemp_col) += fDeformation_Gradient_Inverse(HTemp_I, HTemp_a)*fDeformation_Gradient_Inverse(HTemp_A, HTemp_i)*fDeformation_Gradient_Inverse(HTemp_k, HTemp_i)*fGrad_theta_dot_vector[HTemp_k];
+								}
+							}
+
+							HTemp_row++;
+						}
+
+						HTemp_col++;
+					}
+				}
+
+				fTemp_matrix_nen_press_x_ndof_se.MultATBC(fShapeFluidGrad,fTemp_matrix_H_IaA_nsd_x_nsd2,fShapeSolidGrad);
+				scale = -scale_const*integrate_param*fMaterial_Params[kAlpha]*J;
+				fTemp_matrix_nen_press_x_ndof_se *= scale;
+				fK_thetad_HStab_1_matrix_BP += fTemp_matrix_nen_press_x_ndof_se;
+
+
+				/* [fK_thetad_HStab_2_matrix_BP] will be formed */
+				// the second delta F_inverse term
+
+				// form fTemp_matrix_H_IaA_nsd_x_nsd2;
+				fTemp_matrix_H_IaA_nsd_x_nsd2 = 0.0;
+				HTemp_row = 0;
+				HTemp_col = 0;
+				for(int HTemp_A = 0; HTemp_A != 3; HTemp_A++){
+					for(int HTemp_a = 0; HTemp_a != 3; HTemp_a++){
+						HTemp_row = 0;
+						for(int HTemp_I = 0; HTemp_I != 3; HTemp_I++){
+							for(int HTemp_i = 0; HTemp_i != 3; HTemp_i++){
+								for(int HTemp_k = 0; HTemp_k != 3; HTemp_k++){
+									fTemp_matrix_H_IaA_nsd_x_nsd2(HTemp_row, HTemp_col) += fDeformation_Gradient_Inverse(HTemp_I, HTemp_i)*fDeformation_Gradient_Inverse(HTemp_A, HTemp_i)*fDeformation_Gradient_Inverse(HTemp_k, HTemp_a)*fGrad_theta_dot_vector[HTemp_k];
+								}
+							}
+
+							HTemp_row++;
+						}
+
+						HTemp_col++;
+					}
+				}
+
+				fTemp_matrix_nen_press_x_ndof_se.MultATBC(fShapeFluidGrad,fTemp_matrix_H_IaA_nsd_x_nsd2,fShapeSolidGrad);
+				scale = -scale_const*integrate_param*fMaterial_Params[kAlpha]*J;
+				fTemp_matrix_nen_press_x_ndof_se *= scale;
+				fK_thetad_HStab_2_matrix_BP += fTemp_matrix_nen_press_x_ndof_se;
+
+
+				/* [fK_thetad_HStab_3_matrix_BP] will be formed */
+				// delta J term
 				fTemp_matrix_nen_press_x_nen_press.MultATB(fShapeFluidgrad,fShapeFluidgrad);	// change origin: fShapeFluidgrad, fShapeFluidgrad
 				fTemp_matrix_nen_press_x_ndof_se.MultABC(fTemp_matrix_nen_press_x_nen_press,press_dot_column_matrix,fPi_temp_row_matrix);
 				scale = scale_const*integrate_param*fMaterial_Params[kAlpha]*J;			// change origin: *J
 				fTemp_matrix_nen_press_x_ndof_se *= scale;
-				fK_thetad_HStab_matrix_BP += fTemp_matrix_nen_press_x_ndof_se;
+				fK_thetad_HStab_3_matrix_BP += fTemp_matrix_nen_press_x_ndof_se;
 
 
 				/* [fFtheta_int_Stab_vector_BP] will be formed */
@@ -2736,6 +2803,48 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 				fTemp_matrix_nen_press_x_nen_press.Multx(press_dot_vec,fTemp_vector_nen_press);
 				fFtheta_int_Stab_vector_BP += fTemp_vector_nen_press;
 
+
+
+				// implementation of H2 term
+				/* [fFtheta_int_H2_vector] will be formed */
+
+				// Cozeny-Karman relation
+				double delta_nf = (phi_f*phi_f*phi_f)/(1-phi_f*phi_f);	// delta(nf)
+				double n0f = fMaterial_Params[kPhi_f0];
+				double delta_n0f = (n0f*n0f*n0f)/(1-n0f*n0f);			// delta(n0f)
+
+				// permiability at current time
+				double k_hat = fMaterial_Params[kK]*delta_nf/delta_n0f;
+
+				// calculate fgrad_theta_column_matrix
+				dArrayT fgrad_theta_vector; fgrad_theta_vector.Dimension(n_sd);
+				fShapeFluidgrad.Multx(press_vec,fgrad_theta_vector);
+				dMatrixT fgrad_theta_column_matrix; fgrad_theta_column_matrix.Dimension(n_sd, 1);
+				for (int i=0; i<n_sd; i++)
+				    fgrad_theta_column_matrix(i,0) = fgrad_theta_vector[i];
+
+				// calculate fnf_x_vftitle_column_matrix based on Darcy's law
+				dMatrixT fTemp_af_column_matrix; fTemp_af_column_matrix.Dimension(n_sd, 1);		// assume af=as at present
+				fTemp_af_column_matrix.MultAB(fShapeSolid,u_dotdot_column_matrix);
+				dMatrixT fTemp_matrix_af_minus_bf; fTemp_matrix_af_minus_bf.Dimension(n_sd, 1);		// (af - bf)
+				fTemp_matrix_af_minus_bf  = fTemp_af_column_matrix;
+				fTemp_matrix_af_minus_bf -= fGravity_column_matrix;
+				fTemp_matrix_af_minus_bf *= fRho_f;
+				dMatrixT fnf_x_vftilt_column_matrix; fnf_x_vftilt_column_matrix.Dimension(n_sd, 1);
+				fnf_x_vftilt_column_matrix  = fgrad_theta_column_matrix;
+				fnf_x_vftilt_column_matrix += fTemp_matrix_af_minus_bf;
+				fnf_x_vftilt_column_matrix *= -k_hat;
+				dMatrixT fnf_x_vftilt_row_matrix; fnf_x_vftilt_row_matrix.Dimension(1, n_sd);
+				fnf_x_vftilt_row_matrix.Transpose(fnf_x_vftilt_column_matrix);
+
+				// calculate H2_int term
+				fTemp_matrix_nen_press_x_nsd.MultATBC(fShapeFluid_row_matrix,fnf_x_vftilt_row_matrix,fDeformation_Gradient_Inverse_Transpose);
+				fTemp_matrix_nen_press_x_nen_press.MultAB(fTemp_matrix_nen_press_x_nsd,fShapeFluidGrad);
+				fTemp_matrix_nen_press_x_nen_press.Multx(press_vec,fTemp_vector_nen_press);
+				scale = scale_const*J/fMaterial_Params[kKf];
+				fTemp_vector_nen_press *= scale;
+				// accumulate
+				fFtheta_int_H2_vector += fTemp_vector_nen_press;
 
 
 				/* for debugging */
@@ -2807,14 +2916,14 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 
 				/* [fK_thetatheta_HStab_matrix] will be formed */
 				fTemp_matrix_nen_press_x_nen_press.MultATB(fShapeFluid_row_matrix_proj,fShapeFluid_row_matrix_proj);
-				double scale = integrate_param*scale_const*fMaterial_Params[kAlpha]*J/(2*fMaterial_Params[kMu]*delta_t);
+				double scale = integrate_param*scale_const*1*J/(2*fMaterial_Params[kMu]*delta_t);
 				fTemp_matrix_nen_press_x_nen_press *= scale;
 				/* accumulate */
 				fK_thetatheta_HStab_matrix += fTemp_matrix_nen_press_x_nen_press;
 
 				/* [fFtheta_int_Stab_vector] will be formed */
 				fTemp_vector_nen_press = fShapeFluid_proj;
-				scale = scale_const*fMaterial_Params[kAlpha]*J/(2*fMaterial_Params[kMu]*delta_t);
+				scale = scale_const*1*J/(2*fMaterial_Params[kMu]*delta_t);
 
 				fTemp_vector_nen_press *= scale;
 				double fPressure_projected_integrated = fP_f-fP_f_projected-fP_f_n+fP_f_n_projected;
@@ -2847,7 +2956,7 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 
 				/* [fK_thetad_HStab_matrix] will be formed */
 				fTemp_matrix_nen_press_x_ndof_se.MultATB(fShapeFluid_row_matrix_proj,fPi_temp_row_matrix);
-				scale = integrate_param*scale_const*fMaterial_Params[kAlpha]*J/(2*fMaterial_Params[kMu]*delta_t);
+				scale = integrate_param*scale_const*1*J/(2*fMaterial_Params[kMu]*delta_t);
 				fTemp_matrix_nen_press_x_ndof_se *= scale;
 				fTemp_matrix_nen_press_x_ndof_se *= fPressure_projected_integrated;
 				/* accumulate */
@@ -2858,7 +2967,7 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 				/* [fFtheta_int_Stab_vector_2] will be formed */
 				fTemp_matrix_nen_press_x_ndof_se.MultATB(fShapeFluid_row_matrix_proj,fPi_temp_row_matrix);
 				fTemp_matrix_nen_press_x_ndof_se.Multx(u_vec,fTemp_vector_nen_press);
-				scale = scale_const*fMaterial_Params[kAlpha]*J/(2*fMaterial_Params[kMu]*delta_t);
+				scale = scale_const*1*J/(2*fMaterial_Params[kMu]*delta_t);
 				fTemp_vector_nen_press *= scale;
 				fTemp_vector_nen_press *= fPressure_projected_integrated;
 				/* accumulate */
@@ -2923,7 +3032,9 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 			    fK_thetatheta_HStab_matrix = 0.0;		// change stabilization
 			    fK_thetad_HStab_matrix = 0.0;		// change \delta J term
 			    fK_thetatheta_HStab_matrix_BP = 0.0;	// change B-P method
-			    fK_thetad_HStab_matrix_BP = 0.0;		// change B-P method
+			    fK_thetad_HStab_1_matrix_BP = 0.0;		// change B-P method
+			    fK_thetad_HStab_2_matrix_BP = 0.0;		// change B-P method
+			    fK_thetad_HStab_3_matrix_BP = 0.0;		// change B-P method
 			    fFtheta_int_M_vector = 0.0;
 		    	fFtheta_int_C1_vector = 0.0;
 		    	fFtheta_int_C2_vector = 0.0;
@@ -2997,7 +3108,10 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 		    fKthetad += fK_thetad_H4_2_matrix;
 		    fKthetad += fK_thetad_H4_3_matrix;
 
-//		    fKthetad += fK_thetad_HStab_matrix_BP;	// stabilization		// change B-P method
+		    fKthetad += fK_thetad_HStab_1_matrix_BP;	// stabilization		// change B-P method
+			fKthetad += fK_thetad_HStab_2_matrix_BP;	// stabilization		// change B-P method
+			fKthetad += fK_thetad_HStab_3_matrix_BP;	// stabilization		// change B-P method
+
 //		    fKthetad += fK_thetad_HStab_matrix; 	// stabilization  		// change \delta J term
 
 
@@ -3031,11 +3145,12 @@ void FSSolidFluidMixQ8P8T::RHSDriver_monolithic(void)
 		    fFtheta_int += fFtheta_int_N1_vector;
 		    fFtheta_int += fFtheta_int_N2_vector;
 		    fFtheta_int += fFtheta_int_H4_vector;
+		    fFtheta_int += fFtheta_int_H2_vector;	// H2 term
 
 //		    fFtheta_int -= fFtheta_int_Stab_vector; 	//stabilization			// change
 //		    fFtheta_int -= fFtheta_int_Stab_vector_2;	// stabilization   	 	// change \delta J term
 
-			fFtheta_int += fFtheta_int_Stab_vector_BP;				// change B-P method
+		    fFtheta_int += fFtheta_int_Stab_vector_BP;				// change B-P method
 		    fFtheta_int *= -1;
 
 		    /* equations numbers */
@@ -3618,6 +3733,7 @@ fFtheta_int_new.Dimension 	( n_en_press );
     fGrad_Omega_prim_vector.Dimension (n_sd);
     fgrad_Omega_prim_vector.Dimension (n_sd);
     fGrad_theta_vector.Dimension (n_sd);
+    fGrad_theta_dot_vector.Dimension (n_sd);		// change, B-P method, the delta F_inverse terms
     fGrad_phi_f_vector.Dimension (n_sd);
     fTemp_nsd_vector.Dimension (n_sd);
     fGrad_1_J_vector.Dimension (n_sd);
@@ -3665,6 +3781,7 @@ fFtheta_int_new.Dimension 	( n_en_press );
     fDefGradInv_column_matrix.Dimension (n_sd_x_n_sd,1);
     fDefGradInv_column_matrix_Transpose.Dimension (1,n_sd_x_n_sd);
     fFtheta_int_H4_vector.Dimension (n_en_press);
+    fFtheta_int_H2_vector.Dimension (n_en_press);	// H2 term
     fFtheta_int_M_vector.Dimension (n_en_press);
     fFtheta_int_C1_vector.Dimension (n_en_press);
     fFtheta_int_C2_vector.Dimension (n_en_press);
@@ -3714,7 +3831,10 @@ fFtheta_int_new.Dimension 	( n_en_press );
     fK_thetatheta_HStab_matrix.Dimension(n_en_press,n_en_press);
     fK_thetad_HStab_matrix.Dimension(n_en_press,n_en_displ_x_n_sd);		// change \delta J term
     fK_thetatheta_HStab_matrix_BP.Dimension(n_en_press,n_en_press);		// change B-P method
-    fK_thetad_HStab_matrix_BP.Dimension(n_en_press, n_en_displ_x_n_sd);	// change B-P method
+    fK_thetad_HStab_1_matrix_BP.Dimension(n_en_press, n_en_displ_x_n_sd);	// change B-P method
+    fK_thetad_HStab_2_matrix_BP.Dimension(n_en_press, n_en_displ_x_n_sd);	// change B-P method
+    fK_thetad_HStab_3_matrix_BP.Dimension(n_en_press, n_en_displ_x_n_sd);	// change B-P method
+    fTemp_matrix_H_IaA_nsd_x_nsd2.Dimension(n_sd, n_sd_x_n_sd);				// change B-P method
     fShape_fluid_projected.Dimension(n_en_press);
     fShape_fluid_projected_n.Dimension(n_en_press);
     fFtheta_int_Stab_vector.Dimension(n_en_press);
