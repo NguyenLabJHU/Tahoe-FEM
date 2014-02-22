@@ -1,4 +1,4 @@
-/* $Id: FSSolidFluidMixQ8P8T.h,v 1.3 2014-02-20 03:25:06 tahoe.mightzbn Exp $ */
+/* $Id: FSSolidFluidMixQ8P8T.h,v 1.4 2014-02-22 05:37:15 tahoe.mightzbn Exp $ */
 //DEVELOPMENT
 #ifndef _FS_SOLID_FLUID_MIX_Q8P8_T_H_
 #define _FS_SOLID_FLUID_MIX_Q8P8_T_H_
@@ -387,12 +387,14 @@ private:
 	dArrayT		fGrad_Omega_prim_vector;
 	dArrayT		fgrad_Omega_prim_vector;
 	dArrayT		fGrad_theta_vector;
+	dArrayT     fGrad_theta_dot_vector;		// change, the delta F_inverse terms
 	dArrayT		fGrad_phi_f_vector;
 	dArrayT		fGrad_1_J_vector;
 	dArrayT		fTemp_nsd_vector;
 	dArrayT		fGravity_vector;
 	dArrayT		fFd_int_G4_vector;
 	dArrayT		fFtheta_int_H4_vector;
+	dArrayT		fFtheta_int_H2_vector;		// H2 term
 	dArrayT		fTemp_six_values;
 	dArrayT		fGradv_vector;
 	dArrayT		fgradv_vector;
@@ -454,6 +456,7 @@ private:
 	dMatrixT	fTemp_matrix1_nen_press_x_ndof_se;
 	dMatrixT	fTemp_matrix_nsd_x_ndof_se;
 	dMatrixT	fTemp_matrix_nsd_x_nen_press;
+	dMatrixT    fTemp_matrix_H_IaA_nsd_x_nsd2;		// change, B-P method, stabilization
 	dMatrixT	fIota_temp_matrix;
 	dMatrixT	fVarpi_temp_matrix;
 	dMatrixT	fk_hydraulic_conductivity_matrix; //current config
@@ -546,7 +549,9 @@ private:
 	dMatrixT	fK_thetatheta_HStab_matrix;
 	dMatrixT    fK_thetad_HStab_matrix;			// change ************ \delta J term
 	dMatrixT    fK_thetatheta_HStab_matrix_BP;	// change ************ B-P method
-	dMatrixT    fK_thetad_HStab_matrix_BP;		// change ************ B-P method
+	dMatrixT    fK_thetad_HStab_1_matrix_BP;		// change ************ B-P method
+	dMatrixT    fK_thetad_HStab_2_matrix_BP;		// change ************ B-P method
+	dMatrixT    fK_thetad_HStab_3_matrix_BP;		// change ************ B-P method
 	dArrayT		fFtheta_int_Stab_vector;
 	dArrayT     fFtheta_int_Stab_vector_2;		// change ************ \delta J term
 	dArrayT     fFtheta_int_Stab_vector_BP;		// change ************* B-P method
