@@ -1,27 +1,43 @@
 # options available in this makefile:
-# 1. option to toggle on/off OpenMP (default on)
-# 2. option to toggle on/off GCC quadmath (default off)
+# 1. option to toggle between gcc and intel
+# 2. option to toggle on/off OpenMP (default on)
 # 3. option to switch between optimization/debug mode (default optimization)
+# 4. option to toggle on/off GCC quadmath (default off)
+
+#1. gcc or intel
+COMPILERS = gcc
+#COMPILERS = intel
 
 # C++ compiler
-CXX = g++
+ifeq ($(COMPILERS), gcc)
+ CXX = g++
+endif
 
-# optimization
+ifeq ($(COMPILERS), intel)
+ CXX = icpc
+endif
+
+#2. OpenMP or not (macro OPENMP is defined in source code)
+OMP=-DOPENMP
+#OMP=
+
+ifdef OMP
+ ifeq ($(COMPILERS), gcc)
+  OPENMP = $(OMP) -fopenmp
+ endif
+ ifeq ($(COMPILERS), intel)
+  OPENMP = $(OMP) -openmp
+ endif
+endif
+
+#3. optimize or debug
 OPTIMIZE = -O3 -DNDEBUG
+#OPTIMIZE = -Wall -g
 
-# debugging options
-DEBUG = -Wall -g
-
-# 1. OpenMP (macro OPENMP is defined in source code)
-OPENMP = -DOPENMP -fopenmp
-#OPENMP =
-
-# 2. GCC quadmath
+#4. GCC quadmath
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
-# 3. Optimize or debug
 CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
-#CXXFLAGS = $(DEBUG) $(OPENMP) $(QUADMATH)
 
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
