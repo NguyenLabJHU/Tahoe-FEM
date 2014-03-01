@@ -767,10 +767,10 @@ void plnflb_bdry<T>::flxbBF(){
 			T* e4=RelatedP[iz][ip];
 			p[0]=p1;p[1]=p2;p[2]=p4;
 			e[0]=e1;e[1]=e2;e[2]=e4;
-			sumpressure+=triangleDstr(confining,-norm,p,e);
+			sumpressure+=this->triangleDstr(confining,-norm,p,e);
 			p[0]=p2;p[1]=p3;p[2]=p4;
 			e[0]=e2;e[1]=e3;e[2]=e4;
-			sumpressure+=triangleDstr(confining,-norm,p,e);
+			sumpressure+=this->triangleDstr(confining,-norm,p,e);
 		}
 	}
 };
@@ -1051,10 +1051,10 @@ void cylflb_bdry<T>::flxbBF(){
 			vec tricnt=(p[0]+p[1]+p[2])/3;
 			vec trinm=(tricnt-ct1)-(tricnt-ct1)%nm*nm;
 			trinm*=side;
-			sumpressure+=triangleDstr(confining,trinm,p,e);
+			sumpressure+=this->triangleDstr(confining,trinm,p,e);
 			p[0]=p2;p[1]=p3;p[2]=p4;
 			e[0]=e2;e[1]=e3;e[2]=e4;
-			sumpressure+=triangleDstr(confining,trinm,p,e);
+			sumpressure+=this->triangleDstr(confining,trinm,p,e);
 		}
 	}
 };
