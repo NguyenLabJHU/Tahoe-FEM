@@ -5109,7 +5109,7 @@ debugfile);         // output file, debug info
    << std::setw(OWID) << "wall_time" << std::endl;
   
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!debugInf) { std::cout << "stream error: angleOfRepose" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
   
    // pre_2. create boundaries from existing files.
@@ -6313,7 +6313,7 @@ debugfile);         // output file, debug info
    {
    // pre_1: open streams for output.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: deGravitation" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf.precision(OPREC);
    progressInf << std::setw(OWID) << "iteration"
@@ -6332,7 +6332,7 @@ debugfile);         // output file, debug info
    << std::endl;
   
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!debugInf) { std::cout << "stream error: deGravitation" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
   
    // pre_2. create particles from existing files.
@@ -6427,7 +6427,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output.
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: deposit_p" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "deposit..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -6445,7 +6445,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!debugInf) { std::cout << "stream error: deposit_p" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from existing files.
@@ -6556,7 +6556,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output.
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: squeeze" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "deposit..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -6574,7 +6574,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!debugInf) { std::cout << "stream error: squeeze" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from existing files.
@@ -6721,7 +6721,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile);
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!progressInf) { std::cout << "stream error: isoMemBdry" << std::endl; exit(-1);}
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf.precision(OPREC);
    progressInf << std::setw(OWID) << "iteration"
@@ -6740,7 +6740,7 @@ debugfile);         // output file, debug info
    << std::endl;
   
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: isoMemBdry" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
   
    // pre_2. create particles from file and calculate forces caused by hydraulic pressure
@@ -6878,7 +6878,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile);
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!progressInf) { std::cout << "stream error: triaxialPtclBdryIni" << std::endl; exit(-1);}
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "triaxial..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -6896,7 +6896,7 @@ debugfile);         // output file, debug info
    << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: triaxialPtclBdryIni" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7036,7 +7036,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile);
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!progressInf) { std::cout << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "triaxial..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7054,7 +7054,7 @@ debugfile);         // output file, debug info
    << std::endl;
 
    std::ofstream balancedinf(balancedfile);
-   if(!balancedinf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!balancedinf) { std::cout << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
    balancedinf << "triaxial..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7072,7 +7072,7 @@ debugfile);         // output file, debug info
    << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7204,7 +7204,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error:recPile_Disp" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "pile penetrate..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7222,7 +7222,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: recPile_Disp" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
    debugInf << " iteration    end_bearing     side_friction   total_force" << std::endl;
 
@@ -7353,7 +7353,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: ellipPile_Disp" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "pile penetrate..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7371,7 +7371,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: ellipPile_Disp" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7488,7 +7488,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: ellipPile_Impact" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "penetrator impact..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7506,7 +7506,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: ellipPile_Impact" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7638,7 +7638,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: ellipPile_Impact_p" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "penetrator impact..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7656,7 +7656,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: ellipPile_Impact_p" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7777,7 +7777,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error!" << std::endl; exit(-1); }
+   if(!progressInf) { std::cout << "stream error: ellipPile_Force" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "pile penetrate..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7795,13 +7795,13 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    std::ofstream balancedinf(balancedfile);
-   if(!balancedinf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!balancedinf) { std::cout << "stream error: ellipPile_Force" << std::endl; exit(-1);}
    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
    balancedinf << "pile penetrate..." << std::endl
    << "   iteration   apply_force    pile_tip_pos     pile_force" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+   if(!debugInf) { std::cout << "stream error: ellipPile_Force" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files

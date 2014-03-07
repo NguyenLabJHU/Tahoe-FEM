@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
   broadcast(boostWorld, dem::Parameter::getSingleton(), 0); // broadcast from root process 0
   dem::debugInf.open("debugInf");
-  if(!dem::debugInf) { std::cout << "stream error!" << std::endl; exit(-1);}
+  if(!dem::debugInf) { std::cout << "stream error: main.cpp" << std::endl; exit(-1);}
   dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
   dem::Assembly assemb;

@@ -10,7 +10,7 @@ namespace dem {
   void Parameter::readIn(const char *input) {
     std::ifstream ifs;
     ifs.open(input);
-    if (!ifs) { std::cout << "stream error!" << std::endl; exit(-1); }
+    if (!ifs) { std::cout << "stream error: Parameter.cpp" << std::endl; exit(-1); }
     std::string line;
     std::istringstream ssline;
     std::string str, str2;
