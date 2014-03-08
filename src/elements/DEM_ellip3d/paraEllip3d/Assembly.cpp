@@ -234,7 +234,7 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 		 << std::scientific << std::setprecision(6) << std::endl;
@@ -381,7 +381,7 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 		 << std::scientific << std::setprecision(6) << std::endl;
@@ -531,7 +531,7 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 		 << std::scientific << std::setprecision(6) << std::endl;
@@ -650,7 +650,7 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 		 << std::scientific << std::setprecision(6) << std::endl;
@@ -785,7 +785,7 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 		 << std::scientific << std::setprecision(6) << std::endl;
@@ -1006,7 +1006,7 @@ namespace dem {
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       /*
 	if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	debugInf << "iter=" << std::setw(8) << iteration << std::setprecision(2)
+	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
 	<< " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
 	<< " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
 	<< std::scientific << std::setprecision(6) << std::endl;
@@ -3212,7 +3212,7 @@ namespace dem {
     
 #ifdef TIME_PROFILE
       gettimeofday(&time_p2, NULL);
-      debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
+      debugInf<< std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
 #endif
 
     }

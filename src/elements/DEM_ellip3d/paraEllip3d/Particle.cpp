@@ -299,7 +299,7 @@ namespace dem {
   
     REAL delta = B*B - 4*A*C;
     if (delta < 0){
-      debugInf << "Particle.cpp: iter=" << iteration
+      contactInf << "Particle.cpp: iter=" << iteration
 	       << " delta < 0 in intersectWithLine()" << std::endl;
       return false;
     }
@@ -383,7 +383,7 @@ namespace dem {
     // if delta < 0, then it is usually -1.0e-20, caused by computational precision.
     /*
       if (B*B-4*A*C < 0){
-      debugInf<< "Particle.cpp: iter=" << iteration
+      contactInf<< "Particle.cpp: iter=" << iteration
       << " delta < 0 in getRadius()"
       << " delta=" << B*B-4*A*C
       << " -C/B=" << -C/B
@@ -642,7 +642,7 @@ namespace dem {
     REAL E0 = young/(1-poisson*poisson); // rigid wall has infinite young's modulus
     REAL allowedOverlap = 2.0 * R0 * dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
     if (penetr > allowedOverlap) {
-      debugInf << "Particle.cpp: iter=" << iteration 
+      contactInf << "Particle.cpp: iter=" << iteration 
 	       << " ptclId=" << getId()
 	       << " bdryId=" << plane->getId()
 	       << " penetr=" << penetr 
@@ -658,7 +658,7 @@ namespace dem {
     Vec normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) * 4 * E0/3 * normalDirc;
   
     /*
-      debugInf << ' ' << iteration
+      contactInf << ' ' << iteration
       << ' ' << getId()
       << ' ' << plane->boundaryId
       << ' ' << pt1.getX()
@@ -804,7 +804,7 @@ namespace dem {
     
       /*
 	if (iteration % 100 == 0)  
-	debugInf << "Particle.cpp, iter=" << iteration
+	contactInf << "Particle.cpp, iter=" << iteration
 	<< " normalForce=" << vfabs(normalForce)
 	<< " cntDampingForce= " << vfabs(cntDampingForce)
 	<< " kn=" << kn

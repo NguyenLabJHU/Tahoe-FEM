@@ -168,7 +168,7 @@ namespace dem {
       E0 = 0.5*young/(1-poisson*poisson);
       REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * maxRelaOverlap;
       if (penetr > allowedOverlap) {
-	debugInf << "Contact.h: iter=" << iteration 
+	contactInf << "Contact.h: iter=" << iteration 
 		 << " ptcl1=" << getP1()->getId()
 		 << " ptcl2=" << getP2()->getId()
 		 << " penetr=" << penetr 
@@ -194,7 +194,7 @@ namespace dem {
       p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % (-normalForce) );	
       
       /*
-      debugInf << "Contact.h: iter=" << iteration
+      contactInf << "Contact.h: iter=" << iteration
 	       << " penetr=" << penetr
 	       << " cohesionForce=" << vfabs(cohesionForce)
 	       << " normalForce=" << vfabs(normalForce)
@@ -347,7 +347,7 @@ namespace dem {
 	}
 	
 	/*
-	debugInf << "Contact.h: iter="<iteration
+	contactInf << "Contact.h: iter="<iteration
 		 << " prevTgtSlide=" << prevTgtSlide
 		 << " tgtSlide=" << tgtSlide
 		 << " val=" << val

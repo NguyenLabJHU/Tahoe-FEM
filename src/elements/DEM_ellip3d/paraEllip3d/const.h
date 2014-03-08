@@ -21,6 +21,7 @@ namespace dem {
 
   // other global variables
   extern std::ofstream debugInf;
+  extern std::ofstream contactInf;
   extern std::size_t iteration;
   extern REAL timeStep;
   extern REAL timeAccrued;
