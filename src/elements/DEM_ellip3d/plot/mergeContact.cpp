@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  const int OWID = 16; 
+  const int OWID = 15; 
   const int OPREC = 6; 
   
   int startSnap = atoi(argv[2]);
