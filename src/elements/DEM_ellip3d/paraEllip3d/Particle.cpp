@@ -653,6 +653,7 @@ namespace dem {
       MPI_Status status;
       int length = OWID*2 + 8*3 + 19 + 7*3 + 8 + 1;
       MPI_File_write_shared(overlapInf, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
+
       penetr = allowedOverlap;
     }
   
