@@ -168,11 +168,17 @@ namespace dem {
       E0 = 0.5*young/(1-poisson*poisson);
       REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * maxRelaOverlap;
       if (penetr > allowedOverlap) {
-	contactInf << "Contact.h: iter=" << iteration 
-		 << " ptcl1=" << getP1()->getId()
-		 << " ptcl2=" << getP2()->getId()
-		 << " penetr=" << penetr 
-		 << " allow=" << allowedOverlap << std::endl;
+	std::stringstream inf;
+	inf.setf(std::ios::scientific, std::ios::floatfield);
+	inf << " Contact.cpp: iter=" << std::setw(8) << iteration 
+	    << " ptcl1=" << std::setw(8) << getP1()->getId()
+	    << " ptcl2=" << std::setw(8) << getP2()->getId()
+	    << " penetr="<< std::setw(OWID) << penetr 
+	    << " allow=" << std::setw(OWID) << allowedOverlap
+	    << std::endl;
+	MPI_Status status;
+	int length = 15*2 + 8*3 + 19 + 7*3 + 8 + 1;
+	MPI_File_write_shared(overlapInf, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
 	penetr = allowedOverlap;
       }
 
@@ -194,7 +200,7 @@ namespace dem {
       p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % (-normalForce) );	
       
       /*
-      contactInf << "Contact.h: iter=" << iteration
+      std::cout<< "Contact.h: iter=" << iteration
 	       << " penetr=" << penetr
 	       << " cohesionForce=" << vfabs(cohesionForce)
 	       << " normalForce=" << vfabs(normalForce)
@@ -347,7 +353,7 @@ namespace dem {
 	}
 	
 	/*
-	contactInf << "Contact.h: iter="<iteration
+	std::cout<< "Contact.h: iter="<iteration
 		 << " prevTgtSlide=" << prevTgtSlide
 		 << " tgtSlide=" << tgtSlide
 		 << " val=" << val

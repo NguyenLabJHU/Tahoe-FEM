@@ -51,18 +51,21 @@ int main(int argc, char* argv[]) {
       return -1;
     }
   }
-
   broadcast(boostWorld, dem::Parameter::getSingleton(), 0); // broadcast from root process 0
-
-  dem::debugInf.open("debugInf");
-  if(!dem::debugInf) { std::cout << "stream error: main.cpp debugInf" << std::endl; exit(-1);}
-  dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
-  dem::contactInf.open("contactInf");
-  if(!dem::contactInf) { std::cout << "stream error: main.cpp contactInf" << std::endl; exit(-1);}
-  dem::contactInf.setf(std::ios::scientific, std::ios::floatfield);
 
   dem::Assembly assemb;
   assemb.setCommunicator(boostWorld);
+
+  // only root process prints to debugInf
+  if (boostWorld.rank() == 0) {
+    dem::debugInf.open("debugInf");
+    if(!dem::debugInf) { std::cout << "stream error: main.cpp debugInf" << std::endl; exit(-1);}
+    dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
+  }
+
+  // parallel IO
+  MPI_File_open(MPI_Comm(boostWorld), "overlapInf", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dem::overlapInf);
+  if(boostWorld.rank() == 0 && !dem::overlapInf) { std::cout << "stream error: main.cpp overlapInf" << std::endl; exit(-1);}
 
   int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
   switch (simuType) {
@@ -117,7 +120,7 @@ int main(int argc, char* argv[]) {
   }
   
   dem::debugInf.close();
-  dem::contactInf.close();
+  MPI_File_close(&dem::overlapInf);
   return 0;
 }
 

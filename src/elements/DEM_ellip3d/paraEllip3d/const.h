@@ -1,5 +1,6 @@
 #ifndef CONST_H
 #define CONST_H
+#include <mpi.h>
 #include "realtypes.h"
 #include <cstddef>
 #include <fstream>
@@ -21,7 +22,7 @@ namespace dem {
 
   // other global variables
   extern std::ofstream debugInf;
-  extern std::ofstream contactInf;
+  extern MPI_File overlapInf;
   extern std::size_t iteration;
   extern REAL timeStep;
   extern REAL timeAccrued;

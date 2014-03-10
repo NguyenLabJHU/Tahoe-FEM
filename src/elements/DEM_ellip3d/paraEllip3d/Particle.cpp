@@ -298,9 +298,9 @@ namespace dem {
       + g*x0 + h*y0 + i*z0 + j;
   
     REAL delta = B*B - 4*A*C;
-    if (delta < 0){
-      contactInf << "Particle.cpp: iter=" << iteration
-	       << " delta < 0 in intersectWithLine()" << std::endl;
+    if (delta < 0) {
+      std::cout << "Particle.cpp: iter=" << iteration
+		<< " delta < 0 in intersectWithLine()" << std::endl;
       return false;
     }
     else{
@@ -383,7 +383,7 @@ namespace dem {
     // if delta < 0, then it is usually -1.0e-20, caused by computational precision.
     /*
       if (B*B-4*A*C < 0){
-      contactInf<< "Particle.cpp: iter=" << iteration
+      std::cout<< "Particle.cpp: iter=" << iteration
       << " delta < 0 in getRadius()"
       << " delta=" << B*B-4*A*C
       << " -C/B=" << -C/B
@@ -642,11 +642,17 @@ namespace dem {
     REAL E0 = young/(1-poisson*poisson); // rigid wall has infinite young's modulus
     REAL allowedOverlap = 2.0 * R0 * dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
     if (penetr > allowedOverlap) {
-      contactInf << "Particle.cpp: iter=" << iteration 
-	       << " ptclId=" << getId()
-	       << " bdryId=" << plane->getId()
-	       << " penetr=" << penetr 
-	       << " allow="  << allowedOverlap << std::endl;
+      std::stringstream inf;
+      inf.setf(std::ios::scientific, std::ios::floatfield);
+      inf << "Particle.cpp: iter=" << std::setw(8) << iteration 
+	  << "  ptcl=" << std::setw(8) << getId()
+	  << "  bdry=" << std::setw(8) << plane->getId()
+	  << " penetr=" << std::setw(OWID) << penetr 
+	  << " allow="  << std::setw(OWID) << allowedOverlap
+	  << std::endl;
+      MPI_Status status;
+      int length = OWID*2 + 8*3 + 19 + 7*3 + 8 + 1;
+      MPI_File_write_shared(overlapInf, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
       penetr = allowedOverlap;
     }
   
@@ -658,7 +664,7 @@ namespace dem {
     Vec normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) * 4 * E0/3 * normalDirc;
   
     /*
-      contactInf << ' ' << iteration
+      std::cout << ' ' << iteration
       << ' ' << getId()
       << ' ' << plane->boundaryId
       << ' ' << pt1.getX()
@@ -804,7 +810,7 @@ namespace dem {
     
       /*
 	if (iteration % 100 == 0)  
-	contactInf << "Particle.cpp, iter=" << iteration
+	std::cout << "Particle.cpp, iter=" << iteration
 	<< " normalForce=" << vfabs(normalForce)
 	<< " cntDampingForce= " << vfabs(cntDampingForce)
 	<< " kn=" << kn

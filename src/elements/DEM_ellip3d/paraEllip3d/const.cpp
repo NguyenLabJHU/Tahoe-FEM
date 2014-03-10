@@ -17,7 +17,7 @@ namespace dem {
 
   // other global variables
   std::ofstream debugInf;         // debug info
-  std::ofstream contactInf;       // contact correction info, need parallel I/O version 
+  MPI_File overlapInf;            // contact overlap info, parallel I/O
   std::size_t iteration;          // iteration number
   REAL timeStep;                  // time step
   REAL timeAccrued;               // accurued time
