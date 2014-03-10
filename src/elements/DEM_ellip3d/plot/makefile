@@ -12,7 +12,10 @@ RUN_LIB_DIR=$(BOOST_RUN_LIB_DIR)
 MERGESRC = mergeContact.cpp
 MERGEEXE = $(MERGESRC:.cpp=)
 
-TOOLSRC = $(filter-out $(MERGESRC), $(wildcard *.cpp) )
+UNIQUESRC = uniqueContact.cpp
+UNIQUEEXE = $(UNIQUESRC:.cpp=)
+
+TOOLSRC = $(filter-out $(MERGESRC) $(UNIQUESRC), $(wildcard *.cpp) )
 TOOLEXE = $(TOOLSRC:.cpp=)
 
 CXX = g++
@@ -25,10 +28,14 @@ all: $(TOOLEXE)
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-merge: $(MERGEEXE)
+mergeContact: $(MERGEEXE)
+uniqueContact: $(UNIQUEEXE)
 
 $(MERGEEXE): $(MERGESRC)
 	$(CXX) $(CXXFLAGS) $< -o $@ $(INCLUDE) $(LIB_DIR) $(RUN_LIB_DIR)
 
+$(UNIQUEEXE): $(UNIQUESRC)
+	$(CXX) $(CXXFLAGS) $< -o $@ $(INCLUDE) $(LIB_DIR) $(RUN_LIB_DIR)
+
 clean:
-	-rm -f *~ $(TOOLEXE) $(MERGEEXE)
+	-rm -f *~ $(TOOLEXE) $(MERGEEXE) $(UNIQUEEXE)
