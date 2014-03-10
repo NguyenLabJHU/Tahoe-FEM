@@ -191,6 +191,9 @@ namespace dem {
       printParticle(combineString(cstr0, "deposit_particle_", iterSnap - 1, 3));
       printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
     }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
@@ -233,12 +236,9 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
-		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
-		 << std::scientific << std::setprecision(6) << std::endl;
-
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       ++iteration;
     } 
   
@@ -342,6 +342,9 @@ namespace dem {
       printBoundary(combineString(cstr0, "isotropic_boundary_", iterSnap - 1, 3));
       getStartDimension(distX, distY, distZ);
     }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -380,11 +383,9 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
-		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
-		 << std::scientific << std::setprecision(6) << std::endl;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
@@ -492,6 +493,9 @@ namespace dem {
       printBoundary(combineString(cstr0, "odometer_boundary_", iterSnap - 1, 3));
       getStartDimension(distX, distY, distZ);
     }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -530,11 +534,9 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
-		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
-		 << std::scientific << std::setprecision(6) << std::endl;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       if (odometerType == 1) {
 	if (tractionErrorTol(sigmaVar, "odometer")) {
@@ -611,6 +613,9 @@ namespace dem {
       printBoundary(combineString(cstr0, "triaxial_boundary_", iterSnap - 1, 3));
       getStartDimension(distX, distY, distZ);
     }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -649,11 +654,9 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
-		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
-		 << std::scientific << std::setprecision(6) << std::endl;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       if (mpiRank == 0 && iteration % 10 == 0)
 	printCompressProg(progressInf, distX, distY, distZ);
@@ -732,6 +735,9 @@ namespace dem {
       printBoundary(combineString(cstr0, "trueTriaxial_boundary_", iterSnap - 1, 3));
       getStartDimension(distX, distY, distZ);
     }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -784,11 +790,9 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-		 << " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
-		 << " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
-		 << std::scientific << std::setprecision(6) << std::endl;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       if (trueTriaxialType == 1) {
 	if (tractionErrorTol(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY)) {
@@ -957,6 +961,11 @@ namespace dem {
       printBdryContact(combineString(cstr0, "couple_bdrycntc_", iterSnap -1, 3));
       /*3*/ fluid.plot(strcat(combineString(cstr0, "couple_fluidplot_", iterSnap -1, 3), ".dat")); 
     }
+    /*
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+    */
     while (timeAccrued < timeTotal) { 
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -1005,11 +1014,9 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       /*
-	if (mpiRank == 0 && (iteration + 1) % (netStep / netSnap) == 0) // ignore gather and print time
-	std::cout << "iter=" << std::setw(8) << iteration << std::setprecision(2)
-	<< " commu=" << commuT << " gather=" << gatherT << " migra=" << migraT << " total=" << totalT 
-	<< " overhead=" << std::fixed << (commuT + gatherT + migraT)/totalT*100 << '%' 
-	<< std::scientific << std::setprecision(6) << std::endl;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       */
 
       ++iteration;
@@ -1178,7 +1185,7 @@ namespace dem {
 	     center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) )
 	{
 	  /*
-	    std::cout << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank
+	    debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank
 	    << " removed=" << std::setw(3) << (*itr)->getId();	
 	    flag = 1;
 	  */
@@ -1190,10 +1197,10 @@ namespace dem {
     }
     /*
       if (flag == 1) {
-      std::cout << " now " << particleVec.size() << ": ";
+      debugInf << " now " << particleVec.size() << ": ";
       for (std::vector<Particle*>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
-      std::cout << std::setw(3) << (*it)->getId();
-      std::cout << std::endl;
+      debugInf << std::setw(3) << (*it)->getId();
+      debugInf << std::endl;
       }
     */
 
@@ -1302,7 +1309,7 @@ namespace dem {
     MPI_Cart_coords(cartComm, mpiRank, ndim, mpiCoords);
     mpiTag = 0;
     assert(mpiRank == boostWorld.rank());
-    //std::cout << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
+    //debugInf << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
 
     for (int iRank = 0; iRank < mpiSize; ++iRank) {
       int ndim = 3;
@@ -1571,7 +1578,7 @@ namespace dem {
     boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();   
-    //std::cout << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
+    //debugInf << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
     REAL cellSize = gradation.getPtclMaxRadius() * 2;
     // 6 surfaces
     if (rankX1 >= 0) { // surface x1
@@ -1833,7 +1840,7 @@ namespace dem {
       testParticleVec.insert(testParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
       testParticleVec.insert(testParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
       testParticleVec.insert(testParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
-      std::cout << "iter=" << std::setw(4) << iteration << " rank=" << std::setw(4) << mpiRank 
+      debugInf << "iter=" << std::setw(4) << iteration << " rank=" << std::setw(4) << mpiRank 
       << " ptclNum=" << std::setw(4) << particleVec.size() 
       << " surface="
       << std::setw(4) << particleX1.size()  << std::setw(4) << particleX2.size()
@@ -1847,8 +1854,8 @@ namespace dem {
       << std::setw(4) << recvParticleVec.size() << ": ";   
 
       for (std::vector<Particle*>::const_iterator it = testParticleVec.begin(); it != testParticleVec.end();++it)
-      std::cout << (*it)->getId() << ' ';
-      std::cout << std::endl;
+      debugInf << (*it)->getId() << ' ';
+      debugInf << std::endl;
       testParticleVec.clear();
     */
   }
@@ -2268,14 +2275,14 @@ namespace dem {
 
     /*
       if (recvParticleVec.size() > 0) {    
-      std::cout << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank 
+      debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank 
       << "   added=";
       for (std::vector<Particle*>::const_iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
-      std::cout << std::setw(3) << (*it)->getId();
-      std::cout << " now " << particleVec.size() << ": ";
+      debugInf << std::setw(3) << (*it)->getId();
+      debugInf << " now " << particleVec.size() << ": ";
       for (std::vector<Particle*>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
-      std::cout << std::setw(3) << (*it)->getId();
-      std::cout << std::endl;
+      debugInf << std::setw(3) << (*it)->getId();
+      debugInf << std::endl;
       }
     */
 
@@ -2342,7 +2349,7 @@ namespace dem {
 	gatherRam += tmpParticleVec.size();
 
       }
-      //std::cout << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << std::endl;
+      //debugInf << "gather: particleNum = " << gatherRam <<  " particleRam = " << gatherRam * sizeof(Particle) << std::endl;
     }
   }
 
@@ -2391,7 +2398,7 @@ namespace dem {
 
   void Assembly::printBdryContact(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printBdryContact" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printBdryContact" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
   
@@ -2419,7 +2426,7 @@ namespace dem {
 
   void  Assembly::openDepositProg(std::ofstream &ofs, const char *str) {
     ofs.open(str);
-    if(!ofs) { std::cout << "stream error: openDepositProg" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: openDepositProg" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
@@ -2575,7 +2582,7 @@ namespace dem {
 
   void  Assembly::openCompressProg(std::ofstream &ofs, const char *str) {
     ofs.open(str);
-    if(!ofs) { std::cout << "stream error: openCompressProg" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: openCompressProg" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
@@ -2770,7 +2777,7 @@ namespace dem {
 
   void  Assembly::openParticleProg(std::ofstream &ofs, const char *str) {
     ofs.open(str);
-    if(!ofs) { std::cout << "stream error: openParticleProg" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: openParticleProg" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
@@ -2804,7 +2811,7 @@ namespace dem {
     REAL poisson = dem::Parameter::getSingleton().parameter["poisson"];
 
     std::ifstream ifs(inputParticle);
-    if(!ifs) { std::cout << "stream error: readParticle" << std::endl; exit(-1); }
+    if(!ifs) { debugInf << "stream error: readParticle" << std::endl; exit(-1); }
     std::size_t particleNum;
     ifs >> particleNum;
     std::string str;
@@ -2855,7 +2862,7 @@ namespace dem {
 
   void Assembly::printParticle(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printParticle" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     ofs << std::setw(OWID) << allParticleVec.size() << std::endl;
@@ -2954,7 +2961,7 @@ namespace dem {
 
   void Assembly::printParticle(const char *str, std::vector<Particle*>  &particleVec) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printParticle" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printParticle" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     ofs << std::setw(OWID) << particleVec.size() << std::endl;
@@ -3045,7 +3052,7 @@ namespace dem {
 
   void Assembly::readBoundary(const char *str) {
     std::ifstream ifs(str);
-    if(!ifs) { std::cout << "stream error: readBoundary" << std::endl; exit(-1); }
+    if(!ifs) { debugInf << "stream error: readBoundary" << std::endl; exit(-1); }
 
     REAL x1, y1, z1, x2, y2, z2;
     ifs >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
@@ -3074,7 +3081,7 @@ namespace dem {
 
   void Assembly::printBoundary(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printBoundary" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printBoundary" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
   
     Vec v1 = allContainer.getMinCorner();
@@ -3099,7 +3106,7 @@ namespace dem {
 
   void Assembly::plotBoundary(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: plotBoundary" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: plotBoundary" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
@@ -3128,7 +3135,7 @@ namespace dem {
 
   void Assembly::plotGrid(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: plotGrid" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: plotGrid" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
@@ -3401,12 +3408,63 @@ namespace dem {
 
   void Assembly::printContact(char *str) const
   {
+    // There are two implementions of printContact
+    // implementation 1: parallel IO, each process prints to a data file using a shared pointer.
+    //                   and use post-processing tool to remove redundant info.
+    MPI_Status status;
+    MPI_File contactFile;
+    MPI_File_open(mpiWorld, str, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &contactFile);
+    if(boostWorld.rank() == 0 && !contactFile) { std::cout << "stream error: printContact" << std::endl; exit(-1);}
+
+    std::stringstream inf;
+    inf.setf(std::ios::scientific, std::ios::floatfield);
+
+    for (std::vector<Contact>::const_iterator it = contactVec.begin(); it != contactVec.end(); ++it)
+      inf << std::setw(OWID) << it->getP1()->getId()
+	  << std::setw(OWID) << it->getP2()->getId()
+	  << std::setw(OWID) << it->getPoint1().getX()
+	  << std::setw(OWID) << it->getPoint1().getY()
+	  << std::setw(OWID) << it->getPoint1().getZ()
+	  << std::setw(OWID) << it->getPoint2().getX()
+	  << std::setw(OWID) << it->getPoint2().getY()
+	  << std::setw(OWID) << it->getPoint2().getZ()
+	  << std::setw(OWID) << it->getRadius1()
+	  << std::setw(OWID) << it->getRadius2()
+	  << std::setw(OWID) << it->getPenetration()
+	  << std::setw(OWID) << it->getTgtDisp()
+	  << std::setw(OWID) << it->getContactRadius()
+	  << std::setw(OWID) << it->getR0()
+	  << std::setw(OWID) << it->getE0()
+	  << std::setw(OWID) << it->getNormalForce()
+	  << std::setw(OWID) << it->getTgtForce()
+	  << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
+	  << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
+	  << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
+	  << std::setw(OWID) << it->normalForceVec().getX()
+	  << std::setw(OWID) << it->normalForceVec().getY()
+	  << std::setw(OWID) << it->normalForceVec().getZ()
+	  << std::setw(OWID) << it->tgtForceVec().getX()
+	  << std::setw(OWID) << it->tgtForceVec().getY()
+	  << std::setw(OWID) << it->tgtForceVec().getZ()
+	  << std::setw(OWID) << it->getVibraTimeStep()
+	  << std::setw(OWID) << it->getImpactTimeStep()
+	  << std::endl;
+
+    int length = (OWID*28 + 1) *contactVec.size();
+    // write a file at a location specified by a shared file pointer (blocking, collective)
+    // note MPI_File_write_shared is non-collective
+    MPI_File_write_ordered(contactFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
+    MPI_File_close(&contactFile);
+
+    // implementation 2: each process prints to an individual file.
+    //                   use post-processing tool to merge files and remove redundance.
+    /*
     char csuf[10];
     combineString(csuf, ".p", mpiRank, 5);
     strcat(str, csuf);
 
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: printContact" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printContact" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
   
@@ -3473,6 +3531,7 @@ namespace dem {
 	  << std::setw(OWID) << it->getImpactTimeStep()
 	  << std::endl;
     ofs.close();
+    */
   }
 
 
@@ -3653,7 +3712,7 @@ namespace dem {
 			       const char *boundaryFile)
   {
     std::ofstream ofs(boundaryFile);
-    if(!ofs) { std::cout << "stream error: buildBoundary" << std::endl; exit(-1);}
+    if(!ofs) { debugInf << "stream error: buildBoundary" << std::endl; exit(-1);}
     ofs.setf(std::ios::scientific, std::ios::floatfield);
 
     Vec  v1 = allContainer.getMinCorner();
@@ -3998,7 +4057,7 @@ debugfile);         // output file, debug info
  /*
    void Assembly::plotCavity(const char *str) const {
    std::ofstream ofs(str);
-   if(!ofs) { std::cout << "stream error: plotCavity" << std::endl; exit(-1); }
+   if(!ofs) { debugInf << "stream error: plotCavity" << std::endl; exit(-1); }
    ofs.setf(std::ios::scientific, std::ios::floatfield);
    ofs.precision(OPREC);
 
@@ -4026,7 +4085,7 @@ debugfile);         // output file, debug info
 
    void Assembly::plotSpring(const char *str) const {
    std::ofstream ofs(str);
-   if(!ofs) { std::cout << "stream error: plotSpring" << std::endl; exit(-1); }
+   if(!ofs) { debugInf << "stream error: plotSpring" << std::endl; exit(-1); }
    ofs.setf(std::ios::scientific, std::ios::floatfield);
    ofs.precision(OPREC);
 
@@ -4055,7 +4114,7 @@ debugfile);         // output file, debug info
 
    void Assembly::printMemParticle(const char *str) const  {
    std::ofstream ofs(str);
-   if(!ofs) { std::cout << "stream error: printMemParticle" << std::endl; exit(-1); }
+   if(!ofs) { debugInf << "stream error: printMemParticle" << std::endl; exit(-1); }
    ofs.setf(std::ios::scientific, std::ios::floatfield);
    ofs.precision(OPREC);
   
@@ -4693,7 +4752,7 @@ debugfile);         // output file, debug info
 	  
    // for particles inside the cell itself   
    for (int n = m + 1; n < cellVec[i][j][k].second.size(); ++n) {
-   //std::cout <<  i << " " << j << " " << k << " " << "m n size=" << m << " " << n << " " <<  cellVec[i][j][k].size() << std::endl;
+   //debugInf <<  i << " " << j << " " << k << " " << "m n size=" << m << " " << n << " " <<  cellVec[i][j][k].size() << std::endl;
    pt = cellVec[i][j][k].second[n];
    v  = pt->getCurrPos();
    if ( ( vfabs(u-v) < it->getA() + pt->getA() )  &&
@@ -4720,7 +4779,7 @@ debugfile);         // output file, debug info
    int cj = j + neighbor[ncell][1];
    int ck = k + neighbor[ncell][2];
    if (ci > -1 && ci < nx && cj > -1 && cj < ny && ck > -1 && ck < nz && cellVec[ci][cj][ck].first == false ) {
-   //std::cout << "i j k m ncell ci cj ck size contacts= " << i << " " << j << " " << k << " " << m  << " " << ncell << " " << ci << " " << cj << " " << ck << " " << cellVec[ci][cj][ck].second.size() << " "  << contactVec.size() << std::endl;
+   //debugInf << "i j k m ncell ci cj ck size contacts= " << i << " " << j << " " << k << " " << m  << " " << ncell << " " << ci << " " << cj << " " << ck << " " << cellVec[ci][cj][ck].second.size() << " "  << contactVec.size() << std::endl;
    std::vector<Particle*> vt = cellVec[ci][cj][ck].second;
    for (int n = 0; n < vt.size(); ++n) {
    pt = vt[n];
@@ -4863,7 +4922,7 @@ debugfile);         // output file, debug info
 
    void Assembly::readCavityBoundary(const char *str) {
    std::ifstream ifs(str);
-   if(!ifs) { std::cout << "stream error: readCavityBoundary" << std::endl; exit(-1); }  
+   if(!ifs) { debugInf << "stream error: readCavityBoundary" << std::endl; exit(-1); }  
 
    Boundary<Particle>* rbptr;
    int type;
@@ -4883,7 +4942,7 @@ debugfile);         // output file, debug info
 
    void Assembly::printCavityBoundary(const char *str) const {
    std::ofstream ofs(str);
-   if(!ofs) { std::cout << "stream error: printCavityBoundary" << std::endl; exit(-1); }
+   if(!ofs) { debugInf << "stream error: printCavityBoundary" << std::endl; exit(-1); }
    ofs.setf(std::ios::scientific, std::ios::floatfield);
   
    ofs << std::setw(OWID) << cavityBoundaryVec.size() << std::endl;
@@ -5067,7 +5126,7 @@ debugfile);         // output file, debug info
    {
    // pre_1: open streams for output.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: angleOfRepose" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: angleOfRepose" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf.precision(OPREC);
    progressInf << std::setw(OWID) << "iteration"
@@ -5109,7 +5168,7 @@ debugfile);         // output file, debug info
    << std::setw(OWID) << "wall_time" << std::endl;
   
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: angleOfRepose" << std::endl; exit(-1); }
+   if(!debugInf) { debugInf << "stream error: angleOfRepose" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
   
    // pre_2. create boundaries from existing files.
@@ -5455,7 +5514,7 @@ debugfile);         // output file, debug info
 
    void Assembly::printCavityParticle(int total, const char *str) const {
    std::ofstream ofs(str);
-   if(!ofs) { std::cout << "stream error: printCavityParticle" << std::endl; exit(-1); }
+   if(!ofs) { debugInf << "stream error: printCavityParticle" << std::endl; exit(-1); }
    ofs.setf(std::ios::scientific, std::ios::floatfield);
    ofs.precision(OPREC);
    ofs << std::setw(OWID) << total << std::setw(OWID) << 1 << std::endl;
@@ -5571,7 +5630,7 @@ debugfile);         // output file, debug info
    void Assembly::buildCavityBoundary(int existMaxId, const char *boundaryFile)
    {
    std::ofstream ofs(boundaryFile);
-   if(!ofs) { std::cout << "stream error: buildCavityBoundary" << std::endl; exit(-1); }
+   if(!ofs) { debugInf << "stream error: buildCavityBoundary" << std::endl; exit(-1); }
 
    REAL x1,x2,y1,y2,z1,z2,x0,y0,z0;
    x1 = cavity.getMinCorner().getX();
@@ -6313,7 +6372,7 @@ debugfile);         // output file, debug info
    {
    // pre_1: open streams for output.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: deGravitation" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: deGravitation" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf.precision(OPREC);
    progressInf << std::setw(OWID) << "iteration"
@@ -6332,7 +6391,7 @@ debugfile);         // output file, debug info
    << std::endl;
   
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: deGravitation" << std::endl; exit(-1); }
+   if(!debugInf) { debugInf << "stream error: deGravitation" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
   
    // pre_2. create particles from existing files.
@@ -6427,7 +6486,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output.
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: deposit_p" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: deposit_p" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "deposit..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -6445,7 +6504,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: deposit_p" << std::endl; exit(-1); }
+   if(!debugInf) { debugInf << "stream error: deposit_p" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from existing files.
@@ -6556,7 +6615,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output.
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: squeeze" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: squeeze" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "deposit..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -6574,7 +6633,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: squeeze" << std::endl; exit(-1); }
+   if(!debugInf) { debugInf << "stream error: squeeze" << std::endl; exit(-1); }
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from existing files.
@@ -6721,7 +6780,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile);
-   if(!progressInf) { std::cout << "stream error: isoMemBdry" << std::endl; exit(-1);}
+   if(!progressInf) { debugInf << "stream error: isoMemBdry" << std::endl; exit(-1);}
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf.precision(OPREC);
    progressInf << std::setw(OWID) << "iteration"
@@ -6740,7 +6799,7 @@ debugfile);         // output file, debug info
    << std::endl;
   
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: isoMemBdry" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: isoMemBdry" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
   
    // pre_2. create particles from file and calculate forces caused by hydraulic pressure
@@ -6878,7 +6937,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile);
-   if(!progressInf) { std::cout << "stream error: triaxialPtclBdryIni" << std::endl; exit(-1);}
+   if(!progressInf) { debugInf << "stream error: triaxialPtclBdryIni" << std::endl; exit(-1);}
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "triaxial..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -6896,7 +6955,7 @@ debugfile);         // output file, debug info
    << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: triaxialPtclBdryIni" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: triaxialPtclBdryIni" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7036,7 +7095,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile);
-   if(!progressInf) { std::cout << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
+   if(!progressInf) { debugInf << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "triaxial..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7054,7 +7113,7 @@ debugfile);         // output file, debug info
    << std::endl;
 
    std::ofstream balancedinf(balancedfile);
-   if(!balancedinf) { std::cout << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
+   if(!balancedinf) { debugInf << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
    balancedinf << "triaxial..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7072,7 +7131,7 @@ debugfile);         // output file, debug info
    << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: triaxialPtclBdry" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7204,7 +7263,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error:recPile_Disp" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error:recPile_Disp" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "pile penetrate..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7222,7 +7281,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: recPile_Disp" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: recPile_Disp" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
    debugInf << " iteration    end_bearing     side_friction   total_force" << std::endl;
 
@@ -7353,7 +7412,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: ellipPile_Disp" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: ellipPile_Disp" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "pile penetrate..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7371,7 +7430,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: ellipPile_Disp" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: ellipPile_Disp" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7488,7 +7547,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: ellipPile_Impact" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: ellipPile_Impact" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "penetrator impact..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7506,7 +7565,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: ellipPile_Impact" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: ellipPile_Impact" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7638,7 +7697,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: ellipPile_Impact_p" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: ellipPile_Impact_p" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "penetrator impact..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7656,7 +7715,7 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: ellipPile_Impact_p" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: ellipPile_Impact_p" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
@@ -7777,7 +7836,7 @@ debugfile);         // output file, debug info
    // pre_1: open streams for output
    // ParticleFile and contactfile are used for snapNum at the end.
    progressInf.open(progressfile); 
-   if(!progressInf) { std::cout << "stream error: ellipPile_Force" << std::endl; exit(-1); }
+   if(!progressInf) { debugInf << "stream error: ellipPile_Force" << std::endl; exit(-1); }
    progressInf.setf(std::ios::scientific, std::ios::floatfield);
    progressInf << "pile penetrate..." << std::endl
    << "     iteration possible  actual      average	    average         average         average"
@@ -7795,13 +7854,13 @@ debugfile);         // output file, debug info
    << "epsilon_v" << std::endl;
 
    std::ofstream balancedinf(balancedfile);
-   if(!balancedinf) { std::cout << "stream error: ellipPile_Force" << std::endl; exit(-1);}
+   if(!balancedinf) { debugInf << "stream error: ellipPile_Force" << std::endl; exit(-1);}
    balancedinf.setf(std::ios::scientific, std::ios::floatfield);
    balancedinf << "pile penetrate..." << std::endl
    << "   iteration   apply_force    pile_tip_pos     pile_force" << std::endl;
 
    debugInf.open(debugfile);
-   if(!debugInf) { std::cout << "stream error: ellipPile_Force" << std::endl; exit(-1);}
+   if(!debugInf) { debugInf << "stream error: ellipPile_Force" << std::endl; exit(-1);}
    debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
    // pre_2. create particles and boundaries from files
