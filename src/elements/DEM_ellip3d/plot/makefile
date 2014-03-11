@@ -28,8 +28,8 @@ all: $(TOOLEXE)
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-mergeContact: $(MERGEEXE)
-uniqueContact: $(UNIQUEEXE)
+merge: $(MERGEEXE)
+unique: $(UNIQUEEXE)
 
 $(MERGEEXE): $(MERGESRC)
 	$(CXX) $(CXXFLAGS) $< -o $@ $(INCLUDE) $(LIB_DIR) $(RUN_LIB_DIR)
