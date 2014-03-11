@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 {
   if(argc < 4) {
     std::cout << std::endl 
-	      << "-- remove redundance in particle contact info --" << std::endl
+	      << "-- remove redundance (unique) in particle contact info --" << std::endl
 	      << "  Usage:  uniqueContact  file_prefix  start_snap  end_snap" << std::endl
 	      << "Example:  uniqueContact  dep_contact  80  100" << std::endl << std::endl;
     return -1;
@@ -102,21 +102,13 @@ int main(int argc, char *argv[])
   for (int snapLoop = startSnap; snapLoop <= endSnap; ++snapLoop) {
     allContact.clear();
 
-    char ostr[50], argsufo[50];
-    strcpy(argsufo, argv[1]); strcat(argsufo, "_unique_");
-    combineString(ostr, argsufo, snapLoop, 3);
-    std::ofstream ofs(ostr);
-    if(!ofs) { std::cout << "ofstream error." << std::endl; exit(-1); }
-    ofs.setf(std::ios::scientific, std::ios::floatfield);
-    ofs.precision(OPREC);
-
     ///////////////////////////////////////////////////////////
-    char istr[50], argsufi[50];
-    strcpy(argsufi, argv[1]); strcat(argsufi, "_");
-    combineString(istr, argsufi, snapLoop, 3);
-    //std::cerr << istr << std::endl;
+    char str[50], argsuf[50];
+    strcpy(argsuf, argv[1]); strcat(argsuf, "_");
+    combineString(str, argsuf, snapLoop, 3);
+    //std::cerr << str << std::endl;
 
-    std::ifstream ifs(istr);//, std::ifstream::binary);
+    std::ifstream ifs(str);//, std::ifstream::binary);
     if(!ifs) { std::cout << "ifstream error." << std::endl; exit(-1); }
     int ptcl_1;
     int ptcl_2;
@@ -188,8 +180,13 @@ int main(int argc, char *argv[])
 				tangt_x,tangt_y,tangt_z,vibra_t_step,impact_t_step));
     }
     ifs.close();
-    //remove(istr); // remove file
+    remove(str); // remove file
     //std::cerr << allContact.size() << std::endl;
+
+    std::ofstream ofs(str);
+    if(!ofs) { std::cout << "ofstream error." << std::endl; exit(-1); }
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
+    ofs.precision(OPREC);
 
     ofs << std::setw(OWID) << allContact.size() << std::endl;
     ofs << std::setw(OWID) << "ptcl_1"

@@ -195,9 +195,10 @@ int main(int argc, char *argv[])
 				  tangt_x,tangt_y,tangt_z,vibra_t_step,impact_t_step));
       } // contactLoop
       ifs.close();
-      //remove(istr); // remove file
+      remove(istr); // remove file
       //std::cerr << allContact.size() << std::endl;
     } // procLoop
+
     ofs << std::setw(OWID) << allContact.size() << std::endl;
     ofs << std::setw(OWID) << "ptcl_1"
 	<< std::setw(OWID) << "ptcl_2"
