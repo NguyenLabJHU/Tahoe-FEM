@@ -196,8 +196,10 @@ namespace dem {
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
-      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
-      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
+      bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
+
+      commuT = migraT = gatherT = totalT = 0;  time0 = MPI_Wtime();
+      commuParticle(); if (toCheckTime) time2 = MPI_Wtime(); commuT = time2 - time0;
 
       /**/calcTimeStep(); // use values from last step, must call before findConact (which clears data)
       findContact();
@@ -214,10 +216,10 @@ namespace dem {
       /**/timeAccrued += timeStep;
       /**/if (timeCount >= timeTotal/netSnap) { 
 	//if (iteration % (netStep / netSnap) == 0) {
-	time1 = MPI_Wtime();
+	if (toCheckTime) time1 = MPI_Wtime();
 	gatherParticle();
 	gatherBdryContact();
-	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
+	gatherEnergy(); if (toCheckTime) time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	char cstr[50];
 	if (mpiRank == 0) {
@@ -234,9 +236,9 @@ namespace dem {
       }
 
       releaseRecvParticle(); // late release because printContact refers to received particles
-      time1 = MPI_Wtime();
-      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (toCheckTime) time1 = MPI_Wtime();
+      migrateParticle(); if (toCheckTime) time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      if (mpiRank == 0 && toCheckTime) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       ++iteration;
