@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
   // 1. time integration method
   // --- dynamic
   ///*
-  dem::TIMESTEP      = 5.0e-07; // time step
+  dem::TIMESTEP      = 1.0e-06; // time step
   dem::MASS_SCL      = 1;       // mass scaling
   dem::MNT_SCL       = 1;       // moment of inertial scaling
   dem::GRVT_SCL      = 1;       // gravity scaling
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // Part 2: set up a simulation to run
   // container properties
-  dem::rectangle container(0.05, 0.05, 0.05, dem::vec(0, 0, 0), 1); // dimensions and reference corner
+  dem::rectangle container(0.04, 0.04, 0.04, dem::vec(0, 0, 0), 1); // dimensions and reference corner
   // particle shape, size and percentage
   REAL ptcl_ratio_ba = 0.8;  // ratio of radius b to radius a
   REAL ptcl_ratio_ca = 0.6;  // ratio of radius c to radius a
@@ -88,10 +88,10 @@ int main(int argc, char* argv[])
 
   sample.plotBoundary("container.plot");
   sample.deposit_RgdBdry(2,                  // freetype, setting of free particles 
-			 1000000,            // total_steps
+			 500000,            // total_steps
 			 100,                // number of snapshots
 			 10,                 // print interval
-			 5.0,                // relative height of floating particles based on container height
+			 6.3,                // relative height of floating particles based on container height
 			 "flo_particle_end", // output file, initial particles for depositing
 			 "dep_boundary_ini", // output file, initial boundaries for depositing
 			 "dep_particle",     // output file, resulted particles, including snapshots 
