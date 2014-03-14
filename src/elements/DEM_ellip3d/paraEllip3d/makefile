@@ -2,20 +2,20 @@
 ###        Part A: change with your environment       ###
 #########################################################
 ###1. system platform
-#PLATFORM = janus
-PLATFORM = soilblast
+PLATFORM = janus
+#PLATFORM = soilblast
 
 ###2. compilers package
-COMPILERS = gcc
-#COMPILERS = intel
+#COMPILERS = gcc
+COMPILERS = intel
 
 ###3. boost location
 ifeq ($(PLATFORM), janus)
  ifeq ($(COMPILERS), gcc)
-  BOOST_ROOT = /home/yanb/local/boost-1.53.0_openmpi-1.6.4_gcc-4.7.2_ib
+  BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-openmpi-1.7.4-gcc-compilers-4.7.3
  endif
  ifeq ($(COMPILERS), intel)
-  BOOST_ROOT = /home/yanb/local/boost-1.53.0_impi-13.0.0_intel-13.0.0
+  BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-intelmpi-4.0.3.008
  endif
 endif
 
@@ -47,7 +47,14 @@ ifeq ($(COMPILERS), intel)
 endif
 
 # optimize or debug
-OPTIMIZE = -O3 -DNDEBUG
+ifeq ($(COMPILERS), gcc)
+ OPTIMIZE = -O3 -DNDEBUG
+endif
+ifeq ($(COMPILERS), intel)
+ #-fp-model source also implies keyword precise; and it is much slower than default -fp-model fast=1
+ #OPTIMIZE = -O3 -DNDEBUG -fp-model source
+ OPTIMIZE = -O3 -DNDEBUG
+endif
 #OPTIMIZE = -Wall -g
 
 # GCC quadmath, default off

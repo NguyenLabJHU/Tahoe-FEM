@@ -5,8 +5,8 @@
 # 4. option to toggle on/off GCC quadmath (default off)
 
 #1. gcc or intel
-COMPILERS = gcc
-#COMPILERS = intel
+#COMPILERS = gcc
+COMPILERS = intel
 
 # C++ compiler
 ifeq ($(COMPILERS), gcc)
@@ -31,7 +31,14 @@ ifdef OMP
 endif
 
 #3. optimize or debug
-OPTIMIZE = -O3 -DNDEBUG
+ifeq ($(COMPILERS), gcc)
+ OPTIMIZE = -O3 -DNDEBUG
+endif
+ifeq ($(COMPILERS), intel)
+ #-fp-model source also implies keyword precise; and it is much slower than default -fp-model fast=1
+ #OPTIMIZE = -O3 -DNDEBUG -fp-model source
+ OPTIMIZE = -O3 -DNDEBUG
+endif
 #OPTIMIZE = -Wall -g
 
 #4. GCC quadmath
