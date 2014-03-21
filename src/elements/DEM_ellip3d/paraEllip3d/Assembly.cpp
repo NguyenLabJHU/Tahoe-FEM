@@ -193,7 +193,7 @@ namespace dem {
     }
     if (mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
-	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
       bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
@@ -240,7 +240,8 @@ namespace dem {
       migrateParticle(); if (toCheckTime) time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && toCheckTime) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
-		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
+		 << std::setw(OWID) << totalT - commuT - migraT << std::setw(OWID) << totalT 
+		 <<std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       ++iteration;
     } 
   
