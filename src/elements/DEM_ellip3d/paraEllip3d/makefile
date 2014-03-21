@@ -19,7 +19,7 @@ ifeq ($(PLATFORM), supercomputer)
  endif
 endif
 
-ifeq ($(PLATFORM), soilblast)
+ifeq ($(PLATFORM), workstation)
  BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
  #BOOST_ROOT = default
 endif
