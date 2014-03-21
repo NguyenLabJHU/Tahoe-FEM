@@ -2,17 +2,17 @@
 ###        Part A: change with your environment       ###
 #########################################################
 ###1. system platform
-PLATFORM = janus
-#PLATFORM = soilblast
+PLATFORM = supercomputer
+#PLATFORM = workstation
 
 ###2. compilers package
 #COMPILERS = gcc
 COMPILERS = intel
 
 ###3. boost location
-ifeq ($(PLATFORM), janus)
+ifeq ($(PLATFORM), supercomputer)
  ifeq ($(COMPILERS), gcc)
-  BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-openmpi-1.7.4-gcc-compilers-4.7.3
+  BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-openmpi-1.7.5rc5-gcc-compilers-4.7.3
  endif
  ifeq ($(COMPILERS), intel)
   BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-intelmpi-4.0.3.008
@@ -48,6 +48,8 @@ endif
 
 # optimize or debug
 ifeq ($(COMPILERS), gcc)
+ #full level of IEEE 754 compliance
+ #OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans
  OPTIMIZE = -O3 -DNDEBUG
 endif
 ifeq ($(COMPILERS), intel)
@@ -64,14 +66,14 @@ endif
 CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 
 ###2. BOOST details
-ifeq ($(PLATFORM), janus)
+ifeq ($(PLATFORM), supercomputer)
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
  BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 endif
 
-ifeq ($(PLATFORM), soilblast)
+ifeq ($(PLATFORM), workstation)
   ifeq ($(BOOST_ROOT), default)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
    BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
