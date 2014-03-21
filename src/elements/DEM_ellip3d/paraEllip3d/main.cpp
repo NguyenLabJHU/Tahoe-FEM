@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
   boost::mpi::environment  boostEnv(argc, argv);
   boost::mpi::communicator boostWorld;
   boost::timer::auto_cpu_timer boostTimer;
+  REAL time0 = MPI_Wtime();
 
   if (boostWorld.rank() == 0) {
     if (argc != 2) {
@@ -119,6 +120,7 @@ int main(int argc, char* argv[]) {
     break;  
   }
   
+  dem::debugInf << std::endl << "MPI_Wtime: " << MPI_Wtime() - time0 << " seconds" << std::endl;
   dem::debugInf.close();
   MPI_File_close(&dem::overlapInf);
   return 0;
