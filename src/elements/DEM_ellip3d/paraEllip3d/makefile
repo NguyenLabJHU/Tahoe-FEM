@@ -12,7 +12,7 @@ COMPILERS = intel
 ###3. boost location
 ifeq ($(PLATFORM), supercomputer)
  ifeq ($(COMPILERS), gcc)
-  BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-openmpi-1.7.5rc5-gcc-compilers-4.7.3
+  BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-openmpi-1.7.5-gcc-compilers-4.7.3
  endif
  ifeq ($(COMPILERS), intel)
   BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-intelmpi-4.0.3.008
