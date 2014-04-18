@@ -3828,6 +3828,9 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 							devSPK*=-1;
 							devSPK+=SPK;
 
+                            fChip=fChip_n;
+                            fChip_inverse.Inverse(fChip);
+
 							// Calculate devS: devS
 							Temp_inv= devSPK.ScalarProduct();
 							//Temp_inv=dMatrixT::Dot(devSPK,devSPK);
@@ -4039,7 +4042,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                  fTemp_matrix_nsd_x_nsd2.Transpose(Elastic_MicroStnTensor);
                                  fTemp_matrix_nsd_x_nsd.SetToScaled((fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const]),fTemp_matrix_nsd_x_nsd2);
                                  SIGMA_S+=fTemp_matrix_nsd_x_nsd;
-
+                                 fFp_inverse.Inverse(fFp);
 
                                  //Form deviatoric SIGMA-S
                                  mean_stress=SIGMA_S.Trace()/3;//
