@@ -101,30 +101,30 @@ namespace dem {
     REAL getKinetEnergy() const;
     REAL getPotenEnergy(REAL ref) const;
     
-    void setId(std::size_t n){id = n;}
+    void setId(std::size_t n) {id = n;}
     void setType(std::size_t n) {type = n;}
-    void setA(REAL dd){a = dd;}
-    void setB(REAL dd){b = dd;}
-    void setC(REAL dd){c = dd;}
+    void setA(REAL dd) {a = dd;}
+    void setB(REAL dd) {b = dd;}
+    void setC(REAL dd) {c = dd;}
     void expand(REAL percent) {a *=  (1+percent); b *=  (1+percent); c *=  (1+percent);}
-    void setCurrPos(Vec vv){currPos = vv;}
-    void setPrevPos(Vec vv){prevPos = vv;}
-    void setCurrDirecA(Vec vv){currDirecA = vv;}
-    void setCurrDirecB(Vec vv){currDirecB = vv;}
-    void setCurrDirecC(Vec vv){currDirecC = vv;}
-    void setPrevDirecA(Vec vv){prevDirecA = vv;}
-    void setPrevDirecB(Vec vv){prevDirecB = vv;}
-    void setPrevDirecC(Vec vv){prevDirecC = vv;}
-    void setCurrVeloc(Vec vv){currVeloc = vv;}
-    void setPrevVeloc(Vec vv){prevVeloc = vv;}
-    void setCurrOmga(Vec vv){currOmga = vv;}
-    void setPrevOmga(Vec vv){prevOmga = vv;}
-    void setForce(Vec vv){force = vv;}
-    void setMoment(Vec vv){moment = vv;}
-    void setConstForce(Vec vv){constForce = vv;}
-    void setConstMoment(Vec vv){constMoment = vv;}
-    void setmomentJ(Vec v){momentJ = v;}
-    void setMass(REAL d){mass = d;}
+    void setCurrPos(Vec vv) {currPos = vv;}
+    void setPrevPos(Vec vv) {prevPos = vv;}
+    void setCurrDirecA(Vec vv) {currDirecA = vv;}
+    void setCurrDirecB(Vec vv) {currDirecB = vv;}
+    void setCurrDirecC(Vec vv) {currDirecC = vv;}
+    void setPrevDirecA(Vec vv) {prevDirecA = vv;}
+    void setPrevDirecB(Vec vv) {prevDirecB = vv;}
+    void setPrevDirecC(Vec vv) {prevDirecC = vv;}
+    void setCurrVeloc(Vec vv) {currVeloc = vv;}
+    void setPrevVeloc(Vec vv) {prevVeloc = vv;}
+    void setCurrOmga(Vec vv) {currOmga = vv;}
+    void setPrevOmga(Vec vv) {prevOmga = vv;}
+    void setForce(Vec vv) {force = vv;}
+    void setMoment(Vec vv) {moment = vv;}
+    void setConstForce(Vec vv) {constForce = vv;}
+    void setConstMoment(Vec vv) {constMoment = vv;}
+    void setmomentJ(Vec v) {momentJ = v;}
+    void setMass(REAL d) {mass = d;}
     void setDensity(REAL dn) {density = dn;}
     void setInContact(bool value) {inContact = value;}
     void setContactNum(std::size_t num) {contactNum = num;}
