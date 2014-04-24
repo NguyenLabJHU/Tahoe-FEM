@@ -27,6 +27,22 @@ namespace dem {
     // for different types of simulation
     std::size_t simuType = static_cast<std::size_t> (parameter["simuType"]);
     switch (simuType) {
+    case 0: // tuneMassPercentage
+      for (std::size_t i = 0; i < 12; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      for (std::size_t i = 0; i < static_cast<std::size_t> (parameter["sieveNum"]); ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	REAL percent, size;
+	ssline >> percent >> size;
+	gradation.push_back(std::make_pair(percent, size));
+      } 
+      break;
+
     case 1: // depositIntoContainer  
       for (std::size_t i = 0; i < 12; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;

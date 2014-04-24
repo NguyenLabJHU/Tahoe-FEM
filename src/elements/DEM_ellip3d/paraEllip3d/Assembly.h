@@ -133,6 +133,7 @@ namespace dem {
     void setGrid(Rectangle cont) { grid = cont; } 
     void setGradation(Gradation grad) { gradation = grad; }
 
+    void tuneMassPercentage();
     void depositIntoContainer(); 
     void resumeDepositIntoContainer();
     void expandCavityParticle();

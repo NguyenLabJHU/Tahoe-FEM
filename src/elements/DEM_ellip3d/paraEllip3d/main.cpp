@@ -70,6 +70,9 @@ int main(int argc, char* argv[]) {
 
   int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
   switch (simuType) {
+  case 0: // tune mass-percentage from number-percentage on size distribution curve by trial and error
+    assemb.tuneMassPercentage();
+    break;
   case 1: // deposit spatially scattered particles into a rigid container
     assemb.depositIntoContainer();
     break;
