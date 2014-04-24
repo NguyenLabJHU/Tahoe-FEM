@@ -94,8 +94,9 @@ namespace dem {
     :id(n), type(tp), young(yng), poisson(poi), currPos(center)  {
     // generate particle size in terms of gradation distribution
     REAL sievenum = grad.getSieveNum();
+    REAL randnum = ran(&idum);
     for (std::size_t k = 0; k < sievenum; ++k) {
-      if (ran(&idum) <= grad.getPercent()[sievenum-1-k]) {
+      if ( randnum <= grad.getPercent()[sievenum-1-k]) {
 	a = grad.getSize()[sievenum-1-k]; // use a for sieving (where a >= b >= c) 
 	break;
       }
