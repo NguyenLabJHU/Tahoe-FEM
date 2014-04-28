@@ -27,7 +27,22 @@ namespace dem {
     // for different types of simulation
     std::size_t simuType = static_cast<std::size_t> (parameter["simuType"]);
     switch (simuType) {
-    case 0: // tuneMassPercentage
+    case 001: // proceed from preset state
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 1; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 002: // tuneMassPercentage
       for (std::size_t i = 0; i < 12; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -43,7 +58,22 @@ namespace dem {
       } 
       break;
 
-    case 1: // depositIntoContainer  
+    case 003: // trimOnly
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 1; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 101: // depositIntoContainer  
       for (std::size_t i = 0; i < 12; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -59,7 +89,7 @@ namespace dem {
       } 
       break;
   
-    case 2: // resumeDepositIntoContainer 
+    case 102: // resumeDepositIntoContainer 
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -74,52 +104,7 @@ namespace dem {
       }
       break;
 
-    case 3: // expandCavityParticle
-      for (std::size_t i = 0; i < 2; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> str2;
-	datafile[str] = str2;
-      }
-      for (std::size_t i = 0; i < 7; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> val;
-	parameter[str] = val;
-      }
-      break;
-
-    case 4: // resumeExpandCavityParticle
-      for (std::size_t i = 0; i < 2; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> str2;
-	datafile[str] = str2;
-      }
-      for (std::size_t i = 0; i < 1; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> val;
-	parameter[str] = val;
-      }
-      break;
-
-    case 5: // trimOnly
-      for (std::size_t i = 0; i < 2; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> str2;
-	datafile[str] = str2;
-      }
-      for (std::size_t i = 0; i < 1; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> val;
-	parameter[str] = val;
-      }
-      break;
-
-    case 6: // isotropic 1
+    case 201: // isotropic 1
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -134,7 +119,7 @@ namespace dem {
       }
       break;
 
-    case 7: // isotropic 2
+    case 202: // isotropic 2
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -149,7 +134,7 @@ namespace dem {
       }
       break;
 
-    case 8: // isotropic 3
+    case 203: // isotropic 3
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -177,7 +162,7 @@ namespace dem {
       }
       break;
 
-    case 9: // odometer 1
+    case 301: // odometer 1
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -192,7 +177,7 @@ namespace dem {
       }
       break;
 
-    case 10: // odometer 2
+    case 302: // odometer 2
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -220,7 +205,7 @@ namespace dem {
       }
       break;
 
-    case 11: // triaxial 1
+    case 401: // triaxial 1
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -235,7 +220,7 @@ namespace dem {
       }
       break;
 
-    case 12: // triaxial 2
+    case 402: // triaxial 2
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -250,7 +235,7 @@ namespace dem {
       }
       break;
 
-    case 13: // true triaxial 1
+    case 501: // true triaxial 1
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -265,7 +250,7 @@ namespace dem {
       }
       break;
 
-    case 14: // true triaxial 2
+    case 502: // true triaxial 2
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -280,7 +265,22 @@ namespace dem {
       }
       break;
 
-    case 15: // proceed from preset state
+    case 601: // expandCavityParticle
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 7; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 602: // resumeExpandCavityParticle
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -295,7 +295,7 @@ namespace dem {
       }
       break;
 
-    case 50: // couple with sonic fluid flow
+    case 701: // couple with sonic fluid flow
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);

@@ -70,55 +70,55 @@ int main(int argc, char* argv[]) {
 
   int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
   switch (simuType) {
-  case 0: // tune mass-percentage from number-percentage on size distribution curve by trial and error
+  case 001: // proceed from preset state
+    assemb.proceedFromPreset();
+    break;
+  case 002: // tune mass-percentage from number-percentage on size distribution curve by trial and error
     assemb.tuneMassPercentage();
     break;
-  case 1: // deposit spatially scattered particles into a rigid container
+  case 003: // trim particles
+    assemb.trimOnly();
+    break; 
+  case 101: // deposit spatially scattered particles into a rigid container
     assemb.depositIntoContainer();
     break;
-  case 2: // resume deposition using specified data file of particles and boundaries
+  case 102: // resume deposition using specified data file of particles and boundaries
     assemb.resumeDepositIntoContainer();
     break;
-  case 3: // expand particles inside a virtual cavity and see what occurs
+  case 201: // isotropic type 1 - create an initial state with low confining pressure
+    assemb.isotropic();
+    break; 
+  case 202: // isotropic type 2 - increase confining pressure from sigmaInit to sigmaEnd
+    assemb.isotropic();
+    break; 
+  case 203: // isotropic type 3 - conduct loading-unloading-reloading path
+    assemb.isotropic();
+    break; 
+  case 301: // odometer type 1 - increase loading pressure
+    assemb.odometer();
+    break; 
+  case 302: // odometer type 2 - loading-unloading-reloading
+    assemb.odometer();
+    break; 
+  case 401: // triaxial type 1 - constant confining pressure
+    assemb.triaxial();
+    break; 
+  case 402: // triaxial type 2 - loading-unloading-reloading
+    assemb.triaxial();
+    break;
+  case 501: // true triaxial 1 - create confining stress state
+    assemb.trueTriaxial();
+    break; 
+  case 502: // true triaxial 2 - increase stress in one direction
+    assemb.trueTriaxial();
+    break; 
+  case 601: // expand particles inside a virtual cavity and see what occurs
     assemb.expandCavityParticle();
     break;
-  case 4: // resume expanding particles inside a virtual cavity and see what occurs
+  case 602: // resume expanding particles inside a virtual cavity and see what occurs
     assemb.resumeExpandCavityParticle();
     break;  
-  case 5: // trim particles
-    assemb.trimOnly();
-    break;  
-  case 6: // isotropic type 1 - create an initial state with low confining pressure
-    assemb.isotropic();
-    break; 
-  case 7: // isotropic type 2 - increase confining pressure from sigmaInit to sigmaEnd
-    assemb.isotropic();
-    break; 
-  case 8: // isotropic type 3 - conduct loading-unloading-reloading path
-    assemb.isotropic();
-    break; 
-  case 9: // odometer type 1 - increase loading pressure
-    assemb.odometer();
-    break; 
-  case 10: // odometer type 2 - loading-unloading-reloading
-    assemb.odometer();
-    break; 
-  case 11: // triaxial type 1 - constant confining pressure
-    assemb.triaxial();
-    break; 
-  case 12: // triaxial type 2 - loading-unloading-reloading
-    assemb.triaxial();
-    break;
-  case 13: // true triaxial 1 - create confining stress state
-    assemb.trueTriaxial();
-    break; 
-  case 14: // true triaxial 2 - increase stress in one direction
-    assemb.trueTriaxial();
-    break; 
-  case 15: // proceed from preset state
-    assemb.proceedFromPreset();
-    break; 
-  case 50: // couple with sonic fluid flow
+  case 701: // couple with sonic fluid flow
     assemb.coupleWithSonicFluid();
     break;  
   }
