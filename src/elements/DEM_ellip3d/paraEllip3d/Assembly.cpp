@@ -677,7 +677,8 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findConact
+      // displacement control relies on constant time step, so do not call calcTimeStep().
+      //calcTimeStep(); // use values from last step, must call before findConact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
