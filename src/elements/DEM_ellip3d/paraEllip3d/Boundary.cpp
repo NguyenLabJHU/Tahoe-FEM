@@ -292,14 +292,14 @@ namespace dem {
 	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() )); }
       break;
     case 5:
-      if (triaxialType == 1) 
+      if (triaxialType == 1)
 	vel = boundaryRate;
       else if (triaxialType == 2) {
 	if (iteration <= unloadStep) // loading
 	  vel = boundaryRate;
-	else if (iteration > unloadStep && iteration <= 2*unloadStep) // unloading
+	else if (iteration > unloadStep && fabs(normal.getZ()/areaZ) >= 1.5*sigma && iteration <= 1.5*unloadStep) // unloading
 	  vel = -boundaryRate;
-	else if (iteration > 2*unloadStep) // reloading
+	else if (iteration > 1.5 *unloadStep) // reloading. Note there are invalid loops if stress < and iteration <, it is OK.
 	  vel = boundaryRate;
       }
       //vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() + sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
@@ -308,14 +308,14 @@ namespace dem {
       setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
       break;
     case 6:
-      if (triaxialType == 1) 
+      if (triaxialType == 1)
 	vel = -boundaryRate;
       else if (triaxialType == 2) {
 	if (iteration <= unloadStep) // loading
 	  vel = -boundaryRate;
-	else if (iteration > unloadStep && iteration <= 2*unloadStep) // unloading
+	else if (iteration > unloadStep && fabs(normal.getZ()/areaZ) >= 1.5*sigma && iteration <= 1.5*unloadStep) // unloading
 	  vel = boundaryRate;
-	else if (iteration > 2*unloadStep) // reloading
+	else if (iteration > 1.5 *unloadStep) // reloading. Note there are invalid loops if stress < and iteration <, it is OK.
 	  vel = -boundaryRate;
       }
       //vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() - sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
