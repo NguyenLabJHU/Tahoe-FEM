@@ -1,5 +1,5 @@
-Note: Because paraEllip3d uses slightly different data format, we distinguish it by adding 
-a suffix "3" to the code name, for example, plot3, which means the plot version for paraEllip3d. 
+Note: Because paraEllip3d uses different data formats, we distinguish it by adding a suffix 
+"3" to the code name, for example, plot3, which means the plot version for paraEllip3d. 
 Codes without such suffix work for ellip3d and ellip3d-2.0 data format.
 
 plot:  
@@ -38,3 +38,14 @@ it plots for the case of rectangular pile specifically.
 
 initfree:
 it extracts free particles' information for the case of fixed-particle-boundary.
+
+mergeContact:
+merge particle contact info from multiple processes and remove redundance.
+paraEllip3d no longer outputs multiple data files for contact info, instead, it prints one 
+contact info file using parallel IO.
+
+uniqueContact:
+remove redundance (unique) in particle contact info.
+
+dupSpecimen:
+duplicate specimen in x, y, z directions.
