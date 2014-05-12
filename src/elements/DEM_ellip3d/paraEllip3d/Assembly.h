@@ -154,6 +154,7 @@ namespace dem {
     void isotropic();
     void odometer();
     void triaxial();
+    void planeStrain();
     void trueTriaxial();
     bool tractionErrorTol(REAL sigma, std::string type, REAL sigmaX=0, REAL sigmaY=0);
     void getStartDimension(REAL &distX, REAL &distY, REAL &distZ);

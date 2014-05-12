@@ -328,6 +328,74 @@ namespace dem {
     prevVeloc = veloc;
   }
 
+  void planeBoundary::updatePlaneStrain(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
+    std::size_t plnstrnType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["plnstrnType"]);
+    std::size_t unloadStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["unloadStep"]);
+
+    REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
+    REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];
+    //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
+    REAL boundaryRate  = dem::Parameter::getSingleton().parameter["boundaryRate"];
+    REAL sideRateRatio = dem::Parameter::getSingleton().parameter["sideRateRatio"];
+    REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
+    REAL atf = forceDamp * timeStep;
+
+    REAL vel, pos;
+    switch (id) { // boundary x1(1) and boundary x2(2) do not move
+    case 3:
+      if (fabs(normal.getY()/areaY + sigma)/sigma > tol) {
+	vel = ((normal.getY() + sigma*areaY)>0 ? 1:-1) * boundaryRate * sideRateRatio;
+	//vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() + sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getY() + vel * timeStep;
+	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
+	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() )); }
+      break;
+    case 4:
+      if (fabs(normal.getY()/areaY - sigma)/sigma > tol) {
+	vel = ((normal.getY() - sigma*areaY)>0 ? 1:-1) * boundaryRate * sideRateRatio;
+	//vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() - sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+	pos = prevPoint.getY() + vel * timeStep;
+	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
+	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() )); }
+      break;
+    // displacement control, leading to zero volumetric strain
+    case 5:
+      if (plnstrnType == 1)
+	vel = boundaryRate;
+      else if (plnstrnType == 2) {
+	if (iteration <= unloadStep) // loading
+	  vel = boundaryRate;
+	else if (iteration > unloadStep && fabs(normal.getZ()/areaZ) >= 1.5*sigma && iteration <= 1.5*unloadStep) // unloading
+	  vel = -boundaryRate;
+	else if (iteration > 1.5 *unloadStep) // reloading. Note there are invalid loops if stress < and iteration <, it is OK.
+	  vel = boundaryRate;
+      }
+      //vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() + sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
+      pos = prevPoint.getZ() + vel * timeStep;
+      setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
+      setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
+      break;
+    case 6:
+      if (plnstrnType == 1)
+	vel = -boundaryRate;
+      else if (plnstrnType == 2) {
+	if (iteration <= unloadStep) // loading
+	  vel = -boundaryRate;
+	else if (iteration > unloadStep && fabs(normal.getZ()/areaZ) >= 1.5*sigma && iteration <= 1.5*unloadStep) // unloading
+	  vel = boundaryRate;
+	else if (iteration > 1.5 *unloadStep) // reloading. Note there are invalid loops if stress < and iteration <, it is OK.
+	  vel = -boundaryRate;
+      }
+      //vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() - sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
+      pos = prevPoint.getZ() + vel * timeStep;
+      setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
+      setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
+      break;
+    }
+    prevPoint = point;
+    prevVeloc = veloc;
+  }
+
   void planeBoundary::updateTrueTriaxial(REAL sigma, REAL areaX, REAL areaY, REAL areaZ, REAL sigmaX, REAL sigmaY) {
     // sigma implies sigmaZ
 

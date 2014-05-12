@@ -734,6 +734,101 @@ namespace dem {
   }
 
 
+  void Assembly::planeStrain() 
+  {
+    if (mpiRank == 0) {
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      openCompressProg(progressInf, "plnstrn_progress");
+    }
+    scatterParticle();
+
+    std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
+    std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
+    std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
+    std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
+    std::size_t netStep   = endStep - startStep + 1;
+    std::size_t netSnap   = endSnap - startSnap + 1; 
+    REAL sigmaConf = dem::Parameter::getSingleton().parameter["sigmaConf"];
+    timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
+
+    REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
+    iteration = startStep;
+    std::size_t iterSnap = startSnap;
+    char cstr0[50];
+    REAL distX, distY, distZ;
+    if (mpiRank == 0) {
+      plotBoundary(strcat(combineString(cstr0, "plnstrn_bdryplot_", iterSnap - 1, 3), ".dat"));
+      plotGrid(strcat(combineString(cstr0, "plnstrn_gridplot_", iterSnap - 1, 3), ".dat"));
+      printParticle(combineString(cstr0, "plnstrn_particle_", iterSnap - 1, 3));
+      printBdryContact(combineString(cstr0, "plnstrn_bdrycntc_", iterSnap -1, 3));
+      printBoundary(combineString(cstr0, "plnstrn_boundary_", iterSnap - 1, 3));
+      getStartDimension(distX, distY, distZ);
+    }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+    while (iteration <= endStep) {
+      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
+      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
+
+      // displacement control relies on constant time step, so do not call calcTimeStep().
+      //calcTimeStep(); // use values from last step, must call before findConact
+      findContact();
+      if (isBdryProcess()) findBdryContact();
+
+      clearContactForce();
+      internalForce();
+      if (isBdryProcess()) boundaryForce();
+
+      updateParticle();
+      gatherBdryContact(); // must call before updateBoundary
+      updateBoundary(sigmaConf, "plnstrn");
+      updateGrid();
+   
+      if (iteration % (netStep / netSnap) == 0) {
+	time1 = MPI_Wtime();
+	gatherParticle();
+	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
+
+	char cstr[50];
+	if (mpiRank == 0) {
+	  plotBoundary(strcat(combineString(cstr, "plnstrn_bdryplot_", iterSnap, 3), ".dat"));
+	  plotGrid(strcat(combineString(cstr, "plnstrn_gridplot_", iterSnap, 3), ".dat"));
+	  printParticle(combineString(cstr, "plnstrn_particle_", iterSnap, 3));
+	  printBdryContact(combineString(cstr, "plnstrn_bdrycntc_", iterSnap, 3));
+	  printBoundary(combineString(cstr, "plnstrn_boundary_", iterSnap, 3));
+	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
+	}
+	printContact(combineString(cstr, "plnstrn_contact_", iterSnap, 3));      
+	++iterSnap;
+      }
+
+      releaseRecvParticle(); // late release because printContact refers to received particles
+      time1 = MPI_Wtime();
+      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
+
+      if (mpiRank == 0 && iteration % 10 == 0)
+	printCompressProg(progressInf, distX, distY, distZ);
+
+      // no break condition, just through top/bottom displacement control
+      ++iteration;
+    } 
+
+    if (mpiRank == 0) {
+      printParticle("plnstrn_particle_end");
+      printBdryContact("plnstrn_bdrycntc_end");
+      printBoundary("plnstrn_boundary_end");
+      printCompressProg(progressInf, distX, distY, distZ);
+    }
+  
+    if (mpiRank == 0) closeProg(progressInf);
+  }
+
+
   void Assembly::trueTriaxial() 
   {
     std::size_t trueTriaxialType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["trueTriaxialType"]);
@@ -3405,6 +3500,9 @@ namespace dem {
       } else if (type.compare("triaxial") == 0) {
 	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateTriaxial(sigma, areaX, areaY, areaZ);
+      } else if (type.compare("plnstrn") == 0) {
+	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	  (*it)->updatePlaneStrain(sigma, areaX, areaY, areaZ);
       } else if (type.compare("trueTriaxial") == 0) {
 	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateTrueTriaxial(sigma, areaX, areaY, areaZ, sigmaX, sigmaY);

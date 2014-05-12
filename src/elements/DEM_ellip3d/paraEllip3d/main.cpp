@@ -106,6 +106,12 @@ int main(int argc, char* argv[]) {
   case 402: // triaxial type 2 - loading-unloading-reloading
     assemb.triaxial();
     break;
+  case 411: // plane strain type 1 - in x direction
+    assemb.planeStrain();
+    break; 
+  case 412: // plane strain type 2 - loading-unloading-reloading
+    assemb.planeStrain();
+    break;
   case 501: // true triaxial 1 - create confining stress state
     assemb.trueTriaxial();
     break; 
