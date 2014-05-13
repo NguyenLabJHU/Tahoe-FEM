@@ -444,8 +444,8 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = forceDamp * timeStep; 
-      REAL atm = momentDamp * timeStep; 
+      REAL atf = forceDamp*2; 
+      REAL atm = momentDamp*2; 
     
       // force: translational kinetics equations are in global frame
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
@@ -472,8 +472,8 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = forceDamp * timeStep; 
-      REAL atm = momentDamp * timeStep; 
+      REAL atf = forceDamp*2; 
+      REAL atm = momentDamp*2; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       if (iteration < START)
 	currPos = prevPos + currVeloc * timeStep;
@@ -501,14 +501,14 @@ namespace dem {
       currPos = prevPos + currVeloc * timeStep;
     }
     else if (getType() == 4) { // special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only 
-      REAL atf = forceDamp * timeStep; 
+      REAL atf = forceDamp*2; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       currVeloc.setX(0);	
       currVeloc.setY(0);
       currPos = prevPos + currVeloc * timeStep;
     }
     else if (getType() == 6) { // translation only, no rotation
-      REAL atf = forceDamp * timeStep; 
+      REAL atf = forceDamp*2; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       currPos = prevPos + currVeloc * timeStep;
     }

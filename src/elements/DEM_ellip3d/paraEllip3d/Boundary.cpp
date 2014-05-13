@@ -156,7 +156,7 @@ namespace dem {
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL topSpeedup = dem::Parameter::getSingleton().parameter["topSpeedup"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp * timeStep;
+    REAL atf = forceDamp*2;
 
     REAL vel, pos;
     switch (id) {
@@ -221,7 +221,7 @@ namespace dem {
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp * timeStep;
+    REAL atf = forceDamp*2;
 
     REAL vel, pos;
     switch (id) {
@@ -255,7 +255,7 @@ namespace dem {
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp * timeStep;
+    REAL atf = forceDamp*2;
 
     REAL vel, pos;
     switch (id) {
@@ -338,7 +338,7 @@ namespace dem {
     REAL boundaryRate  = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL sideRateRatio = dem::Parameter::getSingleton().parameter["sideRateRatio"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp * timeStep;
+    REAL atf = forceDamp*2;
 
     REAL vel, pos;
     switch (id) { // boundary x1(1) and boundary x2(2) do not move
@@ -404,7 +404,7 @@ namespace dem {
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp * timeStep;
+    REAL atf = forceDamp*2;
 
     REAL vel, pos;
     switch (id) {
