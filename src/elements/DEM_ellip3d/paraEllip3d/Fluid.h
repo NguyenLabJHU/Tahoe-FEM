@@ -21,23 +21,24 @@ namespace dem {
   private:
     static const REAL Rs = 287.06; // specific gas constant
 
-    std::size_t nx; // nx = number of total cell centers = parts + two boundary points in x direction
-    std::size_t ny; // ny = number of total cell centers = parts + two boundary points in y direction
-    std::size_t nz; // nz = number of total cell centers = parts + two boundary points in z direction
+    std::size_t nx; // nx = total cell centers = parts + two boundary points in x direction
+    std::size_t ny; // ny = total cell centers = parts + two boundary points in y direction
+    std::size_t nz; // nz = total cell centers = parts + two boundary points in z direction
     REAL dx;
     REAL dy;
     REAL dz;
 
     REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
-    REAL gamma;        // ration of specific heat
+    REAL gamma;        // ratio of specific heat capacity of air
     REAL arrayBC[6];   // boundary condition
     REAL z0;           // initial discontinuity plane in Z direction
     REAL rhoL, uL, pL; // unknown
     REAL rhoR, uR, pR; // known
-    REAL mach;         // shock Mach number, known
+    REAL Mach;         // shock Mach number, known
     REAL shockSpeed;   // unknown
     REAL Cd;           // drag coefficient
+    REAL porosity;     // particle porosity regarded as porous media
     int  volFrac;      // use grid volume fraction or not
 
     std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
@@ -52,7 +53,7 @@ namespace dem {
     // arrayU[i][j][k][1]: var_mom[0]
     // arrayU[i][j][k][2]: var_mom[1]
     // arrayU[i][j][k][3]: var_mom[2]
-    // arrayU[i][j][k][4]: var_eng
+    // arrayU[i][j][k][4]: var_eng    // total energy, E = rou * (1/2*V^2 + e)
     // arrayU[i][j][k][5]: var_vel[0]
     // arrayU[i][j][k][6]: var_vel[1]
     // arrayU[i][j][k][7]: var_vel[2]
@@ -106,7 +107,7 @@ namespace dem {
     // nx-1, ny-1, nz-1, n_integ
 
     Array3D arrayH; 
-    // Enthalpy, 3-dimensional, total enthalpy (not static enthalpy)
+    // Enthalpy, 3-dimensional, note it is total enthalpy, not static enthalpy
     // nx, ny, nz
 
     Array3D arraySoundSpeed; 
@@ -124,19 +125,19 @@ namespace dem {
     void addGhostPoints();
     void soundSpeed();
     void enthalpy();
-    void flux();
+    void flux(std::size_t, std::vector<Particle *> &ptcls);
     void RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim,  std::size_t i, std::size_t j, std::size_t k);
     void UtoW(); // U - integrated; W - primitive
     void WtoU();
-    void rotateIJK();
-    void inteStep1();
-    void inteStep2();
-    void inteStep3();
+    void rotateIJK(std::vector<Particle *> &ptcls);
+    void inteStep1(std::vector<Particle *> &ptcls);
+    void inteStep2(std::vector<Particle *> &ptcls);
+    void inteStep3(std::vector<Particle *> &ptcls);
 
     void getParticleInfo(std::vector<Particle *> &ptcls);
-    void runOneStep();
+    void runOneStep(std::vector<Particle *> &ptcls);
     void calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs);
-    void penalize();
+    void penalize(std::vector<Particle *> &ptcls);
     void plot(const char *) const;
     
   };

@@ -1,6 +1,7 @@
 #include "Fluid.h"
 #include "const.h"
 #include <cmath>
+#include <algorithm>
 
 namespace dem {
 
@@ -20,17 +21,18 @@ namespace dem {
     rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
     pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
-    mach = dem::Parameter::getSingleton().parameter["MachNumber"];
+    Mach = dem::Parameter::getSingleton().parameter["MachNumber"];
     Cd   = dem::Parameter::getSingleton().parameter["Cd"];
+    porosity = dem::Parameter::getSingleton().parameter["porosity"];
     std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
     volFrac = static_cast<int> (dem::Parameter::getSingleton().parameter["volFrac"]);
 
     REAL minX = container.getMinCorner().getX();
     REAL minY = container.getMinCorner().getY();
-    REAL minZ = container.getMinCorner().getZ();
-    REAL z1Distance = dem::Parameter::getSingleton().parameter["z1Distance"];
-    minZ -= z1Distance;
-    z0 = minZ + z1Distance * dem::Parameter::getSingleton().parameter["z1Percent"];
+    REAL minZ = container.getMinCorner().getZ(); // particle container
+    REAL z1 = dem::Parameter::getSingleton().parameter["z1"]; // fluid field
+    minZ = z1;
+    z0 = dem::Parameter::getSingleton().parameter["z0"];
 
     REAL maxX = container.getMaxCorner().getX();
     REAL maxY = container.getMaxCorner().getY();
@@ -85,8 +87,9 @@ namespace dem {
     debugInf << std::setw(OWID) << "rhoR" << std::setw(OWID) << rhoR << std::endl;
     debugInf << std::setw(OWID) << "pR" << std::setw(OWID) << pR << std::endl;
     debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
-    debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << mach << std::endl;
+    debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << Mach << std::endl;
     debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
+    debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
     debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
     debugInf << std::setw(OWID) << "gridSize" << std::setw(OWID) << dx << std::endl;
     debugInf << std::setw(OWID) << "volFrac" << std::setw(OWID) << volFrac << std::endl;
@@ -260,23 +263,23 @@ namespace dem {
   void Fluid::initialize() {
     RankineHugoniot();
     initialCondition(); 
-    soundSpeed(); // for printing mach
+    soundSpeed(); // for printing Mach number
   }
 
-  void Fluid::runOneStep() {
-    inteStep1();
+  void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
+    inteStep1(ptcls);
 
     if (RK >= 1) {
       arrayRoeFluxStep2 = arrayRoeFlux;
-      inteStep2();
+      inteStep2(ptcls);
       if (RK == 2) {
 	arrayRoeFluxStep3 = arrayRoeFlux;    
-	inteStep3();
+	inteStep3(ptcls);
       }
     }
   }
 
-  void Fluid::inteStep1() { 
+  void Fluid::inteStep1(std::vector<Particle *> &ptcls) { 
     addGhostPoints();
     soundSpeed();
     timeStep = std::min(timeStep, calcTimeStep());
@@ -284,7 +287,7 @@ namespace dem {
 	     << std::setw(OWID) << timeStep 
 	     << std::setw(OWID) << timeAccrued << std::endl;
     enthalpy();
-    rotateIJK();
+    rotateIJK(ptcls);
 
     // update conservative variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
@@ -300,11 +303,11 @@ namespace dem {
     UtoW(); 
   }
   
-  void Fluid::inteStep2() { 
+  void Fluid::inteStep2(std::vector<Particle *> &ptcls) { 
     addGhostPoints();
     soundSpeed();
     enthalpy();
-    rotateIJK();
+    rotateIJK(ptcls);
 
     // update conservative variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
@@ -317,17 +320,18 @@ namespace dem {
 						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1]) )
 				    + timeStep / (2*RK*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2] 
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])) );
+	  //if (arrayU[i][j][k][var_den] <= 0) arrayU[i][j][k][var_den] = porosity * rhoR;
 	}
 
     // calculate primitive after finding conservative variables
     UtoW(); 
   }
 
-  void Fluid::inteStep3() { 
+  void Fluid::inteStep3(std::vector<Particle *> &ptcls) { 
     addGhostPoints();
     soundSpeed();
     enthalpy();
-    rotateIJK();
+    rotateIJK(ptcls);
 
     // update conservative variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
@@ -345,13 +349,14 @@ namespace dem {
 				    + timeStep / (6*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])
 						     + 4*( arrayRoeFluxStep3[i][j][k][m][2] - arrayRoeFluxStep3[i][j][k-1][m][2])) );
+	  //if (arrayU[i][j][k][var_den] <= 0) arrayU[i][j][k][var_den] = porosity * rhoR;
 	}
 
     // calculate primitive after finding conservative variables
     UtoW(); 
   }
 
-  void Fluid::rotateIJK() {
+  void Fluid::rotateIJK(std::vector<Particle *> &ptcls) {
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
 
     // for x, y, z directions
@@ -367,10 +372,10 @@ namespace dem {
 	      arrayUtmp[i][j][k][  var_vel[jdim]  ] = arrayU[i][j][k][  var_vel[id[idim][jdim]]  ];
 	    }
 
-      flux();
+      flux(idim, ptcls); // variables defined at cell centers
 
       // for local Riemann problem
-      for (std::size_t i = 0; i < nx- 1; ++i) {
+      for (std::size_t i = 0; i < nx - 1; ++i) { // variables defined at cell faces
 	for (std::size_t j = 0; j < ny - 1; ++j) {
 	  for (std::size_t k = 0; k < nz -1; ++k) {
 	    std::size_t IL[3] = {i, j, k};
@@ -409,15 +414,92 @@ namespace dem {
 
   }
 
-  void Fluid::penalize() {
-    // Brinkman penalization
+  void Fluid::penalize(std::vector<Particle *> &ptcls) {
+    // 2nd implementation: higher efficiency
+    // for cells that are enclosed by particle volumes
+    for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
+      for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
+
+	std::size_t i = static_cast<std::size_t> (fluidGrid[iter][0]);
+	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
+	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
+
+	// calculate momentum and density quotient before modification
+	bool inGrid = (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 );
+	REAL momQuot[3], denQuot[3], u0[3];
+	if (inGrid) {
+	  momQuot[0] = (arrayU[i+1][j][k][var_mom[0]] - arrayU[i-1][j][k][var_mom[0]]) / (2*dx);
+	  momQuot[1] = (arrayU[i][j+1][k][var_mom[1]] - arrayU[i][j-1][k][var_mom[1]]) / (2*dy);
+	  momQuot[2] = (arrayU[i][j][k+1][var_mom[2]] - arrayU[i][j][k-1][var_mom[2]]) / (2*dz);
+
+	  denQuot[0] = (arrayU[i+1][j][k][var_den] - arrayU[i-1][j][k][var_den]) / (2*dx);
+	  denQuot[1] = (arrayU[i][j+1][k][var_den] - arrayU[i][j-1][k][var_den]) / (2*dy);
+	  denQuot[2] = (arrayU[i][j][k+1][var_den] - arrayU[i][j][k-1][var_den]) / (2*dz);
+
+	  REAL coord_x = arrayGridCoord[i][j][k][0];
+	  REAL coord_y = arrayGridCoord[i][j][k][1];
+	  REAL coord_z = arrayGridCoord[i][j][k][2];
+	  Vec dist = Vec(coord_x, coord_y, coord_z) - (*it)->getCurrPos();
+	  Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
+	  u0[0] = (*it)->getCurrVeloc().getX() + omgar.getX(); 
+	  u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
+	  u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
+	}
+
+	// 1. momentum penalization
+	for (std::size_t m = 0; m < n_dim; ++m) {
+	  // momentum penalization
+	  arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
+	  // influence of momentum penalization on energy
+	  arrayU[i][j][k][var_eng]    -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][var_vel[m]] * timeStep;
+	}
+
+	// 2. mass penalization
+	// mass penalization and particle velocity term are incorporated by changes in flux()
+	// influence of mass penalization (1-1.0/porosity)*momQuot[m] and particle velocity term u0[m]/porosity*denQuot[m] on energy
+	if (inGrid) {
+	  for (std::size_t m = 0; m < n_dim; ++m) {
+	    arrayU[i][j][k][var_eng]  += arrayU[i][j][k][var_msk] * (-0.5*pow(arrayU[i][j][k][var_vel[m]],2))
+                                         * ( (1-1.0/porosity)*momQuot[m] + u0[m]/porosity*denQuot[m] ) * timeStep;
+
+	    //arrayU[i][j][k][var_eng]  += arrayU[i][j][k][var_msk] * (-0.5*pow(arrayU[i][j][k][var_vel[m]],2))
+            //                             * ( (1-1.0/porosity)*momQuot[m] ) * timeStep;
+	  }
+	}
+      }
+    }
+
+    /*
+    // 1st implementation: lower efficiency
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k)
-	  for (std::size_t m = 0; m < n_dim; ++m) {
-	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
-	    arrayU[i][j][k][var_eng] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][var_vel[m]] * timeStep;
+	for (std::size_t k = 0; k < nz; ++k) {
+
+	  // calculate momentum quotient before modification
+	  bool inGrid = (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 );
+	  REAL momQuot[3];
+	  if (inGrid) {
+	    momQuot[0] = (arrayU[i+1][j][k][var_mom[0]] - arrayU[i-1][j][k][var_mom[0]]) / (2*dx);
+	    momQuot[1] = (arrayU[i][j+1][k][var_mom[1]] - arrayU[i][j-1][k][var_mom[1]]) / (2*dy);
+	    momQuot[2] = (arrayU[i][j][k+1][var_mom[2]] - arrayU[i][j][k-1][var_mom[2]]) / (2*dz);
 	  }
+
+	  // penalization
+	  for (std::size_t m = 0; m < n_dim; ++m) {
+	    // momentum penalization
+	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
+	    // energy penalization
+	    arrayU[i][j][k][var_eng]    -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][var_vel[m]] * timeStep;
+	  }
+
+	  // influence of mass penalization on energy
+	  if (inGrid) {
+	    for (std::size_t m = 0; m < n_dim; ++m)
+	      arrayU[i][j][k][var_eng]  += arrayU[i][j][k][var_msk] * (0.5*pow(arrayU[i][j][k][var_vel[m]],2)*(1.0/porosity-1)) * momQuot[m] * timeStep;
+	  }
+	}
+    */
   }
   
   void Fluid::addGhostPoints() {
@@ -515,9 +597,10 @@ namespace dem {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  arraySoundSpeed[i][j][k] = sqrt(gamma * arrayU[i][j][k][var_prs] /  arrayU[i][j][k][var_den]);
+	  arraySoundSpeed[i][j][k] = sqrt(gamma * arrayU[i][j][k][var_prs] / arrayU[i][j][k][var_den]);
   }
 
+  // total enthalphy, not static enthalpy
   void Fluid::enthalpy() {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
@@ -545,7 +628,7 @@ namespace dem {
   }
 
   void Fluid::RankineHugoniot() {
-    shockSpeed = mach*sqrt(gamma*pR/rhoR);
+    shockSpeed = Mach*sqrt(gamma*pR/rhoR);
     pL = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
     rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
     uL = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
@@ -557,7 +640,7 @@ namespace dem {
     //*/
   }
 
-  void Fluid::flux() {
+  void Fluid::flux(std::size_t idim, std::vector<Particle *> &ptcls) {
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
@@ -567,34 +650,100 @@ namespace dem {
 	  arrayFlux[i][j][k][var_mom[2]] = arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[2]]; // rho*u*w
 	  arrayFlux[i][j][k][var_eng]    = arrayUtmp[i][j][k][var_vel[0]] * (arrayUtmp[i][j][k][var_eng] + arrayUtmp[i][j][k][var_prs]);  // u*(E + p)
 	}  
+
+    ///*
+    // for cells that are enclosed by particle volumes
+    for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
+      for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
+	std::size_t i = static_cast<std::size_t> (fluidGrid[iter][0]);
+	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
+	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
+	REAL u0[3];
+	REAL coord_x = arrayGridCoord[i][j][k][0];
+	REAL coord_y = arrayGridCoord[i][j][k][1];
+	REAL coord_z = arrayGridCoord[i][j][k][2];
+	Vec dist = Vec(coord_x, coord_y, coord_z) - (*it)->getCurrPos();
+	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
+	u0[0] = (*it)->getCurrVeloc().getX() + omgar.getX(); 
+	u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
+	u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
+
+	REAL volFraction = fluidGrid[iter][3];
+	REAL coef = (1-volFraction) + volFraction/porosity;
+
+	// continuity equation
+	arrayFlux[i][j][k][var_den]    = coef * arrayUtmp[i][j][k][var_den] * (arrayUtmp[i][j][k][var_vel[0]] - u0[idim]) ; // rho*(u-u0)
+	//arrayFlux[i][j][k][var_den]    = coef * arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]]; // rho*u
+
+	// momentum equations are also modified, but dropping one porosity from equation LHS and one porosity from equation RHS
+	arrayFlux[i][j][k][var_mom[0]] = coef * arrayUtmp[i][j][k][var_den] * pow(arrayUtmp[i][j][k][var_vel[0]],2) + arrayUtmp[i][j][k][var_prs]; // rho*u^2 + p
+	arrayFlux[i][j][k][var_mom[1]] = coef * arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[1]]; // rho*u*v
+	arrayFlux[i][j][k][var_mom[2]] = coef * arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[2]]; // rho*u*w	
+      }
+    }
+    //*/
   }
 
   void Fluid::RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t it, std::size_t jt, std::size_t kt) {
-    REAL avgRho = sqrt(uL[var_den]*uR[var_den]);
+
+    // it, jt, kt defined at cell faces
+    if (uL[var_den] < 0 || uR[var_den] < 0)
+      debugInf << std::setw(3) << it
+	       << std::setw(3) << jt
+	       << std::setw(3) << kt
+	       << std::setw(3) << idim
+	       << std::setw(3) << (int) uL[var_msk]
+	       << std::setw(3) << (int) uR[var_msk]
+	       << std::setw(OWID) << uL[var_den]
+	       << std::setw(OWID) << uR[var_den]
+	       << std::setw(OWID) << uL[var_eng]
+	       << std::setw(OWID) << uR[var_eng]
+	       << std::endl;
+
+    REAL avgRho =  sqrt(uL[var_den]*uR[var_den]);
     REAL avgH   = (sqrt(uL[var_den])*HL + sqrt(uR[var_den])*HR)/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgU   = (sqrt(uL[var_den])*uL[var_vel[0]] + sqrt(uR[var_den])*uR[var_vel[0]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgV   = (sqrt(uL[var_den])*uL[var_vel[1]] + sqrt(uR[var_den])*uR[var_vel[1]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgW   = (sqrt(uL[var_den])*uL[var_vel[2]] + sqrt(uR[var_den])*uR[var_vel[2]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
     REAL avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
-    if ( (avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) < 0 ) 
+    
+    /*
+    REAL avgPrs = 0;
+    if (avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW) <= 0) {
+      avgPrs =  (sqrt(uL[var_den])*uL[var_prs] + sqrt(uR[var_den])*uR[var_prs])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
+      avgSoundSpeed = sqrt( gamma*avgPrs/avgRho);
+    }
+    else
+      avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
+    */
+    
+    if (avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW) < 0) 
       debugInf << std::setw(3) << it
 	       << std::setw(3) << jt
 	       << std::setw(3) << kt
-	       << std::setw(OWID) << uL[var_den]
-	       << std::setw(OWID) << uR[var_den]
+	       << std::setw(3) << idim
+	       << std::setw(3) << (int) uL[var_msk]
+	       << std::setw(3) << (int) uR[var_msk]
 	       << std::setw(OWID) << HL
 	       << std::setw(OWID) << HR
+	       << std::setw(OWID) << uL[var_den]
+	       << std::setw(OWID) << uR[var_den]
 	       << std::setw(OWID) << uL[var_vel[0]]
 	       << std::setw(OWID) << uR[var_vel[0]]
 	       << std::setw(OWID) << uL[var_vel[1]]
 	       << std::setw(OWID) << uR[var_vel[1]]
 	       << std::setw(OWID) << uL[var_vel[2]]
 	       << std::setw(OWID) << uR[var_vel[2]]
+	       << std::setw(OWID) << uL[var_eng]
+	       << std::setw(OWID) << uR[var_eng]
 	       << std::setw(OWID) << avgH
 	       << std::setw(OWID) << avgU
 	       << std::setw(OWID) << avgV
 	       << std::setw(OWID) << avgW
 	       << std::setw(OWID) << avgSoundSpeed
+	       << std::setw(OWID) << uL[var_prs]
+	       << std::setw(OWID) << uR[var_prs]
 	       << std::endl;
 
     REAL eigen[5];
@@ -743,8 +892,8 @@ namespace dem {
 
 	  } // end of if else
 
-
 	}
+
   }
 
   void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
@@ -765,12 +914,16 @@ namespace dem {
 
       Vec penalForce  = 0, presForce  = 0;
       Vec penalMoment = 0, presMoment = 0;
+      REAL avgDen = 0, avgVel = 0, avgPrs = 0;
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
 	std::size_t i = static_cast<std::size_t> (fluidGrid[iter][0]);
 	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 	REAL volFraction = fluidGrid[iter][3];
+	avgDen += arrayU[i][j][k][var_den];
+	avgVel += sqrt( pow(arrayU[i][j][k][var_vel[0]],2) + pow(arrayU[i][j][k][var_vel[1]],2) + pow(arrayU[i][j][k][var_vel[2]],2) );
+	avgPrs += arrayU[i][j][k][var_prs];
 
 	REAL coord_x = arrayGridCoord[i][j][k][0];
 	REAL coord_y = arrayGridCoord[i][j][k][1];
@@ -816,6 +969,10 @@ namespace dem {
 	presMoment  += dist % Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
       } // end of fluidGrid loop
 
+      avgDen /= fluidGrid.size();
+      avgVel /= fluidGrid.size();
+      avgPrs /= fluidGrid.size();
+
       penalForce *= dx*dy*dz;
       presForce  *= dx*dy*dz;
       (*it)->addForce(penalForce);
@@ -852,6 +1009,10 @@ namespace dem {
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getY()
 	    << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
 
+	    << std::setw(OWID) << avgDen
+	    << std::setw(OWID) << avgVel
+	    << std::setw(OWID) << avgPrs
+
 	    << std::endl;    
       } 
     } // end of particle loop  
@@ -866,7 +1027,7 @@ namespace dem {
     ofs	<< std::setw(OWID) << "VARIABLES = \"x\""
 	<< std::setw(OWID) << "\"y\""
 	<< std::setw(OWID) << "\"z\""
-	<< std::setw(OWID) << "\"mach\""
+	<< std::setw(OWID) << "\"Mach\""
 	<< std::setw(OWID) << "\"density\""
 	<< std::setw(OWID) << "\"momentum_x\""
 	<< std::setw(OWID) << "\"momentum_y\""

@@ -1130,9 +1130,9 @@ namespace dem {
       clearContactForce();
 
       /*4*/ fluid.getParticleInfo(particleVec); // not allParticleVec
-      /*5*/ fluid.runOneStep();
+      /*5*/ fluid.runOneStep(particleVec);
       /*6*/ fluid.calcParticleForce(particleVec, particleInf); // not allParticleVec
-      /*7*/ fluid.penalize();
+      /*7*/ fluid.penalize(particleVec);
 
       internalForce();
       if (isBdryProcess()) boundaryForce();
