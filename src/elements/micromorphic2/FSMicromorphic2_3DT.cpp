@@ -403,6 +403,7 @@ void FSMicromorphic2_3DT::CloseStep(void)
     fdGchidSIGMA_S_n_Elements_IPs=fdGchidSIGMA_S_Elements_IPs;
     fdFYchidSIGMA_S_n_Elements_IPs=fdFYchidSIGMA_S_Elements_IPs;
     GXp_n_Elements_IPs=GXp_Elements_IPs;
+    dGnablachidMKLM_Element_n_IPs=dGnablachidMKLM_Element_IPs;
 
   }
 
@@ -2241,10 +2242,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 //          out_variable[40]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kGc_chi3);
 //          out_variable[41]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kDelgammaGchi);
 //          out_variable[42]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+khGc_chi);
-          fs_micromorph3D_out  << "out_variable = " << out_variable << endl;
-          fs_micromorph3D_out  << "kc_nablachi0 = " << out_variable[22] << endl;
-          fs_micromorph3D_out  << "kc_nablachi1 = " << out_variable[23] << endl;
-          fs_micromorph3D_out  << "kc_nablachi2 = " << out_variable[24] << endl;
 
 
 //          out_variable[37]=fState_variables_Elements_IPs(e,l*kNUM_FMATERIAL_STATE_TERMS+kinvGPhi);
@@ -3078,6 +3075,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
                         Form_fMKLM_tr();
                         Form_Mean_fMKLM_tr();
+                        Form_Norm_Mean_fMKLM_tr();
                         Form_fdevMKLM_tr();
                         Form_fNormdevMKLM_tr();
                         Form_kc_nablachi_n(IP);
@@ -3108,7 +3106,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         // Form the cohesion and dilation angle related terms in Plastic potential function
                         double Apsi_nablachi=2*sqrt(6)*cos(fMaterial_Params[kDpsi_nablachi])/(3+Beta*sin(fMaterial_Params[kDpsi_nablachi] ));
                         double Bpsi_nablachi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_nablachi])/(3+Beta*sin(fMaterial_Params[kDpsi_nablachi] ));
-
 
                         /* Form the trial deviatoric SPK */
                         Pbar_tr=0.0;
@@ -5024,6 +5021,13 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 						Form_kc_nablachi_n(IP);
 						Form_Norm_kc_nablachi_n();
 
+						fs_micromorph3D_out << "Mean_fMeKLM = " << Mean_fMeKLM << endl;
+						fs_micromorph3D_out << "fdevMeKLM = " << fdevMeKLM << endl;
+						fs_micromorph3D_out << "fNormdevMeKLM = " << fNormdevMeKLM << endl;
+						fs_micromorph3D_out << "Norm_Mean_fMeKLM = " << Norm_Mean_fMeKLM << endl;
+						fs_micromorph3D_out << "kc_nablachi_n = " << kc_nablachi_n << endl;
+						fs_micromorph3D_out << "Norm_kc_nablachi_n = " << Norm_kc_nablachi_n << endl;
+
 						// iterate using Newton-Raphson to solve for fDelgammanablachai
 						iter_count = 0;
 						fs_micromorph3D_out << "Gauss Point = " << IP << endl;
@@ -5065,21 +5069,21 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 							cohesion_nablachi=kc_nablachi_n;
 							cohesion_nablachi+= fDelkc_nablachi;
 
-							if (cohesion_nablachi(1,1) < 0.0)
+							if (cohesion_nablachi(0,0) < 0.0)
 							{
-								cohesion_nablachi(1,1) = 0.0;
+								cohesion_nablachi(0,0) = 0.0;
 								fState_variables_IPs(IP,kc_nablachi0)= fState_variables_n_IPs(IP,kc_nablachi0);
 							}
 
-							if (cohesion_nablachi(2,1) < 0.0)
+							if (cohesion_nablachi(1,0) < 0.0)
 							{
-								cohesion_nablachi(2,1) = 0.0;
+								cohesion_nablachi(1,0) = 0.0;
 								fState_variables_IPs(IP,kc_nablachi1)= fState_variables_n_IPs(IP,kc_nablachi1);
 							}
 
-							if (cohesion_nablachi(3,1) < 0.0)
+							if (cohesion_nablachi(2,0) < 0.0)
 							{
-								cohesion_nablachi(3,1) = 0.0;
+								cohesion_nablachi(2,0) = 0.0;
 								fState_variables_IPs(IP,kc_nablachi2)= fState_variables_n_IPs(IP,kc_nablachi2);
 							}
 
@@ -5102,6 +5106,16 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 				            Form_Norm_Mean_fMeKLM();
 				            Form_fNormdevMeKLM();
 				            Form_Norm_cohesion_nablachi();
+
+				            fs_micromorph3D_out << "GXp = " << GXp << endl;
+				            fs_micromorph3D_out << "GXe = " << GXe << endl;
+				            fs_micromorph3D_out << "GAMMAe = " << GAMMAe << endl;
+				            fs_micromorph3D_out << "fMeKLM = " << fMeKLM << endl;
+				            fs_micromorph3D_out << "fdevMeKLM = " << fdevMeKLM << endl;
+				            fs_micromorph3D_out << "Mean_fMeKLM = " << Mean_fMeKLM << endl;
+				            fs_micromorph3D_out << "Norm_Mean_fMeKLM = " << Norm_Mean_fMeKLM << endl;
+				            fs_micromorph3D_out << "fNormdevMeKLM = " << fNormdevMeKLM << endl;
+				            fs_micromorph3D_out << "Norm_cohesion_nablachi = " << Norm_cohesion_nablachi << endl;
 
 				            fMicro_gradient_Yield_function = fNormdevMeKLM - (Aphi_nablachi*Norm_cohesion_nablachi
 							- Bphi_nablachi*Norm_Mean_fMeKLM);
@@ -5631,7 +5645,11 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
                                 /* Calculating the inverse of PSIe */
                                 //PSIe_inverse.Inverse(PSIe);
-
+                                Form_fMeKLM();
+    				            Form_fdevMeKLM();
+    				            Form_Mean_fMeKLM();
+    				            Form_Norm_Mean_fMeKLM();
+    				            Form_fNormdevMeKLM();
 
                                 if(PlasticityCondition==1 || PlasticityCondition==2 || PlasticityCondition==3)
                                 {
@@ -5961,7 +5979,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
                                 Form_GXe();
                                 Form_GAMMAe();
-                                Form_fMeKLM();
                                 Form_fV3p();
 
 //                                //fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
@@ -10468,13 +10485,13 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
 //                              Form_GAMMA();
 //                              Form_fMKLM();
-                                fMKLM = fMKLM_tr;
+                                fMeKLM = fMKLM_tr;
     				            Form_fdevMeKLM();
     				            Form_Mean_fMeKLM();
     				            Form_Norm_Mean_fMeKLM();
     				            Form_fNormdevMeKLM();
 
-                                fs_micromorph3D_out<< "fMKLM="<< fMKLM <<endl;
+                                fs_micromorph3D_out<< "fMeKLM="<< fMeKLM <<endl;
 
                                 Form_fV3();
                                 //fIota_eta_temp_matrix.Multx(fV3,Vint_3_temp);
@@ -12527,10 +12544,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
         ElementSupport().AssembleLHS(curr_group, fKphiphi, micro_eq);
         ElementSupport().AssembleLHS(curr_group, fKdphi, displ_eq, micro_eq);
         ElementSupport().AssembleLHS(curr_group, fKphid, micro_eq, displ_eq);
-
-        fs_micromorph3D_out << "fKdd = " << fKdd << endl;
-        fs_micromorph3D_out << "displ_eq = " << displ_eq << endl;
-        fs_micromorph3D_out << "micro_eq = " << micro_eq << endl;
 
 
         }
@@ -15330,7 +15343,13 @@ void FSMicromorphic2_3DT::TakeParameterList(const ParameterListT& list)
      //fdGchidSIGMA_S_n.SetToScaled(Bpsi_chi*1/3,fIdentity_matrix);
      fdGchidSIGMA_S_n=0.0;
 
+     Aphi_nablachi=2*sqrt(6)*cos(fMaterial_Params[kFphi_nablachi])/(3+Beta*sin(fMaterial_Params[kFphi_nablachi]));
+     Bphi_nablachi=2*sqrt(6)*sin(fMaterial_Params[kFphi_nablachi])/(3+Beta*sin(fMaterial_Params[kFphi_nablachi]));
+     // Form the cohesion and dilation angle related terms in Plastic potential function
+     Apsi_nablachi=2*sqrt(6)*cos(fMaterial_Params[kDpsi_nablachi])/(3+Beta*sin(fMaterial_Params[kDpsi_nablachi] ));
+     Bpsi_nablachi=2*sqrt(6)*sin(fMaterial_Params[kDpsi_nablachi])/(3+Beta*sin(fMaterial_Params[kDpsi_nablachi] ));
 
+     fdGnablachidMKLM_n = 0.0;
      //AGphi_chi=2*sqrt(6)*cos(fMaterial_Params[kFGphi_chi])/(3+Beta*sin(fMaterial_Params[kFGphi_chi]));
      //BGphi_chi=2*sqrt(6)*sin(fMaterial_Params[kFGphi_chi])/(3+Beta*sin(fMaterial_Params[kFGphi_chi]));
      //AGpsi_chi=2*sqrt(6)*cos(fMaterial_Params[kDGpsi_chi])/(3+Beta*sin(fMaterial_Params[kDGpsi_chi]));
@@ -19511,7 +19530,7 @@ void FSMicromorphic2_3DT:: Form_fV3()
                       for(int M=0;M<3;M++)
                       {
                     	  fTemp_tensor_n_sd_x_n_sd_x_n_sd(A,l,m)+=fDeformation_Gradient(l,L)
-                                                                 *fMKLM(A,L,M)
+                                                                 *fMeKLM(A,L,M)
                                                                  *ChiM(m,M);
                       }
                   }
@@ -20523,6 +20542,8 @@ void FSMicromorphic2_3DT::Form_dfkc_nablachidDelgammanablachi()
 		for( int Mbar=0;Mbar<3;Mbar++)
 		{
 			fTemp_matrix_one_x_one = (1/Norm_kc_nablachi_n)*fMaterial_Params[kHc_nablachi]*Apsi_nablachi;
+			fs_micromorph3D_out  << "Apsi_nablachi = " << Apsi_nablachi << endl;
+			fs_micromorph3D_out  << "fMaterial_Params[kHc_nablachi] = " << fMaterial_Params[kHc_nablachi] << endl;
 			dfkc_nablachidDelgammanablachi.SetToScaled(fTemp_matrix_one_x_one,kc_nablachi_n);
 		}
 }
@@ -20688,6 +20709,11 @@ void FSMicromorphic2_3DT:: Form_GAMMAe()
     }
 
 }
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FSMicromorphic2_3DT:: Form_GAMMAe_tr()
@@ -20981,7 +21007,7 @@ void FSMicromorphic2_3DT:: Form_fMF()
                     //summation
                     for(int M=0;M<3;M++)
                     {
-                        fMF(row,col)+=ChiM(m,M)*fMKLM(K,L,M);
+                        fMF(row,col)+=ChiM(m,M)*fMeKLM(K,L,M);
                     }
                     row++;
                 }
@@ -21040,7 +21066,7 @@ void FSMicromorphic2_3DT:: Form_fMchi()
                     //summation
                     for(int L=0;L<3;L++)
                     {
-                        fMchi(row,col)+=fDeformation_Gradient(l,L)*fMKLM(K,L,M);
+                        fMchi(row,col)+=fDeformation_Gradient(l,L)*fMeKLM(K,L,M);
                     }
                     row++;
                 }
@@ -21868,7 +21894,7 @@ void FSMicromorphic2_3DT::Calculate_fmklm()
                     {
                         for(int M=0;M<3;M++)
                         {
-                            fmklm(k,l,m)+=fDeformation_Gradient(k,K)*fDeformation_Gradient(l,L)*fMKLM(K,L,M)*ChiM(m,M);
+                            fmklm(k,l,m)+=fDeformation_Gradient(k,K)*fDeformation_Gradient(l,L)*fMeKLM(K,L,M)*ChiM(m,M);
                         }
                     }
                 }
