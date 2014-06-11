@@ -43,15 +43,18 @@ int main(int argc, char *argv[])
 
   double x1, y1, z1, x2, y2, z2;
   ifs >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
+  x2 = x1 + (x2-x1)*dupX;
+  y2 = y1 + (y2-y1)*dupY;
+  z2 = z1 + (z2-z1)*dupZ;
   ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z1
-      << std::setw(OWID) << x1 + (x2-x1)*dupX 
-      << std::setw(OWID) << y1 + (y2-y1)*dupY 
-      << std::setw(OWID) << z1 + (z2-z1)*dupZ << std::endl << std::endl
-      << std::setw(OWID) << 6 << std::endl << std::endl;
+      << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2
+      << std::endl << std::endl
+      << std::setw(OWID) << 6
+      << std::endl << std::endl;
 
-  double x0 = x1 + (x2-x1)*dupX/2;
-  double y0 = y1 + (y2-y1)*dupY/2;
-  double z0 = z1 + (z2-z1)*dupZ/2;
+  double x0 = (x2+x1)/2;
+  double y0 = (y2+y1)/2;
+  double z0 = (z2+z1)/2;
 
   // boundary 1
   ofs << std::setw(OWID) << 1
@@ -160,11 +163,11 @@ int main(int argc, char *argv[])
 
     double xnew, ynew, znew;
     for (int i = 0; i < dupX; ++i) {
-      xnew = x + i*(x2-x1);
+      xnew = x + i*(x2-x1)/dupX;
       for (int j= 0; j < dupY; ++j) {
-	ynew = y + j*(y2-y1);
+	ynew = y + j*(y2-y1)/dupY;
 	for (int k = 0; k < dupZ; ++k) {
-	  znew = z + k*(z2-z1);
+	  znew = z + k*(z2-z1)/dupZ;
 	  ofs << std::setw(OWID) << ++nid << std::setw(OWID) << type 
 	      << std::setw(OWID) << a << std::setw(OWID) << b << std::setw(OWID) << c 
 	      << std::setw(OWID) << xnew << std::setw(OWID) << ynew << std::setw(OWID) << znew 
