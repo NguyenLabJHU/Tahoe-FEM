@@ -8,115 +8,176 @@ namespace dem {
   const REAL Fluid::Rs;
 
   void Fluid::initParameter(Rectangle &container, Gradation &gradation) {
-    
+
+    std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
+    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
+    porosity = dem::Parameter::getSingleton().parameter["porosity"];
     RK = dem::Parameter::getSingleton().parameter["RK"];
     CFL = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
+    Mach = dem::Parameter::getSingleton().parameter["MachNumber"];
+    rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
+    pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
+    uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
+    
+    leftType = static_cast<int> (dem::Parameter::getSingleton().parameter["leftType"]);    
+    REAL x1F = dem::Parameter::getSingleton().parameter["x1F"];
+    REAL y1F = dem::Parameter::getSingleton().parameter["y1F"];
+    REAL z1F = dem::Parameter::getSingleton().parameter["z1F"];
+    REAL x2F = dem::Parameter::getSingleton().parameter["x2F"];
+    REAL y2F = dem::Parameter::getSingleton().parameter["y2F"];
+    REAL z2F = dem::Parameter::getSingleton().parameter["z2F"];
     arrayBC[0] = dem::Parameter::getSingleton().parameter["x1Reflecting"];
     arrayBC[1] = dem::Parameter::getSingleton().parameter["x2Reflecting"];
     arrayBC[2] = dem::Parameter::getSingleton().parameter["y1Reflecting"];
     arrayBC[3] = dem::Parameter::getSingleton().parameter["y2Reflecting"];
     arrayBC[4] = dem::Parameter::getSingleton().parameter["z1Reflecting"];
     arrayBC[5] = dem::Parameter::getSingleton().parameter["z2Reflecting"];
-    rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
-    pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
-    uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
-    Mach = dem::Parameter::getSingleton().parameter["MachNumber"];
-    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
-    porosity = dem::Parameter::getSingleton().parameter["porosity"];
-    std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
-    volFrac = static_cast<int> (dem::Parameter::getSingleton().parameter["volFrac"]);
 
-    REAL minX = container.getMinCorner().getX();
-    REAL minY = container.getMinCorner().getY();
-    REAL minZ = container.getMinCorner().getZ(); // particle container
-    REAL z1 = dem::Parameter::getSingleton().parameter["z1"]; // fluid field
-    minZ = z1;
-    z0 = dem::Parameter::getSingleton().parameter["z0"];
+    if (leftType == 1)
+      z2L = dem::Parameter::getSingleton().parameter["z2L"];
+    else if (leftType == 2) {
+      z2L = dem::Parameter::getSingleton().parameter["z2L"];
+      rhoL= dem::Parameter::getSingleton().parameter["leftDensity"];
+      pL  = dem::Parameter::getSingleton().parameter["leftPressure"];
+      uL  = dem::Parameter::getSingleton().parameter["leftVelocity"];
+    }
+    else if (leftType == 3) {
+      x1L = dem::Parameter::getSingleton().parameter["x1L"];
+      x2L = dem::Parameter::getSingleton().parameter["x2L"];
+      y1L = dem::Parameter::getSingleton().parameter["y1L"];
+      y2L = dem::Parameter::getSingleton().parameter["y2L"];
+      z1L = dem::Parameter::getSingleton().parameter["z1L"];
+      z2L = dem::Parameter::getSingleton().parameter["z2L"];
+      rhoL= dem::Parameter::getSingleton().parameter["leftDensity"];
+      pL  = dem::Parameter::getSingleton().parameter["leftPressure"];
+      uL  = dem::Parameter::getSingleton().parameter["leftVelocity"];
+    } else if (leftType == 4) {
+      x0L = dem::Parameter::getSingleton().parameter["x0L"];
+      y0L = dem::Parameter::getSingleton().parameter["y0L"];
+      z0L = dem::Parameter::getSingleton().parameter["z0L"];
+      r0L = dem::Parameter::getSingleton().parameter["r0L"];
+      rhoL= dem::Parameter::getSingleton().parameter["leftDensity"];
+      pL  = dem::Parameter::getSingleton().parameter["leftPressure"];
+      uL  = dem::Parameter::getSingleton().parameter["leftVelocity"];
+    }
 
-    REAL maxX = container.getMaxCorner().getX();
-    REAL maxY = container.getMaxCorner().getY();
-    REAL maxZ = container.getMaxCorner().getZ();
     REAL minR = gradation.getPtclMinRadius();
-
     dx = (minR * 2) / ptclGrid;
     dy = dx;
     dz = dx;
-    nx = static_cast<std::size_t> (ceil((maxX - minX) / dx));
-    ny = static_cast<std::size_t> (ceil((maxY - minY) / dy));
-    nz = static_cast<std::size_t> (ceil((maxZ - minZ) / dz));
+    nx = static_cast<std::size_t> (ceil((x2F - x1F) / dx));
+    ny = static_cast<std::size_t> (ceil((y2F - y1F) / dy));
+    nz = static_cast<std::size_t> (ceil((z2F - z1F) / dz));
 
-    dx = (maxX - minX) / nx;
-    dy = (maxY - minY) / ny;
-    dz = (maxZ - minZ) / nz;
+    dx = (x2F - x1F) / nx;
+    dy = (y2F - y1F) / ny;
+    dz = (z2F - z1F) / nz;
 
     nx += 2;
     ny += 2;
     nz += 2;
 
     // fixed
-    n_dim = 3;
-    n_var = 0; 
-    n_integ = 0;
+    nDim = 3;
+    nVar = 0; 
+    nInteg = 0;
 
-    var_den = n_var++; n_integ++;
-    var_mom[0] = n_var++; n_integ++;
-    var_mom[1] = n_var++; n_integ++;
-    var_mom[2] = n_var++; n_integ++;
-    var_eng = n_var++; n_integ++;
+    varDen = nVar++; nInteg++;
+    varMom[0] = nVar++; nInteg++;
+    varMom[1] = nVar++; nInteg++;
+    varMom[2] = nVar++; nInteg++;
+    varEng = nVar++; nInteg++;
 
-    var_vel[0] = n_var++;
-    var_vel[1] = n_var++;
-    var_vel[2] = n_var++;
-    var_prs = n_var++; 
+    varVel[0] = nVar++;
+    varVel[1] = nVar++;
+    varVel[2] = nVar++;
+    varPrs = nVar++; 
 
     // extended
-    var_msk = n_var++;
+    varMsk = nVar++;
 
-    ///*
-    debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << RK << std::endl;
+    // print
+    debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
+    debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
+    debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
+    debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << (int) RK << std::endl;
     debugInf << std::setw(OWID) << "CFL" << std::setw(OWID) << CFL << std::endl;
     debugInf << std::setw(OWID) << "gamma" << std::setw(OWID) << gamma << std::endl;
-    debugInf << std::setw(OWID) << "x1Rflecting" << std::setw(OWID) << arrayBC[0] << std::endl;
-    debugInf << std::setw(OWID) << "x2Rflecting" << std::setw(OWID) << arrayBC[1] << std::endl;
-    debugInf << std::setw(OWID) << "y1Rflecting" << std::setw(OWID) << arrayBC[2] << std::endl;
-    debugInf << std::setw(OWID) << "y2Rflecting" << std::setw(OWID) << arrayBC[3] << std::endl;
-    debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << arrayBC[4] << std::endl;
-    debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << arrayBC[5] << std::endl;
-    debugInf << std::setw(OWID) << "z0" << std::setw(OWID) << z0 << std::endl;
+    debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << Mach << std::endl;
     debugInf << std::setw(OWID) << "rhoR" << std::setw(OWID) << rhoR << std::endl;
     debugInf << std::setw(OWID) << "pR" << std::setw(OWID) << pR << std::endl;
     debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
-    debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << Mach << std::endl;
-    debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
-    debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
-    debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
+
     debugInf << std::setw(OWID) << "gridSize" << std::setw(OWID) << dx << std::endl;
-    debugInf << std::setw(OWID) << "volFrac" << std::setw(OWID) << volFrac << std::endl;
+    debugInf << std::setw(OWID) << "gridX" << std::setw(OWID) << nx << std::endl;
+    debugInf << std::setw(OWID) << "gridY" << std::setw(OWID) << ny << std::endl;
+    debugInf << std::setw(OWID) << "gridZ" << std::setw(OWID) << nz << std::endl;
+
+    debugInf << std::setw(OWID) << "leftType" << std::setw(OWID) << leftType << std::endl;
+    debugInf << std::setw(OWID) << "x1F" << std::setw(OWID) << x1F << std::endl;
+    debugInf << std::setw(OWID) << "y1F" << std::setw(OWID) << y1F << std::endl;
+    debugInf << std::setw(OWID) << "z1F" << std::setw(OWID) << z1F << std::endl;
+    debugInf << std::setw(OWID) << "x2F" << std::setw(OWID) << x2F << std::endl;
+    debugInf << std::setw(OWID) << "y2F" << std::setw(OWID) << y2F << std::endl;
+    debugInf << std::setw(OWID) << "z2F" << std::setw(OWID) << z2F << std::endl;
+    debugInf << std::setw(OWID) << "x1Rflecting" << std::setw(OWID) << (int) arrayBC[0] << std::endl;
+    debugInf << std::setw(OWID) << "x2Rflecting" << std::setw(OWID) << (int) arrayBC[1] << std::endl;
+    debugInf << std::setw(OWID) << "y1Rflecting" << std::setw(OWID) << (int) arrayBC[2] << std::endl;
+    debugInf << std::setw(OWID) << "y2Rflecting" << std::setw(OWID) << (int) arrayBC[3] << std::endl;
+    debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << (int) arrayBC[4] << std::endl;
+    debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << (int) arrayBC[5] << std::endl;
+
+    if (leftType == 1) 
+      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+    else if (leftType == 2) {
+      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;    
+    } else if (leftType == 3) {
+      debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
+      debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
+      debugInf << std::setw(OWID) << "y1L" << std::setw(OWID) << y1L << std::endl;
+      debugInf << std::setw(OWID) << "y2L" << std::setw(OWID) << y2L << std::endl;
+      debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
+      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;    
+    } else if(leftType == 4) {
+      debugInf << std::setw(OWID) << "x0L" << std::setw(OWID) << x0L << std::endl;
+      debugInf << std::setw(OWID) << "y0L" << std::setw(OWID) << y0L << std::endl;
+      debugInf << std::setw(OWID) << "z0L" << std::setw(OWID) << z0L << std::endl;
+      debugInf << std::setw(OWID) << "r0L" << std::setw(OWID) << r0L << std::endl;
+      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;    
+    }
 
     /*
-    debugInf << "n_var " << n_var << std::endl;
-    debugInf << "n_integ " << n_integ << std::endl;
-    debugInf << "var_den " << var_den  << std::endl;    
-    debugInf << "var_mom[0] " << var_mom[0] << std::endl;    
-    debugInf << "var_mom[1] " << var_mom[1] << std::endl;
-    debugInf << "var_mom[2] " << var_mom[2] << std::endl;    
-    debugInf << "var_eng " << var_eng  << std::endl;    
-    debugInf << "var_vel[0] " << var_vel[0] << std::endl;    
-    debugInf << "var_vel[1] " << var_vel[1] << std::endl;    
-    debugInf << "var_vel[2] " << var_vel[2] << std::endl;    
-    debugInf << "var_prs " << var_prs  << std::endl;    
-    debugInf << "var_msk " << var_msk  << std::endl;   
+    debugInf << "nVar " << nVar << std::endl;
+    debugInf << "nInteg " << nInteg << std::endl;
+    debugInf << "varDen " << varDen  << std::endl;    
+    debugInf << "varMom[0] " << varMom[0] << std::endl;    
+    debugInf << "varMom[1] " << varMom[1] << std::endl;
+    debugInf << "varMom[2] " << varMom[2] << std::endl;    
+    debugInf << "varEng " << varEng  << std::endl;    
+    debugInf << "varVel[0] " << varVel[0] << std::endl;    
+    debugInf << "varVel[1] " << varVel[1] << std::endl;    
+    debugInf << "varVel[2] " << varVel[2] << std::endl;    
+    debugInf << "varPrs " << varPrs  << std::endl;    
+    debugInf << "varMsk " << varMsk  << std::endl;   
     */ 
 
-    // nx, ny, nz, n_dim
+    // nx, ny, nz, nDim
     arrayGridCoord.resize(nx);
     for (std::size_t i = 0; i < arrayGridCoord.size(); ++i) {
       arrayGridCoord[i].resize(ny);
       for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j) {
 	arrayGridCoord[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) 
-	  arrayGridCoord[i][j][k].resize(n_dim);
+	  arrayGridCoord[i][j][k].resize(nDim);
       }
     }
 
@@ -124,120 +185,120 @@ namespace dem {
     for (std::size_t i = 0; i < arrayGridCoord.size(); ++i)
       for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j)
 	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) {
-	  arrayGridCoord[i][j][k][0] = (minX - dx/2) + i * dx;
-	  arrayGridCoord[i][j][k][1] = (minY - dy/2) + j * dy;
-	  arrayGridCoord[i][j][k][2] = (minZ - dz/2) + k * dz;
+	  arrayGridCoord[i][j][k][0] = (x1F - dx/2) + i * dx;
+	  arrayGridCoord[i][j][k][1] = (y1F - dy/2) + j * dy;
+	  arrayGridCoord[i][j][k][2] = (z1F - dz/2) + k * dz;
 	}
 
-    // nx, ny, nz, n_dim
+    // nx, ny, nz, nDim
     arrayPenalForce.resize(nx);
     for (std::size_t i = 0; i < arrayPenalForce.size(); ++i) {
       arrayPenalForce[i].resize(ny);
       for (std::size_t j = 0; j < arrayPenalForce[i].size(); ++j) {
 	arrayPenalForce[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayPenalForce[i][j].size(); ++k) 
-	  arrayPenalForce[i][j][k].resize(n_dim);
+	  arrayPenalForce[i][j][k].resize(nDim);
       }
     }
 
-    // nx, ny, nz, n_dim
+    // nx, ny, nz, nDim
     arrayPressureForce.resize(nx);
     for (std::size_t i = 0; i < arrayPressureForce.size(); ++i) {
       arrayPressureForce[i].resize(ny);
       for (std::size_t j = 0; j < arrayPressureForce[i].size(); ++j) {
 	arrayPressureForce[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayPressureForce[i][j].size(); ++k) 
-	  arrayPressureForce[i][j][k].resize(n_dim);
+	  arrayPressureForce[i][j][k].resize(nDim);
       }
     }
 
-    // nx, ny, nz, n_var
+    // nx, ny, nz, nVar
     arrayU.resize(nx);
     for (std::size_t i = 0; i < arrayU.size(); ++i) {
       arrayU[i].resize(ny);
       for (std::size_t j = 0; j < arrayU[i].size(); ++j) {
 	arrayU[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) 
-	  arrayU[i][j][k].resize(n_var);
+	  arrayU[i][j][k].resize(nVar);
       }
     }
 
-    // nx, ny, nz, n_var
+    // nx, ny, nz, nVar
     arrayUtmp.resize(nx);
     for (std::size_t i = 0; i < arrayUtmp.size(); ++i) {
       arrayUtmp[i].resize(ny);
       for (std::size_t j = 0; j < arrayUtmp[i].size(); ++j) {
 	arrayUtmp[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayUtmp[i][j].size(); ++k) 
-	  arrayUtmp[i][j][k].resize(n_var);
+	  arrayUtmp[i][j][k].resize(nVar);
       }
     }
 
-    // nx, ny, nz, n_integ
+    // nx, ny, nz, nInteg
     arrayFlux.resize(nx);
     for (std::size_t i = 0; i < arrayFlux.size(); ++i) {
       arrayFlux[i].resize(ny);
       for (std::size_t j = 0; j < arrayFlux[i].size(); ++j) {
 	arrayFlux[i][j].resize(nz);
 	for (std::size_t k = 0; k < arrayFlux[i][j].size(); ++k) 
-	  arrayFlux[i][j][k].resize(n_integ);
+	  arrayFlux[i][j][k].resize(nInteg);
       }
     }
 
-    // nx-1, ny-1, nz-1, n_integ, n_dim
+    // nx-1, ny-1, nz-1, nInteg, nDim
     arrayRoeFlux.resize(nx-1);
     for (std::size_t i = 0; i < arrayRoeFlux.size(); ++i) {
       arrayRoeFlux[i].resize(ny-1);
       for (std::size_t j = 0; j < arrayRoeFlux[i].size(); ++j) {
 	arrayRoeFlux[i][j].resize(nz-1);
 	for (std::size_t k = 0; k < arrayRoeFlux[i][j].size(); ++k) {
-	  arrayRoeFlux[i][j][k].resize(n_integ);
+	  arrayRoeFlux[i][j][k].resize(nInteg);
 	  for (std::size_t m = 0; m < arrayRoeFlux[i][j][k].size(); ++m)
-	    arrayRoeFlux[i][j][k][m].resize(n_dim);
+	    arrayRoeFlux[i][j][k][m].resize(nDim);
 	}
       }
     }
 
     if (RK >= 1) {
-      // nx-1, ny-1, nz-1, n_integ, n_dim
+      // nx-1, ny-1, nz-1, nInteg, nDim
       arrayRoeFluxStep2.resize(nx-1);
       for (std::size_t i = 0; i < arrayRoeFluxStep2.size(); ++i) {
 	arrayRoeFluxStep2[i].resize(ny-1);
 	for (std::size_t j = 0; j < arrayRoeFluxStep2[i].size(); ++j) {
 	  arrayRoeFluxStep2[i][j].resize(nz-1);
 	  for (std::size_t k = 0; k < arrayRoeFluxStep2[i][j].size(); ++k) {
-	    arrayRoeFluxStep2[i][j][k].resize(n_integ);
+	    arrayRoeFluxStep2[i][j][k].resize(nInteg);
 	    for (std::size_t m = 0; m < arrayRoeFluxStep2[i][j][k].size(); ++m)
-	      arrayRoeFluxStep2[i][j][k][m].resize(n_dim);
+	      arrayRoeFluxStep2[i][j][k][m].resize(nDim);
 	  }
 	}
       }
     }
 
     if (RK == 2) {
-      // nx-1, ny-1, nz-1, n_integ, n_dim
+      // nx-1, ny-1, nz-1, nInteg, nDim
       arrayRoeFluxStep3.resize(nx-1);
       for (std::size_t i = 0; i < arrayRoeFluxStep3.size(); ++i) {
 	arrayRoeFluxStep3[i].resize(ny-1);
 	for (std::size_t j = 0; j < arrayRoeFluxStep3[i].size(); ++j) {
 	  arrayRoeFluxStep3[i][j].resize(nz-1);
 	  for (std::size_t k = 0; k < arrayRoeFluxStep3[i][j].size(); ++k) {
-	    arrayRoeFluxStep3[i][j][k].resize(n_integ);
+	    arrayRoeFluxStep3[i][j][k].resize(nInteg);
 	    for (std::size_t m = 0; m < arrayRoeFluxStep3[i][j][k].size(); ++m)
-	      arrayRoeFluxStep3[i][j][k][m].resize(n_dim);
+	      arrayRoeFluxStep3[i][j][k][m].resize(nDim);
 	  }
 	}
       }
     }
 
-    // nx-1, ny-1, nz-1, n_integ
+    // nx-1, ny-1, nz-1, nInteg
     arrayRoeFluxTmp.resize(nx-1);
     for (std::size_t i = 0; i < arrayRoeFluxTmp.size(); ++i) {
       arrayRoeFluxTmp[i].resize(ny-1);
       for (std::size_t j = 0; j < arrayRoeFluxTmp[i].size(); ++j) {
 	arrayRoeFluxTmp[i][j].resize(nz-1);
 	for (std::size_t k = 0; k < arrayRoeFluxTmp[i][j].size(); ++k) {
-	  arrayRoeFluxTmp[i][j][k].resize(n_integ);
+	  arrayRoeFluxTmp[i][j][k].resize(nInteg);
 	}
       }
     }
@@ -293,7 +354,7 @@ namespace dem {
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < n_integ; ++m)
+	  for (std::size_t m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
 				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
 				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
@@ -313,14 +374,13 @@ namespace dem {
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < n_integ; ++m)
+	  for (std::size_t m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / (2*RK*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0] 
 						        + (arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0]) )
 				    + timeStep / (2*RK*dy) * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1] 
 						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1]) )
 				    + timeStep / (2*RK*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2] 
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])) );
-	  //if (arrayU[i][j][k][var_den] <= 0) arrayU[i][j][k][var_den] = porosity * rhoR;
 	}
 
     // calculate primitive after finding conservative variables
@@ -337,7 +397,7 @@ namespace dem {
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < n_integ; ++m)
+	  for (std::size_t m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / (6*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0]
 						         +(arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0])
 						      + 4*(arrayRoeFluxStep3[i][j][k][m][0] - arrayRoeFluxStep3[i-1][j][k][m][0]))
@@ -349,7 +409,6 @@ namespace dem {
 				    + timeStep / (6*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])
 						     + 4*( arrayRoeFluxStep3[i][j][k][m][2] - arrayRoeFluxStep3[i][j][k-1][m][2])) );
-	  //if (arrayU[i][j][k][var_den] <= 0) arrayU[i][j][k][var_den] = porosity * rhoR;
 	}
 
     // calculate primitive after finding conservative variables
@@ -360,16 +419,16 @@ namespace dem {
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
 
     // for x, y, z directions
-    for (std::size_t idim = 0; idim < n_dim; ++idim) {
+    for (std::size_t idim = 0; idim < nDim; ++idim) {
       arrayUtmp = arrayU; // must have same rank and extent
 
       // switch components
       for (std::size_t i = 0; i < nx; ++i)
 	for (std::size_t j = 0; j < ny; ++j)
 	  for (std::size_t k = 0; k < nz; ++k) 
-	    for (std::size_t jdim = 0; jdim < n_dim; ++jdim) {
-	      arrayUtmp[i][j][k][  var_mom[jdim]  ] = arrayU[i][j][k][  var_mom[id[idim][jdim]]  ];
-	      arrayUtmp[i][j][k][  var_vel[jdim]  ] = arrayU[i][j][k][  var_vel[id[idim][jdim]]  ];
+	    for (std::size_t jdim = 0; jdim < nDim; ++jdim) {
+	      arrayUtmp[i][j][k][  varMom[jdim]  ] = arrayU[i][j][k][  varMom[id[idim][jdim]]  ];
+	      arrayUtmp[i][j][k][  varVel[jdim]  ] = arrayU[i][j][k][  varVel[id[idim][jdim]]  ];
 	    }
 
       flux(idim, ptcls); // variables defined at cell centers
@@ -384,11 +443,11 @@ namespace dem {
 	    REAL uL[9], uR[9], FL[5], FR[5], HL, HR; // local variable only
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
-	    for (std::size_t m = 0; m < n_var; ++m) {
+	    for (std::size_t m = 0; m < nVar; ++m) {
 	      uL[m] = arrayUtmp[IL[0]] [IL[1]] [IL[2]] [m];
 	      uR[m] = arrayUtmp[IR[0]] [IR[1]] [IR[2]] [m];
 	    }	
-	    for (std::size_t m = 0; m < n_integ; ++m) {
+	    for (std::size_t m = 0; m < nInteg; ++m) {
 	      FL[m] = arrayFlux[IL[0]] [IL[1]] [IL[2]] [m];
 	      FR[m] = arrayFlux[IR[0]] [IR[1]] [IR[2]] [m];
 	    }    
@@ -400,15 +459,15 @@ namespace dem {
       for (std::size_t i = 0; i < nx -1; ++i)
 	for (std::size_t j = 0; j < ny -1; ++j)
 	  for (std::size_t k = 0; k < nz -1; ++k)
-	    for (std::size_t m = 0; m < n_integ; ++m)
+	    for (std::size_t m = 0; m < nInteg; ++m)
 	      arrayRoeFluxTmp[i][j][k][m] = arrayRoeFlux[i][j][k][m][idim];
 
       // switch components back for consistency with u
       for (std::size_t i = 0; i < nx - 1; ++i)
 	for (std::size_t j = 0; j < ny - 1; ++j)
 	  for (std::size_t k = 0; k < nz -1; ++k)
-	    for (std::size_t m = 0; m < n_dim; ++m)
-	      arrayRoeFlux[i][j][k][var_mom[m]][idim] = arrayRoeFluxTmp[i][j][k][ var_mom[id[idim][m]] ];
+	    for (std::size_t m = 0; m < nDim; ++m)
+	      arrayRoeFlux[i][j][k][varMom[m]][idim] = arrayRoeFluxTmp[i][j][k][ varMom[id[idim][m]] ];
 
     } // end of for x, y, z directions
 
@@ -429,18 +488,18 @@ namespace dem {
 	bool inGrid = (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 );
 	REAL momQuot[3], denQuot[3], u0[3];
 	if (inGrid) {
-	  momQuot[0] = (arrayU[i+1][j][k][var_mom[0]] - arrayU[i-1][j][k][var_mom[0]]) / (2*dx);
-	  momQuot[1] = (arrayU[i][j+1][k][var_mom[1]] - arrayU[i][j-1][k][var_mom[1]]) / (2*dy);
-	  momQuot[2] = (arrayU[i][j][k+1][var_mom[2]] - arrayU[i][j][k-1][var_mom[2]]) / (2*dz);
+	  momQuot[0] = (arrayU[i+1][j][k][varMom[0]] - arrayU[i-1][j][k][varMom[0]]) / (2*dx);
+	  momQuot[1] = (arrayU[i][j+1][k][varMom[1]] - arrayU[i][j-1][k][varMom[1]]) / (2*dy);
+	  momQuot[2] = (arrayU[i][j][k+1][varMom[2]] - arrayU[i][j][k-1][varMom[2]]) / (2*dz);
 
-	  denQuot[0] = (arrayU[i+1][j][k][var_den] - arrayU[i-1][j][k][var_den]) / (2*dx);
-	  denQuot[1] = (arrayU[i][j+1][k][var_den] - arrayU[i][j-1][k][var_den]) / (2*dy);
-	  denQuot[2] = (arrayU[i][j][k+1][var_den] - arrayU[i][j][k-1][var_den]) / (2*dz);
+	  denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*dx);
+	  denQuot[1] = (arrayU[i][j+1][k][varDen] - arrayU[i][j-1][k][varDen]) / (2*dy);
+	  denQuot[2] = (arrayU[i][j][k+1][varDen] - arrayU[i][j][k-1][varDen]) / (2*dz);
 
-	  REAL coord_x = arrayGridCoord[i][j][k][0];
-	  REAL coord_y = arrayGridCoord[i][j][k][1];
-	  REAL coord_z = arrayGridCoord[i][j][k][2];
-	  Vec dist = Vec(coord_x, coord_y, coord_z) - (*it)->getCurrPos();
+	  REAL coordX = arrayGridCoord[i][j][k][0];
+	  REAL coordY = arrayGridCoord[i][j][k][1];
+	  REAL coordZ = arrayGridCoord[i][j][k][2];
+	  Vec dist = Vec(coordX, coordY, coordZ) - (*it)->getCurrPos();
 	  Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
 	  u0[0] = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	  u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
@@ -448,24 +507,20 @@ namespace dem {
 	}
 
 	// 1. momentum penalization
-	for (std::size_t m = 0; m < n_dim; ++m) {
+	for (std::size_t m = 0; m < nDim; ++m) {
 	  // momentum penalization
-	  arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
+	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep;
 	  // influence of momentum penalization on energy
-	  arrayU[i][j][k][var_eng]    -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][var_vel[m]] * timeStep;
+	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep;
 	}
 
 	// 2. mass penalization
 	// mass penalization and particle velocity term are incorporated by changes in flux()
 	// influence of mass penalization (1-1.0/porosity)*momQuot[m] and particle velocity term u0[m]/porosity*denQuot[m] on energy
 	if (inGrid) {
-	  for (std::size_t m = 0; m < n_dim; ++m) {
-	    arrayU[i][j][k][var_eng]  += arrayU[i][j][k][var_msk] * (-0.5*pow(arrayU[i][j][k][var_vel[m]],2))
+	  for (std::size_t m = 0; m < nDim; ++m)
+	    arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2))
                                          * ( (1-1.0/porosity)*momQuot[m] + u0[m]/porosity*denQuot[m] ) * timeStep;
-
-	    //arrayU[i][j][k][var_eng]  += arrayU[i][j][k][var_msk] * (-0.5*pow(arrayU[i][j][k][var_vel[m]],2))
-            //                             * ( (1-1.0/porosity)*momQuot[m] ) * timeStep;
-	  }
 	}
       }
     }
@@ -480,23 +535,23 @@ namespace dem {
 	  bool inGrid = (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 );
 	  REAL momQuot[3];
 	  if (inGrid) {
-	    momQuot[0] = (arrayU[i+1][j][k][var_mom[0]] - arrayU[i-1][j][k][var_mom[0]]) / (2*dx);
-	    momQuot[1] = (arrayU[i][j+1][k][var_mom[1]] - arrayU[i][j-1][k][var_mom[1]]) / (2*dy);
-	    momQuot[2] = (arrayU[i][j][k+1][var_mom[2]] - arrayU[i][j][k-1][var_mom[2]]) / (2*dz);
+	    momQuot[0] = (arrayU[i+1][j][k][varMom[0]] - arrayU[i-1][j][k][varMom[0]]) / (2*dx);
+	    momQuot[1] = (arrayU[i][j+1][k][varMom[1]] - arrayU[i][j-1][k][varMom[1]]) / (2*dy);
+	    momQuot[2] = (arrayU[i][j][k+1][varMom[2]] - arrayU[i][j][k-1][varMom[2]]) / (2*dz);
 	  }
 
 	  // penalization
-	  for (std::size_t m = 0; m < n_dim; ++m) {
+	  for (std::size_t m = 0; m < nDim; ++m) {
 	    // momentum penalization
-	    arrayU[i][j][k][var_mom[m]] -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * timeStep;
+	    arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep;
 	    // energy penalization
-	    arrayU[i][j][k][var_eng]    -= arrayU[i][j][k][var_msk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][var_vel[m]] * timeStep;
+	    arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep;
 	  }
 
 	  // influence of mass penalization on energy
 	  if (inGrid) {
-	    for (std::size_t m = 0; m < n_dim; ++m)
-	      arrayU[i][j][k][var_eng]  += arrayU[i][j][k][var_msk] * (0.5*pow(arrayU[i][j][k][var_vel[m]],2)*(1.0/porosity-1)) * momQuot[m] * timeStep;
+	    for (std::size_t m = 0; m < nDim; ++m)
+	      arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (0.5*pow(arrayU[i][j][k][varVel[m]],2)*(1.0/porosity-1)) * momQuot[m] * timeStep;
 	  }
 	}
     */
@@ -506,21 +561,21 @@ namespace dem {
     // non-reflecting BCs
     for (std::size_t j = 1; j < ny - 1; ++j)
       for (std::size_t k = 1; k < nz - 1; ++k)
-	for (std::size_t m = 0; m < n_var; ++m) {
+	for (std::size_t m = 0; m < nVar; ++m) {
 	  arrayU[0][j][k][m]    = arrayU[1][j][k][m]; 
 	  arrayU[nx-1][j][k][m] = arrayU[nx-2][j][k][m]; 
 	}
 
     for (std::size_t i = 1; i < nx - 1; ++i)
       for (std::size_t k = 1; k < nz -1; ++k)
-	for (std::size_t m = 0; m < n_var; ++m) {
+	for (std::size_t m = 0; m < nVar; ++m) {
 	  arrayU[i][0][k][m]    = arrayU[i][1][k][m]; 
 	  arrayU[i][ny-1][k][m] = arrayU[i][ny-2][k][m]; 
 	}
 
     for (std::size_t i = 1; i < nx - 1; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t m = 0; m < n_var; ++m) {
+	for (std::size_t m = 0; m < nVar; ++m) {
 	  arrayU[i][j][0][m]    = arrayU[i][j][1][m]; 
 	  arrayU[i][j][nz-1][m] = arrayU[i][j][nz-2][m]; 
 	}
@@ -538,28 +593,28 @@ namespace dem {
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k)
 	  for (std::size_t m = 0; m < 1; ++m) { // x-direction
-	    arrayU[0][j][k][var_mom[m]]    *= (1-2*arrayBC[0]); 
-	    arrayU[nx-1][j][k][var_mom[m]] *= (1-2*arrayBC[1]); 
-	    arrayU[0][j][k][var_vel[m]]    *= (1-2*arrayBC[0]); 
-	    arrayU[nx-1][j][k][var_vel[m]] *= (1-2*arrayBC[1]); 
+	    arrayU[0][j][k][varMom[m]]    *= (1-2*arrayBC[0]); 
+	    arrayU[nx-1][j][k][varMom[m]] *= (1-2*arrayBC[1]); 
+	    arrayU[0][j][k][varVel[m]]    *= (1-2*arrayBC[0]); 
+	    arrayU[nx-1][j][k][varVel[m]] *= (1-2*arrayBC[1]); 
 	  }
 
       for (std::size_t i = 1; i < nx - 1; ++i)
 	for (std::size_t k = 1; k < nz - 1; ++k)
 	  for (std::size_t m = 1; m < 2; ++m) { // y-direction
-	    arrayU[i][0][k][var_mom[m]]    *= (1-2*arrayBC[2]); 
-	    arrayU[i][ny-1][k][var_mom[m]] *= (1-2*arrayBC[3]);
-	    arrayU[i][0][k][var_vel[m]]    *= (1-2*arrayBC[2]); 
-	    arrayU[i][ny-1][k][var_vel[m]] *= (1-2*arrayBC[3]);  
+	    arrayU[i][0][k][varMom[m]]    *= (1-2*arrayBC[2]); 
+	    arrayU[i][ny-1][k][varMom[m]] *= (1-2*arrayBC[3]);
+	    arrayU[i][0][k][varVel[m]]    *= (1-2*arrayBC[2]); 
+	    arrayU[i][ny-1][k][varVel[m]] *= (1-2*arrayBC[3]);  
 	  }
 
       for (std::size_t i = 1; i < nx - 1; ++i)
 	for (std::size_t j = 1; j < ny - 1; ++j)
 	  for (std::size_t m = 2; m < 3; ++m) { // z-direction
-	    arrayU[i][j][0][var_mom[m]]    *= (1-2*arrayBC[4]); 
-	    arrayU[i][j][nz-1][var_mom[m]] *= (1-2*arrayBC[5]); 
-	    arrayU[i][j][0][var_vel[m]]    *= (1-2*arrayBC[4]); 
-	    arrayU[i][j][nz-1][var_vel[m]] *= (1-2*arrayBC[5]); 
+	    arrayU[i][j][0][varMom[m]]    *= (1-2*arrayBC[4]); 
+	    arrayU[i][j][nz-1][varMom[m]] *= (1-2*arrayBC[5]); 
+	    arrayU[i][j][0][varVel[m]]    *= (1-2*arrayBC[4]); 
+	    arrayU[i][j][nz-1][varVel[m]] *= (1-2*arrayBC[5]); 
 	  }
     }
     
@@ -570,19 +625,19 @@ namespace dem {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][var_vel[0]]) + arraySoundSpeed[i][j][k];
+	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
     REAL sx = allGrid.max();
 
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][var_vel[1]]) + arraySoundSpeed[i][j][k];
+	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
     REAL sy = allGrid.max();
 
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][var_vel[2]]) + arraySoundSpeed[i][j][k];
+	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
     REAL sz = allGrid.max();
 
     std::valarray<REAL> dtMin(3);
@@ -597,7 +652,7 @@ namespace dem {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  arraySoundSpeed[i][j][k] = sqrt(gamma * arrayU[i][j][k][var_prs] / arrayU[i][j][k][var_den]);
+	  arraySoundSpeed[i][j][k] = sqrt(gamma * arrayU[i][j][k][varPrs] / arrayU[i][j][k][varDen]);
   }
 
   // total enthalphy, not static enthalpy
@@ -605,50 +660,103 @@ namespace dem {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  arrayH[i][j][k] = (arrayU[i][j][k][var_eng] + arrayU[i][j][k][var_prs]) / arrayU[i][j][k][var_den];
+	  arrayH[i][j][k] = (arrayU[i][j][k][varEng] + arrayU[i][j][k][varPrs]) / arrayU[i][j][k][varDen];
   }
 
   void Fluid::initialCondition() {
-    // normal shock
-    for (std::size_t i = 0; i < nx; ++i)
-      for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k) {
-	  if ( arrayGridCoord[i][j][k][2] <= z0) {
-	    arrayU[i][j][k][var_den] = rhoL;
-	    arrayU[i][j][k][var_vel[2]] = uL;
-	    arrayU[i][j][k][var_prs] = pL;
-	  } else {
-	    arrayU[i][j][k][var_den] = rhoR;
-	    arrayU[i][j][k][var_vel[2]] = uR;
-	    arrayU[i][j][k][var_prs] = pR;
+    if (leftType == 1 || leftType == 2) { // normal shock with Rankine-Hugoniot conditions
+      for (std::size_t i = 0; i < nx; ++i)
+	for (std::size_t j = 0; j < ny; ++j)
+	  for (std::size_t k = 0; k < nz; ++k) {
+	    if (arrayGridCoord[i][j][k][2] <= z2L) {
+	      arrayU[i][j][k][varDen] = rhoL;
+	      arrayU[i][j][k][varPrs] = pL;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = uL;
+	    } else {
+	      arrayU[i][j][k][varDen] = rhoR;
+	      arrayU[i][j][k][varPrs] = pR;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = uR;
+	    }
 	  }
-	}
+    }
+    else if (leftType == 3) { // normal shock in x, y, z directions
+      for (std::size_t i = 0; i < nx; ++i)
+	for (std::size_t j = 0; j < ny; ++j)
+	  for (std::size_t k = 0; k < nz; ++k) {
+	    if ( arrayGridCoord[i][j][k][2] >= z1L && arrayGridCoord[i][j][k][2] <= z2L &&
+		 arrayGridCoord[i][j][k][0] >= x1L && arrayGridCoord[i][j][k][0] <= x2L &&
+		 arrayGridCoord[i][j][k][1] >= y1L && arrayGridCoord[i][j][k][1] <= y2L) {
+	      arrayU[i][j][k][varDen] = rhoL;
+	      arrayU[i][j][k][varPrs] = pL;
+	      arrayU[i][j][k][varVel[0]] = uL;
+	      arrayU[i][j][k][varVel[1]] = uL;
+	      arrayU[i][j][k][varVel[2]] = uL;
+	    } else {
+	      arrayU[i][j][k][varDen] = rhoR;
+	      arrayU[i][j][k][varPrs] = pR;
+	      arrayU[i][j][k][varVel[0]] = uR;
+	      arrayU[i][j][k][varVel[1]] = uR;
+	      arrayU[i][j][k][varVel[2]] = uR;
+	    }
+	  }
+    } else if (leftType == 4) { // spherical shock
+      for (std::size_t i = 0; i < nx; ++i)
+	for (std::size_t j = 0; j < ny; ++j)
+	  for (std::size_t k = 0; k < nz; ++k) {
+	    REAL radius = sqrt(pow(arrayGridCoord[i][j][k][0]-x0L,2) + pow(arrayGridCoord[i][j][k][1]-y0L,2) + pow(arrayGridCoord[i][j][k][2]-z0L,2));
+	    if ( radius <= r0L) {
+	      arrayU[i][j][k][varDen] = rhoL;
+	      arrayU[i][j][k][varPrs] = pL;
+	      arrayU[i][j][k][varVel[0]] = uL;
+	      arrayU[i][j][k][varVel[1]] = uL;
+	      arrayU[i][j][k][varVel[2]] = uL;
+	      //arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/radius;
+	      //arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/radius;
+	      //arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/radius;
+	    } else {
+	      arrayU[i][j][k][varDen] = rhoR;
+	      arrayU[i][j][k][varPrs] = pR;
+	      arrayU[i][j][k][varVel[0]] = uR;
+	      arrayU[i][j][k][varVel[1]] = uR;
+	      arrayU[i][j][k][varVel[2]] = uR;
+	    }
+	  }
+    }
 
     WtoU();
   }
 
-  void Fluid::RankineHugoniot() {
+  void Fluid::RankineHugoniot() { // Rankine-Hugoniot conditions
     shockSpeed = Mach*sqrt(gamma*pR/rhoR);
-    pL = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
-    rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
-    uL = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
-    ///*
-    debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-    debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
-    debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;
+    REAL rhoLRHC = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
+    REAL pLRHC = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
+    REAL uLRHC = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
+
     debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl << std::endl;
-    //*/
+    debugInf << std::setw(OWID) << "rhoL-RHC" << std::setw(OWID) << rhoLRHC << std::endl;
+    debugInf << std::setw(OWID) << "pL-RHC" << std::setw(OWID) << pLRHC << std::endl;
+    debugInf << std::setw(OWID) << "uL-RHC" << std::setw(OWID) << uLRHC << std::endl << std::endl;
+
+    if (leftType == 1) {
+      rhoL = rhoLRHC;
+      pL = pLRHC;
+      uL = uLRHC;
+    }    
   }
 
   void Fluid::flux(std::size_t idim, std::vector<Particle *> &ptcls) {
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
-	  arrayFlux[i][j][k][var_den]    = arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]]; // rho*u
-	  arrayFlux[i][j][k][var_mom[0]] = arrayUtmp[i][j][k][var_den] * pow(arrayUtmp[i][j][k][var_vel[0]],2) + arrayUtmp[i][j][k][var_prs]; // rho*u^2 + p
-	  arrayFlux[i][j][k][var_mom[1]] = arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[1]]; // rho*u*v
-	  arrayFlux[i][j][k][var_mom[2]] = arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[2]]; // rho*u*w
-	  arrayFlux[i][j][k][var_eng]    = arrayUtmp[i][j][k][var_vel[0]] * (arrayUtmp[i][j][k][var_eng] + arrayUtmp[i][j][k][var_prs]);  // u*(E + p)
+	  arrayFlux[i][j][k][varDen]    = arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]]; // rho*u
+	  arrayFlux[i][j][k][varMom[0]] = arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 + p
+	  arrayFlux[i][j][k][varMom[1]] = arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // rho*u*v
+	  arrayFlux[i][j][k][varMom[2]] = arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // rho*u*w
+	  arrayFlux[i][j][k][varEng]    = arrayUtmp[i][j][k][varVel[0]] * (arrayUtmp[i][j][k][varEng] + arrayUtmp[i][j][k][varPrs]);  // u*(E + p)
 	}  
 
     ///*
@@ -660,26 +768,22 @@ namespace dem {
 	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 	REAL u0[3];
-	REAL coord_x = arrayGridCoord[i][j][k][0];
-	REAL coord_y = arrayGridCoord[i][j][k][1];
-	REAL coord_z = arrayGridCoord[i][j][k][2];
-	Vec dist = Vec(coord_x, coord_y, coord_z) - (*it)->getCurrPos();
+	REAL coordX = arrayGridCoord[i][j][k][0];
+	REAL coordY = arrayGridCoord[i][j][k][1];
+	REAL coordZ = arrayGridCoord[i][j][k][2];
+	Vec dist = Vec(coordX, coordY, coordZ) - (*it)->getCurrPos();
 	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
 	u0[0] = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	REAL volFraction = fluidGrid[iter][3];
-	REAL coef = (1-volFraction) + volFraction/porosity;
-
 	// continuity equation
-	arrayFlux[i][j][k][var_den]    = coef * arrayUtmp[i][j][k][var_den] * (arrayUtmp[i][j][k][var_vel[0]] - u0[idim]) ; // rho*(u-u0)
-	//arrayFlux[i][j][k][var_den]    = coef * arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]]; // rho*u
+	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayUtmp[i][j][k][varDen] * (arrayUtmp[i][j][k][varVel[0]] - u0[idim]) ; // rho*(u-u0)
 
 	// momentum equations are also modified, but dropping one porosity from equation LHS and one porosity from equation RHS
-	arrayFlux[i][j][k][var_mom[0]] = coef * arrayUtmp[i][j][k][var_den] * pow(arrayUtmp[i][j][k][var_vel[0]],2) + arrayUtmp[i][j][k][var_prs]; // rho*u^2 + p
-	arrayFlux[i][j][k][var_mom[1]] = coef * arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[1]]; // rho*u*v
-	arrayFlux[i][j][k][var_mom[2]] = coef * arrayUtmp[i][j][k][var_den] * arrayUtmp[i][j][k][var_vel[0]] * arrayUtmp[i][j][k][var_vel[2]]; // rho*u*w	
+	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 + p
+	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // rho*u*v
+	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // rho*u*w	
       }
     }
     //*/
@@ -688,116 +792,110 @@ namespace dem {
   void Fluid::RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t it, std::size_t jt, std::size_t kt) {
 
     // it, jt, kt defined at cell faces
-    if (uL[var_den] < 0 || uR[var_den] < 0)
-      debugInf << std::setw(3) << it
-	       << std::setw(3) << jt
-	       << std::setw(3) << kt
-	       << std::setw(3) << idim
-	       << std::setw(3) << (int) uL[var_msk]
-	       << std::setw(3) << (int) uR[var_msk]
-	       << std::setw(OWID) << uL[var_den]
-	       << std::setw(OWID) << uR[var_den]
-	       << std::setw(OWID) << uL[var_eng]
-	       << std::setw(OWID) << uR[var_eng]
+    if (uL[varDen] < 0 || uR[varDen] < 0)
+      debugInf << std::setw(OWID) << "RoeFlux:den<0"
+	       << std::setw(5) << it
+	       << std::setw(5) << jt
+	       << std::setw(5) << kt
+	       << std::setw(5) << idim
+	       << std::setw(5) << (int) uL[varMsk]
+	       << std::setw(5) << (int) uR[varMsk]
+	       << std::setw(OWID) << uL[varDen]
+	       << std::setw(OWID) << uR[varDen]
+	       << std::setw(OWID) << uL[varEng]
+	       << std::setw(OWID) << uR[varEng]
 	       << std::endl;
 
-    REAL avgRho =  sqrt(uL[var_den]*uR[var_den]);
-    REAL avgH   = (sqrt(uL[var_den])*HL + sqrt(uR[var_den])*HR)/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
-    REAL avgU   = (sqrt(uL[var_den])*uL[var_vel[0]] + sqrt(uR[var_den])*uR[var_vel[0]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
-    REAL avgV   = (sqrt(uL[var_den])*uL[var_vel[1]] + sqrt(uR[var_den])*uR[var_vel[1]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
-    REAL avgW   = (sqrt(uL[var_den])*uL[var_vel[2]] + sqrt(uR[var_den])*uR[var_vel[2]])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
-    REAL avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
-    
-    /*
-    REAL avgPrs = 0;
-    if (avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW) <= 0) {
-      avgPrs =  (sqrt(uL[var_den])*uL[var_prs] + sqrt(uR[var_den])*uR[var_prs])/(sqrt(uL[var_den]) + sqrt(uR[var_den]));
-      avgSoundSpeed = sqrt( gamma*avgPrs/avgRho);
-    }
-    else
-      avgSoundSpeed = sqrt( (gamma-1)*(avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW)) );
-    */
-    
-    if (avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW) < 0) 
-      debugInf << std::setw(3) << it
-	       << std::setw(3) << jt
-	       << std::setw(3) << kt
-	       << std::setw(3) << idim
-	       << std::setw(3) << (int) uL[var_msk]
-	       << std::setw(3) << (int) uR[var_msk]
+    REAL avgRho =  sqrt(uL[varDen]*uR[varDen]);
+    REAL avgH   = (sqrt(uL[varDen])*HL + sqrt(uR[varDen])*HR)/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+    REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+    REAL avgV   = (sqrt(uL[varDen])*uL[varVel[1]] + sqrt(uR[varDen])*uR[varVel[1]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+    REAL avgW   = (sqrt(uL[varDen])*uL[varVel[2]] + sqrt(uR[varDen])*uR[varVel[2]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+    REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
+    REAL avgSoundSpeed = sqrt((gamma-1)*avgh);
+
+    if (avgh <= 0) {
+      debugInf << std::setw(OWID) << "RoeFlux:avgh<=0"
+	       << std::setw(5) << it
+	       << std::setw(5) << jt
+	       << std::setw(5) << kt
+	       << std::setw(5) << idim
+	       << std::setw(5) << (int) uL[varMsk]
+	       << std::setw(5) << (int) uR[varMsk]
 	       << std::setw(OWID) << HL
 	       << std::setw(OWID) << HR
-	       << std::setw(OWID) << uL[var_den]
-	       << std::setw(OWID) << uR[var_den]
-	       << std::setw(OWID) << uL[var_vel[0]]
-	       << std::setw(OWID) << uR[var_vel[0]]
-	       << std::setw(OWID) << uL[var_vel[1]]
-	       << std::setw(OWID) << uR[var_vel[1]]
-	       << std::setw(OWID) << uL[var_vel[2]]
-	       << std::setw(OWID) << uR[var_vel[2]]
-	       << std::setw(OWID) << uL[var_eng]
-	       << std::setw(OWID) << uR[var_eng]
+	       << std::setw(OWID) << uL[varDen]
+	       << std::setw(OWID) << uR[varDen]
+	       << std::setw(OWID) << uL[varVel[0]]
+	       << std::setw(OWID) << uR[varVel[0]]
+	       << std::setw(OWID) << uL[varVel[1]]
+	       << std::setw(OWID) << uR[varVel[1]]
+	       << std::setw(OWID) << uL[varVel[2]]
+	       << std::setw(OWID) << uR[varVel[2]]
+	       << std::setw(OWID) << uL[varEng]
+	       << std::setw(OWID) << uR[varEng]
 	       << std::setw(OWID) << avgH
 	       << std::setw(OWID) << avgU
 	       << std::setw(OWID) << avgV
 	       << std::setw(OWID) << avgW
 	       << std::setw(OWID) << avgSoundSpeed
-	       << std::setw(OWID) << uL[var_prs]
-	       << std::setw(OWID) << uR[var_prs]
+	       << std::setw(OWID) << uL[varPrs]
+	       << std::setw(OWID) << uR[varPrs]
 	       << std::endl;
+    }
 
     REAL eigen[5];
-    eigen[var_den]    = avgU - avgSoundSpeed;
-    eigen[var_mom[0]] = eigen[var_mom[1]] = eigen[var_mom[2]] = avgU;
-    eigen[var_eng]    = avgU + avgSoundSpeed;
+    eigen[varDen]    = avgU - avgSoundSpeed;
+    eigen[varMom[0]] = eigen[varMom[1]] = eigen[varMom[2]] = avgU;
+    eigen[varEng]    = avgU + avgSoundSpeed;
 
     REAL avgWaveStr[5], du[9];
-    for (std::size_t i = 0; i < n_var; ++i)
+    for (std::size_t i = 0; i < nVar; ++i)
       du[i] = uR[i] - uL[i];
 
-    avgWaveStr[var_den]    = (du[var_prs] - avgRho*avgSoundSpeed*du[var_vel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
-    avgWaveStr[var_mom[0]] = du[var_den] - du[var_prs]/(avgSoundSpeed*avgSoundSpeed);
-    avgWaveStr[var_mom[1]] = avgRho * du[var_vel[1]];
-    avgWaveStr[var_mom[2]] = avgRho * du[var_vel[2]];
-    avgWaveStr[var_eng]    = (du[var_prs] + avgRho*avgSoundSpeed*du[var_vel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
+    avgWaveStr[varDen]    = (du[varPrs] - avgRho*avgSoundSpeed*du[varVel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
+    avgWaveStr[varMom[0]] = du[varDen] - du[varPrs]/(avgSoundSpeed*avgSoundSpeed);
+    avgWaveStr[varMom[1]] = avgRho * du[varVel[1]];
+    avgWaveStr[varMom[2]] = avgRho * du[varVel[2]];
+    avgWaveStr[varEng]    = (du[varPrs] + avgRho*avgSoundSpeed*du[varVel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
 
     REAL avgK[5][5]; // right eigenvectors
-    avgK[var_den][var_den]    = 1;
-    avgK[var_mom[0]][var_den] = avgU - avgSoundSpeed;
-    avgK[var_mom[1]][var_den] = avgV;
-    avgK[var_mom[2]][var_den] = avgW;
-    avgK[var_eng][var_den]    = avgH - avgU * avgSoundSpeed;
+    avgK[varDen][varDen]    = 1;
+    avgK[varMom[0]][varDen] = avgU - avgSoundSpeed;
+    avgK[varMom[1]][varDen] = avgV;
+    avgK[varMom[2]][varDen] = avgW;
+    avgK[varEng][varDen]    = avgH - avgU * avgSoundSpeed;
 
-    avgK[var_den][var_mom[0]]    = 1;
-    avgK[var_mom[0]][var_mom[0]] = avgU;
-    avgK[var_mom[1]][var_mom[0]] = avgV;
-    avgK[var_mom[2]][var_mom[0]] = avgW;
-    avgK[var_eng][var_mom[0]]    = 0.5 * (avgU*avgU + avgV*avgV + avgW*avgW);
+    avgK[varDen][varMom[0]]    = 1;
+    avgK[varMom[0]][varMom[0]] = avgU;
+    avgK[varMom[1]][varMom[0]] = avgV;
+    avgK[varMom[2]][varMom[0]] = avgW;
+    avgK[varEng][varMom[0]]    = 0.5 * (avgU*avgU + avgV*avgV + avgW*avgW);
 
-    avgK[var_den][var_mom[1]]    = 0;
-    avgK[var_mom[0]][var_mom[1]] = 0;
-    avgK[var_mom[1]][var_mom[1]] = 1;
-    avgK[var_mom[2]][var_mom[1]] = 0;
-    avgK[var_eng][var_mom[1]]    = avgV;
+    avgK[varDen][varMom[1]]    = 0;
+    avgK[varMom[0]][varMom[1]] = 0;
+    avgK[varMom[1]][varMom[1]] = 1;
+    avgK[varMom[2]][varMom[1]] = 0;
+    avgK[varEng][varMom[1]]    = avgV;
 
-    avgK[var_den][var_mom[2]]    = 0;
-    avgK[var_mom[0]][var_mom[2]] = 0;
-    avgK[var_mom[1]][var_mom[2]] = 0;
-    avgK[var_mom[2]][var_mom[2]] = 1;
-    avgK[var_eng][var_mom[2]]    = avgW;
+    avgK[varDen][varMom[2]]    = 0;
+    avgK[varMom[0]][varMom[2]] = 0;
+    avgK[varMom[1]][varMom[2]] = 0;
+    avgK[varMom[2]][varMom[2]] = 1;
+    avgK[varEng][varMom[2]]    = avgW;
 
-    avgK[var_den][var_eng]    = 1;
-    avgK[var_mom[0]][var_eng] = avgU + avgSoundSpeed;
-    avgK[var_mom[1]][var_eng] = avgV;
-    avgK[var_mom[2]][var_eng] = avgW;
-    avgK[var_eng][var_eng]    = avgH + avgU * avgSoundSpeed;
+    avgK[varDen][varEng]    = 1;
+    avgK[varMom[0]][varEng] = avgU + avgSoundSpeed;
+    avgK[varMom[1]][varEng] = avgV;
+    avgK[varMom[2]][varEng] = avgW;
+    avgK[varEng][varEng]    = avgH + avgU * avgSoundSpeed;
 
     REAL RF[5];
-    for (std::size_t i = 0; i < n_integ; ++i)
+    for (std::size_t i = 0; i < nInteg; ++i)
       RF[i] = 0.5*(FL[i] + FR[i]);
 
-    for (std::size_t ie = 0; ie < n_integ; ++ie) {
-      for (std::size_t je = 0; je < n_integ; ++je)
+    for (std::size_t ie = 0; ie < nInteg; ++ie) {
+      for (std::size_t je = 0; je < nInteg; ++je)
 	RF[ie] -= 0.5 * avgWaveStr[je] * fabs(eigen[je]) * avgK[ie][je];
       arrayRoeFlux[it][jt][kt][ie][idim] = RF[ie];
     }
@@ -808,13 +906,13 @@ namespace dem {
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
 
-	  for (std::size_t m = 0; m < n_dim; ++m)
-	    arrayU[i][j][k][var_vel[m]] = arrayU[i][j][k][var_mom[m]] / arrayU[i][j][k][var_den];
+	  for (std::size_t m = 0; m < nDim; ++m)
+	    arrayU[i][j][k][varVel[m]] = arrayU[i][j][k][varMom[m]] / arrayU[i][j][k][varDen];
 
-	  arrayU[i][j][k][var_prs] = 0;
-	  for (std::size_t m = 0; m < n_dim; ++m)
-	    arrayU[i][j][k][var_prs] += arrayU[i][j][k][var_den] * pow(arrayU[i][j][k][var_vel[m]],2)/2 ;
-	  arrayU[i][j][k][var_prs] = (arrayU[i][j][k][var_eng] - arrayU[i][j][k][var_prs]) * (gamma-1);
+	  arrayU[i][j][k][varPrs] = 0;
+	  for (std::size_t m = 0; m < nDim; ++m)
+	    arrayU[i][j][k][varPrs] += arrayU[i][j][k][varDen] * pow(arrayU[i][j][k][varVel[m]],2)/2 ;
+	  arrayU[i][j][k][varPrs] = (arrayU[i][j][k][varEng] - arrayU[i][j][k][varPrs]) * (gamma-1);
 
 	}
   }
@@ -823,13 +921,13 @@ namespace dem {
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
-	  for (std::size_t m = 0; m < n_dim; ++m)
-	    arrayU[i][j][k][var_mom[m]] = arrayU[i][j][k][var_den] * arrayU[i][j][k][var_vel[m]];
+	  for (std::size_t m = 0; m < nDim; ++m)
+	    arrayU[i][j][k][varMom[m]] = arrayU[i][j][k][varDen] * arrayU[i][j][k][varVel[m]];
 
-	  arrayU[i][j][k][var_eng] = 0;
-	  for (std::size_t m = 0; m < n_dim; ++m)
-	    arrayU[i][j][k][var_eng] += arrayU[i][j][k][var_den] * pow(arrayU[i][j][k][var_vel[m]],2)/2 ;
-	  arrayU[i][j][k][var_eng] += arrayU[i][j][k][var_prs] / (gamma-1);
+	  arrayU[i][j][k][varEng] = 0;
+	  for (std::size_t m = 0; m < nDim; ++m)
+	    arrayU[i][j][k][varEng] += arrayU[i][j][k][varDen] * pow(arrayU[i][j][k][varVel[m]],2)/2 ;
+	  arrayU[i][j][k][varEng] += arrayU[i][j][k][varPrs] / (gamma-1);
 	}
   }
 
@@ -842,58 +940,17 @@ namespace dem {
       for (std::size_t j = 0; j <  arrayGridCoord[i].size(); ++j)
 	for (std::size_t k = 0; k <  arrayGridCoord[i][j].size(); ++k) {
 
-	  arrayU[i][j][k][var_msk] = 0;
-	  REAL coord_x = arrayGridCoord[i][j][k][0];
-	  REAL coord_y = arrayGridCoord[i][j][k][1];
-	  REAL coord_z = arrayGridCoord[i][j][k][2];
+	  arrayU[i][j][k][varMsk] = 0;
+	  REAL coordX = arrayGridCoord[i][j][k][0];
+	  REAL coordY = arrayGridCoord[i][j][k][1];
+	  REAL coordZ = arrayGridCoord[i][j][k][2];
 
-	  if (volFrac == 0) {
-
-	    for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it)
-	      if ( (*it)->surfaceError(Vec(coord_x, coord_y, coord_z)) <= 0 ) { // inside particle surface
-		arrayU[i][j][k][var_msk] = 1; 
-		(*it)->recordFluidGrid(i, j, k, 1.0);
-	      }
-
-	  } else if (volFrac == 1) {
-
-	    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-	      bool in[8];
-	      in[0] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z-dz/2)) < 0;
-	      in[1] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z-dz/2)) < 0;
-	      in[2] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z-dz/2)) < 0;
-	      in[3] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z-dz/2)) < 0;
-	      in[4] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y-dy/2, coord_z+dz/2)) < 0;
-	      in[5] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y-dy/2, coord_z+dz/2)) < 0;
-	      in[6] = (*it)->surfaceError(Vec(coord_x-dx/2, coord_y+dy/2, coord_z+dz/2)) < 0;
-	      in[7] = (*it)->surfaceError(Vec(coord_x+dx/2, coord_y+dy/2, coord_z+dz/2)) < 0;
-
-	      if (in[0] || in[1] || in[2] || in[3] || in[4] || in[5] || in[6] || in[7]) { // if any vertex is inside particle surface
-		arrayU[i][j][k][var_msk] = 1; 
-
-		REAL volFraction = 1;
-		if ( !(in[0] && in[1] && in[2] && in[3] && in[4] && in[5] && in[6] && in[7]) ) { // if any vertex is outside particle surface
-		  std::size_t fineGrid = 5;
-		  std::size_t fineCount = 0;
-		  for (std::size_t vi = 0; vi < fineGrid; ++vi)
-		    for (std::size_t vj = 0; vj < fineGrid; ++vj)
-		      for (std::size_t vk = 0; vk < fineGrid; ++vk) {
-			if ((*it)->surfaceError(Vec(coord_x-dx/2 + (0.5+vi)*dx/fineGrid, 
-						    coord_y-dy/2 + (0.5+vj)*dy/fineGrid, 
-						    coord_z-dz/2 + (0.5+vk)*dz/fineGrid)) <= 0) 
-			  ++fineCount;
-		      }
-		  volFraction = fineCount / pow(fineGrid, 3);
-		}
-
-		(*it)->recordFluidGrid(i, j, k, volFraction); // no for break, as multiple particles could intrude into the same grid      
-	      }
+	  for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it)
+	    if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= 0 ) { // inside particle surface
+	      arrayU[i][j][k][varMsk] = 1; 
+	      (*it)->recordFluidGrid(i, j, k);
 	    }
-
-	  } // end of if else
-
 	}
-
   }
 
   void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
@@ -902,7 +959,7 @@ namespace dem {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k)
-	  for (std::size_t m = 0; m < n_dim; ++m) {
+	  for (std::size_t m = 0; m < nDim; ++m) {
 	    arrayPenalForce[i][j][k][m] = 0;
 	    arrayPressureForce[i][j][k][m] = 0;
 	  }
@@ -920,20 +977,19 @@ namespace dem {
 	std::size_t i = static_cast<std::size_t> (fluidGrid[iter][0]);
 	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
-	REAL volFraction = fluidGrid[iter][3];
-	avgDen += arrayU[i][j][k][var_den];
-	avgVel += sqrt( pow(arrayU[i][j][k][var_vel[0]],2) + pow(arrayU[i][j][k][var_vel[1]],2) + pow(arrayU[i][j][k][var_vel[2]],2) );
-	avgPrs += arrayU[i][j][k][var_prs];
+	avgDen += arrayU[i][j][k][varDen];
+	avgVel += sqrt( pow(arrayU[i][j][k][varVel[0]],2) + pow(arrayU[i][j][k][varVel[1]],2) + pow(arrayU[i][j][k][varVel[2]],2) );
+	avgPrs += arrayU[i][j][k][varPrs];
 
-	REAL coord_x = arrayGridCoord[i][j][k][0];
-	REAL coord_y = arrayGridCoord[i][j][k][1];
-	REAL coord_z = arrayGridCoord[i][j][k][2];
+	REAL coordX = arrayGridCoord[i][j][k][0];
+	REAL coordY = arrayGridCoord[i][j][k][1];
+	REAL coordZ = arrayGridCoord[i][j][k][2];
 
-	REAL uxFluid = arrayU[i][j][k][var_vel[0]];
-	REAL uyFluid = arrayU[i][j][k][var_vel[1]];
-	REAL uzFluid = arrayU[i][j][k][var_vel[2]];
+	REAL uxFluid = arrayU[i][j][k][varVel[0]];
+	REAL uyFluid = arrayU[i][j][k][varVel[1]];
+	REAL uzFluid = arrayU[i][j][k][varVel[2]];
 
-	Vec dist = Vec(coord_x, coord_y, coord_z) - (*it)->getCurrPos();
+	Vec dist = Vec(coordX, coordY, coordZ) - (*it)->getCurrPos();
 	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
 
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
@@ -945,10 +1001,10 @@ namespace dem {
 	Vec localDelta = (*it)->globalToLocal(globalDelta);
 	Vec localPenal, globalPenal;
 	// localDelta needs to project in local frame in order to calculate local penalization forces
-	localPenal.setX(arrayU[i][j][k][var_den] * localDelta.getX() / etaBx);
-	localPenal.setY(arrayU[i][j][k][var_den] * localDelta.getY() / etaBy);
-	localPenal.setZ(arrayU[i][j][k][var_den] * localDelta.getZ() / etaBz);
-	globalPenal = (*it)->localToGlobal(localPenal) * volFraction;
+	localPenal.setX(arrayU[i][j][k][varDen] * localDelta.getX() / etaBx);
+	localPenal.setY(arrayU[i][j][k][varDen] * localDelta.getY() / etaBy);
+	localPenal.setZ(arrayU[i][j][k][varDen] * localDelta.getZ() / etaBz);
+	globalPenal = (*it)->localToGlobal(localPenal);
 	// one grid could have multiple particles intruded, +=, not =
 	arrayPenalForce[i][j][k][0] += globalPenal.getX(); 
 	arrayPenalForce[i][j][k][1] += globalPenal.getY();
@@ -956,9 +1012,9 @@ namespace dem {
 
 	// restrict pressure gradient grids
  	if (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 ) { // do not use (i-1) for std::size_t because (i-1) is postive when i=0
-	  arrayPressureForce[i][j][k][0] = ( -(arrayU[i+1][j][k][var_prs] - arrayU[i-1][j][k][var_prs])/(2*dx) ) * volFraction;
-	  arrayPressureForce[i][j][k][1] = ( -(arrayU[i][j+1][k][var_prs] - arrayU[i][j-1][k][var_prs])/(2*dy) ) * volFraction;
-	  arrayPressureForce[i][j][k][2] = ( -(arrayU[i][j][k+1][var_prs] - arrayU[i][j][k-1][var_prs])/(2*dz) ) * volFraction;
+	  arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][varPrs] - arrayU[i-1][j][k][varPrs])/(2*dx);
+	  arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][varPrs] - arrayU[i][j-1][k][varPrs])/(2*dy);
+	  arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][varPrs] - arrayU[i][j][k-1][varPrs])/(2*dz);
 	}
 
 	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
@@ -1029,13 +1085,13 @@ namespace dem {
 	<< std::setw(OWID) << "\"z\""
 	<< std::setw(OWID) << "\"Mach\""
 	<< std::setw(OWID) << "\"density\""
-	<< std::setw(OWID) << "\"momentum_x\""
-	<< std::setw(OWID) << "\"momentum_y\""
-	<< std::setw(OWID) << "\"momentum_z\""
+	<< std::setw(OWID) << "\"momentumX\""
+	<< std::setw(OWID) << "\"momentumY\""
+	<< std::setw(OWID) << "\"momentumZ\""
 	<< std::setw(OWID) << "\"energy\""
-	<< std::setw(OWID) << "\"velocity_x\""
-	<< std::setw(OWID) << "\"velocity_y\""
-	<< std::setw(OWID) << "\"velocity_z\""
+	<< std::setw(OWID) << "\"velocityX\""
+	<< std::setw(OWID) << "\"velocityY\""
+	<< std::setw(OWID) << "\"velocityZ\""
 	<< std::setw(OWID) << "\"pressure\""
 	<< std::setw(OWID) << "\"temperature\""
 	<< std::setw(OWID) << "\"mask\""
@@ -1059,18 +1115,18 @@ namespace dem {
 	  ofs << std::setw(OWID) << arrayGridCoord[i][j][k][0]
 	      << std::setw(OWID) << arrayGridCoord[i][j][k][1]
 	      << std::setw(OWID) << arrayGridCoord[i][j][k][2]
-	      << std::setw(OWID) << vfabs( Vec(arrayU[i][j][k][var_vel[0]], arrayU[i][j][k][var_vel[1]], arrayU[i][j][k][var_vel[2]]) ) / arraySoundSpeed[i][j][k]
-	      << std::setw(OWID) << arrayU[i][j][k][var_den]
-	      << std::setw(OWID) << arrayU[i][j][k][var_mom[0]]
-	      << std::setw(OWID) << arrayU[i][j][k][var_mom[1]]
-	      << std::setw(OWID) << arrayU[i][j][k][var_mom[2]]
-	      << std::setw(OWID) << arrayU[i][j][k][var_eng]
-	      << std::setw(OWID) << arrayU[i][j][k][var_vel[0]]
-	      << std::setw(OWID) << arrayU[i][j][k][var_vel[1]]
-	      << std::setw(OWID) << arrayU[i][j][k][var_vel[2]]
-	      << std::setw(OWID) << arrayU[i][j][k][var_prs]
-	      << std::setw(OWID) << arrayU[i][j][k][var_prs]/(Rs*arrayU[i][j][k][var_den])
-	      << std::setw(OWID) << arrayU[i][j][k][var_msk]  
+	      << std::setw(OWID) << vfabs( Vec(arrayU[i][j][k][varVel[0]], arrayU[i][j][k][varVel[1]], arrayU[i][j][k][varVel[2]]) ) / arraySoundSpeed[i][j][k]
+	      << std::setw(OWID) << arrayU[i][j][k][varDen]
+	      << std::setw(OWID) << arrayU[i][j][k][varMom[0]]
+	      << std::setw(OWID) << arrayU[i][j][k][varMom[1]]
+	      << std::setw(OWID) << arrayU[i][j][k][varMom[2]]
+	      << std::setw(OWID) << arrayU[i][j][k][varEng]
+	      << std::setw(OWID) << arrayU[i][j][k][varVel[0]]
+	      << std::setw(OWID) << arrayU[i][j][k][varVel[1]]
+	      << std::setw(OWID) << arrayU[i][j][k][varVel[2]]
+	      << std::setw(OWID) << arrayU[i][j][k][varPrs]
+	      << std::setw(OWID) << arrayU[i][j][k][varPrs]/(Rs*arrayU[i][j][k][varDen])
+	      << std::setw(OWID) << arrayU[i][j][k][varMsk]  
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][0] 
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][1] 
 	      << std::setw(OWID) << arrayPenalForce[i][j][k][2]

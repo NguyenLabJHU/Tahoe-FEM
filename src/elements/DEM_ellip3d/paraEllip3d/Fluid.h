@@ -32,7 +32,19 @@ namespace dem {
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;        // ratio of specific heat capacity of air
     REAL arrayBC[6];   // boundary condition
-    REAL z0;           // initial discontinuity plane in Z direction
+
+    int  leftType;     // type of "left" part
+    REAL z1L;          // lower bound z1L of "left" part
+    REAL z2L;          // upper bound z2L of "left" part
+    REAL x1L;          // lower bound x1L of "left" part
+    REAL x2L;          // upper bound x2L of "left" part
+    REAL y1L;          // lower bound y1L of "left" part
+    REAL y2L;          // upper bound y2L of "left" part
+    REAL x0L;          // center of "left" part, x-coordinate
+    REAL y0L;          // center of "left" part, y-coordinate
+    REAL z0L;          // center of "left" part, z-coordinate
+    REAL r0L;          // radius of "left" part
+
     REAL rhoL, uL, pL; // unknown
     REAL rhoR, uR, pR; // known
     REAL Mach;         // shock Mach number, known
@@ -41,73 +53,73 @@ namespace dem {
     REAL porosity;     // particle porosity regarded as porous media
     int  volFrac;      // use grid volume fraction or not
 
-    std::size_t n_dim, n_var, n_integ, var_den, var_eng, var_prs, var_msk;
-    std::size_t var_mom[3], var_vel[3];
+    std::size_t nDim, nVar, nInteg, varDen, varEng, varPrs, varMsk;
+    std::size_t varMom[3], varVel[3];
 
     Array4D arrayU;
     Array4D arrayUtmp;
     // 4-dimensional, defined at cell centers
-    // nx, ny, nz, n_var
+    // nx, ny, nz, nVar
     // (a) fixed:
-    // arrayU[i][j][k][0]: var_den
-    // arrayU[i][j][k][1]: var_mom[0]
-    // arrayU[i][j][k][2]: var_mom[1]
-    // arrayU[i][j][k][3]: var_mom[2]
-    // arrayU[i][j][k][4]: var_eng    // total energy, E = rou * (1/2*V^2 + e)
-    // arrayU[i][j][k][5]: var_vel[0]
-    // arrayU[i][j][k][6]: var_vel[1]
-    // arrayU[i][j][k][7]: var_vel[2]
-    // arrayU[i][j][k][8]: var_prs
+    // arrayU[i][j][k][0]: varDen
+    // arrayU[i][j][k][1]: varMom[0]
+    // arrayU[i][j][k][2]: varMom[1]
+    // arrayU[i][j][k][3]: varMom[2]
+    // arrayU[i][j][k][4]: varEng    // total energy per unit volume, E = rho * (1/2*V^2 + e), NOT total specific energy
+    // arrayU[i][j][k][5]: varVel[0]
+    // arrayU[i][j][k][6]: varVel[1]
+    // arrayU[i][j][k][7]: varVel[2]
+    // arrayU[i][j][k][8]: varPrs
     // (b) extended:
-    // arrayU[i][j][k][9]: var_msk
+    // arrayU[i][j][k][9]: varMsk
 
     Array4D arrayGridCoord; 
     // fluid grid coordinates, 4-dimensional
-    // nx, ny, nz, n_dim
-    // arrayGridCoord[i][j][k][0]: coord_x
-    // arrayGridCoord[i][j][k][1]: coord_y
-    // arrayGridCoord[i][j][k][2]: coord_z
+    // nx, ny, nz, nDim
+    // arrayGridCoord[i][j][k][0]: coordX
+    // arrayGridCoord[i][j][k][1]: coordY
+    // arrayGridCoord[i][j][k][2]: coordZ
 
     Array4D arrayPenalForce;
     // fluid grid forces, 4-dimensional
-    // nx, ny, nz, n_dim
-    // arrayPenalForce[i][j][k][0]: force_x
-    // arrayPenalForce[i][j][k][1]: force_y
-    // arrayPenalForce[i][j][k][2]: force_z
+    // nx, ny, nz, nDim
+    // arrayPenalForce[i][j][k][0]: forceX
+    // arrayPenalForce[i][j][k][1]: forceY
+    // arrayPenalForce[i][j][k][2]: forceZ
 
     Array4D arrayPressureForce;
     // fluid grid forces, 4-dimensional
-    // nx, ny, nz, n_dim
-    // arrayPressureForce[i][j][k][0]: force_x
-    // arrayPressureForce[i][j][k][1]: force_y
-    // arrayPressureForce[i][j][k][2]: force_z
+    // nx, ny, nz, nDim
+    // arrayPressureForce[i][j][k][0]: forceX
+    // arrayPressureForce[i][j][k][1]: forceY
+    // arrayPressureForce[i][j][k][2]: forceZ
 
     Array4D arrayFlux;
     // 4-dimensional, defined at cell centers
-    // nx, ny, nz, n_integ
-    // arrayFlux[i][j][k][0]: var_den
-    // arrayFlux[i][j][k][1]: var_mom[0]
-    // arrayFlux[i][j][k][2]: var_mom[1]
-    // arrayFlux[i][j][k][3]: var_mom[2]
-    // arrayFlux[i][j][k][4]: var_eng
+    // nx, ny, nz, nInteg
+    // arrayFlux[i][j][k][0]: varDen
+    // arrayFlux[i][j][k][1]: varMom[0]
+    // arrayFlux[i][j][k][2]: varMom[1]
+    // arrayFlux[i][j][k][3]: varMom[2]
+    // arrayFlux[i][j][k][4]: varEng
 
     Array5D arrayRoeFlux; 
     Array5D arrayRoeFluxStep2; 
     Array5D arrayRoeFluxStep3; 
     // 5-dimensional, defined at cell faces
-    // nx-1, ny-1, nz-1, n_integ, n_dim
-    // arrayRoeFlux[i][j][k][0]: var_den
-    // arrayRoeFlux[i][j][k][1]: var_mom[0]
-    // arrayRoeFlux[i][j][k][2]: var_mom[1]
-    // arrayRoeFlux[i][j][k][3]: var_mom[2]
-    // arrayRoeFlux[i][j][k][4]: var_eng
+    // nx-1, ny-1, nz-1, nInteg, nDim
+    // arrayRoeFlux[i][j][k][0]: varDen
+    // arrayRoeFlux[i][j][k][1]: varMom[0]
+    // arrayRoeFlux[i][j][k][2]: varMom[1]
+    // arrayRoeFlux[i][j][k][3]: varMom[2]
+    // arrayRoeFlux[i][j][k][4]: varEng
 
     Array4D arrayRoeFluxTmp;
     // 4-dimensional
-    // nx-1, ny-1, nz-1, n_integ
+    // nx-1, ny-1, nz-1, nInteg
 
     Array3D arrayH; 
-    // Enthalpy, 3-dimensional, note it is total enthalpy, not static enthalpy
+    // Enthalpy, 3-dimensional, total specific enthalpy, NOT static specific enthalpy
     // nx, ny, nz
 
     Array3D arraySoundSpeed; 
