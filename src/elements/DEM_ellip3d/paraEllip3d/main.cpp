@@ -74,10 +74,16 @@ int main(int argc, char* argv[]) {
     assemb.proceedFromPreset();
     break;
   case 002: // tune mass-percentage from number-percentage on size distribution curve by trial and error
-    assemb.tuneMassPercentage();
+    assemb.tuneMassPercent();
     break;
   case 003: // trim particles
     assemb.trimOnly();
+    break; 
+  case 004: // remove particles
+    assemb.removeBySphere();
+    break; 
+  case 005: // calculate mass percentage
+    assemb.calcMassPercent();
     break; 
   case 101: // deposit spatially scattered particles into a rigid container
     assemb.depositIntoContainer();
@@ -124,9 +130,17 @@ int main(int argc, char* argv[]) {
   case 602: // resume expanding particles inside a virtual cavity and see what occurs
     assemb.resumeExpandCavityParticle();
     break;  
-  case 701: // couple with sonic fluid flow
+  case 701: // couple with sonic fluid flow, bottom "left" part, R-H conditions
     assemb.coupleWithSonicFluid();
     break;  
+  case 702: // couple with sonic fluid flow, bottom "left" part
+    assemb.coupleWithSonicFluid();
+  case 703: // couple with sonic fluid flow, rectangular "left" part
+    assemb.coupleWithSonicFluid();
+    break;
+  case 704: // couple with sonic fluid flow, spherical "left" part
+    assemb.coupleWithSonicFluid();
+    break;
   }
   
   dem::debugInf << std::endl << "MPI_Wtime: " << MPI_Wtime() - time0 << " seconds" << std::endl;

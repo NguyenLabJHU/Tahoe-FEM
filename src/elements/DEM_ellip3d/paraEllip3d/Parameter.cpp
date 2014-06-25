@@ -73,6 +73,36 @@ namespace dem {
       }
       break;
 
+    case 004: // removeBySphere
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 5; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 005: // calculate mass percentage
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 1; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
     case 101: // depositIntoContainer  
       for (std::size_t i = 0; i < 12; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
@@ -325,14 +355,59 @@ namespace dem {
       }
       break;
 
-    case 701: // couple with sonic fluid flow
+    case 701: // couple with sonic fluid flow, bottom "left" part, R-H conditions
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 19; ++i) {
+      for (std::size_t i = 0; i < 25; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 702: // couple with sonic fluid flow, bottom "left" part
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 28; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 703: // couple with sonic fluid flow, rectangular "left" part
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 33; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
+    case 704: // couple with sonic fluid flow, spherical "left" part
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 31; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;

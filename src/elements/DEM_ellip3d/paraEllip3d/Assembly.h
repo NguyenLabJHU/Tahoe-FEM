@@ -133,7 +133,8 @@ namespace dem {
     void setGrid(Rectangle cont) { grid = cont; } 
     void setGradation(Gradation grad) { gradation = grad; }
 
-    void tuneMassPercentage();
+    void tuneMassPercent();
+    void calcMassPercent();
     void depositIntoContainer(); 
     void resumeDepositIntoContainer();
     void expandCavityParticle();
@@ -146,6 +147,7 @@ namespace dem {
     void trim(bool toRebuild,
 	      const char *inputParticle,
 	      const char *trmParticle);
+    void removeBySphere();
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
     void proceedFromPreset();

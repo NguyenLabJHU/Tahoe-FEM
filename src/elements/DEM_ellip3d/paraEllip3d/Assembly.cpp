@@ -79,11 +79,12 @@ namespace dem {
     return strcpy( cstr, obj.c_str() );
   }
 
+
   // input:   number percentage smaller from data file
   // output:  mass percentage smaller to disk file debugInf
   // purpose: let mass percentage smaller satisfy particle size distribution curve
   // method:  use trial and error method on number percentage until mass percentage is satisfied
-  void Assembly::tuneMassPercentage() 
+  void Assembly::tuneMassPercent()
   {
     if (mpiRank == 0) {
       REAL minX = dem::Parameter::getSingleton().parameter["minX"];
@@ -130,7 +131,35 @@ namespace dem {
       for (std::size_t i = 0; i < massPercent.size(); ++i)
 	debugInf << std::setw(OWID) << massPercent[i] << std::setw(OWID) << massSize[i] << std::endl;
     }
+  }
 
+
+  // input:   particle file with estimated gradation
+  // output:  particle file with precise gradation
+  void Assembly::calcMassPercent()  
+  {
+    if (mpiRank == 0) {
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());    
+
+      // statistics of mass distribution
+      Gradation massGrad = gradation;
+      std::vector<REAL> &massPercent = massGrad.getPercent();
+      std::vector<REAL> &massSize    = massGrad.getSize();
+      for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] = 0;
+
+      for (std::vector<Particle*>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
+	for (int i = massPercent.size()-1; i >= 0 ; --i) { // do not use size_t for descending series
+	  if ( (*itr)->getA() <= massSize[i] )
+	    massPercent[i] += (*itr)->getMass(); // += 1 for calculating number percentage
+	}
+      REAL totalMass = massPercent[0];
+      for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] /= totalMass;
+      debugInf << std::endl << "mass percentage of particles:" << std::endl
+	       << std::setw(OWID) << massPercent.size() << std::endl;
+      for (std::size_t i = 0; i < massPercent.size(); ++i)
+	debugInf << std::setw(OWID) << massPercent[i] << std::setw(OWID) << massSize[i] << std::endl;
+    }
   }
 
 
@@ -1290,6 +1319,40 @@ namespace dem {
     }
   
     printParticle(trmParticle);
+  }
+
+
+  void Assembly::removeBySphere()
+  {
+   if (mpiRank == 0) {
+
+    readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+    readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    REAL minR = gradation.getPtclMinRadius();
+    
+    REAL x0S = dem::Parameter::getSingleton().parameter["x0S"];
+    REAL y0S = dem::Parameter::getSingleton().parameter["y0S"];
+    REAL z0S = dem::Parameter::getSingleton().parameter["z0S"];
+    REAL r0S = dem::Parameter::getSingleton().parameter["r0S"];
+ 
+    std::vector<Particle*>::iterator itr;
+    Vec center;
+    REAL dist;
+
+    for (itr = allParticleVec.begin(); itr != allParticleVec.end(); ) {
+      center = (*itr)->getCurrPos();
+      dist = sqrt(pow(center.getX()-x0S,2) + pow(center.getY()-y0S,2) + pow(center.getZ()-z0S,2));
+      if(dist <= r0S + minR)
+	{
+	  delete (*itr); // release memory
+	  itr = allParticleVec.erase(itr); 
+	}
+      else
+	++itr;
+    }
+  
+    printParticle("remove_particle_end");
+   }
   }
 
 
@@ -2954,6 +3017,9 @@ namespace dem {
 	<< std::setw(OWID) << "velocX"
 	<< std::setw(OWID) << "velocY"
 	<< std::setw(OWID) << "velocZ"
+	<< std::setw(OWID) << "avgDen"
+	<< std::setw(OWID) << "avgVel"
+	<< std::setw(OWID) << "avgPrs"
 	<< std::endl;
   }
 
