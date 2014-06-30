@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.3 2013-10-09 03:20:50 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.4 2014-06-30 03:40:09 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -69,6 +69,10 @@ public:
         kc0,
         kHc_chi,
         kc0_chi,
+        kHc_nablachi,
+        kc0_nablachi,
+        kc1_nablachi,
+        kc2_nablachi,
         kHGc_chi,
         kGc0_chi1,
         kGc0_chi2,
@@ -78,6 +82,8 @@ public:
         kDpsi,
         kFphi_chi,
         kDpsi_chi,
+        kFphi_nablachi,
+        kDpsi_nablachi,
         kFGphi_chi,
         kDGpsi_chi,
         //
@@ -93,11 +99,15 @@ public:
         kc,
         kc_current_configuration,
         kc_chi,
+        kc_nablachi0,
+        kc_nablachi1,
+        kc_nablachi2,
         //    kZkappa,
     //    kZc,
     //    khkappa,
         khc,
         khc_chi,
+        khc_nablachi,
     //    kIntrinsic_Perm,
     //    kJ,
     //    kJp,
@@ -108,6 +118,7 @@ public:
     //    kEpsVolp,
         kDelgamma,
         kDelgammachi,
+        kDelgammanablachi,
         ktrSigma,
         kSigma_inv,
         ktrRel,
@@ -494,6 +505,7 @@ private:
     double			Predictor_mean_stress_terms;
     double			Corrector_mean_stress_terms;
     double			fTemp_matrix_one_x_one;
+    double			fTemp_matrix_one_x_one2;
     double			fDelgamma_current_configuration_root_one;
     double			fDelgamma_current_configuration_root_two;
     double			fDelgamma_current_configuration;
@@ -502,6 +514,14 @@ private:
     double			Je;
     double			fYield_function_current_configuration;
     double			cohesion_current_configuration;
+
+    double			Micro_Plasticity_Occurrence;
+    double			Macro_Plasticity_Occurrence;
+    double			fMicroYield_function_check;
+    double			fYield_function_check;
+
+
+
     dMatrixT    	fVelocity_Gradient_current_IP;
 
     dArray2DT       fDeformation_Gradient_Elements_IPs;
@@ -938,11 +958,12 @@ private:
     dTensor3DT GAMMA;
     dTensor3DT GRAD_CHIM;
     dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_n_sd;
+    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_n_sd1;
+    dTensor3DT fTemp_tensor_n_sd_x_n_sd_x_n_sd2;
 
-    dTensor3DT fMeKLM;
-    dTensor3DT fMeKLM_tr;
+
     dTensor3DT devMeKLM;
-    dTensor3DT GAMMAe;
+    dTensor3DT fMeKLM_tr;
     dTensor3DT GAMMAe_tr;
     dTensor3DT GXe;
     dTensor3DT GXe_tr;
@@ -950,6 +971,664 @@ private:
     dTensor3DT GXp_n;
 
 
+    dTensor3DT fMKLM_tr;
+    dTensor3DT fdevMKLM_tr;
+    dMatrixT Mean_fMKLM_tr;
+    dTensor3DT fMeKLM;
+    dTensor3DT fdevMeKLM;
+    dMatrixT Mean_fMeKLM;
+    dTensor3DT fdGnablachidMKLM_tr;
+    dTensor3DT fdGnablachidMKLM_n;
+    dTensor3DT fdGnablachidMKLM;
+    dTensor3DT fdFnablachidMKLM;
+    dArray2DT dGnablachidMKLM_IPs;
+    dArray2DT dGnablachidMKLM_Element_IPs;
+    dArray2DT dGnablachidMKLM_n_IPs;
+    dArray2DT dGnablachidMKLM_Element_n_IPs;
+
+
+    dTensor3DT GAMMAe;
+    dTensor3DT GAMMAe_n;
+    dArray2DT GAMMAe_n_Elements_IPs;
+    dArray2DT GAMMAe_Elements_IPs;
+    dArray2DT GAMMAe_n_IPs;
+    dArray2DT GAMMAe_IPs;
+
+    dTensor3DT fMeKLM_n;
+    dArray2DT fMeKLM_n_Elements_IPs;
+    dArray2DT fMeKLM_Elements_IPs;
+    dArray2DT fMeKLM_n_IPs;
+    dArray2DT fMeKLM_IPs;
+
+    dMatrixT SPK_n;
+    dArray2DT SPK_n_Elements_IPs;
+    dArray2DT SPK_Elements_IPs;
+    dArray2DT SPK_n_IPs;
+    dArray2DT SPK_IPs;
+
+    dMatrixT SIGMA_S_n;
+    dArray2DT SIGMA_S_n_Elements_IPs;
+    dArray2DT SIGMA_S_Elements_IPs;
+    dArray2DT SIGMA_S_n_IPs;
+    dArray2DT SIGMA_S_IPs;
+
+    dMatrixT Elastic_LagrangianStn_n;
+    dArray2DT Elastic_LagrangianStn_n_Elements_IPs;
+    dArray2DT Elastic_LagrangianStn_Elements_IPs;
+    dArray2DT Elastic_LagrangianStn_n_IPs;
+    dArray2DT Elastic_LagrangianStn_IPs;
+
+    dMatrixT Elastic_MicroStnTensor_n;
+    dArray2DT Elastic_MicroStnTensor_n_Elements_IPs;
+    dArray2DT Elastic_MicroStnTensor_Elements_IPs;
+    dArray2DT Elastic_MicroStnTensor_n_IPs;
+    dArray2DT Elastic_MicroStnTensor_IPs;
+
+    dTensor3DT dfMKLMdDelgammanablachi;
+    dMatrixT dmeanfMKLMdDelgammanablachi;
+    dTensor3DT dfdevMKLMdDelgammanablachi;
+    dMatrixT kc_nablachi_n;
+    dMatrixT dfkc_nablachidDelgammanablachi;
+    dMatrixT fDelkc_nablachi;
+    dMatrixT cohesion_nablachi;
+    dMatrixT fDeltaLbar_P;
+    dMatrixT fDeltaLbarChai_P;
+
+    dMatrixT fdfnablachidcohesion_nablachi;
+    dMatrixT PSIe_n_inverseT;
+
+    dMatrixT II13e_1;
+    dTensor3DT Temp_II14p;
+    dMatrixT II14p_1;
+    dMatrixT II14p_2;
+    dMatrixT II14p_3;
+    dMatrixT II14p_4;
+    dMatrixT II14p_5;
+    dMatrixT II14p_6;
+    dMatrixT II14p_7;
+    dMatrixT II14p_8;
+    dMatrixT II14p_9;
+    dMatrixT II14p_10;
+    dMatrixT II14p_11;
+    dMatrixT II14p_12;
+    dMatrixT II14p_13;
+    dMatrixT II14p_14;
+    dMatrixT II14p_15;
+    dMatrixT II14p_16;
+
+
+    dMatrixT II15e_1;
+
+    dTensor3DT Temp_II16p;
+    dMatrixT II16p_1;
+    dMatrixT II16p_2;
+    dMatrixT II16p_3;
+    dMatrixT II16p_4;
+    dMatrixT II16p_5;
+    dMatrixT II16p_6;
+    dMatrixT II16p_7;
+    dMatrixT II16p_8;
+    dMatrixT II16p_9;
+    dMatrixT II16p_10;
+    dMatrixT II16p_11;
+    dMatrixT II16p_12;
+    dMatrixT II16p_13;
+    dMatrixT II16p_14;
+    dMatrixT II16p_15;
+    dMatrixT II16p_16;
+
+    dTensor3DT Temp_II17p;
+    dMatrixT II17p_1;
+    dMatrixT II17p_2;
+    dMatrixT II17p_3;
+    dMatrixT II17p_4;
+    dMatrixT II17p_5;
+    dMatrixT II17p_6;
+    dMatrixT II17p_7;
+    dMatrixT II17p_8;
+    dMatrixT II17p_9;
+    dMatrixT II17p_10;
+    dMatrixT II17p_11;
+    dMatrixT II17p_12;
+    dMatrixT II17p_13;
+    dMatrixT II17p_14;
+    dMatrixT II17p_15;
+    dMatrixT II17p_16;
+
+    dTensor3DT Temp_II18p;
+    dMatrixT II18p_1;
+    dMatrixT II18p_2;
+    dMatrixT II18p_3;
+    dMatrixT II18p_4;
+    dMatrixT II18p_5;
+    dMatrixT II18p_6;
+    dMatrixT II18p_7;
+    dMatrixT II18p_8;
+    dMatrixT II18p_9;
+    dMatrixT II18p_10;
+    dMatrixT II18p_11;
+    dMatrixT II18p_12;
+    dMatrixT II18p_13;
+    dMatrixT II18p_14;
+    dMatrixT II18p_15;
+    dMatrixT II18p_16;
+
+    dTensor3DT Temp_II19p;
+    dMatrixT II19p_1;
+    dMatrixT II19p_2;
+    dMatrixT II19p_3;
+    dMatrixT II19p_4;
+    dMatrixT II19p_5;
+    dMatrixT II19p_6;
+    dMatrixT II19p_7;
+    dMatrixT II19p_8;
+    dMatrixT II19p_9;
+    dMatrixT II19p_10;
+    dMatrixT II19p_11;
+    dMatrixT II19p_12;
+    dMatrixT II19p_13;
+    dMatrixT II19p_14;
+    dMatrixT II19p_15;
+    dMatrixT II19p_16;
+
+    dTensor3DT Temp_II20p;
+    dMatrixT II20p_1;
+    dMatrixT II20p_2;
+    dMatrixT II20p_3;
+    dMatrixT II20p_4;
+    dMatrixT II20p_5;
+    dMatrixT II20p_6;
+    dMatrixT II20p_7;
+    dMatrixT II20p_8;
+    dMatrixT II20p_9;
+    dMatrixT II20p_10;
+    dMatrixT II20p_11;
+    dMatrixT II20p_12;
+    dMatrixT II20p_13;
+    dMatrixT II20p_14;
+    dMatrixT II20p_15;
+    dMatrixT II20p_16;
+
+
+    dTensor3DT Temp_II21p;
+    dMatrixT II21e_1;
+    dMatrixT II21p_1;
+    dMatrixT II21p_2;
+    dMatrixT II21p_3;
+    dMatrixT II21p_4;
+    dMatrixT II21p_5;
+    dMatrixT II21p_6;
+    dMatrixT II21p_7;
+    dMatrixT II21p_8;
+    dMatrixT II21p_9;
+    dMatrixT II21p_1a;
+    dMatrixT II21p_2a;
+    dMatrixT II21p_3a;
+    dMatrixT II21p_4a;
+    dMatrixT II21p_5a;
+    dMatrixT II21p_6a;
+    dMatrixT II21p_7a;
+    dMatrixT II21p_8a;
+    double Temp_II21p_2_8;
+
+    double Temp_II21p_10_17;
+    dMatrixT II21p_10;
+    dMatrixT II21p_11;
+    dMatrixT II21p_12;
+    dMatrixT II21p_13;
+    dMatrixT II21p_14;
+    dMatrixT II21p_15;
+    dMatrixT II21p_16;
+    dMatrixT II21p_17;
+    dMatrixT II21p_10a;
+    dMatrixT II21p_11a;
+    dMatrixT II21p_12a;
+    dMatrixT II21p_13a;
+    dMatrixT II21p_14a;
+    dMatrixT II21p_15a;
+    dMatrixT II21p_16a;
+    dMatrixT II21p_17a;
+
+    double Temp_II21p_18_25;
+    dMatrixT II21p_18;
+    dMatrixT II21p_19;
+    dMatrixT II21p_20;
+    dMatrixT II21p_21;
+    dMatrixT II21p_22;
+    dMatrixT II21p_23;
+    dMatrixT II21p_24;
+    dMatrixT II21p_25;
+    dMatrixT II21p_26;
+    dMatrixT II21p_18a;
+	dMatrixT II21p_19a;
+	dMatrixT II21p_20a;
+	dMatrixT II21p_21a;
+	dMatrixT II21p_22a;
+	dMatrixT II21p_23a;
+	dMatrixT II21p_24a;
+	dMatrixT II21p_25a;
+
+    double Temp_II21p_27_34;
+    dMatrixT II21p_27;
+    dMatrixT II21p_28;
+    dMatrixT II21p_29;
+    dMatrixT II21p_30;
+    dMatrixT II21p_31;
+    dMatrixT II21p_32;
+    dMatrixT II21p_33;
+    dMatrixT II21p_34;
+    dMatrixT II21p_27a;
+    dMatrixT II21p_28a;
+    dMatrixT II21p_29a;
+    dMatrixT II21p_30a;
+    dMatrixT II21p_31a;
+    dMatrixT II21p_32a;
+    dMatrixT II21p_33a;
+    dMatrixT II21p_34a;
+
+    dMatrixT II21p_35;
+
+    double Temp_II21p_36_43;
+    dMatrixT II21p_36;
+    dMatrixT II21p_37;
+    dMatrixT II21p_38;
+    dMatrixT II21p_39;
+    dMatrixT II21p_40;
+    dMatrixT II21p_41;
+    dMatrixT II21p_42;
+    dMatrixT II21p_43;
+    dMatrixT II21p_36a;
+    dMatrixT II21p_37a;
+    dMatrixT II21p_38a;
+    dMatrixT II21p_39a;
+    dMatrixT II21p_40a;
+    dMatrixT II21p_41a;
+    dMatrixT II21p_42a;
+    dMatrixT II21p_43a;
+
+    double Temp_II21p_44_51;
+    dMatrixT II21p_44;
+    dMatrixT II21p_45;
+    dMatrixT II21p_46;
+    dMatrixT II21p_47;
+    dMatrixT II21p_48;
+    dMatrixT II21p_49;
+    dMatrixT II21p_50;
+    dMatrixT II21p_51;
+    dMatrixT II21p_44a;
+    dMatrixT II21p_45a;
+    dMatrixT II21p_46a;
+    dMatrixT II21p_47a;
+    dMatrixT II21p_48a;
+    dMatrixT II21p_49a;
+    dMatrixT II21p_50a;
+    dMatrixT II21p_51a;
+
+    double Temp_II21p_52_59;
+    dMatrixT II21p_52;
+    dMatrixT II21p_53;
+    dMatrixT II21p_54;
+    dMatrixT II21p_55;
+    dMatrixT II21p_56;
+    dMatrixT II21p_57;
+    dMatrixT II21p_58;
+    dMatrixT II21p_59;
+    dMatrixT II21p_52a;
+    dMatrixT II21p_53a;
+    dMatrixT II21p_54a;
+    dMatrixT II21p_55a;
+    dMatrixT II21p_56a;
+    dMatrixT II21p_57a;
+    dMatrixT II21p_58a;
+    dMatrixT II21p_59a;
+
+    double Temp_II21p_60_67;
+    dMatrixT II21p_60;
+    dMatrixT II21p_61;
+    dMatrixT II21p_62;
+    dMatrixT II21p_63;
+    dMatrixT II21p_64;
+    dMatrixT II21p_65;
+    dMatrixT II21p_66;
+    dMatrixT II21p_67;
+    dMatrixT II21p_60a;
+    dMatrixT II21p_61a;
+    dMatrixT II21p_62a;
+    dMatrixT II21p_63a;
+    dMatrixT II21p_64a;
+    dMatrixT II21p_65a;
+    dMatrixT II21p_66a;
+    dMatrixT II21p_67a;
+
+    double Temp_II21p_68_75;
+    dMatrixT II21p_68;
+    dMatrixT II21p_69;
+    dMatrixT II21p_70;
+    dMatrixT II21p_71;
+    dMatrixT II21p_72;
+    dMatrixT II21p_73;
+    dMatrixT II21p_74;
+    dMatrixT II21p_75;
+    dMatrixT II21p_68a;
+    dMatrixT II21p_69a;
+    dMatrixT II21p_70a;
+    dMatrixT II21p_71a;
+    dMatrixT II21p_72a;
+    dMatrixT II21p_73a;
+    dMatrixT II21p_74a;
+    dMatrixT II21p_75a;
+
+
+
+    dMatrixT fKMphiu_II13e_1;
+
+
+    dMatrixT fKMphiu_II14p_1;
+    dMatrixT fKMphiu_II14p_2;
+    dMatrixT fKMphiu_II14p_3;
+    dMatrixT fKMphiu_II14p_4;
+    dMatrixT fKMphiu_II14p_5;
+    dMatrixT fKMphiphi_II14p_6;
+    dMatrixT fKMphiphi_II14p_7;
+    dMatrixT fKMphiphi_II14p_8;
+    dMatrixT fKMphiu_II14p_9;
+    dMatrixT fKMphiu_II14p_10;
+    dMatrixT fKMphiu_II14p_11;
+    dMatrixT fKMphiu_II14p_12;
+    dMatrixT fKMphiu_II14p_13;
+    dMatrixT fKMphiphi_II14p_14;
+    dMatrixT fKMphiphi_II14p_15;
+    dMatrixT fKMphiphi_II14p_16;
+
+    dMatrixT fKMphiphi_II15e_1;
+
+    dMatrixT fKMphiu_II16p_1;
+    dMatrixT fKMphiu_II16p_2;
+    dMatrixT fKMphiu_II16p_3;
+    dMatrixT fKMphiu_II16p_4;
+    dMatrixT fKMphiu_II16p_5;
+    dMatrixT fKMphiphi_II16p_6;
+    dMatrixT fKMphiphi_II16p_7;
+    dMatrixT fKMphiphi_II16p_8;
+    dMatrixT fKMphiu_II16p_9;
+    dMatrixT fKMphiu_II16p_10;
+    dMatrixT fKMphiu_II16p_11;
+    dMatrixT fKMphiu_II16p_12;
+    dMatrixT fKMphiu_II16p_13;
+    dMatrixT fKMphiphi_II16p_14;
+    dMatrixT fKMphiphi_II16p_15;
+    dMatrixT fKMphiphi_II16p_16;
+
+
+    dMatrixT fKMphiu_II17p_1;
+    dMatrixT fKMphiu_II17p_2;
+    dMatrixT fKMphiu_II17p_3;
+    dMatrixT fKMphiu_II17p_4;
+    dMatrixT fKMphiu_II17p_5;
+    dMatrixT fKMphiphi_II17p_6;
+    dMatrixT fKMphiphi_II17p_7;
+    dMatrixT fKMphiphi_II17p_8;
+    dMatrixT fKMphiu_II17p_9;
+    dMatrixT fKMphiu_II17p_10;
+    dMatrixT fKMphiu_II17p_11;
+    dMatrixT fKMphiu_II17p_12;
+    dMatrixT fKMphiu_II17p_13;
+    dMatrixT fKMphiphi_II17p_14;
+    dMatrixT fKMphiphi_II17p_15;
+    dMatrixT fKMphiphi_II17p_16;
+
+
+    dMatrixT fKMphiu_II18p_1;
+    dMatrixT fKMphiu_II18p_2;
+    dMatrixT fKMphiu_II18p_3;
+    dMatrixT fKMphiu_II18p_4;
+    dMatrixT fKMphiu_II18p_5;
+    dMatrixT fKMphiphi_II18p_6;
+    dMatrixT fKMphiphi_II18p_7;
+    dMatrixT fKMphiphi_II18p_8;
+    dMatrixT fKMphiu_II18p_9;
+    dMatrixT fKMphiu_II18p_10;
+    dMatrixT fKMphiu_II18p_11;
+    dMatrixT fKMphiu_II18p_12;
+    dMatrixT fKMphiu_II18p_13;
+    dMatrixT fKMphiphi_II18p_14;
+    dMatrixT fKMphiphi_II18p_15;
+    dMatrixT fKMphiphi_II18p_16;
+
+
+    dMatrixT fKMphiu_II19p_1;
+    dMatrixT fKMphiu_II19p_2;
+    dMatrixT fKMphiu_II19p_3;
+    dMatrixT fKMphiu_II19p_4;
+    dMatrixT fKMphiu_II19p_5;
+    dMatrixT fKMphiphi_II19p_6;
+    dMatrixT fKMphiphi_II19p_7;
+    dMatrixT fKMphiphi_II19p_8;
+    dMatrixT fKMphiu_II19p_9;
+    dMatrixT fKMphiu_II19p_10;
+    dMatrixT fKMphiu_II19p_11;
+    dMatrixT fKMphiu_II19p_12;
+    dMatrixT fKMphiu_II19p_13;
+    dMatrixT fKMphiphi_II19p_14;
+    dMatrixT fKMphiphi_II19p_15;
+    dMatrixT fKMphiphi_II19p_16;
+
+
+
+    dMatrixT fKMphiu_II20p_1;
+    dMatrixT fKMphiu_II20p_2;
+    dMatrixT fKMphiu_II20p_3;
+    dMatrixT fKMphiu_II20p_4;
+    dMatrixT fKMphiu_II20p_5;
+    dMatrixT fKMphiphi_II20p_6;
+    dMatrixT fKMphiphi_II20p_7;
+    dMatrixT fKMphiphi_II20p_8;
+    dMatrixT fKMphiu_II20p_9;
+    dMatrixT fKMphiu_II20p_10;
+    dMatrixT fKMphiu_II20p_11;
+    dMatrixT fKMphiu_II20p_12;
+    dMatrixT fKMphiu_II20p_13;
+    dMatrixT fKMphiphi_II20p_14;
+    dMatrixT fKMphiphi_II20p_15;
+    dMatrixT fKMphiphi_II20p_16;
+
+
+
+    dMatrixT fKMphiu_II21e_1;
+    dMatrixT fKMphiu_II21p_1;
+    dMatrixT fKMphiu_II21p_2;
+    dMatrixT fKMphiu_II21p_3;
+    dMatrixT fKMphiu_II21p_4;
+    dMatrixT fKMphiu_II21p_5;
+    dMatrixT fKMphiphi_II21p_6;
+    dMatrixT fKMphiphi_II21p_7;
+    dMatrixT fKMphiphi_II21p_8;
+    dMatrixT fKMphiu_II21p_1a;
+    dMatrixT fKMphiu_II21p_2a;
+    dMatrixT fKMphiu_II21p_3a;
+    dMatrixT fKMphiu_II21p_4a;
+    dMatrixT fKMphiu_II21p_5a;
+    dMatrixT fKMphiphi_II21p_6a;
+    dMatrixT fKMphiphi_II21p_7a;
+    dMatrixT fKMphiphi_II21p_8a;
+
+    dMatrixT fKMphiphi_II21p_9;
+
+
+
+    dMatrixT fKMphiu_II21p_10;
+    dMatrixT fKMphiu_II21p_11;
+    dMatrixT fKMphiu_II21p_12;
+    dMatrixT fKMphiu_II21p_13;
+    dMatrixT fKMphiu_II21p_14;
+    dMatrixT fKMphiphi_II21p_15;
+    dMatrixT fKMphiphi_II21p_16;
+    dMatrixT fKMphiphi_II21p_17;
+    dMatrixT fKMphiu_II21p_10a;
+    dMatrixT fKMphiu_II21p_11a;
+    dMatrixT fKMphiu_II21p_12a;
+    dMatrixT fKMphiu_II21p_13a;
+    dMatrixT fKMphiu_II21p_14a;
+    dMatrixT fKMphiphi_II21p_15a;
+    dMatrixT fKMphiphi_II21p_16a;
+    dMatrixT fKMphiphi_II21p_17a;
+
+
+    dMatrixT fKMphiu_II21p_18;
+    dMatrixT fKMphiu_II21p_19;
+    dMatrixT fKMphiu_II21p_20;
+    dMatrixT fKMphiu_II21p_21;
+    dMatrixT fKMphiu_II21p_22;
+    dMatrixT fKMphiphi_II21p_23;
+    dMatrixT fKMphiphi_II21p_24;
+    dMatrixT fKMphiphi_II21p_25;
+    dMatrixT fKMphiu_II21p_18a;
+    dMatrixT fKMphiu_II21p_19a;
+    dMatrixT fKMphiu_II21p_20a;
+    dMatrixT fKMphiu_II21p_21a;
+    dMatrixT fKMphiu_II21p_22a;
+    dMatrixT fKMphiphi_II21p_23a;
+    dMatrixT fKMphiphi_II21p_24a;
+    dMatrixT fKMphiphi_II21p_25a;
+
+
+    dMatrixT fKMphiu_II21p_26;
+
+    dMatrixT fKMphiu_II21p_27;
+    dMatrixT fKMphiu_II21p_28;
+    dMatrixT fKMphiu_II21p_29;
+    dMatrixT fKMphiu_II21p_30;
+    dMatrixT fKMphiu_II21p_31;
+    dMatrixT fKMphiphi_II21p_32;
+    dMatrixT fKMphiphi_II21p_33;
+    dMatrixT fKMphiphi_II21p_34;
+    dMatrixT fKMphiu_II21p_27a;
+    dMatrixT fKMphiu_II21p_28a;
+    dMatrixT fKMphiu_II21p_29a;
+    dMatrixT fKMphiu_II21p_30a;
+    dMatrixT fKMphiu_II21p_31a;
+    dMatrixT fKMphiphi_II21p_32a;
+    dMatrixT fKMphiphi_II21p_33a;
+    dMatrixT fKMphiphi_II21p_34a;
+
+    dMatrixT fKMphiphi_II21p_35;
+
+
+    dMatrixT fKMphiu_II21p_36;
+    dMatrixT fKMphiu_II21p_37;
+    dMatrixT fKMphiu_II21p_38;
+    dMatrixT fKMphiu_II21p_39;
+    dMatrixT fKMphiu_II21p_40;
+    dMatrixT fKMphiphi_II21p_41;
+    dMatrixT fKMphiphi_II21p_42;
+    dMatrixT fKMphiphi_II21p_43;
+    dMatrixT fKMphiu_II21p_36a;
+    dMatrixT fKMphiu_II21p_37a;
+    dMatrixT fKMphiu_II21p_38a;
+    dMatrixT fKMphiu_II21p_39a;
+    dMatrixT fKMphiu_II21p_40a;
+    dMatrixT fKMphiphi_II21p_41a;
+    dMatrixT fKMphiphi_II21p_42a;
+    dMatrixT fKMphiphi_II21p_43a;
+
+
+
+    dMatrixT fKMphiu_II21p_44;
+    dMatrixT fKMphiu_II21p_45;
+    dMatrixT fKMphiu_II21p_46;
+    dMatrixT fKMphiu_II21p_47;
+    dMatrixT fKMphiu_II21p_48;
+    dMatrixT fKMphiphi_II21p_49;
+    dMatrixT fKMphiphi_II21p_50;
+    dMatrixT fKMphiphi_II21p_51;
+    dMatrixT fKMphiu_II21p_44a;
+    dMatrixT fKMphiu_II21p_45a;
+    dMatrixT fKMphiu_II21p_46a;
+    dMatrixT fKMphiu_II21p_47a;
+    dMatrixT fKMphiu_II21p_48a;
+    dMatrixT fKMphiphi_II21p_49a;
+    dMatrixT fKMphiphi_II21p_50a;
+    dMatrixT fKMphiphi_II21p_51a;
+
+
+
+    dMatrixT fKMphiu_II21p_52;
+    dMatrixT fKMphiu_II21p_53;
+    dMatrixT fKMphiu_II21p_54;
+    dMatrixT fKMphiu_II21p_55;
+    dMatrixT fKMphiu_II21p_56;
+    dMatrixT fKMphiphi_II21p_57;
+    dMatrixT fKMphiphi_II21p_58;
+    dMatrixT fKMphiphi_II21p_59;
+    dMatrixT fKMphiu_II21p_52a;
+    dMatrixT fKMphiu_II21p_53a;
+    dMatrixT fKMphiu_II21p_54a;
+    dMatrixT fKMphiu_II21p_55a;
+    dMatrixT fKMphiu_II21p_56a;
+    dMatrixT fKMphiphi_II21p_57a;
+    dMatrixT fKMphiphi_II21p_58a;
+    dMatrixT fKMphiphi_II21p_59a;
+
+
+
+    dMatrixT fKMphiu_II21p_60;
+    dMatrixT fKMphiu_II21p_61;
+    dMatrixT fKMphiu_II21p_62;
+    dMatrixT fKMphiu_II21p_63;
+    dMatrixT fKMphiu_II21p_64;
+    dMatrixT fKMphiphi_II21p_65;
+    dMatrixT fKMphiphi_II21p_66;
+    dMatrixT fKMphiphi_II21p_67;
+    dMatrixT fKMphiu_II21p_60a;
+    dMatrixT fKMphiu_II21p_61a;
+    dMatrixT fKMphiu_II21p_62a;
+    dMatrixT fKMphiu_II21p_63a;
+    dMatrixT fKMphiu_II21p_64a;
+    dMatrixT fKMphiphi_II21p_65a;
+    dMatrixT fKMphiphi_II21p_66a;
+    dMatrixT fKMphiphi_II21p_67a;
+
+
+
+    dMatrixT fKMphiu_II21p_68;
+    dMatrixT fKMphiu_II21p_69;
+    dMatrixT fKMphiu_II21p_70;
+    dMatrixT fKMphiu_II21p_71;
+    dMatrixT fKMphiu_II21p_72;
+    dMatrixT fKMphiphi_II21p_73;
+    dMatrixT fKMphiphi_II21p_74;
+    dMatrixT fKMphiphi_II21p_75;
+    dMatrixT fKMphiu_II21p_68a;
+    dMatrixT fKMphiu_II21p_69a;
+    dMatrixT fKMphiu_II21p_70a;
+    dMatrixT fKMphiu_II21p_71a;
+    dMatrixT fKMphiu_II21p_72a;
+    dMatrixT fKMphiphi_II21p_73a;
+    dMatrixT fKMphiphi_II21p_74a;
+    dMatrixT fKMphiphi_II21p_75a;
+
+
+
+
+    double fNormdevMKLM_tr;
+    double fNormdevMeKLM;
+    double fMicro_gradient_Yield_function_tr;
+    double fMicro_gradient_Yield_function;
+    double Micro_gradient_Plasticity_Occurrence;
+    double dNormdevfMKLMdDelgammanablachi;
+    double Norm_Mean_fMKLM_tr;
+    double Norm_Mean_fMeKLM;
+    double Norm_kc_nablachi_n;
+    double dNorm_meanfMKLMdDelgammanablachi;
+    double dNorm_kc_nablachidDelgammanablachi;
+    double dfNorm_devMKLMdDelgammanablachi;
+    double dFyield_nablachidDelgammanablachi;
+    double fdelDelgammanablachi;
+    double fDelgammanablachi;
+    double Norm_cohesion_nablachi;
+    double Coeff_delDelgamma_nablachi;
+    double fdFYdS_trace;
+    double fdFYchidSIGMA_S_trace;
 
 
 
@@ -1074,6 +1753,11 @@ private:
     dMatrixT		fdGdS_tr;
     dMatrixT		fdGdS_tr_transpose;
     double			fdGdS_tr_trace;
+
+    dMatrixT		fdGchidSIGMA_S_tr;
+    dMatrixT		fdGchidSIGMA_S_tr_transpose;
+    double			fdGchidSIGMA_S_tr_trace;
+
     dMatrixT		I2p_trial_1;
     dMatrixT		I2p_trial_2;
     dMatrixT		I2p_trial_3;
@@ -1165,6 +1849,80 @@ private:
     dMatrixT		I11p_trial_1;
     dMatrixT		I11p_trial_2;
 
+    dMatrixT		I12p_trial_1;
+    dMatrixT		I12p_trial_2;
+    dMatrixT		I12p_trial_3;
+    dMatrixT		I12p_trial_4;
+    dMatrixT		I12p_trial_5;
+    dMatrixT		I12p_trial_6;
+    dMatrixT		I12p_trial_7;
+    dMatrixT		I12p_trial_8;
+    dMatrixT		I12p_trial_9;
+    dMatrixT		I12p_trial_10;
+
+
+    dMatrixT		I13p_trial_1;
+    dMatrixT		I13p_trial_2;
+    dMatrixT		I13p_trial_3;
+    dMatrixT		I13p_trial_4;
+    dMatrixT		I13p_trial_5;
+    dMatrixT		I13p_trial_6;
+    dMatrixT		I13p_trial_7;
+    dMatrixT		I13p_trial_8;
+    dMatrixT		I13p_trial_9;
+    dMatrixT		I13p_trial_10;
+
+
+    dMatrixT		I14p_trial_1;
+    dMatrixT		I14p_trial_2;
+    dMatrixT		I14p_trial_3;
+    dMatrixT		I14p_trial_4;
+    dMatrixT		I14p_trial_5;
+    dMatrixT		I14p_trial_6;
+    dMatrixT		I14p_trial_7;
+    dMatrixT		I14p_trial_8;
+    dMatrixT		I14p_trial_9;
+    dMatrixT		I14p_trial_10;
+
+
+    dMatrixT		I15p_trial_1;
+    dMatrixT		I15p_trial_2;
+    dMatrixT		I15p_trial_3;
+    dMatrixT		I15p_trial_4;
+    dMatrixT		I15p_trial_5;
+    dMatrixT		I15p_trial_6;
+    dMatrixT		I15p_trial_7;
+    dMatrixT		I15p_trial_8;
+    dMatrixT		I15p_trial_9;
+    dMatrixT		I15p_trial_10;
+
+
+    dMatrixT		I16p_trial_1;
+    dMatrixT		I16p_trial_2;
+    dMatrixT		I16p_trial_3;
+    dMatrixT		I16p_trial_4;
+    dMatrixT		I16p_trial_5;
+    dMatrixT		I16p_trial_6;
+    dMatrixT		I16p_trial_7;
+    dMatrixT		I16p_trial_8;
+    dMatrixT		I16p_trial_9;
+    dMatrixT		I16p_trial_10;
+
+
+    dMatrixT		I17p_trial_1;
+    dMatrixT		I17p_trial_2;
+    dMatrixT		I17p_trial_3;
+    dMatrixT		I17p_trial_4;
+    dMatrixT		I17p_trial_5;
+    dMatrixT		I17p_trial_6;
+    dMatrixT		I17p_trial_7;
+    dMatrixT		I17p_trial_8;
+    dMatrixT		I17p_trial_9;
+    dMatrixT		I17p_trial_10;
+
+
+
+
     dMatrixT		fKu_I6p_trial_1;
     dMatrixT		fKu_I6p_trial_2;
 
@@ -1182,6 +1940,78 @@ private:
 
     dMatrixT		fKu_I11p_trial_1;
     dMatrixT		fKu_I11p_trial_2;
+
+
+    dMatrixT		fKu_I12p_trial_1;
+    dMatrixT		fKuphi_I12p_trial_2;
+    dMatrixT		fKu_I12p_trial_3;
+    dMatrixT		fKuphi_I12p_trial_4;
+    dMatrixT		fKu_I12p_trial_5;
+    dMatrixT		fKuphi_I12p_trial_6;
+    dMatrixT		fKu_I12p_trial_7;
+    dMatrixT		fKuphi_I12p_trial_8;
+    dMatrixT		fKu_I12p_trial_9;
+    dMatrixT		fKuphi_I12p_trial_10;
+
+
+    dMatrixT		fKu_I13p_trial_1;
+    dMatrixT		fKuphi_I13p_trial_2;
+    dMatrixT		fKu_I13p_trial_3;
+    dMatrixT		fKuphi_I13p_trial_4;
+    dMatrixT		fKu_I13p_trial_5;
+    dMatrixT		fKuphi_I13p_trial_6;
+    dMatrixT		fKu_I13p_trial_7;
+    dMatrixT		fKuphi_I13p_trial_8;
+    dMatrixT		fKu_I13p_trial_9;
+    dMatrixT		fKuphi_I13p_trial_10;
+
+
+    dMatrixT		fKu_I14p_trial_1;
+    dMatrixT		fKuphi_I14p_trial_2;
+    dMatrixT		fKu_I14p_trial_3;
+    dMatrixT		fKuphi_I14p_trial_4;
+    dMatrixT		fKu_I14p_trial_5;
+    dMatrixT		fKuphi_I14p_trial_6;
+    dMatrixT		fKu_I14p_trial_7;
+    dMatrixT		fKuphi_I14p_trial_8;
+    dMatrixT		fKu_I14p_trial_9;
+    dMatrixT		fKuphi_I14p_trial_10;
+
+
+    dMatrixT		fKu_I15p_trial_1;
+    dMatrixT		fKuphi_I15p_trial_2;
+    dMatrixT		fKu_I15p_trial_3;
+    dMatrixT		fKuphi_I15p_trial_4;
+    dMatrixT		fKu_I15p_trial_5;
+    dMatrixT		fKuphi_I15p_trial_6;
+    dMatrixT		fKu_I15p_trial_7;
+    dMatrixT		fKuphi_I15p_trial_8;
+    dMatrixT		fKu_I15p_trial_9;
+    dMatrixT		fKuphi_I15p_trial_10;
+
+
+    dMatrixT		fKu_I16p_trial_1;
+    dMatrixT		fKuphi_I16p_trial_2;
+    dMatrixT		fKu_I16p_trial_3;
+    dMatrixT		fKuphi_I16p_trial_4;
+    dMatrixT		fKu_I16p_trial_5;
+    dMatrixT		fKuphi_I16p_trial_6;
+    dMatrixT		fKu_I16p_trial_7;
+    dMatrixT		fKuphi_I16p_trial_8;
+    dMatrixT		fKu_I16p_trial_9;
+    dMatrixT		fKuphi_I16p_trial_10;
+
+
+    dMatrixT		fKu_I17p_trial_1;
+    dMatrixT		fKuphi_I17p_trial_2;
+    dMatrixT		fKu_I17p_trial_3;
+    dMatrixT		fKuphi_I17p_trial_4;
+    dMatrixT		fKu_I17p_trial_5;
+    dMatrixT		fKuphi_I17p_trial_6;
+    dMatrixT		fKu_I17p_trial_7;
+    dMatrixT		fKuphi_I17p_trial_8;
+    dMatrixT		fKu_I17p_trial_9;
+    dMatrixT		fKuphi_I17p_trial_10;
 
 
     void Form_I2p_trial_1(void);
@@ -1251,6 +2081,14 @@ private:
     void Form_I11p_trial_1_2(void);
 
 
+    void Form_I12p_trial_1_10(void);
+    void Form_I13p_trial_1_10(void);
+    void Form_I14p_trial_1_10(void);
+    void Form_I15p_trial_1_10(void);
+    void Form_I16p_trial_1_10(void);
+    void Form_I17p_trial_1_10(void);
+
+
     ///////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1283,6 +2121,11 @@ private:
 
     dMatrixT fA1;
     dMatrixT fA2;
+    dMatrixT fA4;
+    double fdFYdS_fA2;
+    double fA3;
+    double fN2;
+    double fD2;
 
     dMatrixT fN1;
     dMatrixT fD1;
@@ -1306,7 +2149,7 @@ private:
     double devfSPKinv,devfSPKinv_tr;
     double devSIGMA_S_inv,devSIGMA_S_inv_tr;
     double fDelgamma, fdelDelgamma,dFYdDelgamma,dFYdDelgammachi;
-    double kgamma,kcc,cohesion;
+    double kgamma,kcc,cohesion,cohesion_chi;
     double fDelgammachi, fdelDelgammachi,dFYchidDelgammachi,dFYchidDelgamma;
     double dPdDelgamma,dcdDelgamma,Temp_inv,press,InvddevSdDelgamma;
     double dPdDelgammachi,ddevSdDelgamma_inv,ddevSdDelgammachi_inv;
@@ -1316,7 +2159,7 @@ private:
     int iteration_num;
     double predictor_norm, Fp_norm;
     double Aphi,Bphi,Apsi,Bpsi;
-    double Aphi_chi,Bphi_chi,Apsi_chi,Bpsi_chi;
+    double Aphi_chi,Bphi_chi,Apsi_chi,Bpsi_chi,Aphi_nablachi,Bphi_nablachi,Apsi_nablachi,Bpsi_nablachi;
     double Beta;
 
     /* for local Newton-Raphson iteration */
@@ -1335,6 +2178,7 @@ private:
    double fdFYchidSIGMA_S_fA1,fdFYchidSIGMA_S_fA1T,fdFYchidSIGMA_S_fN1,fdFYchidSIGMA_S_fN1T;
    double fConst4,fdFYchidcchi;
    double mean_stress_tr,mean_stress;
+   double fdFYchidSIGMA_S_fA2;
 
 
    /* for coupled solution*/
@@ -2848,13 +3692,14 @@ private:
     void  Form_fV2p(void);
     void  Form_fV3p(void);
 
-    void Form_fMeKLM(void);
+
+
     void Form_GAMMAe(void);
     void Form_fMeKLM_tr(void);
     void Form_GAMMAe_tr(void);
     void Form_GXe(void);
     void Form_GXe_tr(void);
-
+    void Form_devMeKLM(void);
     void Form_PGchivar_tr(void);
     void Form_devMeKLM_tr(void);
 
@@ -2866,10 +3711,46 @@ private:
     void Form_dPGchivardDelgammaGchi(void);
     void Form_ddevMKLMdDelgammaGchi(void);
     void Calculate_dInvddevMKLMdDelgammaGchi(void);
+	void Form_PGchivar(void);
+
 
 	void Form_GXp(void);
-	void Form_PGchivar(void);
-	void Form_devMeKLM(void);
+	void Form_fMKLM_tr(void);
+	void Form_Mean_fMKLM_tr(void);
+	void Form_fdevMKLM_tr(void);
+	void Form_fNormdevMKLM_tr(void);
+	void Form_Norm_Mean_fMKLM_tr(void);
+	void Form_dGnablachidMKLM_tr(void);
+	void Form_dGnablachidMKLM(void);
+	void Form_dFnablachidMKLM(void);
+	void Form_dfMKLMdDelgammanablachi(void);
+	void Form_dmeanfMKLMdDelgammanablachi(void);
+	void Form_dfdevMKLMdDelgammanablachi(void);
+	void Form_dfNorm_devMKLMdDelgammanablachi(void);
+    void Form_fMeKLM(void);
+	void Form_fdevMeKLM(void);
+	void Form_Mean_fMeKLM(void);
+	void Form_Norm_Mean_fMeKLM(void);
+	void Form_fNormdevMeKLM(void);
+	void Form_dNormdevfMKLMdDelgammanablachi(void);
+	void Form_kc_nablachi_n(const int a);
+	void Form_Norm_kc_nablachi_n(void);
+	void Form_Norm_cohesion_nablachi(void);
+	void Form_dNorm_meanfMKLMdDelgammanablachi(void);
+	void Form_dfkc_nablachidDelgammanablachi(void);
+	void Form_dNorm_kc_nablachidDelgammanablachi(void);
+
+
+	void Form_Coeff_delDelgamma_nablachi(void);
+	void Form_II13e_1(void);
+	void Form_II14p_1_16(void);
+	void Form_II15e_1(void);
+	void Form_II16p_1_16(void);
+	void Form_II17p_1_16(void);
+	void Form_II18p_1_16(void);
+	void Form_II19p_1_16(void);
+	void Form_II20p_1_16(void);
+	void Form_II21p_1_75(void);
 
 
 
@@ -3459,7 +4340,7 @@ private:
     /////////////////////////////////////////////////////////
     void FindYieldFunctionValue();
 
-
+    void Form_fA4(void);
     //////////////////////////////////////////////////////////
     /////FUNCTIONS FINISH HERE FOR MICROMORPHIC MATRICES////
     //////////////////////////////////////////////////////////
