@@ -783,9 +783,9 @@ void FSMicromorphic2_3DT::RegisterOutput(void)
       	  ,"SPK11","SPK12","SPK13","SPK21","SPK22","SPK23","SPK31","SPK32","SPK33","E11","E22","E33","E12","E13","E21","E23","E31","E32",
       	  "Sigma-S11","Sigma-S12","Sigma-S13","Sigma-S21","Sigma-S22","Sigma-S23","Sigma-S31","Sigma-S32","Sigma-S33",
       	  "MicroE11","MicroE22","MicroE33","MicroE12","MicroE13","MicroE21","MicroE23","MicroE31","MicroE32",
-      	  "M111","M221","M331","M121","M131","M211","M231","M311","M321",
-      	  "M112","M222","M332","M122","M132","M212","M232","M312","M322",
-      	  "M113","M223","M333","M123","M133","M213","M233","M313","M323"};
+      	  "M111","M112","M113","M121","M122","M123","M131","M132","M133",
+      	  "M211","M212","M213","M221","M222","M223","M231","M232","M233",
+      	  "M311","M312","M313","M321","M322","M323","M331","M332","M333"};
 
 
   //  if(iConstitutiveModelType==3)
@@ -3533,6 +3533,12 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         devSIGMA_S_tr*=-1;
                         devSIGMA_S_tr+=SIGMA_S_tr;
 
+                        /* Calculate devS: devS  */
+                        Temp_inv= fdevSPK_tr.ScalarProduct();
+                        devfSPKinv_tr=sqrt(Temp_inv);
+                        Temp_inv= devSIGMA_S_tr.ScalarProduct();
+                        devSIGMA_S_inv_tr=sqrt(Temp_inv);
+
                         /* Calculate ||devS:devS+devR:devR||  */
                         Stress_Norm_tr=0.0;
                         Temp_inv= fdevSPK_tr.ScalarProduct();
@@ -3546,11 +3552,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         /* Check for yielding */
 
 
-                        /* Calculate devS: devS  */
-                        Temp_inv= fdevSPK_tr.ScalarProduct();
-                        devfSPKinv_tr=sqrt(Temp_inv);
-                        Temp_inv= devSIGMA_S_tr.ScalarProduct();
-                        devSIGMA_S_inv_tr=sqrt(Temp_inv);
+
 
 
     					fdGdS_tr = 0.0;
@@ -3606,7 +3608,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                             fMicroYield_function_tr=devSIGMA_S_inv_tr-(Aphi_chi*(fState_variables_n_IPs(IP,kc_chi))-Bphi_chi*Pchibar_tr);
                             fCombinedYield_function_tr=-1.0;
                             fMicro_gradient_Yield_function_tr = fNormdevMKLM_tr-(Aphi_nablachi*Norm_kc_nablachi_n-Bphi_nablachi*Norm_Mean_fMKLM_tr);
-
                         }
 
                 fs_micromorph3D_out<<"fYield_function_tr= "<< fYield_function_tr <<endl;
@@ -5528,8 +5529,12 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
 				            fMicro_gradient_Yield_function = fNormdevMeKLM - (Aphi_nablachi*Norm_cohesion_nablachi
 							- Bphi_nablachi*Norm_Mean_fMeKLM);
+
+							fs_micromorph3D_out  << "fMicro_gradient_Yield_function = " << fMicro_gradient_Yield_function << endl;
+
 							}
-							fs_micromorph3D_out  << "Current relative residual = " << fabs(fMicro_gradient_Yield_function/fMicro_gradient_Yield_function_tr) << endl;
+							fs_micromorph3D_out  << "fMicro_gradient_Yield_function = " << fMicro_gradient_Yield_function << endl;
+							fs_micromorph3D_out  << "fDelgammanablachi = " << fDelgammanablachi << endl;
 
 					if (abs(fMicro_gradient_Yield_function) > 1e-3 || fDelgammanablachi < 0.0)
 					{
@@ -5549,7 +5554,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 					}
 					}
 
-
+				fs_micromorph3D_out << "after loop fMeKLM = " << fMeKLM << endl;
 
 					if (fDelgamma < 0.0 && PlasticityCheck==1)//just for combined plasticity
                          {
@@ -6056,59 +6061,33 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
     				            Form_fNormdevMeKLM();
 
 
-                                if(PlasticityCondition==1 || PlasticityCondition==2 || PlasticityCondition==3)
-                                {
+								/* calculate stress derivative of yield function */
+								fdFYdS = 0.0;
+								fdFYdS.SetToScaled(Bphi*1.0/3.0,fIdentity_matrix);
+								fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+								fdFYdS+=fTemp_matrix_nsd_x_nsd;
+								fdFYdS_trace = fdFYdS.Trace();
+								/* calculate stress derivative of plastic potential function */
+								fdGdS = 0.0;
+								fdGdS.SetToScaled(Bpsi*1.0/3.0,fIdentity_matrix);
+								fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
+								fdGdS+=fTemp_matrix_nsd_x_nsd;
 
-                                    if(devfSPKinv==0.0)
-                                    {
-                                        fdFYdS=0.0;
-                                        fdGdS=0.0;
+								fTemp_matrix_nsd_x_nsd.MultABCT(fFe,SPK,fFe);
+								KirchhoffST.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
+								fCauchy_stress_tensor_current_IP.SetToScaled(1/J,KirchhoffST);
 
-                                    }
-                                    else
-                                    {
-                                        /* calculate stress derivative of yield function */
-                                        fdFYdS = 0.0;
-                                        fdFYdS.SetToScaled(Bphi*1.0/3.0,fIdentity_matrix);
-                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                                        fdFYdS+=fTemp_matrix_nsd_x_nsd;
-                                        fdFYdS_trace = fdFYdS.Trace();
-                                        /* calculate stress derivative of plastic potential function */
-                                        fdGdS = 0.0;
-                                        // fdPdS=0.0;
-                                        // fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                        fdGdS.SetToScaled(Bpsi*1.0/3.0,fIdentity_matrix);
-                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
-                                        fdGdS+=fTemp_matrix_nsd_x_nsd;
-
-                                        fTemp_matrix_nsd_x_nsd.MultABCT(fFe,SPK,fFe);
-                                        KirchhoffST.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
-                                        fCauchy_stress_tensor_current_IP.SetToScaled(1/J,KirchhoffST);
-                                    }
-                                    if(devSIGMA_S_inv==0.0)
-                                    {
-                                        fdFYchidSIGMA_S=0.0;
-                                        fdGchidSIGMA_S=0.0;
-                                    }
-                                    else
-                                    {
-                                        /* calculate derivative of micro yield function with respect to SIGMA-S */
-                                        fdFYchidSIGMA_S = 0.0;
-                                        // fdPdS=0.0;
-                                        // fdPdS.SetToScaled(1/3,fIdentity_matrix);
-                                        fdFYchidSIGMA_S.SetToScaled(Bphi_chi*1.0/3.0,fIdentity_matrix);
-                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                                        fdFYchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                                        fdFYchidSIGMA_S_trace = fdFYchidSIGMA_S.Trace();
-                                        /* calculate  derivative of  Micro plastic potential function wrt SIGMA-S */
-                                        fdGchidSIGMA_S= 0.0;
-                                        fdGchidSIGMA_S.SetToScaled(Bpsi_chi*1.0/3.0,fIdentity_matrix);
-                                        fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
-                                        fdGchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
-                                    }
-
-
-                                }
+								/* calculate derivative of micro yield function with respect to SIGMA-S */
+								fdFYchidSIGMA_S = 0.0;
+								fdFYchidSIGMA_S.SetToScaled(Bphi_chi*1.0/3.0,fIdentity_matrix);
+								fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+								fdFYchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
+								fdFYchidSIGMA_S_trace = fdFYchidSIGMA_S.Trace();
+								/* calculate  derivative of  Micro plastic potential function wrt SIGMA-S */
+								fdGchidSIGMA_S= 0.0;
+								fdGchidSIGMA_S.SetToScaled(Bpsi_chi*1.0/3.0,fIdentity_matrix);
+								fTemp_matrix_nsd_x_nsd.SetToScaled(1/devSIGMA_S_inv,devSIGMA_S);
+								fdGchidSIGMA_S+=fTemp_matrix_nsd_x_nsd;
 
 
                                 if(PlasticityCondition==4)
@@ -6152,14 +6131,69 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 Form_dGnablachidMKLM();
                                 Form_dFnablachidMKLM();
 
-    							fs_micromorph3D_out << "GXp = " << GXp << endl;
+    	                        fs_micromorph3D_out<<"GXp(0,0,0)= "<< GXp(0,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,0,1)= "<< GXp(0,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,0,2)= "<< GXp(0,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,1,0)= "<< GXp(0,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,1,1)= "<< GXp(0,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,1,2)= "<< GXp(0,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,2,0)= "<< GXp(0,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,2,1)= "<< GXp(0,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(0,2,2)= "<< GXp(0,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,0,0)= "<< GXp(1,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,0,1)= "<< GXp(1,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,0,2)= "<< GXp(1,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,1,0)= "<< GXp(1,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,1,1)= "<< GXp(1,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,1,2)= "<< GXp(1,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,2,0)= "<< GXp(1,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,2,1)= "<< GXp(1,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(1,2,2)= "<< GXp(1,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,0,0)= "<< GXp(2,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,0,1)= "<< GXp(2,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,0,2)= "<< GXp(2,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,1,0)= "<< GXp(2,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,1,1)= "<< GXp(2,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,1,2)= "<< GXp(2,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,2,0)= "<< GXp(2,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,2,1)= "<< GXp(2,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"GXp(2,2,2)= "<< GXp(2,2,2) <<endl;
     							fs_micromorph3D_out << "GXp_n = " << GXp_n << endl;
     							fs_micromorph3D_out << "GXe = " << GXe << endl;
     							fs_micromorph3D_out << "GAMMAe = " << GAMMAe << endl;
     							fs_micromorph3D_out << "GAMMAe_n = " << GAMMAe_n << endl;
     							fs_micromorph3D_out << "fDeltaLbar_P = " << fDeltaLbar_P << endl;
     							fs_micromorph3D_out << "fDeltaLbarChai_P = " << fDeltaLbarChai_P << endl;
-    							fs_micromorph3D_out << "fMeKLM = " << fMeKLM << endl;
+
+    	                        fs_micromorph3D_out<<"fMeKLM(0,0,0)= "<< fMeKLM(0,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,0,1)= "<< fMeKLM(0,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,0,2)= "<< fMeKLM(0,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,1,0)= "<< fMeKLM(0,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,1,1)= "<< fMeKLM(0,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,1,2)= "<< fMeKLM(0,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,2,0)= "<< fMeKLM(0,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,2,1)= "<< fMeKLM(0,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(0,2,2)= "<< fMeKLM(0,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,0,0)= "<< fMeKLM(1,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,0,1)= "<< fMeKLM(1,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,0,2)= "<< fMeKLM(1,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,1,0)= "<< fMeKLM(1,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,1,1)= "<< fMeKLM(1,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,1,2)= "<< fMeKLM(1,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,2,0)= "<< fMeKLM(1,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,2,1)= "<< fMeKLM(1,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(1,2,2)= "<< fMeKLM(1,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,0,0)= "<< fMeKLM(2,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,0,1)= "<< fMeKLM(2,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,0,2)= "<< fMeKLM(2,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,1,0)= "<< fMeKLM(2,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,1,1)= "<< fMeKLM(2,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,1,2)= "<< fMeKLM(2,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,2,0)= "<< fMeKLM(2,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,2,1)= "<< fMeKLM(2,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fMeKLM(2,2,2)= "<< fMeKLM(2,2,2) <<endl;
+
+
     							fs_micromorph3D_out << "fdevMeKLM = " << fdevMeKLM << endl;
     							fs_micromorph3D_out << "Mean_fMeKLM = " << Mean_fMeKLM << endl;
     							fs_micromorph3D_out << "Norm_Mean_fMeKLM = " << Norm_Mean_fMeKLM << endl;
@@ -6173,9 +6207,36 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
     							fs_micromorph3D_out << "fDelgamma = " << fDelgamma << endl;
     							fs_micromorph3D_out << "SPK = " << SPK << endl;
     							fs_micromorph3D_out << "SIGMA_S = " << SIGMA_S << endl;
-    							fs_micromorph3D_out <<"fdGnablachidMKLM_n= "<< fdGnablachidMKLM_n <<endl;
     							fs_micromorph3D_out << "dGnablachidMKLM = " << fdGnablachidMKLM << endl;
-    							fs_micromorph3D_out << "fdGnablachidMKLM_tr = " << fdGnablachidMKLM_tr << endl;
+
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,0,0)= "<< fdGnablachidMKLM_tr(0,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,0,1)= "<< fdGnablachidMKLM_tr(0,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,0,2)= "<< fdGnablachidMKLM_tr(0,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,1,0)= "<< fdGnablachidMKLM_tr(0,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,1,1)= "<< fdGnablachidMKLM_tr(0,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,1,2)= "<< fdGnablachidMKLM_tr(0,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,2,0)= "<< fdGnablachidMKLM_tr(0,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,2,1)= "<< fdGnablachidMKLM_tr(0,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(0,2,2)= "<< fdGnablachidMKLM_tr(0,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,0,0)= "<< fdGnablachidMKLM_tr(1,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,0,1)= "<< fdGnablachidMKLM_tr(1,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,0,2)= "<< fdGnablachidMKLM_tr(1,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,1,0)= "<< fdGnablachidMKLM_tr(1,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,1,1)= "<< fdGnablachidMKLM_tr(1,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,1,2)= "<< fdGnablachidMKLM_tr(1,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,2,0)= "<< fdGnablachidMKLM_tr(1,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,2,1)= "<< fdGnablachidMKLM_tr(1,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(1,2,2)= "<< fdGnablachidMKLM_tr(1,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,0,0)= "<< fdGnablachidMKLM_tr(2,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,0,1)= "<< fdGnablachidMKLM_tr(2,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,0,2)= "<< fdGnablachidMKLM_tr(2,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,1,0)= "<< fdGnablachidMKLM_tr(2,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,1,1)= "<< fdGnablachidMKLM_tr(2,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,1,2)= "<< fdGnablachidMKLM_tr(2,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,2,0)= "<< fdGnablachidMKLM_tr(2,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,2,1)= "<< fdGnablachidMKLM_tr(2,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_tr(2,2,2)= "<< fdGnablachidMKLM_tr(2,2,2) <<endl;
+
     							fs_micromorph3D_out << "fState_variables_IPs(IP,kc_nablachi0) = " << fState_variables_IPs(IP,kc_nablachi0) << endl;
     							fs_micromorph3D_out << "fState_variables_IPs(IP,kc_nablachi1) = " << fState_variables_IPs(IP,kc_nablachi1) << endl;
     							fs_micromorph3D_out << "fState_variables_IPs(IP,kc_nablachi2) = " << fState_variables_IPs(IP,kc_nablachi2) << endl;
@@ -6319,6 +6380,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 {
                                 	Form_Coeff_delDelgamma_nablachi();
                                 }
+                                fs_micromorph3D_out << "Coeff_delDelgamma_nablachi = " << Coeff_delDelgamma_nablachi << endl;
 
                                 if(PlasticityCondition==4)
                                 {
@@ -6386,7 +6448,10 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
                                 }
 
-
+                                fs_micromorph3D_out << "Comp11 = " << Comp11 << endl;
+                                fs_micromorph3D_out << "Comp12 = " << Comp12 << endl;
+                                fs_micromorph3D_out << "Comp21 = " << Comp21 << endl;
+                                fs_micromorph3D_out << "Comp22 = " << Comp22 << endl;
 
 
                                 //KirchhoffST.MultABCT(fFe,SPK,fFe);
@@ -6432,12 +6497,11 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 fdFYchidSIGMA_S_IPs.SetRow(IP,fdFYchidSIGMA_S);
                                 dGnablachidMKLM_IPs.SetRow(IP,fdGnablachidMKLM);
                                 GAMMAe_IPs.SetRow(IP,GAMMAe);
-                                GXp_IPs.SetRow(IP,GXp);
 
+                                GXp_IPs.SetRow(IP,GXp);
                                 fMeKLM_IPs.SetRow(IP,fMeKLM);
                                 SPK_IPs.SetRow(IP,SPK);
                                 SIGMA_S_IPs.SetRow(IP,SIGMA_S);
-
                                 Elastic_LagrangianStn_IPs.SetRow(IP,Elastic_LagrangianStn);
                                 Elastic_MicroStnTensor_IPs.SetRow(IP,Elastic_MicroStnTensor);
 
@@ -10938,7 +11002,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 	  fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II15e_1,NCHI);
                                 	  scale =-1*scale_const*Jp*fMaterial_Params[kTau7];
                                 	  fTemp_matrix_nchidof_x_nchidof *= scale;
-                                	  fKMphiphi_II15e_1 += fTemp_matrix_nchidof_x_nchidof;
+                                	  fKMphiphi_II15e_1+= fTemp_matrix_nchidof_x_nchidof;
                                 	  ///////////////////////////////////////////////////////
                                 	  ///////////////////////////////////////////////////////
                                 	  fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II16p_1,fShapeDisplGrad);
@@ -11435,7 +11499,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 	  fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II21p_9,GRAD_NCHI);
                                 	  scale = scale_const*Jp*Coeff_delDelgamma_nablachi*fMaterial_Params[kTau7]*fMaterial_Params[kTau7];
                                 	  fTemp_matrix_nchidof_x_nchidof *= scale;
-                                	  fKMphiphi_II21p_9 += fTemp_matrix_nchidof_x_nchidof;
+                                	  fKMphiphi_II21p_9+= fTemp_matrix_nchidof_x_nchidof;
                                 	  ///////////////////////////////////////////////////////
                                 	  ///////////////////////////////////////////////////////
                                 	  fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II21p_10,fShapeDisplGrad);
@@ -11603,7 +11667,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 	  fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II21p_26,fShapeDisplGrad);
                                 	  scale = -1*scale_const*Jp*Coeff_delDelgamma_nablachi*fMaterial_Params[kTau7]*fMaterial_Params[kTau7];
                                 	  fTemp_matrix_nchidof_x_nudof *= scale;
-                                	  fKMphiu_II21p_26 += fTemp_matrix_nchidof_x_nudof;
+                                	  fKMphiu_II21p_26+= fTemp_matrix_nchidof_x_nudof;
                                 	  ///////////////////////////////////////////////////////
                                 	  ///////////////////////////////////////////////////////
                                 	  fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II21p_27,fShapeDisplGrad);
@@ -11690,7 +11754,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 	  fTemp_matrix_nchidof_x_nchidof.MultATBC(GRAD_NCHI,II21p_35,NCHI);
                                 	  scale = -1*scale_const*Jp*Coeff_delDelgamma_nablachi*fMaterial_Params[kTau7]*fMaterial_Params[kTau7];
                                 	  fTemp_matrix_nchidof_x_nchidof *= scale;
-                                	  fKMphiphi_II21p_35 += fTemp_matrix_nchidof_x_nchidof;
+                                	  fKMphiphi_II21p_35+= fTemp_matrix_nchidof_x_nchidof;
                                 	  ///////////////////////////////////////////////////////
                                 	  ///////////////////////////////////////////////////////
                                 	  fTemp_matrix_nchidof_x_nudof.MultATBC(GRAD_NCHI,II21p_36,fShapeDisplGrad);
@@ -12098,8 +12162,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 	  fKMphiphi_II21p_75a += fTemp_matrix_nchidof_x_nchidof;
                                   }
 
-
-
                         }
                         else //(yielding did not occur / elastic step/
                         {
@@ -12132,8 +12194,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 fChip_IPs.SetRow(IP,fChip);
                                 //fdGdS_IPs.SetRow(IP,fdGdS);
                                 //fdFYdS_IPs.SetRow(IP,fdFYdS);
-
-                                fCchie_IPs.SetRow(IP,fCchie);
                                 //fdGchidSIGMA_S_IPs.SetRow(IP,fdGchidSIGMA_S);
                                 //fdFYchidSIGMA_S_IPs.SetRow(IP,fdFYchidSIGMA_S);
                                 Je=fFe.Det();
@@ -12148,10 +12208,9 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 Temp_inv= devSPK.ScalarProduct();
                                 devfSPKinv=sqrt(Temp_inv);
 
-
-                                fs_micromorph3D_out<<"fCauchy_stress_tensor_current_IP= "<< fCauchy_stress_tensor_current_IP<<endl;
-                                fs_micromorph3D_out<<"SPK= "<< SPK<<endl;
-                                fs_micromorph3D_out<<"fFe= "<< fFe<<endl;
+                                Pchibar=Pchibar_tr;//Calculating the pressure term
+                                devSIGMA_S=devSIGMA_S_tr;
+                                devSIGMA_S_inv = devSIGMA_S_inv_tr;
 
 
 
@@ -12309,7 +12368,35 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
     							fs_micromorph3D_out << "GAMMAe_n = " << GAMMAe_n << endl;
     							fs_micromorph3D_out << "fDeltaLbar_P = " << fDeltaLbar_P << endl;
     							fs_micromorph3D_out << "fDeltaLbarChai_P = " << fDeltaLbarChai_P << endl;
-    							fs_micromorph3D_out << "fMeKLM = " << fMeKLM << endl;
+
+       	                        fs_micromorph3D_out<<"fMeKLM(0,0,0)= "<< fMeKLM(0,0,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,0,1)= "<< fMeKLM(0,0,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,0,2)= "<< fMeKLM(0,0,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,1,0)= "<< fMeKLM(0,1,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,1,1)= "<< fMeKLM(0,1,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,1,2)= "<< fMeKLM(0,1,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,2,0)= "<< fMeKLM(0,2,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,2,1)= "<< fMeKLM(0,2,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(0,2,2)= "<< fMeKLM(0,2,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,0,0)= "<< fMeKLM(1,0,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,0,1)= "<< fMeKLM(1,0,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,0,2)= "<< fMeKLM(1,0,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,1,0)= "<< fMeKLM(1,1,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,1,1)= "<< fMeKLM(1,1,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,1,2)= "<< fMeKLM(1,1,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,2,0)= "<< fMeKLM(1,2,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,2,1)= "<< fMeKLM(1,2,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(1,2,2)= "<< fMeKLM(1,2,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,0,0)= "<< fMeKLM(2,0,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,0,1)= "<< fMeKLM(2,0,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,0,2)= "<< fMeKLM(2,0,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,1,0)= "<< fMeKLM(2,1,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,1,1)= "<< fMeKLM(2,1,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,1,2)= "<< fMeKLM(2,1,2) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,2,0)= "<< fMeKLM(2,2,0) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,2,1)= "<< fMeKLM(2,2,1) <<endl;
+								fs_micromorph3D_out<<"fMeKLM(2,2,2)= "<< fMeKLM(2,2,2) <<endl;
+
     							fs_micromorph3D_out << "fdevMeKLM = " << fdevMeKLM << endl;
     							fs_micromorph3D_out << "Mean_fMeKLM = " << Mean_fMeKLM << endl;
     							fs_micromorph3D_out << "Norm_Mean_fMeKLM = " << Norm_Mean_fMeKLM << endl;
@@ -12330,7 +12417,35 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
     							fs_micromorph3D_out << "fState_variables_IPs(IP,kc) = " << fState_variables_IPs(IP,kc) << endl;
                                 fs_micromorph3D_out<< "fCauchy_stress_tensor_current_IP="<< fCauchy_stress_tensor_current_IP<<endl;
                                 fs_micromorph3D_out<<"fdGnablachidMKLM= "<< fdGnablachidMKLM<<endl;
-    							fs_micromorph3D_out <<"fdGnablachidMKLM_n= "<< fdGnablachidMKLM_n <<endl;
+
+
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,0,0)= "<< fdGnablachidMKLM_n(0,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,0,1)= "<< fdGnablachidMKLM_n(0,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,0,2)= "<< fdGnablachidMKLM_n(0,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,1,0)= "<< fdGnablachidMKLM_n(0,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,1,1)= "<< fdGnablachidMKLM_n(0,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,1,2)= "<< fdGnablachidMKLM_n(0,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,2,0)= "<< fdGnablachidMKLM_n(0,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,2,1)= "<< fdGnablachidMKLM_n(0,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(0,2,2)= "<< fdGnablachidMKLM_n(0,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,0,0)= "<< fdGnablachidMKLM_n(1,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,0,1)= "<< fdGnablachidMKLM_n(1,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,0,2)= "<< fdGnablachidMKLM_n(1,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,1,0)= "<< fdGnablachidMKLM_n(1,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,1,1)= "<< fdGnablachidMKLM_n(1,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,1,2)= "<< fdGnablachidMKLM_n(1,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,2,0)= "<< fdGnablachidMKLM_n(1,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,2,1)= "<< fdGnablachidMKLM_n(1,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(1,2,2)= "<< fdGnablachidMKLM_n(1,2,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,0,0)= "<< fdGnablachidMKLM_n(2,0,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,0,1)= "<< fdGnablachidMKLM_n(2,0,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,0,2)= "<< fdGnablachidMKLM_n(2,0,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,1,0)= "<< fdGnablachidMKLM_n(2,1,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,1,1)= "<< fdGnablachidMKLM_n(2,1,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,1,2)= "<< fdGnablachidMKLM_n(2,1,2) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,2,0)= "<< fdGnablachidMKLM_n(2,2,0) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,2,1)= "<< fdGnablachidMKLM_n(2,2,1) <<endl;
+    	                        fs_micromorph3D_out<<"fdGnablachidMKLM_n(2,2,2)= "<< fdGnablachidMKLM_n(2,2,2) <<endl;
 
 
                                 Form_I1_3();
@@ -22797,7 +22912,6 @@ void FSMicromorphic2_3DT:: Form_fNormdevMKLM_tr()
 	    }
 	}
 	fNormdevMKLM_tr = sqrt(fTemp_matrix_one_x_one);
-	//fNormdevMKLM_tr = fdevMKLM_tr(2,2,2);
 }
 
 void FSMicromorphic2_3DT:: Form_GXe_tr()
@@ -22866,7 +22980,9 @@ void FSMicromorphic2_3DT:: Form_GAMMAe_tr()
 
 void FSMicromorphic2_3DT::Form_dfMKLMdDelgammanablachi()
 {
-	dfMKLMdDelgammanablachi = 0;
+	dfMKLMdDelgammanablachi = 0.0;
+	fTemp_matrix_nsd_x_nsd = 0.0;
+	fTemp_matrix_nsd_x_nsd2 = 0.0;
 	fTemp_matrix_nsd_x_nsd.MultAB(fChip_n,fChip_inverse);
 	fTemp_matrix_nsd_x_nsd2.MultATBC(fFe,fChie,PSIe_n_inverse);
 
@@ -22879,22 +22995,23 @@ void FSMicromorphic2_3DT::Form_dfMKLMdDelgammanablachi()
 	        	// Summation over dummy indices
 	    	    for(int qbar=0;qbar<3;qbar++)
 	    	    {
-	    	        for( int qbar=0;qbar<3;qbar++)
+	    	        for( int pbar=0;pbar<3;pbar++)
 	    	        {
-						dfMKLMdDelgammanablachi(Kbar,Lbar,Mbar)+= -1*fMaterial_Params[kTau7]*fTemp_matrix_nsd_x_nsd2(Kbar,qbar)*fdGnablachidMKLM_tr(Mbar,qbar,qbar)
-						*fTemp_matrix_nsd_x_nsd(qbar,Lbar);
+						dfMKLMdDelgammanablachi(Kbar,Lbar,Mbar)+= -1*fTemp_matrix_nsd_x_nsd2(Kbar,qbar)*fdGnablachidMKLM_tr(pbar,Mbar,qbar)
+						*fTemp_matrix_nsd_x_nsd(pbar,Lbar);
 	    	        }
 	    	    }
 	        }
 	    }
 	}
+	dfMKLMdDelgammanablachi*= fMaterial_Params[kTau7];
 }
 
 
 
 void FSMicromorphic2_3DT::Form_dmeanfMKLMdDelgammanablachi()
 {
-	dmeanfMKLMdDelgammanablachi = 0;
+	dmeanfMKLMdDelgammanablachi = 0.0;
 
 		for( int Mbar=0;Mbar<3;Mbar++)
 		{
@@ -22908,7 +23025,7 @@ void FSMicromorphic2_3DT::Form_dmeanfMKLMdDelgammanablachi()
 
 void FSMicromorphic2_3DT::Form_dfdevMKLMdDelgammanablachi()
 {
-	dfdevMKLMdDelgammanablachi = 0;
+	dfdevMKLMdDelgammanablachi = 0.0;
 
 
 	for(int Ibar=0;Ibar<3;Ibar++)
@@ -22928,7 +23045,7 @@ void FSMicromorphic2_3DT::Form_dfdevMKLMdDelgammanablachi()
 
 void FSMicromorphic2_3DT::Form_dfNorm_devMKLMdDelgammanablachi()
 {
-	dfNorm_devMKLMdDelgammanablachi = 0;
+	dfNorm_devMKLMdDelgammanablachi = 0.0;
 
 
 	for(int Ibar=0;Ibar<3;Ibar++)
@@ -23025,7 +23142,7 @@ void FSMicromorphic2_3DT:: Form_fNormdevMeKLM()
 	    {
 	        for( int k=0;k<3;k++)
 	        {
-	        	fTemp_matrix_one_x_one+=fdevMeKLM(i,j,k)*fdevMeKLM(i,j,k);
+	        	fTemp_matrix_one_x_one+= fdevMeKLM(i,j,k)*fdevMeKLM(i,j,k);
 	        }
 	    }
 	}
@@ -23069,7 +23186,7 @@ void FSMicromorphic2_3DT::Form_dGnablachidMKLM()
 			for( int Abar=0;Abar<3;Abar++)
 			{
 				fTemp_tensor_n_sd_x_n_sd_x_n_sd(Mbar,qbar,Abar) = (1.0/3.0)*Bpsi_nablachi*fIdentity_matrix(Mbar,qbar)*Mean_fMeKLM(Abar,0)/Norm_Mean_fMeKLM;
-				fdGnablachidMKLM(Mbar,qbar,Abar) = (1/fNormdevMeKLM)*fdevMeKLM(Mbar,qbar,Abar) + fTemp_tensor_n_sd_x_n_sd_x_n_sd(Mbar,qbar,Abar);
+				fdGnablachidMKLM(Mbar,qbar,Abar) = (1.0/fNormdevMeKLM)*fdevMeKLM(Mbar,qbar,Abar) + fTemp_tensor_n_sd_x_n_sd_x_n_sd(Mbar,qbar,Abar);
 
 			}
 		}
@@ -23090,7 +23207,7 @@ void FSMicromorphic2_3DT::Form_dFnablachidMKLM()
 			for( int Abar=0;Abar<3;Abar++)
 			{
 				fTemp_tensor_n_sd_x_n_sd_x_n_sd(Mbar,qbar,Abar) = (1.0/3.0)*Bphi_nablachi*fIdentity_matrix(Mbar,qbar)*Mean_fMeKLM(Abar,0)/Norm_Mean_fMeKLM;
-				fdFnablachidMKLM(Mbar,qbar,Abar) = (1/fNormdevMeKLM)*fdevMKLM(Mbar,qbar,Abar) + fTemp_tensor_n_sd_x_n_sd_x_n_sd(Mbar,qbar,Abar);
+				fdFnablachidMKLM(Mbar,qbar,Abar) = (1/fNormdevMeKLM)*fdevMeKLM(Mbar,qbar,Abar) + fTemp_tensor_n_sd_x_n_sd_x_n_sd(Mbar,qbar,Abar);
 
 			}
 		}
@@ -23160,7 +23277,7 @@ void FSMicromorphic2_3DT::Form_dNorm_kc_nablachidDelgammanablachi()
 
 		for( int Mbar=0;Mbar<3;Mbar++)
 		{
-			dNorm_kc_nablachidDelgammanablachi+= (1/Norm_cohesion_nablachi)*dfkc_nablachidDelgammanablachi(Mbar,0)*cohesion_nablachi(Mbar,0);
+			dNorm_kc_nablachidDelgammanablachi+= (1.0/Norm_cohesion_nablachi)*dfkc_nablachidDelgammanablachi(Mbar,0)*cohesion_nablachi(Mbar,0);
 		}
 }
 
@@ -23190,7 +23307,7 @@ void FSMicromorphic2_3DT:: Form_GXp()
                 {
                     for(int Mbar=0;Mbar<3;Mbar++)
                     {
-                        GXp(Dbar,J,Kbar)+= fTemp_matrix_nsd_x_nsd(Dbar,Lbar)*fdGnablachidMKLM_tr(Kbar,Lbar,Mbar)*fChip_n(Mbar,J);
+                        GXp(Dbar,J,Kbar)+= fTemp_matrix_nsd_x_nsd(Dbar,Lbar)*fdGnablachidMKLM_tr(Mbar,Kbar,Lbar)*fChip_n(Mbar,J);
                     }
                 }
             }
@@ -23209,7 +23326,7 @@ void FSMicromorphic2_3DT:: Form_GXp()
 					for(int Fbar=0;Fbar<3;Fbar++)
 					{
 						fTemp_tensor_n_sd_x_n_sd_x_n_sd(Dbar,Mbar,Kbar)+= fDeltaLbarChai_P(Dbar,Cbar)*PSIe_n_inverse(Cbar,Fbar)*GAMMAe_n(Fbar,Mbar,Kbar);
-						fTemp_tensor_n_sd_x_n_sd_x_n_sd1(Dbar,Mbar,Kbar)+= -1*fDeltaLbarChai_P(Bbar,Mbar)*PSIe_n_inverse(Dbar,Cbar)*GAMMAe_n(Cbar,Bbar,Kbar);
+						fTemp_tensor_n_sd_x_n_sd_x_n_sd1(Dbar,Mbar,Kbar)+= -1*fDeltaLbarChai_P(Fbar,Mbar)*PSIe_n_inverse(Dbar,Cbar)*GAMMAe_n(Cbar,Fbar,Kbar);
 					}
                 }
             }
@@ -23284,7 +23401,7 @@ void FSMicromorphic2_3DT:: Form_GXe()
                 {
                     for(int K=0;K<3;K++)
                     {
-                        GXe(i,Ibar,Jbar)+=-1*fChie(i,Kbar)*GXp(Kbar,K,Jbar)*fChip(K,Ibar);
+                        GXe(i,Ibar,Jbar)+= -1*fChie(i,Kbar)*GXp(Kbar,K,Jbar)*fChip_inverse(K,Ibar);
                     }
                 }
             }
@@ -23307,7 +23424,7 @@ void FSMicromorphic2_3DT:: Form_GAMMAe()
                 //summation
                 for(int i=0;i<3;i++)
                 {
-                    GAMMAe(Kbar,Lbar,Mbar)+=fFe(i,Kbar)*GXe(i,Lbar,Mbar);
+                    GAMMAe(Kbar,Lbar,Mbar)+= fFe(i,Kbar)*GXe(i,Lbar,Mbar);
                 }
             }
         }
@@ -23318,6 +23435,7 @@ void FSMicromorphic2_3DT:: Form_GAMMAe()
 //////////////////// Function related to the global consistent tangent for the micro-gradient plasticity //////////////////
 void FSMicromorphic2_3DT:: Form_Coeff_delDelgamma_nablachi()
 {
+	fTemp_matrix_one_x_one = 0.0;
 	fTemp_matrix_nsd_x_nsd = 0.0;
 	fTemp_matrix_nsd_x_nsd2 = 0.0;
 	Coeff_delDelgamma_nablachi = 0.0;
@@ -23328,31 +23446,31 @@ void FSMicromorphic2_3DT:: Form_Coeff_delDelgamma_nablachi()
 	fdfnablachidcohesion_nablachi.SetToScaled(Aphi_nablachi/Norm_cohesion_nablachi,cohesion_nablachi);
 	fdfnablachidcohesion_nablachi*= -1;
 
-    for(int Kbar=0;Kbar<3;Kbar++)
-    {
-        for(int Lbar=0;Lbar<3;Lbar++)
-        {
-            for(int Mbar=0;Mbar<3;Mbar++)
-            {
-                for(int qbar=0;qbar<3;qbar++)
-                {
-					for(int pbar=0;pbar<3;pbar++)
+		for(int Kbar=0;Kbar<3;Kbar++)
+		{
+			for(int Lbar=0;Lbar<3;Lbar++)
+			{
+				for(int Mbar=0;Mbar<3;Mbar++)
+				{
+					for(int qbar=0;qbar<3;qbar++)
 					{
-						Coeff_delDelgamma_nablachi+=fdFnablachidMKLM(Kbar,Lbar,Mbar)*fTemp_matrix_nsd_x_nsd2(Kbar,qbar)*fdGnablachidMKLM_tr(Mbar,qbar,pbar)
-						*fTemp_matrix_nsd_x_nsd(pbar,Lbar)*fMaterial_Params[kTau7];
-
+						for(int pbar=0;pbar<3;pbar++)
+						{
+							Coeff_delDelgamma_nablachi+=fdFnablachidMKLM(Kbar,Lbar,Mbar)*fTemp_matrix_nsd_x_nsd2(Kbar,qbar)*fdGnablachidMKLM_tr(pbar,Mbar,qbar)
+							*fTemp_matrix_nsd_x_nsd(pbar,Lbar);
+						}
 					}
-                }
-            }
-        }
-    }
+				}
+			}
+		}
 
+    Coeff_delDelgamma_nablachi*= fMaterial_Params[kTau7];
     fTemp_matrix_one_x_one = Apsi_nablachi*fMaterial_Params[kHc_nablachi]/Norm_kc_nablachi_n;
 
-	for(int pbar=0;pbar<3;pbar++)
-	{
-		Coeff_delDelgamma_nablachi-= fTemp_matrix_one_x_one*fdfnablachidcohesion_nablachi(pbar,0)*kc_nablachi_n(pbar,0);
-	}
+		for(int pbar=0;pbar<3;pbar++)
+		{
+			Coeff_delDelgamma_nablachi-= fTemp_matrix_one_x_one*fdfnablachidcohesion_nablachi(pbar,0)*kc_nablachi_n(pbar,0);
+		}
 	fTemp_matrix_one_x_one = Coeff_delDelgamma_nablachi;
 	Coeff_delDelgamma_nablachi = 1.0/fTemp_matrix_one_x_one;
 }
@@ -24047,9 +24165,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24074,9 +24192,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24104,9 +24222,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24131,9 +24249,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24161,9 +24279,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24191,9 +24309,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24218,9 +24336,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24248,9 +24366,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24278,9 +24396,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24305,9 +24423,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24335,9 +24453,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24362,9 +24480,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24392,9 +24510,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24422,9 +24540,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24449,9 +24567,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24479,9 +24597,9 @@ void FSMicromorphic2_3DT:: Form_II16p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24572,9 +24690,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24599,9 +24717,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24629,9 +24747,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24656,9 +24774,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24686,9 +24804,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24716,9 +24834,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24743,9 +24861,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24773,9 +24891,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24803,9 +24921,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24830,9 +24948,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24860,9 +24978,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24887,9 +25005,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24917,9 +25035,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24947,9 +25065,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -24974,9 +25092,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25004,9 +25122,9 @@ void FSMicromorphic2_3DT:: Form_II17p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25099,9 +25217,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25126,9 +25244,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25156,9 +25274,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25183,9 +25301,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25213,9 +25331,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25243,9 +25361,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25270,9 +25388,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25300,9 +25418,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25332,9 +25450,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25359,9 +25477,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25389,9 +25507,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25416,9 +25534,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25446,9 +25564,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25476,9 +25594,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25503,9 +25621,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25533,9 +25651,9 @@ void FSMicromorphic2_3DT:: Form_II18p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25629,9 +25747,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25656,9 +25774,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25686,9 +25804,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25713,9 +25831,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25743,9 +25861,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25773,9 +25891,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25800,9 +25918,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25830,9 +25948,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25860,9 +25978,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25887,9 +26005,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25917,9 +26035,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25944,9 +26062,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -25974,9 +26092,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26004,9 +26122,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26031,9 +26149,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26061,9 +26179,9 @@ void FSMicromorphic2_3DT:: Form_II19p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26110,11 +26228,12 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 	fTemp_matrix_nsd_x_nsd = 0.0;
 	fTemp_matrix_nsd_x_nsd2 = 0.0;
 	fTemp_matrix_nsd_x_nsd3 = 0.0;
-	fTemp_matrix_nsd_x_nsd.MultABC(fChip_n,fChip_inverse,PSIe_n_inverse);
+	fTemp_matrix_nsd_x_nsd4 = 0.0;
+	fTemp_matrix_nsd_x_nsd.MultAB(fChip_n,fChip_inverse);
 	fTemp_matrix_nsd_x_nsd2.MultATBC(PSIe_n_inverse,fCchie_n,fTemp_matrix_nsd_x_nsd);
 	fTemp_matrix_nsd_x_nsd.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_tr_transpose,fTemp_matrix_nsd_x_nsd2);
-
 	fTemp_matrix_nsd_x_nsd2.MultABC(fChip_n,fChip_inverse,fTemp_matrix_nsd_x_nsd);
+
 	fTemp_matrix_nsd_x_nsd.MultATB(fFe,fChie);
 	fTemp_matrix_nsd_x_nsd3.MultAB(fChip_n,fChip_inverse);
 	fTemp_matrix_nsd_x_nsd4.MultAB(fDeformation_Gradient_Inverse,fFe);
@@ -26139,8 +26258,12 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 								{
 									for(int pbar=0;pbar<3;pbar++)
 									{
-										Temp_II20p(I,l,m)+=fTemp_matrix_nsd_x_nsd4(I,Kbar)*fFe(l,Lbar)*fTemp_matrix_nsd_x_nsd(Kbar,Nbar)*(fTemp_matrix_nsd_x_nsd2(Nbar,Fbar)
-										*GAMMAe_n(Fbar,pbar,Mbar) - fTemp_matrix_nsd_x_nsd2(pbar,Fbar)*GAMMAe_n(Fbar,Nbar,Mbar))*fTemp_matrix_nsd_x_nsd3(pbar,Lbar)*fChie(m,Mbar);
+										for(int Cbar=0;Cbar<3;Cbar++)
+										{
+											Temp_II20p(I,l,m)+=fTemp_matrix_nsd_x_nsd4(I,Kbar)*fFe(l,Lbar)*fTemp_matrix_nsd_x_nsd(Kbar,Nbar)*(fTemp_matrix_nsd_x_nsd2(Nbar,Cbar)
+											*PSIe_n_inverse(Cbar,Fbar)*GAMMAe_n(Fbar,pbar,Mbar) - fTemp_matrix_nsd_x_nsd2(Fbar,pbar)*PSIe_n_inverse(Nbar,Cbar)*GAMMAe_n(Cbar,Fbar,Mbar))
+											*fTemp_matrix_nsd_x_nsd3(pbar,Lbar)*fChie(m,Mbar);
+										}
 									}
 								}
 							}
@@ -26159,9 +26282,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26186,9 +26309,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26216,9 +26339,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26243,9 +26366,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26273,9 +26396,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26303,9 +26426,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26330,9 +26453,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26360,9 +26483,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26390,9 +26513,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26417,9 +26540,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26447,9 +26570,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26474,9 +26597,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26504,9 +26627,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26534,9 +26657,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26561,9 +26684,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26591,9 +26714,9 @@ void FSMicromorphic2_3DT:: Form_II20p_1_16()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26664,7 +26787,7 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 							{
 								for(int pbar=0;pbar<3;pbar++)
 								{
-									Temp_II21p(I,l,m)+= -1*fTemp_matrix_nsd_x_nsd3(I,Kbar)*fFe(l,Lbar)*fTemp_matrix_nsd_x_nsd(Kbar,Nbar)*fdGnablachidMKLM_tr(Mbar,Nbar,pbar)
+									Temp_II21p(I,l,m)+= -1*fTemp_matrix_nsd_x_nsd3(I,Kbar)*fFe(l,Lbar)*fTemp_matrix_nsd_x_nsd(Kbar,Nbar)*fdGnablachidMKLM_tr(pbar,Mbar,Nbar)
 									*fTemp_matrix_nsd_x_nsd2(pbar,Lbar)*fChie(m,Mbar);
 								}
 							}
@@ -26750,9 +26873,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26777,9 +26900,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26807,9 +26930,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26834,9 +26957,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26864,9 +26987,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26894,9 +27017,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26921,9 +27044,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26951,9 +27074,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -26981,9 +27104,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27008,9 +27131,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27038,9 +27161,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27065,9 +27188,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27095,9 +27218,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27125,9 +27248,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27152,9 +27275,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27182,9 +27305,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		for(int i=0;i<3;i++)
 		{
 			row=0;
-			for(int m=0;m<3;m++)
+			for(int l=0;l<3;l++)
 			{
-				for(int l=0;l<3;l++)
+				for(int m=0;m<3;m++)
 				{
 					for(int I=0;I<3;I++)
 					{
@@ -27279,7 +27402,7 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 						{
 							for(int Lbar=0;Lbar<3;Lbar++)
 							{
-								Temp_II21p_10_17+= fdFnablachidMKLM(Kbar,Lbar,Mbar)*fFe(k,Kbar)*GRAD_CHIM(k,K,L)*fTemp_matrix_nsd_x_nsd(L,Mbar)*fChip_inverse(K,Lbar);
+								Temp_II21p_10_17+= fdFnablachidMKLM(Kbar,Lbar,Mbar)*fFe(k,Kbar)*GRAD_CHIM(k,K,L)*fTemp_matrix_nsd_x_nsd2(L,Mbar)*fChip_inverse(K,Lbar);
 							}
 						}
 					}
@@ -27295,9 +27418,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27322,9 +27445,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27352,9 +27475,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27379,9 +27502,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27409,9 +27532,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27439,9 +27562,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27466,9 +27589,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27496,9 +27619,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27526,9 +27649,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27553,9 +27676,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27583,9 +27706,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27610,9 +27733,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27640,9 +27763,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27670,9 +27793,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27697,9 +27820,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27727,9 +27850,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27804,9 +27927,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27831,9 +27954,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27861,9 +27984,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27888,9 +28011,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27918,9 +28041,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27948,9 +28071,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -27975,9 +28098,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28005,9 +28128,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28036,9 +28159,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28063,9 +28186,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28093,9 +28216,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28120,9 +28243,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28150,9 +28273,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28180,9 +28303,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28207,9 +28330,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28237,9 +28360,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28354,9 +28477,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28381,9 +28504,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28411,9 +28534,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28438,9 +28561,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28468,9 +28591,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28498,9 +28621,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28525,9 +28648,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28555,9 +28678,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28585,9 +28708,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28612,9 +28735,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28642,9 +28765,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28669,9 +28792,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28699,9 +28822,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28729,9 +28852,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28756,9 +28879,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28786,9 +28909,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28903,9 +29026,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28930,9 +29053,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28960,9 +29083,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -28987,9 +29110,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29017,9 +29140,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29047,9 +29170,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29074,9 +29197,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29104,9 +29227,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29135,9 +29258,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29162,9 +29285,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29192,9 +29315,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29219,9 +29342,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29249,9 +29372,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29279,9 +29402,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29306,9 +29429,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29336,9 +29459,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29412,9 +29535,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29439,9 +29562,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29469,9 +29592,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29496,9 +29619,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29526,9 +29649,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29556,9 +29679,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29583,9 +29706,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29613,9 +29736,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29644,9 +29767,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29671,9 +29794,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29701,9 +29824,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29728,9 +29851,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29758,9 +29881,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29788,9 +29911,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29815,9 +29938,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29845,9 +29968,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29921,9 +30044,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29948,9 +30071,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -29978,9 +30101,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30005,9 +30128,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30035,9 +30158,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30065,9 +30188,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30092,9 +30215,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30122,9 +30245,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30152,9 +30275,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30179,9 +30302,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30209,9 +30332,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30236,9 +30359,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30266,9 +30389,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30296,9 +30419,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30323,9 +30446,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30353,9 +30476,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30430,9 +30553,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30457,9 +30580,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30487,9 +30610,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30514,9 +30637,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30544,9 +30667,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30574,9 +30697,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30601,9 +30724,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30631,9 +30754,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30662,9 +30785,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30689,9 +30812,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30719,9 +30842,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30746,9 +30869,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30776,9 +30899,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30806,9 +30929,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30833,9 +30956,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30863,9 +30986,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30906,7 +31029,7 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 		fTemp_matrix_nsd_x_nsd = 0.0;
 		fTemp_matrix_nsd_x_nsd2 = 0.0;
 		fTemp_matrix_nsd_x_nsd3 = 0.0;
-		fTemp_matrix_nsd_x_nsd.MultABC(fChip_n,fChip_inverse,PSIe_n_inverse);
+		fTemp_matrix_nsd_x_nsd.MultAB(fChip_n,fChip_inverse);
 		fTemp_matrix_nsd_x_nsd2.MultATBC(PSIe_n_inverse,fCchie_n,fTemp_matrix_nsd_x_nsd);
 		fTemp_matrix_nsd_x_nsd.MultABC(PSIe_n_inverse,fdGchidSIGMA_S_tr_transpose,fTemp_matrix_nsd_x_nsd2);
 		fTemp_matrix_nsd_x_nsd2.MultABC(fChip_n,fChip_inverse,fTemp_matrix_nsd_x_nsd);
@@ -30930,8 +31053,11 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 							{
 								for(int pbar=0;pbar<3;pbar++)
 								{
-									Temp_II21p_68_75+= fdFnablachidMKLM(Kbar,Lbar,Mbar)*fTemp_matrix_nsd_x_nsd3(Kbar,Nbar)*(fTemp_matrix_nsd_x_nsd2(Nbar,Fbar)
-									*GAMMAe(Fbar,pbar,Mbar)-fTemp_matrix_nsd_x_nsd2(pbar,Fbar)*GAMMAe(Fbar,Nbar,Mbar))*fChip_n(pbar,A)*fChip_inverse(A,Lbar);
+									for(int Cbar=0;Cbar<3;Cbar++)
+									{
+										Temp_II21p_68_75+= fdFnablachidMKLM(Kbar,Lbar,Mbar)*fTemp_matrix_nsd_x_nsd3(Kbar,Nbar)*(fTemp_matrix_nsd_x_nsd2(Nbar,Cbar)*PSIe_n_inverse(Cbar,Fbar)*
+										GAMMAe_n(Fbar,pbar,Mbar)-fTemp_matrix_nsd_x_nsd2(Fbar,pbar)*PSIe_n_inverse(Nbar,Cbar)*GAMMAe_n(Cbar,Fbar,Mbar))*fChip_n(pbar,A)*fChip_inverse(A,Lbar);
+									}
 								}
 							}
 						}
@@ -30948,9 +31074,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -30975,9 +31101,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31005,9 +31131,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31032,9 +31158,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31062,9 +31188,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31092,9 +31218,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31118,9 +31244,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31148,9 +31274,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31178,9 +31304,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31205,9 +31331,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31235,9 +31361,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31262,9 +31388,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31292,9 +31418,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31322,9 +31448,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31348,9 +31474,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
@@ -31378,9 +31504,9 @@ void FSMicromorphic2_3DT:: Form_II21p_1_75()
 			for(int i=0;i<3;i++)
 			{
 				row=0;
-				for(int m=0;m<3;m++)
+				for(int l=0;l<3;l++)
 				{
-					for(int l=0;l<3;l++)
+					for(int m=0;m<3;m++)
 					{
 						for(int I=0;I<3;I++)
 						{
