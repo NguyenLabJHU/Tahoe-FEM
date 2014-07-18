@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.4 2014-06-30 03:40:09 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.5 2014-07-18 02:51:23 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -87,6 +87,22 @@ public:
         kFGphi_chi,
         kDGpsi_chi,
         //
+        kKappa0,
+        kKappa0_chi,
+        kKappa0_nablachi,
+        kKappa1_nablachi,
+        kKappa2_nablachi,
+        kHkappa,
+        kHKappa_chi,
+        kHKappa_nablachi,
+        kR,
+        kR_chi,
+        kR_nablachi,
+        kAlpha,
+        kAlpha_chi,
+        kAlpha_nablachi,
+        kCapped_Model_Flag,
+
         kg,
         kg1,
         kg2,
@@ -95,27 +111,37 @@ public:
         kNUM_FMATERIAL_TERMS        };
 
     enum fMaterialState_T         {
-    //    kkappa,
+
         kc,
         kc_current_configuration,
         kc_chi,
         kc_nablachi0,
         kc_nablachi1,
         kc_nablachi2,
-        //    kZkappa,
-    //    kZc,
-    //    khkappa,
+
+        Kappa,
+        Kappa_chi,
+        Kappa_nablachi0,
+        Kappa_nablachi1,
+        Kappa_nablachi2,
+
         khc,
         khc_chi,
         khc_nablachi,
-    //    kIntrinsic_Perm,
-    //    kJ,
-    //    kJp,
-    //    kphi_s,
-    //    kphi_f,
-    //    kDevSS,
-    //    kMeanS,
-    //    kEpsVolp,
+
+        khKappa,
+        khKappa_chi,
+        khKappa_nablachi,
+
+        kEpsVolp,
+        kEpsVolp_chi,
+        kEpsVolp_nablachi,
+
+        kZkappa,
+        kZkappa_chi,
+        kZkappa_nablachi,
+
+
         kDelgamma,
         kDelgammachi,
         kDelgammanablachi,
@@ -135,8 +161,8 @@ public:
         kinvGPhi,
         ktreps,
         kdeveps,
-	kinvtrgammastn,
-	kinvdevgammastn,
+        kinvtrgammastn,
+        kinvdevgammastn,
 /*        kGc_chi1,
         kGc_chi2,
         kGc_chi3,
@@ -180,6 +206,101 @@ public:
 //        kXe33,
         kNUM_FMATERIAL_STATE_TERMS
     };
+
+///////////// Cap Model Parameters /////////////
+    dMatrixT Kappa_nablachi_n;
+    double fMacfunc_nablachi_tr;
+    double fMacfunc_nablachi;
+    double Xphi_n;
+    double Xphi_m_n;
+    double fMacfunc_tr;
+    double fPhiCap_tr;
+    double Xphi_chi_n;
+    double Xphi_chi_m_n;
+    double fMacfunc_chi_tr;
+    double fMacfunc_chi;
+    double fPhiCap_chi_tr;
+    double fPhiCap_chi;
+    double Xphi_nablachi_n;
+    double Xphi_nablachi_m_n;
+    double fPhiCap_nablachi_tr;
+    double Cpsi_tr;
+    double Cpsi_chi_tr;
+    double Cpsi_nablachi_tr;
+    double Cpsi;
+    double Cpsi_chi;
+    double Cpsi_nablachi;
+    double Cphi;
+    double Cphi_chi;
+    double Cphi_nablachi;
+    double Cphi_tr;
+    double Cphi_chi_tr;
+    double Cphi_nablachi_tr;
+    double Xphi;
+    double Xphi_m;
+    double Xphi_chi;
+    double Xphi_chi_m;
+    double fMacfunc;
+    double fPhiCap;
+    double dKappadDelgamma;
+    double dXphi_m_dDelgamma;
+    double dFphicapdDelgamma;
+    double dKappachidDelgammachi;
+    double dXphi_chi_m_dDelgammachi;
+    double dFphichicapdDelgammachi;
+    double dFphicapdDelgammachi;
+    double dFphichicapdDelgamma;
+    double Norm_Kappa_nablachi_n;
+    dMatrixT dfKappa_nablachidDelgammanablachi;
+    double dNorm_Kappa_nablachidDelgammanablachi;
+    dMatrixT Kappa_nablachi;
+    double Norm_Kappa_nablachi;
+    double devMKLMddevMKLMdDelgammanablachi;
+    dMatrixT fDelKappa_nablachi;
+    double dXphi_nablachi_mdDelgammanablachi;
+    double dFphi_nabalchidDelgammanablachi;
+    double Xphi_nablachi;
+    double Xphi_nablachi_m;
+    double fPhiCap_nablachi;
+    double signMacfunc;
+    double signfMacfunc_chi;
+    double signfMacfunc_nablachi;
+    double dFphidKappa;
+    double dFYdKappa;
+    double dFphichidKappachi;
+    double dFYchidKappachi;
+    dMatrixT dFphinablachidKappanablachi;
+    dMatrixT dFYnablachidKappanablachi;
+    double Jp;
+    double Xpsi_n;
+    double Xpsi_m_n;
+    double Xpsi_chi_n;
+    double Xpsi_chi_m_n;
+    double Xpsi_nablachi_n;
+    double Xpsi_nablachi_m_n;
+    double fPsiCap_tr;
+    double fPsiCap_chi_tr;
+    double fPsiCap_nablachi_tr;
+    double Xpsi_m;
+    double fPsiCap;
+    double Xpsi_chi_m;
+    double fPsiCap_chi;
+    double Xpsi_nablachi_m;
+    double fPsiCap_nablachi;
+
+//////////////////////////////////////////////////////////////////////
+    double fdGdc;
+    double fdGYchidcchi;
+    double dFpsidKappa;
+    double dGdKappa;
+    double dFpsichidKappachi;
+    double dGchidKappachi;
+    dMatrixT dFpsinablachidKappanablachi;
+    dMatrixT dGnablachidKappanablachi;
+    dMatrixT dGnablachidcohesion_nablachi;
+//////////////////////////////////////////////////////////////////////
+
+
 
 
 //  enum fIntegrate_T         {
@@ -3737,11 +3858,11 @@ private:
 	void Form_Norm_kc_nablachi_n(void);
 	void Form_Norm_cohesion_nablachi(void);
 	void Form_dNorm_meanfMKLMdDelgammanablachi(void);
-	void Form_dfkc_nablachidDelgammanablachi(void);
+	void Form_dfkc_nablachidDelgammanablachi(const int a);
 	void Form_dNorm_kc_nablachidDelgammanablachi(void);
 
 
-	void Form_Coeff_delDelgamma_nablachi(void);
+	void Form_Coeff_delDelgamma_nablachi(const int a);
 	void Form_II13e_1(void);
 	void Form_II14p_1_16(void);
 	void Form_II15e_1(void);
@@ -3752,8 +3873,18 @@ private:
 	void Form_II20p_1_16(void);
 	void Form_II21p_1_75(void);
 
+//////////////////////////////////////////////////////
+////////////////// Capped model functions ////////////
+	void Form_Kappa_nablachi_n(const int a);
+	void Form_Norm_Kappa_nablachi_n(void);
+	void Form_Kappa_nablachi(const int a);
+	void Form_Norm_Kappa_nablachi(void);
+	void Form_dNorm_Kappa_nablachidDelgammanablachi(void);
+	void Form_devMKLMddevMKLMdDelgammanablachi(void);
+	void Form_dfKappa_nablachidDelgammanablachi(const int a);
 
 
+//////////////////////////////////////////////////////
 
     void Calculate_fmeklm(void);
 
