@@ -2385,6 +2385,86 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
      fKMphiphi_II21p_73a = 0.0;
      fKMphiphi_II21p_74a = 0.0;
      fKMphiphi_II21p_75a = 0.0;
+/////////////////////////////////////////////////////////////////////
+     //// Capped model parameters initilization////////
+      fMacfunc_nablachi_tr = 0.0;
+      fMacfunc_nablachi = 0.0;
+      fMacfunc_tr = 0.0;
+      fPhiCap_tr = 0.0;
+      fMacfunc_chi_tr = 0.0;
+      fMacfunc_chi = 0.0;
+      fPhiCap_chi_tr = 0.0;
+      fPhiCap_chi = 0.0;
+      fPhiCap_nablachi_tr = 0.0;
+      Cpsi_tr = 0.0;
+      Cpsi_chi_tr = 0.0;
+      Cpsi_nablachi_tr = 0.0;
+      Cpsi = 0.0;
+      Cpsi_chi = 0.0;
+      Cpsi_nablachi = 0.0;
+      Cphi = 0.0;
+      Cphi_chi = 0.0;
+      Cphi_nablachi = 0.0;
+      Cphi_tr = 0.0;
+      Cphi_chi_tr = 0.0;
+      Cphi_nablachi_tr = 0.0;
+      Xphi = 0.0;
+      Xphi_m = 0.0;
+      Xphi_chi = 0.0;
+      Xphi_chi_m = 0.0;
+      fMacfunc = 0.0;
+      fPhiCap = 0.0;
+      dKappadDelgamma = 0.0;
+      dXphi_m_dDelgamma = 0.0;
+      dFphicapdDelgamma = 0.0;
+      dKappachidDelgammachi = 0.0;
+      dXphi_chi_m_dDelgammachi = 0.0;
+      dFphichicapdDelgammachi = 0.0;
+      dFphicapdDelgammachi = 0.0;
+      dFphichicapdDelgamma = 0.0;
+      dfKappa_nablachidDelgammanablachi = 0.0;
+      dNorm_Kappa_nablachidDelgammanablachi = 0.0;
+      Kappa_nablachi = 0.0;
+      Norm_Kappa_nablachi = 0.0;
+      devMKLMddevMKLMdDelgammanablachi = 0.0;
+      fDelKappa_nablachi = 0.0;
+      dXphi_nablachi_mdDelgammanablachi = 0.0;
+      dFphi_nabalchidDelgammanablachi = 0.0;
+      Xphi_nablachi = 0.0;
+      Xphi_nablachi_m = 0.0;
+      fPhiCap_nablachi = 0.0;
+      signMacfunc = 0.0;
+      signfMacfunc_chi = 0.0;
+      signfMacfunc_nablachi = 0.0;
+      dFphidKappa = 0.0;
+      dFYdKappa = 0.0;
+      dFphichidKappachi = 0.0;
+      dFYchidKappachi = 0.0;
+      dFphinablachidKappanablachi = 0.0;
+      dFYnablachidKappanablachi = 0.0;
+      fPsiCap_tr = 0.0;
+      fPsiCap_chi_tr = 0.0;
+      fPsiCap_nablachi_tr = 0.0;
+      Xpsi_m = 0.0;
+      fPsiCap = 0.0;
+      Xpsi_chi_m = 0.0;
+      fPsiCap_chi = 0.0;
+      Xpsi_nablachi_m = 0.0;
+      fPsiCap_nablachi = 0.0;
+
+ //////////////////////////////////////////////////////////////////////
+      fdGdc;
+      fdGYchidcchi;
+      dFpsidKappa;
+      dGdKappa;
+      dFpsichidKappachi;
+      dGchidKappachi;
+      dFpsinablachidKappanablachi;
+      dGnablachidKappanablachi;
+      dGnablachidcohesion_nablachi;
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 
 
     ////////////////////////////////////////////////////////////////
@@ -21040,6 +21120,7 @@ void FSMicromorphic2_3DT::TakeParameterList(const ParameterListT& list)
      dFpsinablachidKappanablachi.Dimension(n_sd,1);
      dGnablachidKappanablachi.Dimension(n_sd,1);
      dGnablachidcohesion_nablachi.Dimension(n_sd,1);
+     fDelKappa_nablachi.Dimension(n_sd,1);
 
 
 //////////////////////////////////////////////////////////////////////
