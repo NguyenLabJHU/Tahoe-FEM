@@ -141,6 +141,9 @@ int main(int argc, char* argv[]) {
   case 704: // couple with sonic fluid flow, spherical "left" part
     assemb.coupleWithSonicFluid();
     break;
+  case 705: // couple with sonic fluid flow, rectangular "left" part with a zone below
+    assemb.coupleWithSonicFluid();
+    break;
   }
   
   dem::debugInf << std::endl << "MPI_Wtime: " << MPI_Wtime() - time0 << " seconds" << std::endl;

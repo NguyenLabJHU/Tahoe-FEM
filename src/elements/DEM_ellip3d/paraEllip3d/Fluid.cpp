@@ -15,7 +15,6 @@ namespace dem {
     RK = dem::Parameter::getSingleton().parameter["RK"];
     CFL = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
-    Mach = dem::Parameter::getSingleton().parameter["MachNumber"];
     rhoR = dem::Parameter::getSingleton().parameter["rightDensity"];
     pR   = dem::Parameter::getSingleton().parameter["rightPressure"];
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
@@ -34,8 +33,10 @@ namespace dem {
     arrayBC[4] = dem::Parameter::getSingleton().parameter["z1Reflecting"];
     arrayBC[5] = dem::Parameter::getSingleton().parameter["z2Reflecting"];
 
-    if (leftType == 1)
+    if (leftType == 1) {
       z2L = dem::Parameter::getSingleton().parameter["z2L"];
+      Mach= dem::Parameter::getSingleton().parameter["shockMach"];
+    }      
     else if (leftType == 2) {
       z2L = dem::Parameter::getSingleton().parameter["z2L"];
       rhoL= dem::Parameter::getSingleton().parameter["leftDensity"];
@@ -52,7 +53,8 @@ namespace dem {
       rhoL= dem::Parameter::getSingleton().parameter["leftDensity"];
       pL  = dem::Parameter::getSingleton().parameter["leftPressure"];
       uL  = dem::Parameter::getSingleton().parameter["leftVelocity"];
-    } else if (leftType == 4) {
+    } 
+    else if (leftType == 4) {
       x0L = dem::Parameter::getSingleton().parameter["x0L"];
       y0L = dem::Parameter::getSingleton().parameter["y0L"];
       z0L = dem::Parameter::getSingleton().parameter["z0L"];
@@ -61,6 +63,20 @@ namespace dem {
       pL  = dem::Parameter::getSingleton().parameter["leftPressure"];
       uL  = dem::Parameter::getSingleton().parameter["leftVelocity"];
     }
+    else if (leftType == 5) {
+      x1L = dem::Parameter::getSingleton().parameter["x1L"];
+      x2L = dem::Parameter::getSingleton().parameter["x2L"];
+      y1L = dem::Parameter::getSingleton().parameter["y1L"];
+      y2L = dem::Parameter::getSingleton().parameter["y2L"];
+      z1L = dem::Parameter::getSingleton().parameter["z1L"];
+      z2L = dem::Parameter::getSingleton().parameter["z2L"];
+      rhoL= dem::Parameter::getSingleton().parameter["leftDensity"];
+      pL  = dem::Parameter::getSingleton().parameter["leftPressure"];
+      uL  = dem::Parameter::getSingleton().parameter["leftVelocity"];
+      rhoBL= dem::Parameter::getSingleton().parameter["belowLeftDensity"];
+      pBL  = dem::Parameter::getSingleton().parameter["belowLeftPressure"];
+      uBL  = dem::Parameter::getSingleton().parameter["belowLeftVelocity"];
+    }    
 
     REAL minR = gradation.getPtclMinRadius();
     dx = (minR * 2) / ptclGrid;
@@ -104,7 +120,6 @@ namespace dem {
     debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << (int) RK << std::endl;
     debugInf << std::setw(OWID) << "CFL" << std::setw(OWID) << CFL << std::endl;
     debugInf << std::setw(OWID) << "gamma" << std::setw(OWID) << gamma << std::endl;
-    debugInf << std::setw(OWID) << "Mach" << std::setw(OWID) << Mach << std::endl;
     debugInf << std::setw(OWID) << "rhoR" << std::setw(OWID) << rhoR << std::endl;
     debugInf << std::setw(OWID) << "pR" << std::setw(OWID) << pR << std::endl;
     debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
@@ -128,13 +143,15 @@ namespace dem {
     debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << (int) arrayBC[4] << std::endl;
     debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << (int) arrayBC[5] << std::endl;
 
-    if (leftType == 1) 
+    if (leftType == 1) {
       debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+      debugInf << std::setw(OWID) << "shockMach" << std::setw(OWID) << Mach << std::endl;
+    }
     else if (leftType == 2) {
       debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
       debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;    
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl; 
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;      
     } else if (leftType == 3) {
       debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
       debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
@@ -143,8 +160,8 @@ namespace dem {
       debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
       debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
       debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;    
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;  
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;     
     } else if(leftType == 4) {
       debugInf << std::setw(OWID) << "x0L" << std::setw(OWID) << x0L << std::endl;
       debugInf << std::setw(OWID) << "y0L" << std::setw(OWID) << y0L << std::endl;
@@ -152,7 +169,20 @@ namespace dem {
       debugInf << std::setw(OWID) << "r0L" << std::setw(OWID) << r0L << std::endl;
       debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
       debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;    
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
+    } else if (leftType == 5) {
+      debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
+      debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
+      debugInf << std::setw(OWID) << "y1L" << std::setw(OWID) << y1L << std::endl;
+      debugInf << std::setw(OWID) << "y2L" << std::setw(OWID) << y2L << std::endl;
+      debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
+      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;  
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl; 
+      debugInf << std::setw(OWID) << "rhoBL" << std::setw(OWID) << rhoBL << std::endl;
+      debugInf << std::setw(OWID) << "pBL" << std::setw(OWID) << pBL << std::endl;  
+      debugInf << std::setw(OWID) << "uBL" << std::setw(OWID) << uBL << std::endl; 
     }
 
     /*
@@ -350,17 +380,19 @@ namespace dem {
     enthalpy();
     rotateIJK(ptcls);
 
-    // update conservative variables at the next time step
+    // update conserved variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < nInteg; ++m)
+	  for (std::size_t m = 0; m < nInteg; ++m) {
 	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
 				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
 				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
+	    //if (arrayU[i][j][k][varMsk] == 1) arrayU[i][j][k][m] /= porosity;
+	  }
 	}
 
-    // calculate primitive after finding conservative variables
+    // calculate primitive after finding conserved variables
     UtoW(); 
   }
   
@@ -370,20 +402,22 @@ namespace dem {
     enthalpy();
     rotateIJK(ptcls);
 
-    // update conservative variables at the next time step
+    // update conserved variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < nInteg; ++m)
+	  for (std::size_t m = 0; m < nInteg; ++m) {
 	    arrayU[i][j][k][m] -= (   timeStep / (2*RK*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0] 
 						        + (arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0]) )
 				    + timeStep / (2*RK*dy) * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1] 
 						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1]) )
 				    + timeStep / (2*RK*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2] 
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])) );
+	    //if (arrayU[i][j][k][varMsk] == 1) arrayU[i][j][k][m] /= porosity;
+	  }
 	}
 
-    // calculate primitive after finding conservative variables
+    // calculate primitive after finding conserved variables
     UtoW(); 
   }
 
@@ -393,11 +427,11 @@ namespace dem {
     enthalpy();
     rotateIJK(ptcls);
 
-    // update conservative variables at the next time step
+    // update conserved variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
 	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < nInteg; ++m)
+	  for (std::size_t m = 0; m < nInteg; ++m) {
 	    arrayU[i][j][k][m] -= (   timeStep / (6*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0]
 						         +(arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0])
 						      + 4*(arrayRoeFluxStep3[i][j][k][m][0] - arrayRoeFluxStep3[i-1][j][k][m][0]))
@@ -409,9 +443,11 @@ namespace dem {
 				    + timeStep / (6*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])
 						     + 4*( arrayRoeFluxStep3[i][j][k][m][2] - arrayRoeFluxStep3[i][j][k-1][m][2])) );
+	    //if (arrayU[i][j][k][varMsk] == 1) arrayU[i][j][k][m] /= porosity;
+	  }
 	}
 
-    // calculate primitive after finding conservative variables
+    // calculate primitive after finding conserved variables
     UtoW(); 
   }
 
@@ -664,7 +700,7 @@ namespace dem {
   }
 
   void Fluid::initialCondition() {
-    if (leftType == 1 || leftType == 2) { // normal shock with Rankine-Hugoniot conditions
+    if (leftType == 1 || leftType == 2) { // normal shock w/ and w/o Rankine-Hugoniot conditions
       for (std::size_t i = 0; i < nx; ++i)
 	for (std::size_t j = 0; j < ny; ++j)
 	  for (std::size_t k = 0; k < nz; ++k) {
@@ -692,15 +728,15 @@ namespace dem {
 		 arrayGridCoord[i][j][k][1] >= y1L && arrayGridCoord[i][j][k][1] <= y2L) {
 	      arrayU[i][j][k][varDen] = rhoL;
 	      arrayU[i][j][k][varPrs] = pL;
-	      arrayU[i][j][k][varVel[0]] = uL;
-	      arrayU[i][j][k][varVel[1]] = uL;
-	      arrayU[i][j][k][varVel[2]] = uL;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = 0;
 	    } else {
 	      arrayU[i][j][k][varDen] = rhoR;
 	      arrayU[i][j][k][varPrs] = pR;
-	      arrayU[i][j][k][varVel[0]] = uR;
-	      arrayU[i][j][k][varVel[1]] = uR;
-	      arrayU[i][j][k][varVel[2]] = uR;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = 0;
 	    }
 	  }
     } else if (leftType == 4) { // spherical shock
@@ -711,18 +747,39 @@ namespace dem {
 	    if ( radius <= r0L) {
 	      arrayU[i][j][k][varDen] = rhoL;
 	      arrayU[i][j][k][varPrs] = pL;
-	      arrayU[i][j][k][varVel[0]] = uL;
-	      arrayU[i][j][k][varVel[1]] = uL;
-	      arrayU[i][j][k][varVel[2]] = uL;
-	      //arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/radius;
-	      //arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/radius;
-	      //arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/radius;
+	      arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/radius;
+	      arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/radius;
+	      arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/radius;
 	    } else {
 	      arrayU[i][j][k][varDen] = rhoR;
 	      arrayU[i][j][k][varPrs] = pR;
-	      arrayU[i][j][k][varVel[0]] = uR;
-	      arrayU[i][j][k][varVel[1]] = uR;
-	      arrayU[i][j][k][varVel[2]] = uR;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = 0;
+	    }
+	  }
+    } else if (leftType == 5) { // normal shock z directions, three initial zones
+      for (std::size_t i = 0; i < nx; ++i)
+	for (std::size_t j = 0; j < ny; ++j)
+	  for (std::size_t k = 0; k < nz; ++k) {
+	    if ( arrayGridCoord[i][j][k][2] >= z1L && arrayGridCoord[i][j][k][2] <= z2L ) {
+	      arrayU[i][j][k][varDen] = rhoL;
+	      arrayU[i][j][k][varPrs] = pL;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = 0;
+	    } else if ( arrayGridCoord[i][j][k][2] > z2L) {
+	      arrayU[i][j][k][varDen] = rhoR;
+	      arrayU[i][j][k][varPrs] = pR;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = 0;
+	    } else if ( arrayGridCoord[i][j][k][2] < z1L) {
+	      arrayU[i][j][k][varDen] = rhoBL;
+	      arrayU[i][j][k][varPrs] = pBL;
+	      arrayU[i][j][k][varVel[0]] = 0;
+	      arrayU[i][j][k][varVel[1]] = 0;
+	      arrayU[i][j][k][varVel[2]] = 0;
 	    }
 	  }
     }
@@ -731,21 +788,19 @@ namespace dem {
   }
 
   void Fluid::RankineHugoniot() { // Rankine-Hugoniot conditions
-    shockSpeed = Mach*sqrt(gamma*pR/rhoR);
-    REAL rhoLRHC = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
-    REAL pLRHC = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
-    REAL uLRHC = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
-
-    debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl << std::endl;
-    debugInf << std::setw(OWID) << "rhoL-RHC" << std::setw(OWID) << rhoLRHC << std::endl;
-    debugInf << std::setw(OWID) << "pL-RHC" << std::setw(OWID) << pLRHC << std::endl;
-    debugInf << std::setw(OWID) << "uL-RHC" << std::setw(OWID) << uLRHC << std::endl << std::endl;
-
     if (leftType == 1) {
-      rhoL = rhoLRHC;
-      pL = pLRHC;
-      uL = uLRHC;
-    }    
+      shockSpeed = Mach*sqrt(gamma*pR/rhoR);
+      rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
+      pL   = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
+      uL   = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
+      debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl;
+      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl << std::endl;
+    } else {
+      Mach = uL / sqrt(gamma*pL/rhoL);
+      debugInf << std::setw(OWID) << "MachL" << std::setw(OWID) << Mach << std::endl << std::endl;
+    }
   }
 
   void Fluid::flux(std::size_t idim, std::vector<Particle *> &ptcls) {
@@ -759,7 +814,6 @@ namespace dem {
 	  arrayFlux[i][j][k][varEng]    = arrayUtmp[i][j][k][varVel[0]] * (arrayUtmp[i][j][k][varEng] + arrayUtmp[i][j][k][varPrs]);  // u*(E + p)
 	}  
 
-    ///*
     // for cells that are enclosed by particle volumes
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
@@ -777,16 +831,18 @@ namespace dem {
 	u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	// continuity equation
-	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayUtmp[i][j][k][varDen] * (arrayUtmp[i][j][k][varVel[0]] - u0[idim]) ; // rho*(u-u0)
+	// continuity equation modified on porosity
+	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayUtmp[i][j][k][varDen] * (arrayUtmp[i][j][k][varVel[0]] - u0[idim]) ; // rho*(u-u0) / porosity
 
-	// momentum equations are also modified, but dropping one porosity from equation LHS and one porosity from equation RHS
-	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 + p
-	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // rho*u*v
-	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // rho*u*w	
+	// momentum equations modified on porosity
+	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 / porosity + p
+	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // rho*u*v / porosity
+	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // rho*u*w / porosity
+
+	// momentum equations modified on porosity
+	//arrayFlux[i][j][k][varEng]    = 1.0/porosity * arrayUtmp[i][j][k][varVel[0]] * (arrayUtmp[i][j][k][varEng] + arrayUtmp[i][j][k][varPrs]);  // u*(E + p) / porosity
       }
     }
-    //*/
   }
 
   void Fluid::RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t it, std::size_t jt, std::size_t kt) {
@@ -858,7 +914,7 @@ namespace dem {
     avgWaveStr[varMom[1]] = avgRho * du[varVel[1]];
     avgWaveStr[varMom[2]] = avgRho * du[varVel[2]];
     avgWaveStr[varEng]    = (du[varPrs] + avgRho*avgSoundSpeed*du[varVel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
-
+    
     REAL avgK[5][5]; // right eigenvectors
     avgK[varDen][varDen]    = 1;
     avgK[varMom[0]][varDen] = avgU - avgSoundSpeed;
@@ -901,7 +957,7 @@ namespace dem {
     }
   }
 
-  void Fluid::UtoW() {// converting conservative variables into primitive
+  void Fluid::UtoW() {// converting conserved variables into primitive
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
@@ -913,11 +969,10 @@ namespace dem {
 	  for (std::size_t m = 0; m < nDim; ++m)
 	    arrayU[i][j][k][varPrs] += arrayU[i][j][k][varDen] * pow(arrayU[i][j][k][varVel[m]],2)/2 ;
 	  arrayU[i][j][k][varPrs] = (arrayU[i][j][k][varEng] - arrayU[i][j][k][varPrs]) * (gamma-1);
-
 	}
   }
 
-  void Fluid::WtoU() { // converting primitive variables into conservative
+  void Fluid::WtoU() { // converting primitive variables into conserved
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {

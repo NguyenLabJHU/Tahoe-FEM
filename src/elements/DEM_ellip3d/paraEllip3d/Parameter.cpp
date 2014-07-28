@@ -377,7 +377,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 28; ++i) {
+      for (std::size_t i = 0; i < 27; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -392,7 +392,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 33; ++i) {
+      for (std::size_t i = 0; i < 32; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -407,15 +407,30 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 31; ++i) {
+      for (std::size_t i = 0; i < 30; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
 	parameter[str] = val;
       }
       break;
+
+    case 705: // couple with sonic fluid flow, rectangular "left" part with a zone below
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 35; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      break;
+
     }
-  
     ifs.close();
   
   }

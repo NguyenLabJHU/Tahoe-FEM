@@ -28,30 +28,30 @@ namespace dem {
     REAL dy;
     REAL dz;
 
+    REAL Cd;           // drag coefficient
+    REAL porosity;     // particle porosity as porous media
     REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;        // ratio of specific heat capacity of air
     REAL arrayBC[6];   // boundary condition
 
-    int  leftType;     // type of "left" part
-    REAL z1L;          // lower bound z1L of "left" part
-    REAL z2L;          // upper bound z2L of "left" part
-    REAL x1L;          // lower bound x1L of "left" part
-    REAL x2L;          // upper bound x2L of "left" part
-    REAL y1L;          // lower bound y1L of "left" part
-    REAL y2L;          // upper bound y2L of "left" part
-    REAL x0L;          // center of "left" part, x-coordinate
-    REAL y0L;          // center of "left" part, y-coordinate
-    REAL z0L;          // center of "left" part, z-coordinate
-    REAL r0L;          // radius of "left" part
+    int  leftType;     // type of left part
+    REAL z1L;          // lower bound z1L of left part
+    REAL z2L;          // upper bound z2L of left part
+    REAL x1L;          // lower bound x1L of left part
+    REAL x2L;          // upper bound x2L of left part
+    REAL y1L;          // lower bound y1L of left part
+    REAL y2L;          // upper bound y2L of left part
+    REAL x0L;          // center of left part, x-coordinate
+    REAL y0L;          // center of left part, y-coordinate
+    REAL z0L;          // center of left part, z-coordinate
+    REAL r0L;          // radius of left part
 
-    REAL rhoL, uL, pL; // unknown
-    REAL rhoR, uR, pR; // known
-    REAL Mach;         // shock Mach number, known
-    REAL shockSpeed;   // unknown
-    REAL Cd;           // drag coefficient
-    REAL porosity;     // particle porosity regarded as porous media
-    int  volFrac;      // use grid volume fraction or not
+    REAL rhoR, uR, pR; // known for RHC
+    REAL Mach;         // shock Mach number, known for RHC; or left Mach number for other cases
+    REAL rhoL, uL, pL; // unknown for RHC
+    REAL shockSpeed;   // shock/discontinuity speed
+    REAL rhoBL, uBL, pBL; // below left part
 
     std::size_t nDim, nVar, nInteg, varDen, varEng, varPrs, varMsk;
     std::size_t varMom[3], varVel[3];
@@ -138,8 +138,8 @@ namespace dem {
     void soundSpeed();
     void enthalpy();
     void flux(std::size_t, std::vector<Particle *> &ptcls);
-    void RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim,  std::size_t i, std::size_t j, std::size_t k);
-    void UtoW(); // U - integrated; W - primitive
+    void RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
+    void UtoW(); // U - conserved; W - primitive
     void WtoU();
     void rotateIJK(std::vector<Particle *> &ptcls);
     void inteStep1(std::vector<Particle *> &ptcls);
