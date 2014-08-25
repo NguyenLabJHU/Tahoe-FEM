@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.157 2013-05-20 23:32:55 regueiro Exp $ */
+/* $Id: ElementListT.cpp,v 1.158 2014-08-25 23:59:45 hspark Exp $ */
 
 /* Revision 1.148  2011/11/28 15:26:08  hspark
 /* correct 2D DE visco
@@ -124,6 +124,10 @@
 
 #ifdef DIELECTRIC_ELASTOMER_2D
 #include "FSDielectricElastomer2DT.h"
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_Q1P02D
+#include "FSDielectricElastomerQ1P02DT.h"
 #endif
 
 #ifdef DIELECTRIC_ELASTOMER_VISCO
@@ -461,6 +465,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
     sub_lists.AddSub("dielectric_elastomer_2D");
 #endif
 
+#ifdef DIELECTRIC_ELASTOMER_Q1P02D
+    sub_lists.AddSub("dielectric_elastomer_Q1P02D");
+#endif
+
 #ifdef DIELECTRIC_ELASTOMER_VISCO
     sub_lists.AddSub("dielectric_elastomer_visco");
 #endif
@@ -776,6 +784,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef DIELECTRIC_ELASTOMER_2D
   else if (name == "dielectric_elastomer_2D")
     return new FSDielectricElastomer2DT(fSupport);
+#endif
+
+#ifdef DIELECTRIC_ELASTOMER_Q1P02D
+  else if (name == "dielectric_elastomer_Q1P02D")
+    return new FSDielectricElastomerQ1P02DT(fSupport);
 #endif
 
 #ifdef DIELECTRIC_ELASTOMER_VISCO
