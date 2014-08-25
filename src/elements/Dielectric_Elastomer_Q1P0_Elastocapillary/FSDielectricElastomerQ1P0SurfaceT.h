@@ -5,15 +5,14 @@
 #include <cassert>
 
 /* base class */
-#include "FSDielectricElastomerQ1P0T.h"
-//#include "FSDEMatQ1P0ElastocapillaryT.h"
+#include "FSDielectricElastomerQ1P02DT.h"
 
 namespace Tahoe {
   
   // interface for finite deformation dielectric elastomers 
   // based on 2008 JMPS paper of Suo et al.
   
-  class FSDielectricElastomerQ1P0SurfaceT: public FSDielectricElastomerQ1P0T {
+  class FSDielectricElastomerQ1P0SurfaceT: public FSDielectricElastomerQ1P02DT {
 
   public:
 
@@ -44,17 +43,8 @@ namespace Tahoe {
     virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         const iArrayT& e_codes, dArray2DT& e_values);
 
-	// Calculate surface tension stress
-	dSymMatrixT Surf_Tension_Stress();
-	
-	// Calculate surface tension stiffness
-	dMatrixT Surf_Tension_Stiffness(dMatrixT& Foriginal);
-
-	// Calculate surface gradient-modified B matrix
-	dMatrixT Surf_BMatrix(const dMatrixT& B_original, const dMatrixT& Q);
-
-	// Convert Matrix to dArray2DT
-	dArray2DT MatrixTodArray2DT(const dMatrixT& source);
+	// Return nodes for canonical element based on normal type
+	iArrayT CanonicalNodes(const int normaltype);
 
   private:
 
@@ -104,14 +94,7 @@ namespace Tahoe {
     dMatrixT fB2, fD2, fLHS2;
     double fSurfTension;
 
-	/** \name FSSolidMatT::c_ijkl work space */
-	/*@{*/
 	dMatrixT tempstiff;
-	dMatrixT F_0_;
-	dArrayT vec_;
-	dSymMatrixT stress_;
-	/*@}*/
-
   };
 
 } // namespace Tahoe
