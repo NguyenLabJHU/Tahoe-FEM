@@ -2,15 +2,23 @@
 ###        Part A: change with your environment       ###
 #########################################################
 ###1. system platform
-PLATFORM = supercomputer
-#PLATFORM = workstation
+PLATFORM = soilblast
+#PLATFORM = spirit
+#PLATFORM = janus
 
 ###2. compilers package
-#COMPILERS = gcc
-COMPILERS = intel
+#gcc is assumed to be with openmpi
+COMPILERS = gcc
+#intel is assumed to be with intel-mpi
+#COMPILERS = intel
 
 ###3. boost location
-ifeq ($(PLATFORM), supercomputer)
+ifeq ($(PLATFORM), soilblast)
+ BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+ #BOOST_ROOT = default
+endif
+
+ifeq ($(PLATFORM), spirit)
  ifeq ($(COMPILERS), gcc)
   BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-openmpi-1.7.5-gcc-compilers-4.7.3
  endif
@@ -20,13 +28,18 @@ ifeq ($(PLATFORM), supercomputer)
  endif
 endif
 
-ifeq ($(PLATFORM), workstation)
- BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
- #BOOST_ROOT = default
+ifeq ($(PLATFORM), janus)
+ ifeq ($(COMPILERS), gcc)
+  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.7.3_gcc-4.8.2_ib
+  BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.8.2_gcc-4.9.1
+ endif
+ ifeq ($(COMPILERS), intel)
+  BOOST_ROOT = /home/yanb/local/boost-1.55.0_impi-13.0.0_intel-13.0.0
+ endif
 endif
 
 #########################################################
-###         Part B: usually do not need change        ###
+###         Part B: usually do not change             ###
 #########################################################
 ###1. MPICXX, OPENMPI and OPTIMIZE
 # C++ compiler
@@ -57,9 +70,9 @@ ifeq ($(COMPILERS), intel)
  #-fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
  #OPTIMIZE = -O3 -DNDEBUG -fp-model source
  OPTIMIZE = -O3 -DNDEBUG
-endif
-#OPTIMIZE = -Wall -g
-
+ endif
+ #OPTIMIZE = -Wall -g
+ 
 # GCC quadmath, default off
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
@@ -67,24 +80,23 @@ endif
 CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 
 ###2. BOOST details
-ifeq ($(PLATFORM), supercomputer)
- BOOST_INCLUDE=-I$(BOOST_ROOT)/include
- BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
- BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
- BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
-endif
-
-ifeq ($(PLATFORM), workstation)
+ifeq ($(PLATFORM), soilblast)
   ifeq ($(BOOST_ROOT), default)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
    BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
    BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
-  else  
+  else
    BOOST_INCLUDE=-I$(BOOST_ROOT)/include
    BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
    BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
    BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
   endif
+else
+# for spirit and janus
+ BOOST_INCLUDE=-I$(BOOST_ROOT)/include
+ BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
+ BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
+ BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 endif
 
 INCLUDE=$(BOOST_INCLUDE)
