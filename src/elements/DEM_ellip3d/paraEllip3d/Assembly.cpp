@@ -3005,6 +3005,7 @@ namespace dem {
 	<< std::setw(OWID) << "pressureFx"
 	<< std::setw(OWID) << "pressureFy"
 	<< std::setw(OWID) << "pressureFz"
+	<< std::setw(OWID) << "totalCd"
 	<< std::setw(OWID) << "penalMx"
 	<< std::setw(OWID) << "penalMy"
 	<< std::setw(OWID) << "penalMz"
@@ -3631,7 +3632,7 @@ namespace dem {
   void Assembly::printContact(char *str) const
   {
     // There are two implementions of printContact
-    // implementation 1: parallel IO, each process prints to a data file using a shared pointer.
+    // implementation 1: parallel IO, each process prints to a shared data file using a shared pointer.
     //                   and use post-processing tool to remove redundant info.
     MPI_Status status;
     MPI_File contactFile;

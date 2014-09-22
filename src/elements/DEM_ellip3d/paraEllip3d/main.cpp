@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
   }
 
-  // parallel IO
+  // parallel IO for overlap info
   MPI_File_open(MPI_Comm(boostWorld), "overlapInf", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dem::overlapInf);
   if(boostWorld.rank() == 0 && !dem::overlapInf) { std::cout << "stream error: main.cpp overlapInf" << std::endl; exit(-1);}
 

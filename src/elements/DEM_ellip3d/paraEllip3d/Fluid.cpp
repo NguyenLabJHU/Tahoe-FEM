@@ -35,7 +35,7 @@ namespace dem {
 
     if (leftType == 1) {
       z2L = dem::Parameter::getSingleton().parameter["z2L"];
-      Mach= dem::Parameter::getSingleton().parameter["shockMach"];
+      MachShock= dem::Parameter::getSingleton().parameter["shockMach"];
     }      
     else if (leftType == 2) {
       z2L = dem::Parameter::getSingleton().parameter["z2L"];
@@ -145,7 +145,7 @@ namespace dem {
 
     if (leftType == 1) {
       debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
-      debugInf << std::setw(OWID) << "shockMach" << std::setw(OWID) << Mach << std::endl;
+      debugInf << std::setw(OWID) << "shockMach" << std::setw(OWID) << MachShock << std::endl;
     }
     else if (leftType == 2) {
       debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
@@ -653,6 +653,21 @@ namespace dem {
 	    arrayU[i][j][nz-1][varVel[m]] *= (1-2*arrayBC[5]); 
 	  }
     }
+
+    if (leftType == 4) { // spherical shock
+      for (std::size_t i = 0; i < nx; ++i)
+	for (std::size_t j = 0; j < ny; ++j)
+	  for (std::size_t k = 0; k < nz; ++k) {
+	    REAL radius = sqrt(pow(arrayGridCoord[i][j][k][0]-x0L,2) + pow(arrayGridCoord[i][j][k][1]-y0L,2) + pow(arrayGridCoord[i][j][k][2]-z0L,2));
+	    if ( radius <= r0L) {
+	      arrayU[i][j][k][varDen] = rhoL;
+	      arrayU[i][j][k][varPrs] = pL;
+	      arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/radius;
+	      arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/radius;
+	      arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/radius;
+	    }
+	  }
+    }
     
   }
   
@@ -789,18 +804,18 @@ namespace dem {
 
   void Fluid::RankineHugoniot() { // Rankine-Hugoniot conditions
     if (leftType == 1) {
-      shockSpeed = Mach*sqrt(gamma*pR/rhoR);
+      shockSpeed = MachShock*sqrt(gamma*pR/rhoR);
       rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gamma) ) / ( rhoR*pow(shockSpeed-uR,2)*(gamma-1) + 2*pR*gamma);
       pL   = (pR*(1-gamma)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gamma);
       uL   = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gamma-1)) - 2*pR*gamma ) / (rhoR * (shockSpeed-uR) * (1+gamma));
       debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl;
       debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
       debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl << std::endl;
-    } else {
-      Mach = uL / sqrt(gamma*pL/rhoL);
-      debugInf << std::setw(OWID) << "MachL" << std::setw(OWID) << Mach << std::endl << std::endl;
-    }
+      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
+    } 
+
+    MachL = uL / sqrt(gamma*pL/rhoL);
+    debugInf << std::setw(OWID) << "MachL" << std::setw(OWID) << MachL << std::endl << std::endl;
   }
 
   void Fluid::flux(std::size_t idim, std::vector<Particle *> &ptcls) {
@@ -1104,6 +1119,7 @@ namespace dem {
 	    << std::setw(OWID) << presForce.getX()
 	    << std::setw(OWID) << presForce.getY()
 	    << std::setw(OWID) << presForce.getZ()
+	    << std::setw(OWID) << (penalForce.getZ() + presForce.getZ())/(0.5*rhoL*uL*uL*dem::Pi*(*it)->getA()*(*it)->getB())
 
 	    << std::setw(OWID) << penalMoment.getX()
 	    << std::setw(OWID) << penalMoment.getY()

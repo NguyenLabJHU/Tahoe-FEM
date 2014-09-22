@@ -48,7 +48,8 @@ namespace dem {
     REAL r0L;          // radius of left part
 
     REAL rhoR, uR, pR; // known for RHC
-    REAL Mach;         // shock Mach number, known for RHC; or left Mach number for other cases
+    REAL MachShock;    // shock Mach number, known for RHC
+    REAL MachL;        // Mach number for left part
     REAL rhoL, uL, pL; // unknown for RHC
     REAL shockSpeed;   // shock/discontinuity speed
     REAL rhoBL, uBL, pBL; // below left part
