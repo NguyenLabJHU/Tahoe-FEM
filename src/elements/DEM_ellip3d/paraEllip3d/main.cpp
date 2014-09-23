@@ -168,6 +168,19 @@ int main(int argc, char* argv[]) {
 //  4 - special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only
 //  5 - free boundary particle
 // 10 - ghost particle
+//
+// time step type:
+// Among the simulations types:
+// 1-deposit
+// 2-isotropic
+// 3-odometer
+// 4-triaxial
+// 5-plane strain
+// 6-true triaxial
+// 7-expand
+// only 4-triaxial and 5-plane strain must use constant time steps by commenting out calcTimeStep() 
+// for the purpose of displacement control on top and bottom boundaries, the other simulations use
+// variable time steps for higher computational efficiency.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
   /*
