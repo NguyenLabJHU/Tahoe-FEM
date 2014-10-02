@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.5 2014-07-18 02:51:23 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.6 2014-10-02 04:28:54 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -298,6 +298,10 @@ public:
     dMatrixT dFpsinablachidKappanablachi;
     dMatrixT dGnablachidKappanablachi;
     dMatrixT dGnablachidcohesion_nablachi;
+    double signMacfunc_tr;
+    double signMacfunc_chi_tr;
+    double signMacfunc_nablachi_tr;
+
 //////////////////////////////////////////////////////////////////////
 
 
@@ -3880,7 +3884,6 @@ private:
 	void Form_Kappa_nablachi(const int a);
 	void Form_Norm_Kappa_nablachi(void);
 	void Form_dNorm_Kappa_nablachidDelgammanablachi(void);
-	void Form_devMKLMddevMKLMdDelgammanablachi(void);
 	void Form_dfKappa_nablachidDelgammanablachi(const int a);
 
 
