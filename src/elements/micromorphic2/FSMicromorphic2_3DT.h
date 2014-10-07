@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.6 2014-10-02 04:28:54 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.7 2014-10-07 23:44:20 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -1061,22 +1061,67 @@ private:
     dMatrixT fMF;
     dMatrixT fMchi;
     dMatrixT fEtaM;
-    dMatrixT fMpu_1;
-    dMatrixT fMpp_1;
-    dMatrixT fMpu_2;
-    dMatrixT fMpp_2;
+    dMatrixT fMpu_1_1;
+    dMatrixT fMpp_1_1;
+    dMatrixT fMpu_1_2;
+    dMatrixT fMpp_1_2;
+    dMatrixT fMpu_2_1;
+    dMatrixT fMpp_2_1;
+    dMatrixT fMpu_2_2;
+    dMatrixT fMpp_2_2;
     dMatrixT fMpu_3;
     dMatrixT fMpp_3;
     dMatrixT fMpu_4;
     dMatrixT fMpp_4;
+    dMatrixT fMpu_5_1;
+    dMatrixT fMpp_5_1;
+    dMatrixT fMpu_5_2;
+    dMatrixT fMpp_5_2;
     dMatrixT fMpu_6;
     dMatrixT fMpp_6;
+    dMatrixT fMpu_7;
+    dMatrixT fMpp_7;
+    dMatrixT fMpu_8_1;
+    dMatrixT fMpp_8_1;
+    dMatrixT fMpu_8_2;
+    dMatrixT fMpp_8_2;
+    dMatrixT fMpu_9;
+    dMatrixT fMpp_9;
+    dMatrixT fMpu_10;
+    dMatrixT fMpp_10;
+    dMatrixT fMpu_11;
+    dMatrixT fMpp_11;
+
+    dMatrixT fKMphiu_1_1;
+    dMatrixT fKMphiphi_1_1;
+    dMatrixT fKMphiu_1_2;
+    dMatrixT fKMphiphi_1_2;
+    dMatrixT fKMphiu_2_1;
+    dMatrixT fKMphiphi_2_1;
+    dMatrixT fKMphiu_2_2;
+    dMatrixT fKMphiphi_2_2;
     dMatrixT fKMphiu_3;
     dMatrixT fKMphiphi_3;
     dMatrixT fKMphiu_4;
     dMatrixT fKMphiphi_4;
+    dMatrixT fKMphiu_5_1;
+    dMatrixT fKMphiphi_5_1;
+    dMatrixT fKMphiu_5_2;
+    dMatrixT fKMphiphi_5_2;
     dMatrixT fKMphiu_6;
     dMatrixT fKMphiphi_6;
+    dMatrixT fKMphiu_7;
+    dMatrixT fKMphiphi_7;
+    dMatrixT fKMphiu_8_1;
+    dMatrixT fKMphiphi_8_1;
+    dMatrixT fKMphiu_8_2;
+    dMatrixT fKMphiphi_8_2;
+    dMatrixT fKMphiu_9;
+    dMatrixT fKMphiphi_9;
+    dMatrixT fKMphiu_10;
+    dMatrixT fKMphiphi_10;
+    dMatrixT fKMphiu_11;
+    dMatrixT fKMphiphi_11;
 
     dTensor3DT fMKLM;
     dTensor3DT fdevMKLM;
@@ -3785,17 +3830,36 @@ private:
     void Form_GAMMA(void);
     void Form_fEtaM(void);
     void Form_fMchi(void);
-    void Form_fMpu_1(void);
-    void Form_fMpp_1(void);
-    void Form_fMpu_2(void);
-    void Form_fMpp_2(void);
+    void Form_fMpu_1_1(void);
+    void Form_fMpp_1_1(void);
+    void Form_fMpu_1_2(void);
+    void Form_fMpp_1_2(void);
+    void Form_fMpu_2_1(void);
+    void Form_fMpp_2_1(void);
+    void Form_fMpu_2_2(void);
+    void Form_fMpp_2_2(void);
     void Form_fMpu_3(void);
     void Form_fMpp_3(void);
     void Form_fMpu_4(void);
     void Form_fMpp_4(void);
+    void Form_fMpu_5_1(void);
+    void Form_fMpp_5_1(void);
+    void Form_fMpu_5_2(void);
+    void Form_fMpp_5_2(void);
     void Form_fMpu_6(void);
     void Form_fMpp_6(void);
-
+    void Form_fMpu_7(void);
+    void Form_fMpp_7(void);
+    void Form_fMpu_8_1(void);
+    void Form_fMpp_8_1(void);
+    void Form_fMpu_8_2(void);
+    void Form_fMpp_8_2(void);
+    void Form_fMpu_9(void);
+    void Form_fMpp_9(void);
+    void Form_fMpu_10(void);
+    void Form_fMpp_10(void);
+    void Form_fMpu_11(void);
+    void Form_fMpp_11(void);
 
 
     void Form_Jmat(void);
