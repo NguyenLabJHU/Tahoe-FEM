@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.32 2011-12-01 21:11:40 bcyansfn Exp $ */
+/* $Id: main.cpp,v 1.33 2014-10-10 21:37:37 regueiro Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream>
 #include <fstream>
@@ -166,10 +166,7 @@ void DumpLicense(void)
 {
 	const char version[] = "Tahoe 2.1";
 	cout << "\n " << version << "\n\n"
-         << " Copyright 2003, Sandia Corporation.\n"
+         << " Copyright 2014, Regents of the University of Colorado.\n"
 	     << " All rights reserved.\n\n"
-	     << " Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive\n"
-	     << " license for use of this work by or on behalf of the U.S. Government. Export\n"
-	     << " of this program may require a license from the United States Government."
 	     << endl;
 }
