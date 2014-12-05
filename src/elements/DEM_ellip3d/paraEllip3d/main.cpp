@@ -135,6 +135,7 @@ int main(int argc, char* argv[]) {
     break;  
   case 702: // couple with sonic fluid flow, bottom "left" part
     assemb.coupleWithSonicFluid();
+    break;
   case 703: // couple with sonic fluid flow, rectangular "left" part
     assemb.coupleWithSonicFluid();
     break;
