@@ -3609,7 +3609,7 @@ namespace dem {
     MPI_Status status;
     MPI_File contactFile;
     MPI_File_open(mpiWorld, str, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &contactFile);
-    if(boostWorld.rank() == 0 && !contactFile) { std::cout << "stream error: printContact" << std::endl; exit(-1);}
+    if(boostWorld.rank() == 0 && !contactFile) { debugInf << "stream error: printContact" << std::endl; exit(-1);}
 
     std::stringstream inf;
     inf.setf(std::ios::scientific, std::ios::floatfield);

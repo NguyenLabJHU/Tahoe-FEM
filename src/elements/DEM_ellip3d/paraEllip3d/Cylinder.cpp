@@ -5,10 +5,10 @@
 namespace dem {
 
   void Cylinder::print() const{
-    std::cout << "radius=" << radius << std::endl;
-    std::cout << "height=" << height << std::endl;
-    std::cout << "center=";
-    center.print(std::cout);
+    debugInf << "radius=" << radius << std::endl;
+    debugInf << "height=" << height << std::endl;
+    debugInf << "center=";
+    center.print(debugInf);
   }
 
   Vec Cylinder::randomPoint() const{

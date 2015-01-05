@@ -1211,7 +1211,7 @@ namespace dem {
 
   void Fluid::plot(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { std::cout << "stream error: Fluid::plot" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: Fluid::plot" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     

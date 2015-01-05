@@ -6,8 +6,8 @@
 namespace dem {
 
   void Rectangle::print() const{
-    std::cout << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '
-	      << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
+    debugInf << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '
+	     << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
   }
   
   Vec Rectangle::randomPoint() const{

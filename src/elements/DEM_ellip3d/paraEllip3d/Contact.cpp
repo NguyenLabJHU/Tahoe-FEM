@@ -201,7 +201,7 @@ namespace dem {
       p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % (-normalForce) );	
       
       /*
-      std::cout<< "Contact.h: iter=" << iteration
+      debugInf << "Contact.h: iter=" << iteration
 	       << " penetr=" << penetr
 	       << " cohesionForce=" << vfabs(cohesionForce)
 	       << " normalForce=" << vfabs(normalForce)
@@ -354,7 +354,7 @@ namespace dem {
 	}
 	
 	/*
-	std::cout<< "Contact.h: iter="<iteration
+	debugInf << "Contact.h: iter="<iteration
 		 << " prevTgtSlide=" << prevTgtSlide
 		 << " tgtSlide=" << tgtSlide
 		 << " val=" << val

@@ -1,4 +1,5 @@
 #include "Parameter.h"
+#include "const.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -10,7 +11,7 @@ namespace dem {
   void Parameter::readIn(const char *input) {
     std::ifstream ifs;
     ifs.open(input);
-    if (!ifs) { std::cout << "stream error: Parameter.cpp" << std::endl; exit(-1); }
+    if (!ifs) { debugInf << "stream error: Parameter.cpp" << std::endl; exit(-1); }
     std::string line;
     std::istringstream ssline;
     std::string str, str2;
@@ -488,16 +489,16 @@ namespace dem {
     std::vector<REAL> &sigma = dem::Parameter::getSingleton().sigmaPath;
   
     for (std::map<std::string, REAL>::const_iterator it = param.begin(); it != param.end(); ++it)
-      std::cout << it->first << "  " << it->second << std::endl;
+      debugInf << it->first << "  " << it->second << std::endl;
   
     for (std::size_t i = 0; i < grada.size(); ++i) 
-      std::cout << grada[i].first << "  " << grada[i].second << std::endl;
+      debugInf << grada[i].first << "  " << grada[i].second << std::endl;
 
     for (std::map<std::string, std::string>::const_iterator it = file.begin(); it != file.end(); ++it)
-      std::cout << it->first << "  " << it->second << std::endl;  
+      debugInf << it->first << "  " << it->second << std::endl;  
 
     for (std::vector<REAL>::const_iterator it = sigma.begin(); it != sigma.end(); ++it)
-      std::cout << (*it) << std::endl;
+      debugInf << (*it) << std::endl;
   }
   
 }

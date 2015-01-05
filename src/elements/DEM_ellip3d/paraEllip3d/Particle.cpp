@@ -300,7 +300,7 @@ namespace dem {
   
     REAL delta = B*B - 4*A*C;
     if (delta < 0) {
-      std::cout << "Particle.cpp: iter=" << iteration
+      debugInf << "Particle.cpp: iter=" << iteration
 		<< " delta < 0 in intersectWithLine()" << std::endl;
       return false;
     }
@@ -384,7 +384,7 @@ namespace dem {
     // if delta < 0, then it is usually -1.0e-20, caused by computational precision.
     /*
       if (B*B-4*A*C < 0){
-      std::cout<< "Particle.cpp: iter=" << iteration
+      debugInf<< "Particle.cpp: iter=" << iteration
       << " delta < 0 in getRadius()"
       << " delta=" << B*B-4*A*C
       << " -C/B=" << -C/B
@@ -685,7 +685,7 @@ namespace dem {
     Vec normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) * 4 * E0/3 * normalDirc;
   
     /*
-      std::cout << ' ' << iteration
+      debugInf << ' ' << iteration
       << ' ' << getId()
       << ' ' << plane->boundaryId
       << ' ' << pt1.getX()
@@ -831,7 +831,7 @@ namespace dem {
     
       /*
 	if (iteration % 100 == 0)  
-	std::cout << "Particle.cpp, iter=" << iteration
+	debugInf << "Particle.cpp, iter=" << iteration
 	<< " normalForce=" << vfabs(normalForce)
 	<< " cntDampingForce= " << vfabs(cntDampingForce)
 	<< " kn=" << kn
