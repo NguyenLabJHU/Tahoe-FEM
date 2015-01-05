@@ -34,7 +34,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 1; ++i) {
+      for (std::size_t i = 0; i < 3; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -116,6 +116,12 @@ namespace dem {
 	REAL percent, size;
 	ssline >> percent >> size;
 	gradation.push_back(std::make_pair(percent, size));
+      }
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
       } 
       break;
   
@@ -126,7 +132,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 2; ++i) {
+      for (std::size_t i = 0; i < 4; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -332,7 +338,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 7; ++i) {
+      for (std::size_t i = 0; i < 9; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -347,7 +353,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 1; ++i) {
+      for (std::size_t i = 0; i < 3; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -355,22 +361,7 @@ namespace dem {
       }
       break;
 
-    case 701: // couple with sonic fluid flow, bottom "left" part, R-H conditions
-      for (std::size_t i = 0; i < 2; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> str2;
-	datafile[str] = str2;
-      }
-      for (std::size_t i = 0; i < 25; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> val;
-	parameter[str] = val;
-      }
-      break;
-
-    case 702: // couple with sonic fluid flow, bottom "left" part
+    case 701: { // couple with gas flow, bottom "left" part, R-H conditions
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -383,9 +374,63 @@ namespace dem {
 	ssline >> str >> val;
 	parameter[str] = val;
       }
+      std::size_t printPtclNum = static_cast<std::size_t> (parameter["printPtclNum"]);
+      cfdPrintPtcls.resize(printPtclNum);;
+      for (std::size_t i = 0; i < printPtclNum; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> cfdPrintPtcls[i];
+      } 
       break;
+    }
 
-    case 703: // couple with sonic fluid flow, rectangular "left" part
+    case 702: { // couple with gas flow, bottom "left" part
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 29; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      std::size_t printPtclNum = static_cast<std::size_t> (parameter["printPtclNum"]);
+      cfdPrintPtcls.resize(printPtclNum);;
+      for (std::size_t i = 0; i < printPtclNum; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> cfdPrintPtcls[i];
+      }
+      break;
+    }
+
+    case 703: { // couple with gas flow, rectangular "left" part
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 34; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      std::size_t printPtclNum = static_cast<std::size_t> (parameter["printPtclNum"]);
+      cfdPrintPtcls.resize(printPtclNum);;
+      for (std::size_t i = 0; i < printPtclNum; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> cfdPrintPtcls[i];
+      }
+      break;
+    }
+
+    case 704: { // couple with gas flow, spherical "left" part
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
@@ -398,37 +443,38 @@ namespace dem {
 	ssline >> str >> val;
 	parameter[str] = val;
       }
+      std::size_t printPtclNum = static_cast<std::size_t> (parameter["printPtclNum"]);
+      cfdPrintPtcls.resize(printPtclNum);;
+      for (std::size_t i = 0; i < printPtclNum; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> cfdPrintPtcls[i];
+      }
       break;
+    }
 
-    case 704: // couple with sonic fluid flow, spherical "left" part
+    case 705: { // couple with gas flow, rectangular "left" part with a zone below
       for (std::size_t i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (std::size_t i = 0; i < 30; ++i) {
+      for (std::size_t i = 0; i < 37; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
 	parameter[str] = val;
       }
-      break;
-
-    case 705: // couple with sonic fluid flow, rectangular "left" part with a zone below
-      for (std::size_t i = 0; i < 2; ++i) {
+      std::size_t printPtclNum = static_cast<std::size_t> (parameter["printPtclNum"]);
+      cfdPrintPtcls.resize(printPtclNum);;
+      for (std::size_t i = 0; i < printPtclNum; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
-	ssline >> str >> str2;
-	datafile[str] = str2;
-      }
-      for (std::size_t i = 0; i < 35; ++i) {
-	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
-	ssline.clear(); ssline.str(line);
-	ssline >> str >> val;
-	parameter[str] = val;
+	ssline >> cfdPrintPtcls[i];
       }
       break;
+    }
 
     }
     ifs.close();

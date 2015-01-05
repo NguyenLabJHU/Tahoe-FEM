@@ -56,13 +56,16 @@ namespace dem {
     std::vector<std::pair<REAL, REAL> > gradation;
     std::map<std::string, std::string> datafile; 
     std::vector<REAL> sigmaPath;
+    std::vector<std::size_t> cfdPrintPtcls;
 
   private:
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
       ar & parameter;
+      ar & gradation;
       ar & sigmaPath;
+      ar & cfdPrintPtcls;
     } 
    
   };
