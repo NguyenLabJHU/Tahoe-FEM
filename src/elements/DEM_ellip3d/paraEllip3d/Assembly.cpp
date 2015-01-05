@@ -267,6 +267,7 @@ namespace dem {
     char cstr0[50];
     /**/REAL timeCount = 0;
     /**/timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
+    /**/REAL timeIncr  = timeStep * netStep;
     /**/REAL timeTotal = timeAccrued + timeStep * netStep;
     if (mpiRank == 0) {
       plotBoundary(strcat(combineString(cstr0, "deposit_bdryplot_", iterSnap - 1, 3), ".dat"));
@@ -284,7 +285,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0;  time0 = MPI_Wtime();
       commuParticle(); if (toCheckTime) time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      /**/calcTimeStep(); // use values from last step, must call before findConact (which clears data)
+      /**/calcTimeStep(); // use values from last step, must call before findContact (which clears data)
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -292,12 +293,14 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
+      dragForce();
+
       updateParticle();   
       updateGrid(); // universal; updateGridMaxZ() for deposition only
 
       /**/timeCount += timeStep;
       /**/timeAccrued += timeStep;
-      /**/if (timeCount >= timeTotal/netSnap) { 
+      /**/if (timeCount >= timeIncr/netSnap) { 
 	//if (iteration % (netStep / netSnap) == 0) {
 	if (toCheckTime) time1 = MPI_Wtime();
 	gatherParticle();
@@ -435,7 +438,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findConact
+      calcTimeStep(); // use values from last step, must call before findContact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -586,7 +589,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findConact
+      calcTimeStep(); // use values from last step, must call before findContact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -707,7 +710,7 @@ namespace dem {
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       // displacement control relies on constant time step, so do not call calcTimeStep().
-      //calcTimeStep(); // use values from last step, must call before findConact
+      //calcTimeStep(); // use values from last step, must call before findContact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -802,7 +805,7 @@ namespace dem {
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       // displacement control relies on constant time step, so do not call calcTimeStep().
-      //calcTimeStep(); // use values from last step, must call before findConact
+      //calcTimeStep(); // use values from last step, must call before findContact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -924,7 +927,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findConact
+      calcTimeStep(); // use values from last step, must call before findContact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -1108,14 +1111,12 @@ namespace dem {
   }
 
 
-  void Assembly::coupleWithSonicFluid() 
+  void Assembly::coupleWithGas() 
   {
-    std::ofstream particleInf;
     if (mpiRank == 0) {
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       openDepositProg(progressInf, "couple_progress");
-      openParticleProg(particleInf, "particle_progress");
       /*1*/ fluid.initParameter(allContainer, gradation);
       /*2*/ fluid.initialize();
     }
@@ -1135,7 +1136,8 @@ namespace dem {
     char cstr0[50];
     REAL timeCount = 0;
     timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
-    REAL timeTotal = timeAccrued + timeStep * netStep;
+    REAL timeIncr  = timeStep * netStep;
+    REAL timeTotal = timeAccrued + timeIncr;
     if (mpiRank == 0) {
       plotBoundary(strcat(combineString(cstr0, "couple_bdryplot_", iterSnap - 1, 3), ".dat"));
       plotGrid(strcat(combineString(cstr0, "couple_gridplot_", iterSnap - 1, 3), ".dat"));
@@ -1152,15 +1154,15 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findConact
+      calcTimeStep(); // use values from last step, must call before findContact
       findContact();
       if (isBdryProcess()) findBdryContact();
 
       clearContactForce();
 
-      /*4*/ fluid.getParticleInfo(particleVec); // not allParticleVec
+      /*4*/ fluid.getPtclInfo(particleVec); // not allParticleVec
       /*5*/ fluid.runOneStep(particleVec);
-      /*6*/ fluid.calcParticleForce(particleVec, particleInf); // not allParticleVec
+      /*6*/ fluid.calcPtclForce(particleVec); // not allParticleVec
       /*7*/ fluid.penalize(particleVec);
 
       internalForce();
@@ -1171,7 +1173,7 @@ namespace dem {
 
       timeCount += timeStep;
       timeAccrued += timeStep;
-      if (timeCount >= timeTotal/netSnap) { 
+      if (timeCount >= timeIncr/netSnap) { 
 	time1 = MPI_Wtime();
 	gatherParticle();
 	gatherBdryContact();
@@ -1204,10 +1206,8 @@ namespace dem {
       ++iteration;
     } 
   
-    if (mpiRank == 0) {
+    if (mpiRank == 0)
       closeProg(progressInf);
-      closeProg(particleInf);
-    }
   }
 
 
@@ -2991,40 +2991,6 @@ namespace dem {
   }
 
 
-  void  Assembly::openParticleProg(std::ofstream &ofs, const char *str) {
-    ofs.open(str);
-    if(!ofs) { debugInf << "stream error: openParticleProg" << std::endl; exit(-1); }
-    ofs.setf(std::ios::scientific, std::ios::floatfield);
-    ofs.precision(OPREC);
-
-    ofs << std::setw(OWID) << "iteration"
-	<< std::setw(OWID) << "accruedTime"
-	<< std::setw(OWID) << "penalFx"
-	<< std::setw(OWID) << "penalFy"
-	<< std::setw(OWID) << "penalFz"
-	<< std::setw(OWID) << "pressureFx"
-	<< std::setw(OWID) << "pressureFy"
-	<< std::setw(OWID) << "pressureFz"
-	<< std::setw(OWID) << "totalCd"
-	<< std::setw(OWID) << "penalMx"
-	<< std::setw(OWID) << "penalMy"
-	<< std::setw(OWID) << "penalMz"
-	<< std::setw(OWID) << "pressureMx"
-	<< std::setw(OWID) << "pressureMy"
-	<< std::setw(OWID) << "pressureMz"
-	<< std::setw(OWID) << "accelX"
-	<< std::setw(OWID) << "accelY"
-	<< std::setw(OWID) << "accelZ"
-	<< std::setw(OWID) << "velocX"
-	<< std::setw(OWID) << "velocY"
-	<< std::setw(OWID) << "velocZ"
-	<< std::setw(OWID) << "avgDen"
-	<< std::setw(OWID) << "avgVel"
-	<< std::setw(OWID) << "avgPrs"
-	<< std::endl;
-  }
-
-
   void Assembly::readParticle(const char *inputParticle) {
 
     REAL young = dem::Parameter::getSingleton().parameter["young"];
@@ -3520,6 +3486,12 @@ namespace dem {
     avgNormal = sum[0]/mpiSize;
     avgShear  = sum[1]/mpiSize;
     avgPenetr = sum[2]/mpiSize;
+  }
+
+
+  void Assembly::dragForce(){
+    for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      (*it)->dragForce();
   }
 
 

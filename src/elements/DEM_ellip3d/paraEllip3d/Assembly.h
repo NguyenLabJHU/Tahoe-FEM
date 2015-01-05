@@ -151,7 +151,7 @@ namespace dem {
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
     void proceedFromPreset();
-    void coupleWithSonicFluid();    
+    void coupleWithGas();    
 
     void isotropic();
     void odometer();
@@ -200,6 +200,7 @@ namespace dem {
     
     void clearContactForce();                     // clear forces and moments for all particles
     void internalForce();                         // calculate inter-particle forces
+    void dragForce();
     void springForce();
     void boundaryForce();                         // calcualte forces between rigid boundaries and particles
     void cavityBoundaryForce();

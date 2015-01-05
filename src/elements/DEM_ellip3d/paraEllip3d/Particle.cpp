@@ -430,6 +430,25 @@ namespace dem {
   }
   
   
+  void Particle::dragForce() {
+    REAL Cd  = dem::Parameter::getSingleton().parameter["Cd"];
+    REAL rho = dem::Parameter::getSingleton().parameter["fluidDensity"];
+
+    REAL ux = currVeloc.getX(); 
+    REAL uy = currVeloc.getY(); 
+    REAL uz = currVeloc.getZ();
+    Vec globalDelta = Vec(fabs(ux)*ux, fabs(uy)*uy, fabs(uz)*uz);
+    Vec localDelta  = globalToLocal(globalDelta);
+    Vec localForce, globalForce;
+    // localDelta needs to project in local frame in order to calculate local drag forces
+    localForce.setX(0.5*rho*localDelta.getX()*Cd*Pi*b*c);
+    localForce.setY(0.5*rho*localDelta.getY()*Cd*Pi*c*a);
+    localForce.setZ(0.5*rho*localDelta.getZ()*Cd*Pi*a*b);
+    globalForce = localToGlobal(localForce);
+    addForce(globalForce);
+  }
+
+
   // central difference integration method
   void Particle::update() {
 

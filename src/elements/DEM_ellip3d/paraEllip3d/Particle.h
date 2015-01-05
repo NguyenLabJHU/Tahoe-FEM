@@ -133,6 +133,7 @@ namespace dem {
     void addForce(Vec vv) {force += vv;}
     void addMoment(Vec vv) {moment += vv;}
     void update();
+    void dragForce();
 
     Vec globalToLocal(Vec input) const;
     Vec localToGlobal(Vec input) const;
