@@ -42,6 +42,10 @@ int main(int argc, char* argv[]) {
       return -1;  
     }
 
+    dem::debugInf.open("debugInf");
+    if(!dem::debugInf) { std::cout << "stream error: main.cpp debugInf" << std::endl; exit(-1);}
+    dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
+
     dem::Parameter::getSingleton().readIn(argv[1]);
     dem::Parameter::getSingleton().writeOut();
     int mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
@@ -56,13 +60,6 @@ int main(int argc, char* argv[]) {
 
   dem::Assembly assemb;
   assemb.setCommunicator(boostWorld);
-
-  // only root process prints to debugInf
-  if (boostWorld.rank() == 0) {
-    dem::debugInf.open("debugInf");
-    if(!dem::debugInf) { std::cout << "stream error: main.cpp debugInf" << std::endl; exit(-1);}
-    dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
-  }
 
   // parallel IO for overlap info
   MPI_File_open(MPI_Comm(boostWorld), "overlapInf", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dem::overlapInf);
@@ -147,8 +144,10 @@ int main(int argc, char* argv[]) {
     break;
   }
   
-  dem::debugInf << std::endl << "MPI_Wtime: " << MPI_Wtime() - time0 << " seconds" << std::endl;
-  dem::debugInf.close();
+  if (boostWorld.rank() == 0) {
+    dem::debugInf << std::endl << "MPI_Wtime: " << MPI_Wtime() - time0 << " seconds" << std::endl;
+    dem::debugInf.close();
+  }
   MPI_File_close(&dem::overlapInf);
   return 0;
 }

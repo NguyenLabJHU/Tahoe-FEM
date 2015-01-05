@@ -16,7 +16,7 @@ namespace dem {
   const std::size_t OPREC = 6;    // output precision, number of digits after decimal dot
 
   // other global variables
-  std::ofstream debugInf;         // debug info
+  std::ofstream debugInf;         // debug info, only root process prints to debugInf
   MPI_File overlapInf;            // contact overlap info, parallel IO
   std::size_t iteration;          // iteration number
   REAL timeStep;                  // time step

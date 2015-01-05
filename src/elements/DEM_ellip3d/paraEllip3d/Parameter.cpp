@@ -5,6 +5,7 @@
 #include <sstream>
 #include <cstddef>
 #include <cstdlib>
+#include <iomanip>
 
 namespace dem {
 
@@ -487,18 +488,30 @@ namespace dem {
     std::vector<std::pair<REAL, REAL> > &grada = dem::Parameter::getSingleton().gradation;
     std::map<std::string, std::string> &file = dem::Parameter::getSingleton().datafile;
     std::vector<REAL> &sigma = dem::Parameter::getSingleton().sigmaPath;
+    std::vector<std::size_t> &ptcl = dem::Parameter::getSingleton().cfdPrintPtcls;
   
     for (std::map<std::string, REAL>::const_iterator it = param.begin(); it != param.end(); ++it)
-      debugInf << it->first << "  " << it->second << std::endl;
+      debugInf << std::setw(OWID) << it->first << std::setw(OWID) << it->second << std::endl;
   
+    if (grada.size() != 0)
+      debugInf << std::setw(OWID) << "gradation:" << std::endl;
     for (std::size_t i = 0; i < grada.size(); ++i) 
-      debugInf << grada[i].first << "  " << grada[i].second << std::endl;
+      debugInf << std::setw(OWID) << grada[i].first << std::setw(OWID) << grada[i].second << std::endl;
 
     for (std::map<std::string, std::string>::const_iterator it = file.begin(); it != file.end(); ++it)
-      debugInf << it->first << "  " << it->second << std::endl;  
+      debugInf << std::setw(OWID) << it->first << std::setw(OWID) << it->second << std::endl;  
 
+    if (sigma.size() != 0)
+      debugInf << std::setw(OWID) << "sigma:" << std::endl;
     for (std::vector<REAL>::const_iterator it = sigma.begin(); it != sigma.end(); ++it)
-      debugInf << (*it) << std::endl;
+      debugInf << std::setw(OWID) << (*it) << std::endl;
+
+    if (ptcl.size() != 0)
+      debugInf << std::setw(OWID) << "particles:" << std::endl;
+    for (std::vector<std::size_t>::const_iterator it = ptcl.begin(); it != ptcl.end(); ++it)
+      debugInf << std::setw(OWID) << (*it) << std::endl;
+
+    debugInf << std::endl;
   }
   
 }
