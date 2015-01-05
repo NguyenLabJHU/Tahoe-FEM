@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     }
 
     dem::Parameter::getSingleton().readIn(argv[1]);
-    //dem::Parameter::getSingleton().writeOut();
+    dem::Parameter::getSingleton().writeOut();
     int mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
     int mpiProcY = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcY"]);
     int mpiProcZ = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcZ"]);
@@ -130,20 +130,20 @@ int main(int argc, char* argv[]) {
   case 602: // resume expanding particles inside a virtual cavity and see what occurs
     assemb.resumeExpandCavityParticle();
     break;  
-  case 701: // couple with sonic fluid flow, bottom "left" part, R-H conditions
-    assemb.coupleWithSonicFluid();
+  case 701: // couple with gas flow, bottom "left" part, R-H conditions
+    assemb.coupleWithGas();
     break;  
-  case 702: // couple with sonic fluid flow, bottom "left" part
-    assemb.coupleWithSonicFluid();
+  case 702: // couple with gas flow, bottom "left" part
+    assemb.coupleWithGas();
     break;
-  case 703: // couple with sonic fluid flow, rectangular "left" part
-    assemb.coupleWithSonicFluid();
+  case 703: // couple with gas flow, rectangular "left" part
+    assemb.coupleWithGas();
     break;
-  case 704: // couple with sonic fluid flow, spherical "left" part
-    assemb.coupleWithSonicFluid();
+  case 704: // couple with gas flow, spherical "left" part
+    assemb.coupleWithGas();
     break;
-  case 705: // couple with sonic fluid flow, rectangular "left" part with a zone below
-    assemb.coupleWithSonicFluid();
+  case 705: // couple with gas flow, rectangular "left" part with a zone below
+    assemb.coupleWithGas();
     break;
   }
   
