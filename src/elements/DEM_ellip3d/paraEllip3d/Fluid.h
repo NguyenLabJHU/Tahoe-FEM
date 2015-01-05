@@ -19,17 +19,26 @@ namespace dem {
     typedef std::valarray< std::valarray< std::valarray <std::valarray< std::valarray<REAL>  > > > > Array5D;
 
   private:
-    static const REAL Rs = 287.06; // specific gas constant
+    static const REAL Rs  = 287.06; // specific gas constant
 
-    std::size_t nx; // nx = total cell centers = parts + two boundary points in x direction
-    std::size_t ny; // ny = total cell centers = parts + two boundary points in y direction
-    std::size_t nz; // nz = total cell centers = parts + two boundary points in z direction
-    REAL dx;
+    std::size_t nx;    // nx = total cell centers = parts + two boundary points in x direction
+    std::size_t ny;    // ny = total cell centers = parts + two boundary points in y direction
+    std::size_t nz;    // nz = total cell centers = parts + two boundary points in z direction
+    std::size_t ptclGrid; // approximate grids accross particle in each dimension
+    REAL dx;           // grid size
     REAL dy;
     REAL dz;
+    REAL x1F;          // fluid domain
+    REAL x2F;
+    REAL y1F;
+    REAL y2F;
+    REAL z1F;
+    REAL z2F;
 
     REAL Cd;           // drag coefficient
     REAL porosity;     // particle porosity as porous media
+    REAL Cdi;          // fictitious drag coefficient inside porous media
+    REAL velMod;       // velocity correction coefficient in total enthalpy as porous media
     REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gamma;        // ratio of specific heat capacity of air
@@ -47,7 +56,7 @@ namespace dem {
     REAL z0L;          // center of left part, z-coordinate
     REAL r0L;          // radius of left part
 
-    REAL rhoR, uR, pR; // known for RHC
+    REAL rhoR, uR, pR; // known for Rankine-Hugoniot conditions (RHC)
     REAL MachShock;    // shock Mach number, known for RHC
     REAL MachL;        // Mach number for left part
     REAL rhoL, uL, pL; // unknown for RHC
@@ -127,15 +136,17 @@ namespace dem {
     // speed of sound, 3-dimensional
     // nx, ny, nz
 
+    std::vector<std::size_t> printPtcls;
+
   public:
     Fluid() {}
     
     void initParameter(Rectangle &container, Gradation &gradation);
     void initialize();
     void initialCondition();
-    REAL calcTimeStep();
+    void calcTimeStep();
     void RankineHugoniot();
-    void addGhostPoints();
+    void initGhostPoints();
     void soundSpeed();
     void enthalpy();
     void flux(std::size_t, std::vector<Particle *> &ptcls);
@@ -147,9 +158,9 @@ namespace dem {
     void inteStep2(std::vector<Particle *> &ptcls);
     void inteStep3(std::vector<Particle *> &ptcls);
 
-    void getParticleInfo(std::vector<Particle *> &ptcls);
+    void getPtclInfo(std::vector<Particle *> &ptcls);
     void runOneStep(std::vector<Particle *> &ptcls);
-    void calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs);
+    void calcPtclForce(std::vector<Particle *> &ptcls);
     void penalize(std::vector<Particle *> &ptcls);
     void plot(const char *) const;
     

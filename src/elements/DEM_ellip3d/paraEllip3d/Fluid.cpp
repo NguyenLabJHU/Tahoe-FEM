@@ -5,13 +5,22 @@
 
 namespace dem {
 
+  char *combineStr(char *cstr, const char *str, std::size_t num, std::size_t width) {
+    std::string obj(str);
+    std::stringstream ss;
+    ss << std::setw(width) << std::setfill('0') << std::right << num;
+    obj += ss.str();
+    return strcpy( cstr, obj.c_str() );
+  }
+
   const REAL Fluid::Rs;
 
   void Fluid::initParameter(Rectangle &container, Gradation &gradation) {
 
-    std::size_t ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
+    ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
     Cd   = dem::Parameter::getSingleton().parameter["Cd"];
     porosity = dem::Parameter::getSingleton().parameter["porosity"];
+    Cdi = dem::Parameter::getSingleton().parameter["Cdi"];
     RK = dem::Parameter::getSingleton().parameter["RK"];
     CFL = dem::Parameter::getSingleton().parameter["CFL"];
     gamma = dem::Parameter::getSingleton().parameter["airGamma"];
@@ -20,12 +29,12 @@ namespace dem {
     uR   = dem::Parameter::getSingleton().parameter["rightVelocity"];
     
     leftType = static_cast<int> (dem::Parameter::getSingleton().parameter["leftType"]);    
-    REAL x1F = dem::Parameter::getSingleton().parameter["x1F"];
-    REAL y1F = dem::Parameter::getSingleton().parameter["y1F"];
-    REAL z1F = dem::Parameter::getSingleton().parameter["z1F"];
-    REAL x2F = dem::Parameter::getSingleton().parameter["x2F"];
-    REAL y2F = dem::Parameter::getSingleton().parameter["y2F"];
-    REAL z2F = dem::Parameter::getSingleton().parameter["z2F"];
+    x1F = dem::Parameter::getSingleton().parameter["x1F"];
+    y1F = dem::Parameter::getSingleton().parameter["y1F"];
+    z1F = dem::Parameter::getSingleton().parameter["z1F"];
+    x2F = dem::Parameter::getSingleton().parameter["x2F"];
+    y2F = dem::Parameter::getSingleton().parameter["y2F"];
+    z2F = dem::Parameter::getSingleton().parameter["z2F"];
     arrayBC[0] = dem::Parameter::getSingleton().parameter["x1Reflecting"];
     arrayBC[1] = dem::Parameter::getSingleton().parameter["x2Reflecting"];
     arrayBC[2] = dem::Parameter::getSingleton().parameter["y1Reflecting"];
@@ -78,6 +87,8 @@ namespace dem {
       uBL  = dem::Parameter::getSingleton().parameter["belowLeftVelocity"];
     }    
 
+    printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
+
     REAL minR = gradation.getPtclMinRadius();
     dx = (minR * 2) / ptclGrid;
     dy = dx;
@@ -117,6 +128,7 @@ namespace dem {
     debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
     debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
     debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
+    debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
     debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << (int) RK << std::endl;
     debugInf << std::setw(OWID) << "CFL" << std::setw(OWID) << CFL << std::endl;
     debugInf << std::setw(OWID) << "gamma" << std::setw(OWID) << gamma << std::endl;
@@ -142,6 +154,7 @@ namespace dem {
     debugInf << std::setw(OWID) << "y2Rflecting" << std::setw(OWID) << (int) arrayBC[3] << std::endl;
     debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << (int) arrayBC[4] << std::endl;
     debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << (int) arrayBC[5] << std::endl;
+    debugInf << std::setw(OWID) << "printPtclNum" << std::setw(OWID) << printPtcls.size() << std::endl;
 
     if (leftType == 1) {
       debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
@@ -355,6 +368,14 @@ namespace dem {
     RankineHugoniot();
     initialCondition(); 
     soundSpeed(); // for printing Mach number
+    debugInf << std::setw(OWID) << "iteration" 
+	     << std::setw(OWID) << "timeStep" 
+	     << std::setw(OWID) << "timeAccrued"
+	     << std::setw(OWID) << "uZMax"
+	     << std::setw(OWID) << "uZMin"
+	     << std::setw(OWID) << "soundSpeedMax"
+	     << std::setw(OWID) << "(|uZ|+a)Max"
+	     << std::endl;
   }
 
   void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
@@ -371,33 +392,27 @@ namespace dem {
   }
 
   void Fluid::inteStep1(std::vector<Particle *> &ptcls) { 
-    addGhostPoints();
+    initGhostPoints();
     soundSpeed();
-    timeStep = std::min(timeStep, calcTimeStep());
-    debugInf << std::setw(OWID) << iteration 
-	     << std::setw(OWID) << timeStep 
-	     << std::setw(OWID) << timeAccrued << std::endl;
+    calcTimeStep();
     enthalpy();
     rotateIJK(ptcls);
 
     // update conserved variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < nInteg; ++m) {
+	for (std::size_t k = 1; k < nz - 1; ++k)
+	  for (std::size_t m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
 				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
 				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
-	    //if (arrayU[i][j][k][varMsk] == 1) arrayU[i][j][k][m] /= porosity;
-	  }
-	}
 
     // calculate primitive after finding conserved variables
     UtoW(); 
   }
   
   void Fluid::inteStep2(std::vector<Particle *> &ptcls) { 
-    addGhostPoints();
+    initGhostPoints();
     soundSpeed();
     enthalpy();
     rotateIJK(ptcls);
@@ -405,24 +420,21 @@ namespace dem {
     // update conserved variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < nInteg; ++m) {
+	for (std::size_t k = 1; k < nz - 1; ++k)
+	  for (std::size_t m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / (2*RK*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0] 
 						        + (arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0]) )
 				    + timeStep / (2*RK*dy) * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1] 
 						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1]) )
 				    + timeStep / (2*RK*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2] 
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])) );
-	    //if (arrayU[i][j][k][varMsk] == 1) arrayU[i][j][k][m] /= porosity;
-	  }
-	}
 
     // calculate primitive after finding conserved variables
     UtoW(); 
   }
 
   void Fluid::inteStep3(std::vector<Particle *> &ptcls) { 
-    addGhostPoints();
+    initGhostPoints();
     soundSpeed();
     enthalpy();
     rotateIJK(ptcls);
@@ -430,8 +442,8 @@ namespace dem {
     // update conserved variables at the next time step
     for (std::size_t i = 1; i < nx - 1 ; ++i)
       for (std::size_t j = 1; j < ny - 1; ++j)
-	for (std::size_t k = 1; k < nz - 1; ++k) {
-	  for (std::size_t m = 0; m < nInteg; ++m) {
+	for (std::size_t k = 1; k < nz - 1; ++k)
+	  for (std::size_t m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / (6*dx) * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0]
 						         +(arrayRoeFluxStep2[i][j][k][m][0] - arrayRoeFluxStep2[i-1][j][k][m][0])
 						      + 4*(arrayRoeFluxStep3[i][j][k][m][0] - arrayRoeFluxStep3[i-1][j][k][m][0]))
@@ -443,9 +455,6 @@ namespace dem {
 				    + timeStep / (6*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])
 						     + 4*( arrayRoeFluxStep3[i][j][k][m][2] - arrayRoeFluxStep3[i][j][k-1][m][2])) );
-	    //if (arrayU[i][j][k][varMsk] == 1) arrayU[i][j][k][m] /= porosity;
-	  }
-	}
 
     // calculate primitive after finding conserved variables
     UtoW(); 
@@ -544,56 +553,58 @@ namespace dem {
 
 	// 1. momentum penalization
 	for (std::size_t m = 0; m < nDim; ++m) {
-	  // momentum penalization
-	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep;
-	  // influence of momentum penalization on energy
-	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep;
+	  // a. momentum penalization
+	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * (Cdi/Cd) * timeStep;
+	  // b. influence of momentum penalization on energy
+	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * (Cdi/Cd) * arrayU[i][j][k][varVel[m]] * timeStep;
 	}
 
-	// 2. mass penalization
-	// mass penalization and particle velocity term are incorporated by changes in flux()
-	// influence of mass penalization (1-1.0/porosity)*momQuot[m] and particle velocity term u0[m]/porosity*denQuot[m] on energy
+	// 2. porosity correction
+	//   a. porosity corrections are incorporated by changes in flux()
+
+	//   b. influence of porosity correction (1-1.0/porosity)*momQuot[m] and particle velocity term u0[m]/porosity*denQuot[m] on energy
 	if (inGrid) {
 	  for (std::size_t m = 0; m < nDim; ++m)
 	    arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2))
                                          * ( (1-1.0/porosity)*momQuot[m] + u0[m]/porosity*denQuot[m] ) * timeStep;
 	}
+
       }
     }
-
-    /*
-    // 1st implementation: lower efficiency
-    for (std::size_t i = 0; i < nx; ++i)
-      for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k) {
-
-	  // calculate momentum quotient before modification
-	  bool inGrid = (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 );
-	  REAL momQuot[3];
-	  if (inGrid) {
-	    momQuot[0] = (arrayU[i+1][j][k][varMom[0]] - arrayU[i-1][j][k][varMom[0]]) / (2*dx);
-	    momQuot[1] = (arrayU[i][j+1][k][varMom[1]] - arrayU[i][j-1][k][varMom[1]]) / (2*dy);
-	    momQuot[2] = (arrayU[i][j][k+1][varMom[2]] - arrayU[i][j][k-1][varMom[2]]) / (2*dz);
-	  }
-
-	  // penalization
-	  for (std::size_t m = 0; m < nDim; ++m) {
-	    // momentum penalization
-	    arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep;
-	    // energy penalization
-	    arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep;
-	  }
-
-	  // influence of mass penalization on energy
-	  if (inGrid) {
-	    for (std::size_t m = 0; m < nDim; ++m)
-	      arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (0.5*pow(arrayU[i][j][k][varVel[m]],2)*(1.0/porosity-1)) * momQuot[m] * timeStep;
-	  }
-	}
-    */
   }
+
+	/*
+	// 1st implementation: lower efficiency
+	for (std::size_t i = 0; i < nx; ++i)
+	  for (std::size_t j = 0; j < ny; ++j)
+	    for (std::size_t k = 0; k < nz; ++k) {
+
+	      // calculate momentum quotient before modification
+	      bool inGrid = (i > 0 && i < nx-1 && j > 0 && j < ny-1 && k > 0 && k < nz-1 );
+	      REAL momQuot[3];
+	      if (inGrid) {
+		momQuot[0] = (arrayU[i+1][j][k][varMom[0]] - arrayU[i-1][j][k][varMom[0]]) / (2*dx);
+		momQuot[1] = (arrayU[i][j+1][k][varMom[1]] - arrayU[i][j-1][k][varMom[1]]) / (2*dy);
+		momQuot[2] = (arrayU[i][j][k+1][varMom[2]] - arrayU[i][j][k-1][varMom[2]]) / (2*dz);
+	      }
+
+	      // penalization
+	      for (std::size_t m = 0; m < nDim; ++m) {
+		// momentum penalization
+		arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep;
+		// energy penalization
+		arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep;
+	      }
+
+	      // influence of mass penalization on energy
+	      if (inGrid) {
+		for (std::size_t m = 0; m < nDim; ++m)
+		  arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (0.5*pow(arrayU[i][j][k][varVel[m]],2)*(1.0/porosity-1)) * momQuot[m] * timeStep;
+	      }
+	    }
+	*/
   
-  void Fluid::addGhostPoints() {
+  void Fluid::initGhostPoints() {
     // non-reflecting BCs
     for (std::size_t j = 1; j < ny - 1; ++j)
       for (std::size_t k = 1; k < nz - 1; ++k)
@@ -652,51 +663,42 @@ namespace dem {
 	    arrayU[i][j][0][varVel[m]]    *= (1-2*arrayBC[4]); 
 	    arrayU[i][j][nz-1][varVel[m]] *= (1-2*arrayBC[5]); 
 	  }
-    }
-
-    if (leftType == 4) { // spherical shock
-      for (std::size_t i = 0; i < nx; ++i)
-	for (std::size_t j = 0; j < ny; ++j)
-	  for (std::size_t k = 0; k < nz; ++k) {
-	    REAL radius = sqrt(pow(arrayGridCoord[i][j][k][0]-x0L,2) + pow(arrayGridCoord[i][j][k][1]-y0L,2) + pow(arrayGridCoord[i][j][k][2]-z0L,2));
-	    if ( radius <= r0L) {
-	      arrayU[i][j][k][varDen] = rhoL;
-	      arrayU[i][j][k][varPrs] = pL;
-	      arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/radius;
-	      arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/radius;
-	      arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/radius;
-	    }
-	  }
-    }
-    
+    }  
   }
   
-  REAL Fluid::calcTimeStep() {
-    std::valarray<REAL> allGrid(nx * ny * nz);
-    for (std::size_t i = 0; i < nx ; ++i)
-      for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k)
-	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
-    REAL sx = allGrid.max();
+  void Fluid::calcTimeStep() {
+    std::valarray<REAL> gridX(nx * ny * nz);
+    std::valarray<REAL> gridY(nx * ny * nz);
+    std::valarray<REAL> gridZ(nx * ny * nz);
+
+    std::valarray<REAL> velZ(nx * ny * nz);
+    std::valarray<REAL> sound(nx * ny * nz);
 
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k)
-	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
-    REAL sy = allGrid.max();
+	for (std::size_t k = 0; k < nz; ++k) {
+	  gridX[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
+	  gridY[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
+	  gridZ[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
 
-    for (std::size_t i = 0; i < nx ; ++i)
-      for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k)
-	  allGrid[i + j * nx + k * nx * ny] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
-    REAL sz = allGrid.max();
+	  velZ[i + j * nx + k * nx * ny]  = arrayU[i][j][k][varVel[2]];
+	  sound[i + j * nx + k * nx * ny] = arraySoundSpeed[i][j][k];
+	}
 
     std::valarray<REAL> dtMin(3);
-    dtMin[0] = dx/sx;
-    dtMin[1] = dy/sy;
-    dtMin[2] = dz/sz;
+    dtMin[0] = dx / gridX.max();
+    dtMin[1] = dy / gridY.max();
+    dtMin[2] = dz / gridZ.max();
     
-    return CFL * dtMin.min();
+    timeStep = std::min(timeStep, CFL * dtMin.min());
+    debugInf << std::setw(OWID) << iteration 
+	     << std::setw(OWID) << timeStep 
+	     << std::setw(OWID) << timeAccrued
+	     << std::setw(OWID) << velZ.max()
+	     << std::setw(OWID) << velZ.min()
+	     << std::setw(OWID) << sound.max()
+	     << std::setw(OWID) << gridZ.max()
+	     << std::endl;
   }
 
   void Fluid::soundSpeed() {
@@ -706,7 +708,7 @@ namespace dem {
 	  arraySoundSpeed[i][j][k] = sqrt(gamma * arrayU[i][j][k][varPrs] / arrayU[i][j][k][varDen]);
   }
 
-  // total enthalphy, not static enthalpy
+  // total specific enthalphy, NOT static specific enthalpy
   void Fluid::enthalpy() {
     for (std::size_t i = 0; i < nx ; ++i)
       for (std::size_t j = 0; j < ny; ++j)
@@ -846,15 +848,16 @@ namespace dem {
 	u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
+	// all 5 equations are modified in terms of porosity and Darcy's velocity for high-porosity material
 	// continuity equation modified on porosity
 	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayUtmp[i][j][k][varDen] * (arrayUtmp[i][j][k][varVel[0]] - u0[idim]) ; // rho*(u-u0) / porosity
 
 	// momentum equations modified on porosity
-	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 / porosity + p
-	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // rho*u*v / porosity
-	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // rho*u*w / porosity
+	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 / porosity + p*porosity
+	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // (rho*u)*v / porosity
+	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // (rho*u)*w / porosity
 
-	// momentum equations modified on porosity
+	// energy equation modified on porosity
 	//arrayFlux[i][j][k][varEng]    = 1.0/porosity * arrayUtmp[i][j][k][varVel[0]] * (arrayUtmp[i][j][k][varEng] + arrayUtmp[i][j][k][varPrs]);  // u*(E + p) / porosity
       }
     }
@@ -863,31 +866,34 @@ namespace dem {
   void Fluid::RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t it, std::size_t jt, std::size_t kt) {
 
     // it, jt, kt defined at cell faces
-    if (uL[varDen] < 0 || uR[varDen] < 0)
-      debugInf << std::setw(OWID) << "RoeFlux:den<0"
-	       << std::setw(5) << it
+    if (uL[varPrs] < 0 || uR[varPrs] < 0 || uL[varDen] < 0 || uR[varDen] < 0)
+      debugInf << std::setw(OWID) << " RoeFlux:prs,den<0";
+	/*	       << std::setw(5) << it
 	       << std::setw(5) << jt
 	       << std::setw(5) << kt
 	       << std::setw(5) << idim
 	       << std::setw(5) << (int) uL[varMsk]
 	       << std::setw(5) << (int) uR[varMsk]
+	       << std::setw(OWID) << uL[varPrs]
+	       << std::setw(OWID) << uR[varPrs]
 	       << std::setw(OWID) << uL[varDen]
 	       << std::setw(OWID) << uR[varDen]
-	       << std::setw(OWID) << uL[varEng]
-	       << std::setw(OWID) << uR[varEng]
 	       << std::endl;
-
+	*/
     REAL avgRho =  sqrt(uL[varDen]*uR[varDen]);
     REAL avgH   = (sqrt(uL[varDen])*HL + sqrt(uR[varDen])*HR)/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgV   = (sqrt(uL[varDen])*uL[varVel[1]] + sqrt(uR[varDen])*uR[varVel[1]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgW   = (sqrt(uL[varDen])*uL[varVel[2]] + sqrt(uR[varDen])*uR[varVel[2]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
-    REAL avgSoundSpeed = sqrt((gamma-1)*avgh);
 
+    // numerical treatment for negative averaged static enthalpy
     if (avgh <= 0) {
-      debugInf << std::setw(OWID) << "RoeFlux:avgh<=0"
-	       << std::setw(5) << it
+      REAL avgP = (sqrt(uL[varDen])*uL[varPrs] + sqrt(uR[varDen])*uR[varPrs])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+      avgh = gamma/(gamma-1)*avgP/avgRho;
+
+      debugInf << std::setw(OWID) << " RoeFlux:avgh<0";
+      /*	       << std::setw(5) << it
 	       << std::setw(5) << jt
 	       << std::setw(5) << kt
 	       << std::setw(5) << idim
@@ -909,11 +915,13 @@ namespace dem {
 	       << std::setw(OWID) << avgU
 	       << std::setw(OWID) << avgV
 	       << std::setw(OWID) << avgW
-	       << std::setw(OWID) << avgSoundSpeed
+	       << std::setw(OWID) << sqrt((gamma-1)*avgh)
 	       << std::setw(OWID) << uL[varPrs]
 	       << std::setw(OWID) << uR[varPrs]
 	       << std::endl;
-    }
+      */
+    }   
+    REAL avgSoundSpeed = sqrt((gamma-1)*avgh);
 
     REAL eigen[5];
     eigen[varDen]    = avgU - avgSoundSpeed;
@@ -966,8 +974,9 @@ namespace dem {
       RF[i] = 0.5*(FL[i] + FR[i]);
 
     for (std::size_t ie = 0; ie < nInteg; ++ie) {
-      for (std::size_t je = 0; je < nInteg; ++je)
+      for (std::size_t je = 0; je < nInteg; ++je) {
 	RF[ie] -= 0.5 * avgWaveStr[je] * fabs(eigen[je]) * avgK[ie][je];
+      }
       arrayRoeFlux[it][jt][kt][ie][idim] = RF[ie];
     }
   }
@@ -981,9 +990,20 @@ namespace dem {
 	    arrayU[i][j][k][varVel[m]] = arrayU[i][j][k][varMom[m]] / arrayU[i][j][k][varDen];
 
 	  arrayU[i][j][k][varPrs] = 0;
-	  for (std::size_t m = 0; m < nDim; ++m)
-	    arrayU[i][j][k][varPrs] += arrayU[i][j][k][varDen] * pow(arrayU[i][j][k][varVel[m]],2)/2 ;
-	  arrayU[i][j][k][varPrs] = (arrayU[i][j][k][varEng] - arrayU[i][j][k][varPrs]) * (gamma-1);
+	  for (std::size_t m = 0; m < nDim; ++m) {
+	    arrayU[i][j][k][varPrs] += pow(arrayU[i][j][k][varVel[m]],2)/2 ;
+	  }
+	  arrayU[i][j][k][varPrs] = (arrayU[i][j][k][varEng] - arrayU[i][j][k][varDen]*arrayU[i][j][k][varPrs]) * (gamma-1);
+
+	  // numerical treatment for negative pressure or density
+	  if (arrayU[i][j][k][varPrs] <= 0) {
+	    debugInf << std::setw(OWID) << " UtoW:prs<0";
+	    arrayU[i][j][k][varPrs] = std::max(arrayU[i][j][k][varPrs], 101325.0*0.001);
+	  }
+	  if (arrayU[i][j][k][varDen] <= 0) {
+	    debugInf << std::setw(OWID) << " UtoW:den<0";
+	    arrayU[i][j][k][varDen] = std::max(arrayU[i][j][k][varDen], 1.225*0.001);
+	  }
 	}
   }
 
@@ -1001,7 +1021,7 @@ namespace dem {
 	}
   }
 
-  void Fluid::getParticleInfo(std::vector<Particle *> &ptcls) {
+  void Fluid::getPtclInfo(std::vector<Particle *> &ptcls) {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
@@ -1023,7 +1043,7 @@ namespace dem {
 	}
   }
 
-  void Fluid::calcParticleForce(std::vector<Particle *> &ptcls, std::ofstream &ofs) {
+  void Fluid::calcPtclForce(std::vector<Particle *> &ptcls) {
     // must clear forces each loop, otherwise Fluid::plot prints wrong values;
     // but Fluid::penalize works OK since it uses masks.
     for (std::size_t i = 0; i < nx ; ++i)
@@ -1109,39 +1129,83 @@ namespace dem {
       (*it)->addMoment(penalMoment);
       (*it)->addMoment(presMoment);
 
-      if ((*it)->getId() == 1) {
-	ofs << std::setw(OWID) << iteration
-	    << std::setw(OWID) << timeAccrued
+      for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn) {
+	if ((*it)->getId() == printPtcls[iPrn]) {
+	  char cstr[50];
+	  std::fstream pfs;
+	  pfs.open (dem::combineStr(cstr, "particle_", printPtcls[iPrn], 7), std::fstream::out | std::fstream::app);
+	  if(!pfs) { debugInf << "stream error: openParticleProg" << std::endl; exit(-1); }
+	  pfs.setf(std::ios::scientific, std::ios::floatfield);
+	  if (iteration == 1) {
+	    pfs << std::setw(OWID) << "iteration"
+		<< std::setw(OWID) << "accruedTime"
+		<< std::setw(OWID) << "penalFx"
+		<< std::setw(OWID) << "penalFy"
+		<< std::setw(OWID) << "penalFz"
+		<< std::setw(OWID) << "pressureFx"
+		<< std::setw(OWID) << "pressureFy"
+		<< std::setw(OWID) << "pressureFz"
+		<< std::setw(OWID) << "viscousCd"
+		<< std::setw(OWID) << "pressureCd"
+		<< std::setw(OWID) << "totalCd"
+		<< std::setw(OWID) << "penalMx"
+		<< std::setw(OWID) << "penalMy"
+		<< std::setw(OWID) << "penalMz"
+		<< std::setw(OWID) << "pressureMx"
+		<< std::setw(OWID) << "pressureMy"
+		<< std::setw(OWID) << "pressureMz"
+		<< std::setw(OWID) << "accelX"
+		<< std::setw(OWID) << "accelY"
+		<< std::setw(OWID) << "accelZ"
+		<< std::setw(OWID) << "velocX"
+		<< std::setw(OWID) << "velocY"
+		<< std::setw(OWID) << "velocZ"
+		<< std::setw(OWID) << "avgDen"
+		<< std::setw(OWID) << "avgVel"
+		<< std::setw(OWID) << "avgPrs"
+		<< std::endl;
+	  }
 
-	    << std::setw(OWID) << penalForce.getX()
-	    << std::setw(OWID) << penalForce.getY()
-	    << std::setw(OWID) << penalForce.getZ()
-	    << std::setw(OWID) << presForce.getX()
-	    << std::setw(OWID) << presForce.getY()
-	    << std::setw(OWID) << presForce.getZ()
-	    << std::setw(OWID) << (penalForce.getZ() + presForce.getZ())/(0.5*rhoL*uL*uL*dem::Pi*(*it)->getA()*(*it)->getB())
+	  // refF is only for the case of Rankine-Hugoniot Condition to test drag coefficients
+	  REAL refF = 0.5*rhoL*uL*uL*dem::Pi*(*it)->getA()*(*it)->getB();
+	  pfs << std::setw(OWID) << iteration
+	      << std::setw(OWID) << timeAccrued
 
-	    << std::setw(OWID) << penalMoment.getX()
-	    << std::setw(OWID) << penalMoment.getY()
-	    << std::setw(OWID) << penalMoment.getZ()
-	    << std::setw(OWID) << presMoment.getX()
-	    << std::setw(OWID) << presMoment.getY()
-	    << std::setw(OWID) << presMoment.getZ()
+	      << std::setw(OWID) << penalForce.getX()
+	      << std::setw(OWID) << penalForce.getY()
+	      << std::setw(OWID) << penalForce.getZ()
+	      << std::setw(OWID) << presForce.getX()
+	      << std::setw(OWID) << presForce.getY()
+	      << std::setw(OWID) << presForce.getZ()
 
-	    << std::setw(OWID) << (*it)->getAccel().getX()
-	    << std::setw(OWID) << (*it)->getAccel().getY()
-	    << std::setw(OWID) << (*it)->getAccel().getZ()
+	      << std::setw(OWID) << penalForce.getZ()/refF
+	      << std::setw(OWID) << presForce.getZ()/refF
+	      << std::setw(OWID) << (penalForce.getZ() + presForce.getZ())/refF
 
-	    << std::setw(OWID) << (*it)->getCurrVeloc().getX()
-	    << std::setw(OWID) << (*it)->getCurrVeloc().getY()
-	    << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
+	      << std::setw(OWID) << penalMoment.getX()
+	      << std::setw(OWID) << penalMoment.getY()
+	      << std::setw(OWID) << penalMoment.getZ()
+	      << std::setw(OWID) << presMoment.getX()
+	      << std::setw(OWID) << presMoment.getY()
+	      << std::setw(OWID) << presMoment.getZ()
 
-	    << std::setw(OWID) << avgDen
-	    << std::setw(OWID) << avgVel
-	    << std::setw(OWID) << avgPrs
+	      << std::setw(OWID) << (*it)->getAccel().getX()
+	      << std::setw(OWID) << (*it)->getAccel().getY()
+	      << std::setw(OWID) << (*it)->getAccel().getZ()
 
-	    << std::endl;    
-      } 
+	      << std::setw(OWID) << (*it)->getCurrVeloc().getX()
+	      << std::setw(OWID) << (*it)->getCurrVeloc().getY()
+	      << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
+
+	      << std::setw(OWID) << avgDen
+	      << std::setw(OWID) << avgVel
+	      << std::setw(OWID) << avgPrs
+
+	      << std::endl ;
+	  pfs.close();
+	}
+      }
+
     } // end of particle loop  
   }
 
