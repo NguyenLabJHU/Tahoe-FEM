@@ -441,9 +441,9 @@ namespace dem {
     Vec localDelta  = globalToLocal(globalDelta);
     Vec localForce, globalForce;
     // localDelta needs to project in local frame in order to calculate local drag forces
-    localForce.setX(0.5*rho*localDelta.getX()*Cd*Pi*b*c);
-    localForce.setY(0.5*rho*localDelta.getY()*Cd*Pi*c*a);
-    localForce.setZ(0.5*rho*localDelta.getZ()*Cd*Pi*a*b);
+    localForce.setX(-0.5*rho*localDelta.getX()*Cd*Pi*b*c);
+    localForce.setY(-0.5*rho*localDelta.getY()*Cd*Pi*c*a);
+    localForce.setZ(-0.5*rho*localDelta.getZ()*Cd*Pi*a*b);
     globalForce = localToGlobal(localForce);
     addForce(globalForce);
   }
