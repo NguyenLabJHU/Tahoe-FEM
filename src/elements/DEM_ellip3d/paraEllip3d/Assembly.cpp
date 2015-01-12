@@ -296,7 +296,10 @@ namespace dem {
       dragForce();
 
       updateParticle();   
-      updateGrid(); // universal; updateGridMaxZ() for deposition only
+      updateGridMaxZ();
+      // updateGridMaxZ() is for deposition or explosion. If they go out of side walls, particles are discarded.
+      // updateGrid() updates all six directions, thus side walls may "disappear" if particles go far out of side walls 
+      // and cause some grids to extrude out of side walls.
 
       /**/timeCount += timeStep;
       /**/timeAccrued += timeStep;
