@@ -25,13 +25,12 @@ int main(int argc, char *argv[])
   last    = atoi(argv[3]);
   incre   = atoi(argv[4]);
 
-  ifstream ifs1;
+  ifstream ifs;
   ofstream ofs;
   char filein1[50];
   char fileout[50];
   char num[4], s[20];
 
-  int TotalCntct;
   int ptcl_1;
   int ptcl_2;
   double point1_x;
@@ -104,84 +103,76 @@ int main(int argc, char *argv[])
       strcat(filein1, "_");
       strcat(filein1, num);
 
-      ifs1.open(filein1);
-      if(!ifs1)  { cout<<"ifs1 stream error!"<<endl; exit(-1);}
-      ifs1 >> TotalCntct;
-      ifs1 >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
-	   >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
-      if (TotalCntct==0)
-	ofs <<setw(OWID)<<n<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0
-	    <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0
-	    <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0
-	    <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0
-	    <<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<setw(OWID)<<0<<endl;
-      else{
-	for (ic=0;ic<TotalCntct;++ic) {
-	  ifs1 >> ptcl_1
-	       >> ptcl_2
-	       >> point1_x
-	       >> point1_y
-	       >> point1_z
-	       >> point2_x
-	       >> point2_y
-	       >> point2_z
-	       >> radius_1
-	       >> radius_2
-	       >> penetration
-	       >> tangt_disp
-	       >> contact_radius
-	       >> R0
-	       >> E0
-	       >> normal_force
-	       >> tangt_force
-	       >> contact_x
-	       >> contact_y
-	       >> contact_z
-	       >> normal_x
-	       >> normal_y
-	       >> normal_z
-	       >> tangt_x
-	       >> tangt_y
-	       >> tangt_z
-	       >> vibra_t_step
-	       >> impact_t_step;
+      ifs.open(filein1);
+      if(!ifs)  { cout<<"ifs stream error!"<<endl; exit(-1);}
+      std::string line;
 
-	  ofs << std::setw(OWID) << n
-	      << std::setw(OWID) << ptcl_1       
-	      << std::setw(OWID) << ptcl_2       
-	      << std::setw(OWID) << point1_x     
-	      << std::setw(OWID) << point1_y     
-	      << std::setw(OWID) << point1_z     
-	      << std::setw(OWID) << point2_x     
-	      << std::setw(OWID) << point2_y     
-	      << std::setw(OWID) << point2_z     
-	      << std::setw(OWID) << radius_1     
-	      << std::setw(OWID) << radius_2     
-	      << std::setw(OWID) << penetration  
-	      << std::setw(OWID) << tangt_disp   
-	      << std::setw(OWID) << contact_radius
-	      << std::setw(OWID) << R0           
-	      << std::setw(OWID) << E0           
-	      << std::setw(OWID) << normal_force 
-	      << std::setw(OWID) << tangt_force  
-	      << std::setw(OWID) << contact_x    
-	      << std::setw(OWID) << contact_y    
-	      << std::setw(OWID) << contact_z    
-	      << std::setw(OWID) << normal_x     
-	      << std::setw(OWID) << normal_y     
-	      << std::setw(OWID) << normal_z     
-	      << std::setw(OWID) << tangt_x      
-	      << std::setw(OWID) << tangt_y      
-	      << std::setw(OWID) << tangt_z      
-	      << std::setw(OWID) << vibra_t_step 
-	      << std::setw(OWID) << impact_t_step
-	      << std::endl;
-	}
-	    
+      while (getline(ifs, line)) {
+	std::istringstream ss(line);
+	ss  >> ptcl_1
+	    >> ptcl_2
+	    >> point1_x
+	    >> point1_y
+	    >> point1_z
+	    >> point2_x
+	    >> point2_y
+	    >> point2_z
+	    >> radius_1
+	    >> radius_2
+	    >> penetration
+	    >> tangt_disp
+	    >> contact_radius
+	    >> R0
+	    >> E0
+	    >> normal_force
+	    >> tangt_force
+	    >> contact_x
+	    >> contact_y
+	    >> contact_z
+	    >> normal_x
+	    >> normal_y
+	    >> normal_z
+	    >> tangt_x
+	    >> tangt_y
+	    >> tangt_z
+	    >> vibra_t_step
+	    >> impact_t_step;
+
+	ofs << std::setw(OWID) << n
+	    << std::setw(OWID) << ptcl_1       
+	    << std::setw(OWID) << ptcl_2       
+	    << std::setw(OWID) << point1_x     
+	    << std::setw(OWID) << point1_y     
+	    << std::setw(OWID) << point1_z     
+	    << std::setw(OWID) << point2_x     
+	    << std::setw(OWID) << point2_y     
+	    << std::setw(OWID) << point2_z     
+	    << std::setw(OWID) << radius_1     
+	    << std::setw(OWID) << radius_2     
+	    << std::setw(OWID) << penetration  
+	    << std::setw(OWID) << tangt_disp   
+	    << std::setw(OWID) << contact_radius
+	    << std::setw(OWID) << R0           
+	    << std::setw(OWID) << E0           
+	    << std::setw(OWID) << normal_force 
+	    << std::setw(OWID) << tangt_force  
+	    << std::setw(OWID) << contact_x    
+	    << std::setw(OWID) << contact_y    
+	    << std::setw(OWID) << contact_z    
+	    << std::setw(OWID) << normal_x     
+	    << std::setw(OWID) << normal_y     
+	    << std::setw(OWID) << normal_z     
+	    << std::setw(OWID) << tangt_x      
+	    << std::setw(OWID) << tangt_y      
+	    << std::setw(OWID) << tangt_z      
+	    << std::setw(OWID) << vibra_t_step 
+	    << std::setw(OWID) << impact_t_step
+	    << std::endl;
       }
-      ifs1.close();
+      
+      ifs.close();
     }
   ofs.close();
-
+  
   return 0;
 }
