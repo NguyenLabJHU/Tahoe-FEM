@@ -7,6 +7,9 @@
 #include <cstdlib>
 #include <boost/unordered_set.hpp>
 
+const std::size_t OWID  = 15;   // output width
+const std::size_t OPREC = 6;    // output precision, number of digits after decimal dot
+
 char *combineString(char *cstr, const char *str, int num, int width);
 
 class Contact {
@@ -90,9 +93,6 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  const int OWID = 15; 
-  const int OPREC = 6; 
-  
   int startSnap = atoi(argv[2]);
   int endSnap   = atoi(argv[3]);
   int totalProc = atoi(argv[4]);
