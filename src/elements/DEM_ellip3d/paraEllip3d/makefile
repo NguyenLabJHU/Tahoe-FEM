@@ -5,12 +5,15 @@
 PLATFORM = soilblast
 #PLATFORM = spirit
 #PLATFORM = janus
+#PLATFORM = garnet
 
 ###2. compilers package
 #gcc is assumed to be with openmpi
 COMPILERS = gcc
 #intel is assumed to be with intel-mpi
 #COMPILERS = intel
+#a combination of intel compiler and cray mpich2
+#COMPILERS = intel-cray
 
 ###3. boost location
 ifeq ($(PLATFORM), soilblast)
@@ -38,6 +41,12 @@ ifeq ($(PLATFORM), janus)
  endif
 endif
 
+ifeq ($(PLATFORM), garnet)
+ ifeq ($(COMPILERS), intel-cray)
+  BOOST_ROOT = /u/yanb/local/boost-1.55.0_cray-mpich6.0.0_PrgEnv-intel4.2.34
+ endif
+endif
+
 #########################################################
 ###         Part B: usually do not change             ###
 #########################################################
@@ -51,6 +60,10 @@ ifeq ($(COMPILERS), intel)
  MPICXX = mpiicpc
 endif
 
+ifeq ($(COMPILERS), intel-cray)
+ MPICXX = CC
+endif
+
 # OpenMP
 ifeq ($(COMPILERS), gcc)
  OPENMP = -fopenmp
@@ -58,6 +71,10 @@ endif
 
 ifeq ($(COMPILERS), intel)
  OPENMP = -openmp -mt_mpi
+endif
+
+ifeq ($(COMPILERS), intel-cray)
+ OPENMP = -openmp
 endif
 
 # optimize or debug
@@ -70,8 +87,11 @@ ifeq ($(COMPILERS), intel)
  #-fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
  #OPTIMIZE = -O3 -DNDEBUG -fp-model source
  OPTIMIZE = -O3 -DNDEBUG
- endif
+endif
  #OPTIMIZE = -Wall -g
+ifeq ($(COMPILERS), intel-cray)
+ OPTIMIZE = -O3 -DNDEBUG
+endif
  
 # GCC quadmath, default off
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
@@ -83,19 +103,19 @@ CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 ifeq ($(PLATFORM), soilblast)
   ifeq ($(BOOST_ROOT), default)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
-   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
+   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
    BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
   else
    BOOST_INCLUDE=-I$(BOOST_ROOT)/include
    BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
-   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
+   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
    BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
   endif
 else
-# for spirit and janus
+# for spirit, janus, garnet
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
- BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer
+ BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 endif
 
