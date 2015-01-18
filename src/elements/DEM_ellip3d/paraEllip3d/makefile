@@ -4,15 +4,13 @@
 ###1. system platform
 PLATFORM = soilblast
 #PLATFORM = spirit
-#PLATFORM = janus
 #PLATFORM = garnet
+#PLATFORM = janus
 
-###2. compilers package
-#gcc is assumed to be with openmpi
-COMPILERS = gcc
-#intel is assumed to be with intel-mpi
-#COMPILERS = intel
-#a combination of intel compiler and cray mpich2
+###2. compiler combinations (c++ and mpi)
+COMPILERS = gcc-openmpi
+#COMPILERS = intel-intel
+#COMPILERS = intel-sgi
 #COMPILERS = intel-cray
 
 ###3. boost location
@@ -22,22 +20,15 @@ ifeq ($(PLATFORM), soilblast)
 endif
 
 ifeq ($(PLATFORM), spirit)
- ifeq ($(COMPILERS), gcc)
+ ifeq ($(COMPILERS), gcc-openmpi)
   BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-openmpi-1.7.5-gcc-compilers-4.7.3
  endif
- ifeq ($(COMPILERS), intel)
+ ifeq ($(COMPILERS), intel-intel)
   #BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-intelmpi-4.0.3.008
   BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-intelmpi-4.1.3.048-intel-compilers-13.0.1
  endif
-endif
-
-ifeq ($(PLATFORM), janus)
- ifeq ($(COMPILERS), gcc)
-  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.7.3_gcc-4.8.2_ib
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.8.2_gcc-4.9.1
- endif
- ifeq ($(COMPILERS), intel)
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_impi-13.0.0_intel-13.0.0
+ ifeq ($(COMPILERS), intel-sgi)
+  BOOST_ROOT = /work4/projects/openmpi/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
  endif
 endif
 
@@ -47,16 +38,26 @@ ifeq ($(PLATFORM), garnet)
  endif
 endif
 
+ifeq ($(PLATFORM), janus)
+ ifeq ($(COMPILERS), gcc-openmpi)
+  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.7.3_gcc-4.8.2_ib
+  BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.8.2_gcc-4.9.1
+ endif
+ ifeq ($(COMPILERS), intel-intel)
+  BOOST_ROOT = /home/yanb/local/boost-1.55.0_impi-13.0.0_intel-13.0.0
+ endif
+endif
+
 #########################################################
 ###         Part B: usually do not change             ###
 #########################################################
-###1. MPICXX, OPENMPI and OPTIMIZE
-# C++ compiler
-ifeq ($(COMPILERS), gcc)
+###1. MPI wrapper, OpenMP and optimize/debug
+# MPI wrapper
+ifeq ($(COMPILERS), gcc-openmpi)
  MPICXX = mpic++
 endif
 
-ifeq ($(COMPILERS), intel)
+ifeq ($(COMPILERS), intel-intel)
  MPICXX = mpiicpc
 endif
 
@@ -64,12 +65,16 @@ ifeq ($(COMPILERS), intel-cray)
  MPICXX = CC
 endif
 
+ifeq ($(COMPILERS), intel-sgi)
+ MPICXX = mpicxx
+endif
+
 # OpenMP
-ifeq ($(COMPILERS), gcc)
+ifeq ($(COMPILERS), gcc-openmpi)
  OPENMP = -fopenmp
 endif
 
-ifeq ($(COMPILERS), intel)
+ifeq ($(COMPILERS), intel-intel)
  OPENMP = -openmp -mt_mpi
 endif
 
@@ -77,22 +82,18 @@ ifeq ($(COMPILERS), intel-cray)
  OPENMP = -openmp
 endif
 
+ifeq ($(COMPILERS), intel-sgi)
+ OPENMP = -openmp -mt_mpi
+endif
+
 # optimize or debug
-ifeq ($(COMPILERS), gcc)
- #full level of IEEE 754 compliance
- #OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans
- OPTIMIZE = -O3 -DNDEBUG
-endif
-ifeq ($(COMPILERS), intel)
- #-fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
- #OPTIMIZE = -O3 -DNDEBUG -fp-model source
- OPTIMIZE = -O3 -DNDEBUG
-endif
- #OPTIMIZE = -Wall -g
-ifeq ($(COMPILERS), intel-cray)
- OPTIMIZE = -O3 -DNDEBUG
-endif
- 
+OPTIMIZE = -O3 -DNDEBUG
+#OPTIMIZE = -Wall -g
+#gcc: full level of IEEE 754 compliance
+#OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans
+#intel: -fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
+#OPTIMIZE = -O3 -DNDEBUG -fp-model source
+
 # GCC quadmath, default off
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
