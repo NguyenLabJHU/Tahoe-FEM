@@ -554,9 +554,9 @@ namespace dem {
 	// 1. momentum penalization
 	for (std::size_t m = 0; m < nDim; ++m) {
 	  // a. momentum penalization
-	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * (Cdi/Cd) * timeStep;
+	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep * (Cdi/Cd+1) ;
 	  // b. influence of momentum penalization on energy
-	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * (Cdi/Cd) * arrayU[i][j][k][varVel[m]] * timeStep;
+	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep * (Cdi/Cd+1);
 	}
 
 	// 2. porosity correction
@@ -968,6 +968,74 @@ namespace dem {
     avgK[varMom[1]][varEng] = avgV;
     avgK[varMom[2]][varEng] = avgW;
     avgK[varEng][varEng]    = avgH + avgU * avgSoundSpeed;
+    
+    // entropy fix: use HartenHyman Entropy Fix and Roe-Averaged States
+    // for left transonic rarefaction
+    REAL denStar = uL[varDen] + avgWaveStr[varDen];
+    REAL uStar = ( uL[varDen]*uL[varVel[0]] + avgWaveStr[varDen]*(avgU-avgSoundSpeed) ) / denStar;
+    REAL pStar = (gamma-1)* (uL[varEng] + avgWaveStr[varDen]*(avgH-avgU*avgSoundSpeed) - 0.5*denStar*uStar*uStar );
+    REAL soundSpeedStar = sqrt(gamma*pStar/denStar);
+    REAL soundSpeedL = sqrt(gamma*uL[varPrs]/uL[varDen]);
+    REAL eigenL = uL[varVel[0]] - soundSpeedL;
+    REAL eigenR = uStar - soundSpeedStar;
+    if (eigenL < 0 && eigenR > 0)
+      eigen[varDen] = eigenL * (eigenR-eigen[varDen])/(eigenR-eigenL);
+    // for right transonic rarefaction
+    denStar = uR[varDen] - avgWaveStr[varEng];
+    uStar = ( uR[varDen]*uR[varVel[0]] - avgWaveStr[varEng]*(avgU+avgSoundSpeed) ) / denStar;
+    pStar = (gamma-1)* (uR[varEng] - avgWaveStr[varEng]*(avgH+avgU*avgSoundSpeed) - 0.5*denStar*uStar*uStar );
+    soundSpeedStar = sqrt(gamma*pStar/denStar);
+    REAL soundSpeedR = sqrt(gamma*uR[varPrs]/uR[varDen]);
+    eigenL = uStar + soundSpeedStar;
+    eigenR = uR[varVel[0]] + soundSpeedR;
+    if (eigenL < 0 && eigenR > 0)
+      eigen[varEng] = eigenR * (eigen[varEng]-eigenL)/(eigenR-eigenL);
+    // end of entropy fix
+
+    /*
+    // entropy fix: use HartenHyman Entropy Fix and PrimitiveVariable Riemann Solver (PVRS)
+    REAL aBar = 0.5*(sqrt(gamma*uL[varPrs]/uL[varDen])+sqrt(gamma*uR[varPrs]/uR[varDen]));
+    REAL denBar = 0.5*(uL[varDen]+uR[varDen]);
+    REAL pStar = 0.5*(uL[varPrs]+uR[varPrs]) + 0.5*(uL[varVel[0]]-uR[varVel[0]])/(denBar*aBar);
+    REAL uStar = 0.5*(uL[varVel[0]]+uR[varVel[0]]) + 0.5*(uL[varPrs]-uR[varPrs])/(denBar*aBar);
+    REAL denStarL = uL[varDen] + (uL[varVel[0]]-uStar)*denBar/aBar;
+    REAL denStarR = uR[varDen] + (uStar-uR[varVel[0]])*denBar/aBar;
+
+    // for left transonic rarefaction
+    REAL eigenL = uL[varVel[0]] - sqrt(gamma*uL[varPrs]/uL[varDen]);
+    REAL eigenR = uStar - sqrt(gamma*pStar/denStarL);
+    if (eigenL < 0 && eigenR > 0)
+      eigen[varDen] = eigenL * (eigenR-eigen[varDen])/(eigenR-eigenL);
+    // for right transonic rarefaction
+    eigenL = uStar + sqrt(gamma*pStar/denStarR);
+    eigenR = uR[varVel[0]] + sqrt(gamma*uR[varPrs]/uR[varDen]);
+    if (eigenL < 0 && eigenR > 0)
+      eigen[varEng] = eigenR * (eigen[varEng]-eigenL)/(eigenR-eigenL);
+    // end of entropy fix
+    */
+
+    /*
+    // entropy fix: use HartenHyman Entropy Fix and TwoRarefaction Riemann Solver (TRRS)
+    REAL z = 0.5*(gamma-1)/gamma;
+    REAL soundSpeedL = sqrt(gamma*uL[varPrs]/uL[varDen]);
+    REAL soundSpeedR = sqrt(gamma*uR[varPrs]/uR[varDen]);
+    REAL pStar = pow((soundSpeedL+soundSpeedR-0.5*(gamma-1)*(uR[varVel[0]]-uL[varVel[0]]))/(soundSpeedL/pow(uL[varPrs],z)+soundSpeedR/pow(uR[varPrs],z)), 1/z);
+    // for left transonic rarefaction
+    REAL soundSpeedStar = soundSpeedL*pow(pStar/uL[varPrs],z);
+    REAL uStar = uL[varVel[0]] + 2/(gamma-1)*(soundSpeedL-soundSpeedStar);
+    REAL eigenL = uL[varVel[0]] - soundSpeedL;
+    REAL eigenR = uStar - soundSpeedStar;
+    if (eigenL < 0 && eigenR > 0)
+      eigen[varDen] = eigenL * (eigenR-eigen[varDen])/(eigenR-eigenL);
+    // for right transonic rarefaction
+    soundSpeedStar = soundSpeedR*pow(pStar/uR[varPrs],z);
+    uStar = uR[varVel[0]] + 2/(gamma-1)*(soundSpeedStar-soundSpeedR);
+    eigenL = uStar + soundSpeedStar;
+    eigenR = uR[varVel[0]] + soundSpeedR;
+    if (eigenL < 0 && eigenR > 0)
+      eigen[varEng] = eigenR * (eigen[varEng]-eigenL)/(eigenR-eigenL);
+    // end of entropy fix
+    */
 
     REAL RF[5];
     for (std::size_t i = 0; i < nInteg; ++i)
@@ -1121,12 +1189,12 @@ namespace dem {
 
       penalForce *= dx*dy*dz;
       presForce  *= dx*dy*dz;
-      (*it)->addForce(penalForce);
+      (*it)->addForce(penalForce*(Cdi/Cd+1));
       (*it)->addForce(presForce);
 
       penalMoment *= dx*dy*dz;
       presMoment  *= dx*dy*dz;
-      (*it)->addMoment(penalMoment);
+      (*it)->addMoment(penalMoment*(Cdi/Cd+1));
       (*it)->addMoment(presMoment);
 
       for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn) {
@@ -1134,7 +1202,7 @@ namespace dem {
 	  char cstr[50];
 	  std::fstream pfs;
 	  pfs.open (dem::combineStr(cstr, "particle_", printPtcls[iPrn], 7), std::fstream::out | std::fstream::app);
-	  if(!pfs) { debugInf << "stream error: openParticleProg" << std::endl; exit(-1); }
+	  if(!pfs) { debugInf << "stream error: Fluid::calcPtclForce" << std::endl; exit(-1); }
 	  pfs.setf(std::ios::scientific, std::ios::floatfield);
 	  if (iteration == 1) {
 	    pfs << std::setw(OWID) << "iteration"
@@ -1207,6 +1275,52 @@ namespace dem {
       }
 
     } // end of particle loop  
+  }
+
+  void Fluid::checkMomentum(std::vector<Particle *> &ptcls) {
+    // A: mass and momentum of the flow field outside of the particles plus momentum of the particles as a function of time
+    // B: momentum of the entire flow including inside of the particles plus momentum of the particles.
+    Vec momAFluid=0, momBFluid=0, momPtcl=0, momA=0, momB=0;
+    for (std::size_t i = 0; i < nx ; ++i)
+      for (std::size_t j = 0; j < ny; ++j)
+	for (std::size_t k = 0; k < nz; ++k) {
+	  momAFluid += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]) * (1-arrayU[i][j][k][varMsk]); 
+	  momBFluid += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]);
+	}
+    momAFluid *= dx*dy*dz;
+    momBFluid *= dx*dy*dz;
+
+    for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
+      momPtcl += (*it)->getCurrVeloc() * (*it)->getMass();
+    momA = momAFluid + momPtcl;
+    momB = momBFluid + momPtcl;
+
+    char cstr[50];
+    std::fstream pfs;
+    pfs.open ("momentum_progress", std::fstream::out | std::fstream::app);
+    if(!pfs) { debugInf << "stream error: momentum_progress" << std::endl; exit(-1); }
+    pfs.setf(std::ios::scientific, std::ios::floatfield);
+    if (iteration == 1) {
+      pfs << std::setw(OWID) << "iteration"
+	  << std::setw(OWID) << "momAFluidZ"
+	  << std::setw(OWID) << "momBFluidZ"
+	  << std::setw(OWID) << "momPtclZ"
+	  << std::setw(OWID) << "momAZ"
+	  << std::setw(OWID) << "momBZ"
+	  << std::setw(OWID) << "momDiffZ"
+	  << std::endl;
+    }
+
+    pfs << std::setw(OWID) << iteration
+	<< std::setw(OWID) << momAFluid.getZ()
+	<< std::setw(OWID) << momBFluid.getZ()
+	<< std::setw(OWID) << momPtcl.getZ()
+	<< std::setw(OWID) << momA.getZ()
+	<< std::setw(OWID) << momB.getZ()
+	<< std::setw(OWID) << momB.getZ()-momA.getZ()
+	<< std::endl;
+
+    pfs.close();
   }
 
   void Fluid::plot(const char *str) const {

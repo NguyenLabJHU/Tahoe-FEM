@@ -163,7 +163,7 @@ namespace dem {
     void calcPtclForce(std::vector<Particle *> &ptcls);
     void penalize(std::vector<Particle *> &ptcls);
     void plot(const char *) const;
-    
+    void checkMomentum(std::vector<Particle *> &ptcl);    
   };
   
 } // name space dem
