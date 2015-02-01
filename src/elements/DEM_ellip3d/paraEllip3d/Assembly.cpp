@@ -1167,6 +1167,7 @@ namespace dem {
       /*5*/ fluid.runOneStep(particleVec);
       /*6*/ fluid.calcPtclForce(particleVec); // not allParticleVec
       /*7*/ fluid.penalize(particleVec);
+      //fluid.checkMomentum(particleVec);
 
       internalForce();
       if (isBdryProcess()) boundaryForce();
