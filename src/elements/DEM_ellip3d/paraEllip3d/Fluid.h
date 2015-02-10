@@ -66,19 +66,22 @@ namespace dem {
     std::size_t nDim, nVar, nInteg, varDen, varEng, varPrs, varMsk;
     std::size_t varMom[3], varVel[3];
 
+    bool negPrsDen;
+
     Array4D arrayU;
-    Array4D arrayUtmp;
+    Array4D arrayURota; // copy of arrayU in rotation.
+    Array4D arrayUPrev; // copy of arrayU for previous step
     // 4-dimensional, defined at cell centers
     // nx, ny, nz, nVar
     // (a) fixed:
     // arrayU[i][j][k][0]: varDen
-    // arrayU[i][j][k][1]: varMom[0]
-    // arrayU[i][j][k][2]: varMom[1]
-    // arrayU[i][j][k][3]: varMom[2]
+    // arrayU[i][j][k][1]: varMom[0], in x direction
+    // arrayU[i][j][k][2]: varMom[1], in y direction
+    // arrayU[i][j][k][3]: varMom[2], in z direction
     // arrayU[i][j][k][4]: varEng    // total energy per unit volume, E = rho * (1/2*V^2 + e), NOT total specific energy
-    // arrayU[i][j][k][5]: varVel[0]
-    // arrayU[i][j][k][6]: varVel[1]
-    // arrayU[i][j][k][7]: varVel[2]
+    // arrayU[i][j][k][5]: varVel[0], in x direction, corresponding to u in 3D Euler equations.
+    // arrayU[i][j][k][6]: varVel[1], in y direction, corresponding to v in 3D Euler equations.
+    // arrayU[i][j][k][7]: varVel[2], in z direction, corresponding to w in 3D Euler equations.
     // arrayU[i][j][k][8]: varPrs
     // (b) extended:
     // arrayU[i][j][k][9]: varMsk
@@ -151,6 +154,7 @@ namespace dem {
     void enthalpy();
     void flux(std::size_t, std::vector<Particle *> &ptcls);
     void RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
+    void HlleFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
     void UtoW(); // U - conserved; W - primitive
     void WtoU();
     void rotateIJK(std::vector<Particle *> &ptcls);

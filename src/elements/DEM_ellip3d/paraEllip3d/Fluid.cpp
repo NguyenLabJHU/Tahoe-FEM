@@ -267,13 +267,24 @@ namespace dem {
     }
 
     // nx, ny, nz, nVar
-    arrayUtmp.resize(nx);
-    for (std::size_t i = 0; i < arrayUtmp.size(); ++i) {
-      arrayUtmp[i].resize(ny);
-      for (std::size_t j = 0; j < arrayUtmp[i].size(); ++j) {
-	arrayUtmp[i][j].resize(nz);
-	for (std::size_t k = 0; k < arrayUtmp[i][j].size(); ++k) 
-	  arrayUtmp[i][j][k].resize(nVar);
+    arrayURota.resize(nx);
+    for (std::size_t i = 0; i < arrayURota.size(); ++i) {
+      arrayURota[i].resize(ny);
+      for (std::size_t j = 0; j < arrayURota[i].size(); ++j) {
+	arrayURota[i][j].resize(nz);
+	for (std::size_t k = 0; k < arrayURota[i][j].size(); ++k) 
+	  arrayURota[i][j][k].resize(nVar);
+      }
+    }
+
+    // nx, ny, nz, nVar
+    arrayUPrev.resize(nx);
+    for (std::size_t i = 0; i < arrayUPrev.size(); ++i) {
+      arrayUPrev[i].resize(ny);
+      for (std::size_t j = 0; j < arrayUPrev[i].size(); ++j) {
+	arrayUPrev[i][j].resize(nz);
+	for (std::size_t k = 0; k < arrayUPrev[i][j].size(); ++k) 
+	  arrayUPrev[i][j][k].resize(nVar);
       }
     }
 
@@ -361,24 +372,28 @@ namespace dem {
       for (std::size_t j = 0; j < arraySoundSpeed[i].size(); ++j)
 	arraySoundSpeed[i][j].resize(nz);
     }
-
   }
 
   void Fluid::initialize() {
+    negPrsDen = false;
     RankineHugoniot();
     initialCondition(); 
     soundSpeed(); // for printing Mach number
     debugInf << std::setw(OWID) << "iteration" 
 	     << std::setw(OWID) << "timeStep" 
-	     << std::setw(OWID) << "timeAccrued"
+	     << std::setw(OWID) << "timeAccrued" /*
 	     << std::setw(OWID) << "uZMax"
 	     << std::setw(OWID) << "uZMin"
 	     << std::setw(OWID) << "soundSpeedMax"
-	     << std::setw(OWID) << "(|uZ|+a)Max"
-	     << std::endl;
+	     << std::setw(OWID) << "(|uZ|+a)Max" */ ;
   }
 
   void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
+    if (!negPrsDen)
+      arrayUPrev = arrayU;
+    else
+      arrayU = arrayUPrev;
+
     inteStep1(ptcls);
 
     if (RK >= 1) {
@@ -406,9 +421,7 @@ namespace dem {
 	    arrayU[i][j][k][m] -= (   timeStep / dx * (arrayRoeFlux[i][j][k][m][0] - arrayRoeFlux[i-1][j][k][m][0])
 				    + timeStep / dy * (arrayRoeFlux[i][j][k][m][1] - arrayRoeFlux[i][j-1][k][m][1])
 				    + timeStep / dz * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]) );
-
-    // calculate primitive after finding conserved variables
-    UtoW(); 
+    UtoW();
   }
   
   void Fluid::inteStep2(std::vector<Particle *> &ptcls) { 
@@ -428,9 +441,7 @@ namespace dem {
 						        + (arrayRoeFluxStep2[i][j][k][m][1] - arrayRoeFluxStep2[i][j-1][k][m][1]) )
 				    + timeStep / (2*RK*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2] 
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])) );
-
-    // calculate primitive after finding conserved variables
-    UtoW(); 
+    UtoW();
   }
 
   void Fluid::inteStep3(std::vector<Particle *> &ptcls) { 
@@ -455,9 +466,7 @@ namespace dem {
 				    + timeStep / (6*dz) * (arrayRoeFlux[i][j][k][m][2] - arrayRoeFlux[i][j][k-1][m][2]
 						        + (arrayRoeFluxStep2[i][j][k][m][2] - arrayRoeFluxStep2[i][j][k-1][m][2])
 						     + 4*( arrayRoeFluxStep3[i][j][k][m][2] - arrayRoeFluxStep3[i][j][k-1][m][2])) );
-
-    // calculate primitive after finding conserved variables
-    UtoW(); 
+    UtoW();
   }
 
   void Fluid::rotateIJK(std::vector<Particle *> &ptcls) {
@@ -465,15 +474,15 @@ namespace dem {
 
     // for x, y, z directions
     for (std::size_t idim = 0; idim < nDim; ++idim) {
-      arrayUtmp = arrayU; // must have same rank and extent
+      arrayURota = arrayU; // must have same rank and extent
 
       // switch components
       for (std::size_t i = 0; i < nx; ++i)
 	for (std::size_t j = 0; j < ny; ++j)
 	  for (std::size_t k = 0; k < nz; ++k) 
 	    for (std::size_t jdim = 0; jdim < nDim; ++jdim) {
-	      arrayUtmp[i][j][k][  varMom[jdim]  ] = arrayU[i][j][k][  varMom[id[idim][jdim]]  ];
-	      arrayUtmp[i][j][k][  varVel[jdim]  ] = arrayU[i][j][k][  varVel[id[idim][jdim]]  ];
+	      arrayURota[i][j][k][  varMom[jdim]  ] = arrayU[i][j][k][  varMom[id[idim][jdim]]  ];
+	      arrayURota[i][j][k][  varVel[jdim]  ] = arrayU[i][j][k][  varVel[id[idim][jdim]]  ];
 	    }
 
       flux(idim, ptcls); // variables defined at cell centers
@@ -489,14 +498,26 @@ namespace dem {
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
 	    for (std::size_t m = 0; m < nVar; ++m) {
-	      uL[m] = arrayUtmp[IL[0]] [IL[1]] [IL[2]] [m];
-	      uR[m] = arrayUtmp[IR[0]] [IR[1]] [IR[2]] [m];
+	      uL[m] = arrayURota[IL[0]] [IL[1]] [IL[2]] [m];
+	      uR[m] = arrayURota[IR[0]] [IR[1]] [IR[2]] [m];
 	    }	
 	    for (std::size_t m = 0; m < nInteg; ++m) {
 	      FL[m] = arrayFlux[IL[0]] [IL[1]] [IL[2]] [m];
 	      FR[m] = arrayFlux[IR[0]] [IR[1]] [IR[2]] [m];
 	    }    
-	    RoeFlux(uL, uR, FL, FR, HL, HR, idim, i, j, k);
+
+	    REAL avgH   = (sqrt(uL[varDen])*HL + sqrt(uR[varDen])*HR)/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+	    REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+	    REAL avgV   = (sqrt(uL[varDen])*uL[varVel[1]] + sqrt(uR[varDen])*uR[varVel[1]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+	    REAL avgW   = (sqrt(uL[varDen])*uL[varVel[2]] + sqrt(uR[varDen])*uR[varVel[2]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+	    REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
+	    if (avgh <= 0 || negPrsDen) {
+	      //debugInf << std::setw(OWID) << " rotateIJK:avgh<0 or negPrsDen";
+	      HlleFlux(uL, uR, FL, FR, HL, HR, idim, i, j, k);
+	    }
+	    else
+	      RoeFlux(uL, uR, FL, FR, HL, HR, idim, i, j, k);
+
 	  }
 	}
       }
@@ -691,14 +712,15 @@ namespace dem {
     dtMin[2] = dz / gridZ.max();
     
     timeStep = std::min(timeStep, CFL * dtMin.min());
-    debugInf << std::setw(OWID) << iteration 
+    debugInf << std::endl
+	     << std::setw(OWID) << iteration 
 	     << std::setw(OWID) << timeStep 
-	     << std::setw(OWID) << timeAccrued
+	     << std::setw(OWID) << timeAccrued /*
 	     << std::setw(OWID) << velZ.max()
 	     << std::setw(OWID) << velZ.min()
 	     << std::setw(OWID) << sound.max()
-	     << std::setw(OWID) << gridZ.max()
-	     << std::endl;
+	     << std::setw(OWID) << gridZ.max() */ ;
+	    
   }
 
   void Fluid::soundSpeed() {
@@ -824,11 +846,11 @@ namespace dem {
     for (std::size_t i = 0; i < nx; ++i)
       for (std::size_t j = 0; j < ny; ++j)
 	for (std::size_t k = 0; k < nz; ++k) {
-	  arrayFlux[i][j][k][varDen]    = arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]]; // rho*u
-	  arrayFlux[i][j][k][varMom[0]] = arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 + p
-	  arrayFlux[i][j][k][varMom[1]] = arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // rho*u*v
-	  arrayFlux[i][j][k][varMom[2]] = arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // rho*u*w
-	  arrayFlux[i][j][k][varEng]    = arrayUtmp[i][j][k][varVel[0]] * (arrayUtmp[i][j][k][varEng] + arrayUtmp[i][j][k][varPrs]);  // u*(E + p)
+	  arrayFlux[i][j][k][varDen]    = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]]; // rho*u
+	  arrayFlux[i][j][k][varMom[0]] = arrayURota[i][j][k][varDen] * pow(arrayURota[i][j][k][varVel[0]],2) + arrayURota[i][j][k][varPrs]; // rho*u^2 + p
+	  arrayFlux[i][j][k][varMom[1]] = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[1]]; // rho*u*v
+	  arrayFlux[i][j][k][varMom[2]] = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[2]]; // rho*u*w
+	  arrayFlux[i][j][k][varEng]    = arrayURota[i][j][k][varVel[0]] * (arrayURota[i][j][k][varEng] + arrayURota[i][j][k][varPrs]);  // u*(E + p)
 	}  
 
     // for cells that are enclosed by particle volumes
@@ -850,77 +872,28 @@ namespace dem {
 
 	// all 5 equations are modified in terms of porosity and Darcy's velocity for high-porosity material
 	// continuity equation modified on porosity
-	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayUtmp[i][j][k][varDen] * (arrayUtmp[i][j][k][varVel[0]] - u0[idim]) ; // rho*(u-u0) / porosity
+	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayURota[i][j][k][varDen] * (arrayURota[i][j][k][varVel[0]] - u0[idim]) ; // rho*(u-u0) / porosity
 
 	// momentum equations modified on porosity
-	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * pow(arrayUtmp[i][j][k][varVel[0]],2) + arrayUtmp[i][j][k][varPrs]; // rho*u^2 / porosity + p*porosity
-	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[1]]; // (rho*u)*v / porosity
-	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayUtmp[i][j][k][varDen] * arrayUtmp[i][j][k][varVel[0]] * arrayUtmp[i][j][k][varVel[2]]; // (rho*u)*w / porosity
+	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayURota[i][j][k][varDen] * pow(arrayURota[i][j][k][varVel[0]],2) + arrayURota[i][j][k][varPrs]; // rho*u^2 / porosity + p*porosity
+	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[1]]; // (rho*u)*v / porosity
+	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[2]]; // (rho*u)*w / porosity
 
 	// energy equation modified on porosity
-	//arrayFlux[i][j][k][varEng]    = 1.0/porosity * arrayUtmp[i][j][k][varVel[0]] * (arrayUtmp[i][j][k][varEng] + arrayUtmp[i][j][k][varPrs]);  // u*(E + p) / porosity
+	//arrayFlux[i][j][k][varEng]    = 1.0/porosity * arrayURota[i][j][k][varVel[0]] * (arrayURota[i][j][k][varEng] + arrayURota[i][j][k][varPrs]);  // u*(E + p) / porosity
       }
     }
   }
 
   void Fluid::RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t it, std::size_t jt, std::size_t kt) {
-
     // it, jt, kt defined at cell faces
-    if (uL[varPrs] < 0 || uR[varPrs] < 0 || uL[varDen] < 0 || uR[varDen] < 0)
-      debugInf << std::setw(OWID) << " RoeFlux:prs,den<0";
-	/*	       << std::setw(5) << it
-	       << std::setw(5) << jt
-	       << std::setw(5) << kt
-	       << std::setw(5) << idim
-	       << std::setw(5) << (int) uL[varMsk]
-	       << std::setw(5) << (int) uR[varMsk]
-	       << std::setw(OWID) << uL[varPrs]
-	       << std::setw(OWID) << uR[varPrs]
-	       << std::setw(OWID) << uL[varDen]
-	       << std::setw(OWID) << uR[varDen]
-	       << std::endl;
-	*/
+
     REAL avgRho =  sqrt(uL[varDen]*uR[varDen]);
     REAL avgH   = (sqrt(uL[varDen])*HL + sqrt(uR[varDen])*HR)/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgV   = (sqrt(uL[varDen])*uL[varVel[1]] + sqrt(uR[varDen])*uR[varVel[1]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
     REAL avgW   = (sqrt(uL[varDen])*uL[varVel[2]] + sqrt(uR[varDen])*uR[varVel[2]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
-
-    // numerical treatment for negative averaged static enthalpy
-    if (avgh <= 0) {
-      REAL avgP = (sqrt(uL[varDen])*uL[varPrs] + sqrt(uR[varDen])*uR[varPrs])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-      avgh = gamma/(gamma-1)*avgP/avgRho;
-
-      debugInf << std::setw(OWID) << " RoeFlux:avgh<0";
-      /*	       << std::setw(5) << it
-	       << std::setw(5) << jt
-	       << std::setw(5) << kt
-	       << std::setw(5) << idim
-	       << std::setw(5) << (int) uL[varMsk]
-	       << std::setw(5) << (int) uR[varMsk]
-	       << std::setw(OWID) << HL
-	       << std::setw(OWID) << HR
-	       << std::setw(OWID) << uL[varDen]
-	       << std::setw(OWID) << uR[varDen]
-	       << std::setw(OWID) << uL[varVel[0]]
-	       << std::setw(OWID) << uR[varVel[0]]
-	       << std::setw(OWID) << uL[varVel[1]]
-	       << std::setw(OWID) << uR[varVel[1]]
-	       << std::setw(OWID) << uL[varVel[2]]
-	       << std::setw(OWID) << uR[varVel[2]]
-	       << std::setw(OWID) << uL[varEng]
-	       << std::setw(OWID) << uR[varEng]
-	       << std::setw(OWID) << avgH
-	       << std::setw(OWID) << avgU
-	       << std::setw(OWID) << avgV
-	       << std::setw(OWID) << avgW
-	       << std::setw(OWID) << sqrt((gamma-1)*avgh)
-	       << std::setw(OWID) << uL[varPrs]
-	       << std::setw(OWID) << uR[varPrs]
-	       << std::endl;
-      */
-    }   
+    REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy 
     REAL avgSoundSpeed = sqrt((gamma-1)*avgh);
 
     REAL eigen[5];
@@ -1049,10 +1022,90 @@ namespace dem {
     }
   }
 
-  void Fluid::UtoW() {// converting conserved variables into primitive
-    for (std::size_t i = 0; i < nx; ++i)
-      for (std::size_t j = 0; j < ny; ++j)
-	for (std::size_t k = 0; k < nz; ++k) {
+  void Fluid::HlleFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t it, std::size_t jt, std::size_t kt) {
+    REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+    REAL aL = sqrt(gamma*uL[varPrs]/uL[varDen]);
+    REAL aR = sqrt(gamma*uR[varPrs]/uR[varDen]);
+    
+    /*
+    // HLLC part
+    // Pressure-based estimate by Toro
+    REAL pStar=std::max(0.0, 0.5*(uL[varPrs]+uR[varPrs])-0.5*(uR[varVel[0]]-uL[varVel[0]])*0.25*(uL[varDen]+uR[varDen])*(aL+aR));
+
+    // Pressure-based estimate by TRRS
+    //REAL z = 0.5*(gamma-1)/gamma;
+    //REAL pStar = pow((aL+aR-0.5*(gamma-1)*(uR[varVel[0]]-uL[varVel[0]]))/(aL/pow(uL[varPrs],z)+aR/pow(uR[varPrs],z)), 1/z);
+
+    REAL qL, qR;
+    if (pStar <= uL[varPrs])
+      qL = 1;
+    else 
+      qL = sqrt(1+(gamma+1)/(2*gamma)*(pStar/uL[varPrs]-1));
+    if (pStar <= uR[varPrs])
+      qR = 1;
+    else 
+      qR = sqrt(1+(gamma+1)/(2*gamma)*(pStar/uR[varPrs]-1));
+    REAL SL = uL[varVel[0]] - aL*qL; // the fastest signal velocities
+    REAL SR = uR[varVel[0]] + aR*qR;
+    // end of HLLC part
+    */
+
+    ///*
+    // Hlle part
+    REAL dBar = (sqrt(uL[varDen])*aL*aL+sqrt(uR[varDen])*aR*aR)/(sqrt(uL[varDen])+sqrt(uR[varDen])) 
+                + (0.5*sqrt(uL[varDen]*uR[varDen])/pow(sqrt(uL[varDen])+sqrt(uR[varDen]),2))*pow(uR[varVel[0]]-uL[varVel[0]],2);
+    REAL SL = avgU - dBar; // the fastest signal velocities, avgU is uBar in Toro's book
+    REAL SR = avgU + dBar;
+    // end of Hlle part
+    //*/
+
+    REAL SStar = (uR[varPrs]-uL[varPrs]+uL[varDen]*uL[varVel[0]]*(SL-uL[varVel[0]])-uR[varDen]*uR[varVel[0]]*(SR-uR[varVel[0]])) / 
+                 (uL[varDen]*(SL-uL[varVel[0]])-uR[varDen]*(SR-uR[varVel[0]]));
+    REAL DStar[5] = {0, 1, 0, 0, SStar};
+
+    if (SL >= 0) {
+      for (std::size_t ie = 0; ie < nInteg; ++ie)
+	arrayRoeFlux[it][jt][kt][ie][idim] = FL[ie];
+    } else if (SL < 0 && SStar >= 0) {
+      REAL uStarL[5];
+      uStarL[0] = 1;
+      uStarL[1] = SStar;
+      uStarL[2] = uL[varVel[1]];
+      uStarL[3] = uL[varVel[2]];
+      uStarL[4] = uL[varEng]/uL[varDen] + (SStar-uL[varVel[0]])*(SStar+uL[varPrs]/uL[varDen]/(SL-uL[varVel[0]]));
+      for (std::size_t i = 0; i < nInteg; ++i)
+	uStarL[i] *= uL[varDen]*(SL-uL[varVel[0]])/(SL-SStar);
+      for (std::size_t ie = 0; ie < nInteg; ++ie) {
+	arrayRoeFlux[it][jt][kt][ie][idim] = FL[ie] + SL*(uStarL[ie]-uL[ie]);
+	// variant 1:
+	//arrayRoeFlux[it][jt][kt][ie][idim] = (SStar*(SL*uL[ie]-FL[ie]) + SL*(uL[varPrs]+uL[varDen]*(SL-uL[varVel[0]])*(SStar-uL[varVel[0]]))*DStar[ie]) / (SL-SStar);
+      }
+    } else if (SStar < 0 && SR > 0) {
+      REAL uStarR[5];
+      uStarR[0] = 1;
+      uStarR[1] = SStar;
+      uStarR[2] = uR[varVel[1]];
+      uStarR[3] = uR[varVel[2]];
+      uStarR[4] = uR[varEng]/uR[varDen] + (SStar-uR[varVel[0]])*(SStar+uR[varPrs]/uR[varDen]/(SR-uR[varVel[0]]));
+      for (std::size_t i = 0; i < nInteg; ++i)
+	uStarR[i] *= uR[varDen]*(SR-uR[varVel[0]])/(SR-SStar);
+      for (std::size_t ie = 0; ie < nInteg; ++ie) {
+	arrayRoeFlux[it][jt][kt][ie][idim] = FR[ie] + SR*(uStarR[ie]-uR[ie]);
+	// variant 1:
+	//arrayRoeFlux[it][jt][kt][ie][idim] = (SStar*(SR*uR[ie]-FR[ie]) + SR*(uR[varPrs]+uR[varDen]*(SR-uR[varVel[0]])*(SStar-uR[varVel[0]]))*DStar[ie]) / (SR-SStar);
+      }
+    } else if (SR >= 0) {
+      for (std::size_t ie = 0; ie < nInteg; ++ie)
+	arrayRoeFlux[it][jt][kt][ie][idim] = FR[ie];
+    }
+  }
+
+  void Fluid::UtoW() { // converting conserved variables into primitive
+    negPrsDen = false;
+    
+    for (std::size_t i = 0; i < nx && !negPrsDen; ++i)  // stop if negPrsDen
+      for (std::size_t j = 0; j < ny && !negPrsDen; ++j)  // stop if negPrsDen
+	for (std::size_t k = 0; k < nz && !negPrsDen; ++k) {  // stop if negPrsDen
 
 	  for (std::size_t m = 0; m < nDim; ++m)
 	    arrayU[i][j][k][varVel[m]] = arrayU[i][j][k][varMom[m]] / arrayU[i][j][k][varDen];
@@ -1063,14 +1116,15 @@ namespace dem {
 	  }
 	  arrayU[i][j][k][varPrs] = (arrayU[i][j][k][varEng] - arrayU[i][j][k][varDen]*arrayU[i][j][k][varPrs]) * (gamma-1);
 
-	  // numerical treatment for negative pressure or density
 	  if (arrayU[i][j][k][varPrs] <= 0) {
 	    debugInf << std::setw(OWID) << " UtoW:prs<0";
-	    arrayU[i][j][k][varPrs] = std::max(arrayU[i][j][k][varPrs], 101325.0*0.001);
+	    negPrsDen = true;
+	    //arrayU[i][j][k][varPrs] = std::max(arrayU[i][j][k][varPrs], 101325.0*0.001);
 	  }
 	  if (arrayU[i][j][k][varDen] <= 0) {
 	    debugInf << std::setw(OWID) << " UtoW:den<0";
-	    arrayU[i][j][k][varDen] = std::max(arrayU[i][j][k][varDen], 1.225*0.001);
+	    negPrsDen = true;
+	    //arrayU[i][j][k][varDen] = std::max(arrayU[i][j][k][varDen], 1.225*0.001);
 	  }
 	}
   }
@@ -1129,7 +1183,7 @@ namespace dem {
 
       Vec penalForce  = 0, presForce  = 0;
       Vec penalMoment = 0, presMoment = 0;
-      REAL avgDen = 0, avgVel = 0, avgPrs = 0;
+      REAL avgDen = 0, avgVel = 0, avgPrs = 0, avgVelGap = 0;
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
 	std::size_t i = static_cast<std::size_t> (fluidGrid[iter][0]);
@@ -1153,6 +1207,7 @@ namespace dem {
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
+	avgVelGap += vfabs(Vec(uxFluid-ux, uyFluid-uy, uzFluid-uz));
 
 	// principal axis decomposition
 	Vec globalDelta = Vec(fabs(uxFluid - ux)*(uxFluid - ux), fabs(uyFluid - uy)*(uyFluid - uy), fabs(uzFluid - uz)*(uzFluid - uz));
@@ -1186,6 +1241,7 @@ namespace dem {
       avgDen /= fluidGrid.size();
       avgVel /= fluidGrid.size();
       avgPrs /= fluidGrid.size();
+      avgVelGap /= fluidGrid.size();
 
       penalForce *= dx*dy*dz;
       presForce  *= dx*dy*dz;
@@ -1231,6 +1287,7 @@ namespace dem {
 		<< std::setw(OWID) << "avgDen"
 		<< std::setw(OWID) << "avgVel"
 		<< std::setw(OWID) << "avgPrs"
+		<< std::setw(OWID) << "avgVelGap"
 		<< std::endl;
 	  }
 
@@ -1268,6 +1325,7 @@ namespace dem {
 	      << std::setw(OWID) << avgDen
 	      << std::setw(OWID) << avgVel
 	      << std::setw(OWID) << avgPrs
+	      << std::setw(OWID) << avgVelGap
 
 	      << std::endl ;
 	  pfs.close();
