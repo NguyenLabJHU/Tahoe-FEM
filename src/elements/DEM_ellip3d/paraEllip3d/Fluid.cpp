@@ -389,19 +389,24 @@ namespace dem {
   }
 
   void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
-    if (!negPrsDen)
-      arrayUPrev = arrayU;
-    else
-      arrayU = arrayUPrev;
-
-    inteStep1(ptcls);
+    if (!negPrsDen) arrayUPrev = arrayU; 
+    else arrayU = arrayUPrev;
+  label1: inteStep1(ptcls); // arrayU updated
+    debugInf << std::setw(OWID) << " inteStep1";
 
     if (RK >= 1) {
+      if (!negPrsDen) arrayUPrev = arrayU; 
+      else { arrayU = arrayUPrev; goto label1;}
       arrayRoeFluxStep2 = arrayRoeFlux;
-      inteStep2(ptcls);
+      inteStep2(ptcls); // arrayU updated
+      debugInf << std::setw(OWID) << " inteStep2";      
+
       if (RK == 2) {
+	if (!negPrsDen) arrayUPrev = arrayU; 
+	else { arrayU = arrayUPrev; goto label1;}
 	arrayRoeFluxStep3 = arrayRoeFlux;    
-	inteStep3(ptcls);
+	inteStep3(ptcls); // arrayU updated
+	debugInf << std::setw(OWID) << " inteStep3";
       }
     }
   }
@@ -748,7 +753,7 @@ namespace dem {
 	      arrayU[i][j][k][varPrs] = pL;
 	      arrayU[i][j][k][varVel[0]] = 0;
 	      arrayU[i][j][k][varVel[1]] = 0;
-	      arrayU[i][j][k][varVel[2]] = uL;
+	      arrayU[i][j][k][varVel[2]] = uL;	
 	    } else {
 	      arrayU[i][j][k][varDen] = rhoR;
 	      arrayU[i][j][k][varPrs] = pR;
@@ -762,9 +767,9 @@ namespace dem {
       for (std::size_t i = 0; i < nx; ++i)
 	for (std::size_t j = 0; j < ny; ++j)
 	  for (std::size_t k = 0; k < nz; ++k) {
-	    if ( arrayGridCoord[i][j][k][2] >= z1L && arrayGridCoord[i][j][k][2] <= z2L &&
-		 arrayGridCoord[i][j][k][0] >= x1L && arrayGridCoord[i][j][k][0] <= x2L &&
-		 arrayGridCoord[i][j][k][1] >= y1L && arrayGridCoord[i][j][k][1] <= y2L) {
+	    if ( arrayGridCoord[i][j][k][2] >= z1L && arrayGridCoord[i][j][k][2] < z2L &&
+		 arrayGridCoord[i][j][k][0] >= x1L && arrayGridCoord[i][j][k][0] < x2L &&
+		 arrayGridCoord[i][j][k][1] >= y1L && arrayGridCoord[i][j][k][1] < y2L) {
 	      arrayU[i][j][k][varDen] = rhoL;
 	      arrayU[i][j][k][varPrs] = pL;
 	      arrayU[i][j][k][varVel[0]] = 0;
