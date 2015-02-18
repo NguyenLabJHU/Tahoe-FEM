@@ -91,17 +91,14 @@ namespace dem {
 
     REAL minR = gradation.getPtclMinRadius();
     gridDz = (minR * 2) / ptclGrid;
+    gridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
+    gridDz = (z2F - z1F) / gridNz;
     gridDx = gridDz;
     gridDy = gridDz;
     gridNx = static_cast<std::size_t> (ceil((x2F - x1F) / gridDx));
     gridNy = static_cast<std::size_t> (ceil((y2F - y1F) / gridDy));
-    gridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
 
-    gridDx = (x2F - x1F) / gridNx;
-    gridDy = (y2F - y1F) / gridNy;
-    gridDz = (z2F - z1F) / gridNz;
-
-    gridNx += 2;
+    gridNx += 2; // add two boundary cells
     gridNy += 2;
     gridNz += 2;
 
@@ -199,6 +196,17 @@ namespace dem {
       debugInf << std::setw(OWID) << "pBL" << std::setw(OWID) << pBL << std::endl;  
       debugInf << std::setw(OWID) << "uBL" << std::setw(OWID) << uBL << std::endl; 
     }
+
+    REAL aNum = (z2F - z1F) / gridDz;
+    if (aNum != ceil(aNum))
+      debugInf << "fluid domain in z direction is not precisely grided!" << std::endl;
+
+    aNum = (x2F - x1F) / gridDx;
+    if (aNum != ceil(aNum))
+      debugInf << "fluid domain in x direction is not precisely grided!" << std::endl;
+    aNum = (y2F - y1F) / gridDy;
+    if (aNum != ceil(aNum))
+      debugInf << "fluid domain in y direction is not precisely grided!" << std::endl;
 
     /*
     debugInf << "nVar " << nVar << std::endl;
@@ -382,7 +390,11 @@ namespace dem {
     soundSpeed(); // for printing Mach number
     debugInf << std::setw(OWID) << "iteration" 
 	     << std::setw(OWID) << "timeStep" 
-	     << std::setw(OWID) << "timeAccrued";
+	     << std::setw(OWID) << "timeAccrued" /*
+	     << std::setw(OWID) << "uZMax"
+	     << std::setw(OWID) << "uZMin"
+	     << std::setw(OWID) << "soundSpeedMax"
+	     << std::setw(OWID) << "(|uZ|+a)Max" */;
   }
 
   void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
@@ -751,8 +763,11 @@ namespace dem {
     debugInf << std::endl
 	     << std::setw(OWID) << iteration 
 	     << std::setw(OWID) << timeStep 
-	     << std::setw(OWID) << timeAccrued;
-	    
+	     << std::setw(OWID) << timeAccrued /*
+	     << std::setw(OWID) << velZ.max()
+	     << std::setw(OWID) << velZ.min()
+	     << std::setw(OWID) << sound.max()
+	     << std::setw(OWID) << gridZ.max() */;	    
   }
 
   void Fluid::soundSpeed() {
@@ -1621,7 +1636,7 @@ namespace dem {
       pPrev = p;
     }
     if (i > maxIter)
-      debugInf << "divergence in Newton-Raphson iteration" << std::endl;
+      debugInf << " NR diverge!" << std::endl;
 
     // compute velocity in star region
     u = 0.5*(ul + ur + fr - fl);
@@ -1643,7 +1658,8 @@ namespace dem {
     REAL cl = sqrt(gama*pl/dl);
     REAL cr = sqrt(gama*pr/dr);  
 
-    REAL qUser = 2.0;
+    const REAL qUser = 2.0;
+    const REAL TOL = 1.0e-6;
 
     // compute guess pressure from PVRS Riemann solver
     REAL pPV = std::max(0.5*(pl + pr) + 0.5*(ul - ur)*0.25*(dl + dr)*(cl + cr), 0.0);
@@ -1654,17 +1670,21 @@ namespace dem {
     if (qMax <= qUser && (pMin <= pPV && pPV <= pMax)) // select PVRS Riemann solver
       pInit = pPV;     
     else {
-      if (pPV < pMin) { // select Two-Rarefaction Riemann solver, Equ.(9.36) of Toro
+      if (pPV < pMin) { // select Two-Rarefaction Riemann solver
 	REAL pLR = pow(pl/pr, (gama-1.0)/(2.0*gama));
 	REAL uStar = (pLR*ul/cl + ur/cr + 2.0/(gama-1.0)*(pLR - 1.0))/(pLR/cl + 1.0/cr);
 	REAL coefL = 1.0 + (gama-1.0)/2.0*(ul - uStar)/cl;
 	REAL coefR = 1.0 + (gama-1.0)/2.0*(uStar - ur)/cr;
-	pInit = 0.5*(pl*pow(coefL, 2.0*gama/(gama-1.0)) + pr*pow(coefR, 2.0*gama/(gama-1.0)));
+	REAL z = (gama-1)/2/gama;
+	pInit = 0.5*(pl*pow(coefL, static_cast<int> (2.0*gama/(gama-1))) + pr*pow(coefR, static_cast<int> (2.0*gama/(gama-1)))); // Equ.(9.36) of Toro.
+	//pInit = pow((cl+cr-(gama-1)/2*(ul-ur))/(cl/pow(pl,z)+cr/pow(pr,z)), 1/z); // Equ.(9.32) of Toro.
+	pInit = std::max(pInit, TOL);
+	//debugInf << " !!!pInit=" << pInit << " pLR= " << pLR << " uStar=" << uStar << " coefL=" << coefL << " coefR=" << coefR << " cl=" << cl << " cr=" << cr << " ul=" << ul << " ur=" << ur;
       } 
       else { // select Two-Shock Riemann solver with PVRS as estimate
 	REAL gL = sqrt((2.0/(gama+1.0)/dl)/((gama-1.0)/(gama+1.0)*pl + pPV));
 	REAL gR = sqrt((2.0/(gama+1.0)/dr)/((gama-1.0)/(gama+1.0)*pr + pPV));
-	pInit = (gL*pl + gR*pr - (ur - ul))/(gL + gR);
+	pInit = (gL*pl + gR*pr - (ur - ul))/(gL + gR);   
       }
     }
   }
