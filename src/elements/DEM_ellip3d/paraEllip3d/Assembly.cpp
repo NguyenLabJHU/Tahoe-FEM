@@ -1158,6 +1158,9 @@ namespace dem {
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       calcTimeStep(); // use values from last step, must call before findContact
+      timeCount += timeStep;
+      timeAccrued += timeStep;
+
       findContact();
       if (isBdryProcess()) findBdryContact();
 
@@ -1175,8 +1178,6 @@ namespace dem {
       updateParticle();
       updateGridMaxZ();
 
-      timeCount += timeStep;
-      timeAccrued += timeStep;
       if (timeCount >= timeIncr/netSnap) { 
 	time1 = MPI_Wtime();
 	gatherParticle();
