@@ -161,6 +161,7 @@ namespace dem {
     void plot(const char *) const;
     void checkMomentum(std::vector<Particle *> &ptcl);   
 
+  private:
     void exactGuessPressure(REAL uL[], REAL uR[], REAL &pInit); 
     void exactEvalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck);
     void exactFindPrsVel(REAL uL[], REAL uR[], REAL &p, REAL &u);
