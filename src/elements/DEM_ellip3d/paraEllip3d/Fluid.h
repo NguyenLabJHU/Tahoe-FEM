@@ -21,19 +21,14 @@ namespace dem {
   private:
     static const REAL Rs  = 287.06; // specific gas constant
 
-    std::size_t nx;    // nx = total cell centers = parts + two boundary points in x direction
-    std::size_t ny;    // ny = total cell centers = parts + two boundary points in y direction
-    std::size_t nz;    // nz = total cell centers = parts + two boundary points in z direction
+    std::size_t gridNx;   // gridNx = total cell centers = parts + two boundary points in x direction
+    std::size_t gridNy;   // gridNy = total cell centers = parts + two boundary points in y direction
+    std::size_t gridNz;   // gridNz = total cell centers = parts + two boundary points in z direction
     std::size_t ptclGrid; // approximate grids accross particle in each dimension
-    REAL dx;           // grid size
-    REAL dy;
-    REAL dz;
-    REAL x1F;          // fluid domain
-    REAL x2F;
-    REAL y1F;
-    REAL y2F;
-    REAL z1F;
-    REAL z2F;
+    REAL gridDx;          // grid size in x direction
+    REAL gridDy;          // grid size in y direction
+    REAL gridDz;          // grid size in z direction
+    REAL x1F, x2F, y1F, y2F, z1F, z2F; // fluid domain
 
     REAL Cd;           // drag coefficient
     REAL porosity;     // particle porosity as porous media
@@ -41,19 +36,14 @@ namespace dem {
     REAL velMod;       // velocity correction coefficient in total enthalpy as porous media
     REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
-    REAL gamma;        // ratio of specific heat capacity of air
+    REAL gama;         // ratio of specific heat capacity of air
     REAL arrayBC[6];   // boundary condition
 
     int  leftType;     // type of left part
-    REAL z1L;          // lower bound z1L of left part
-    REAL z2L;          // upper bound z2L of left part
-    REAL x1L;          // lower bound x1L of left part
-    REAL x2L;          // upper bound x2L of left part
-    REAL y1L;          // lower bound y1L of left part
-    REAL y2L;          // upper bound y2L of left part
-    REAL x0L;          // center of left part, x-coordinate
-    REAL y0L;          // center of left part, y-coordinate
-    REAL z0L;          // center of left part, z-coordinate
+    REAL x1L, x2L, y1L, y2L, z1L, z2L; // left part of fluid domain
+    REAL x0L;          // center of left part of sphere, x-coordinate
+    REAL y0L;          // center of left part of sphere, y-coordinate
+    REAL z0L;          // center of left part of sphere, z-coordinate
     REAL r0L;          // radius of left part
 
     REAL rhoR, uR, pR; // known for Rankine-Hugoniot conditions (RHC)
@@ -66,13 +56,13 @@ namespace dem {
     std::size_t nDim, nVar, nInteg, varDen, varEng, varPrs, varMsk;
     std::size_t varMom[3], varVel[3];
 
-    bool negPrsDen;
+    bool negPrsDen;    // handle cases of negative pressure or density
 
     Array4D arrayU;
     Array4D arrayURota; // copy of arrayU in rotation.
-    Array4D arrayUPrev; // copy of arrayU for previous step
+    Array4D arrayUPrev; // copy of arrayU for previous step used in Runge-Kutta
     // 4-dimensional, defined at cell centers
-    // nx, ny, nz, nVar
+    // gridNx, gridNy, gridNz, nVar
     // (a) fixed:
     // arrayU[i][j][k][0]: varDen
     // arrayU[i][j][k][1]: varMom[0], in x direction
@@ -88,56 +78,56 @@ namespace dem {
 
     Array4D arrayGridCoord; 
     // fluid grid coordinates, 4-dimensional
-    // nx, ny, nz, nDim
-    // arrayGridCoord[i][j][k][0]: coordX
-    // arrayGridCoord[i][j][k][1]: coordY
-    // arrayGridCoord[i][j][k][2]: coordZ
+    // gridNx, gridNy, gridNz, nDim
+    // arrayGridCoord[i][j][k][0]: coorgridDx
+    // arrayGridCoord[i][j][k][1]: coorgridDy
+    // arrayGridCoord[i][j][k][2]: coorgridDz
 
     Array4D arrayPenalForce;
     // fluid grid forces, 4-dimensional
-    // nx, ny, nz, nDim
+    // gridNx, gridNy, gridNz, nDim
     // arrayPenalForce[i][j][k][0]: forceX
     // arrayPenalForce[i][j][k][1]: forceY
     // arrayPenalForce[i][j][k][2]: forceZ
 
     Array4D arrayPressureForce;
     // fluid grid forces, 4-dimensional
-    // nx, ny, nz, nDim
+    // gridNx, gridNy, gridNz, nDim
     // arrayPressureForce[i][j][k][0]: forceX
     // arrayPressureForce[i][j][k][1]: forceY
     // arrayPressureForce[i][j][k][2]: forceZ
 
     Array4D arrayFlux;
     // 4-dimensional, defined at cell centers
-    // nx, ny, nz, nInteg
+    // gridNx, gridNy, gridNz, nInteg
     // arrayFlux[i][j][k][0]: varDen
     // arrayFlux[i][j][k][1]: varMom[0]
     // arrayFlux[i][j][k][2]: varMom[1]
     // arrayFlux[i][j][k][3]: varMom[2]
     // arrayFlux[i][j][k][4]: varEng
 
-    Array5D arrayRoeFlux; 
-    Array5D arrayRoeFluxStep2; 
-    Array5D arrayRoeFluxStep3; 
+    Array5D arrayGodFlux; 
+    Array5D arrayGodFluxStep2; 
+    Array5D arrayGodFluxStep3; 
     // 5-dimensional, defined at cell faces
-    // nx-1, ny-1, nz-1, nInteg, nDim
-    // arrayRoeFlux[i][j][k][0]: varDen
-    // arrayRoeFlux[i][j][k][1]: varMom[0]
-    // arrayRoeFlux[i][j][k][2]: varMom[1]
-    // arrayRoeFlux[i][j][k][3]: varMom[2]
-    // arrayRoeFlux[i][j][k][4]: varEng
+    // gridNx-1, gridNy-1, gridNz-1, nInteg, nDim
+    // arrayGodFlux[i][j][k][0]: varDen
+    // arrayGodFlux[i][j][k][1]: varMom[0]
+    // arrayGodFlux[i][j][k][2]: varMom[1]
+    // arrayGodFlux[i][j][k][3]: varMom[2]
+    // arrayGodFlux[i][j][k][4]: varEng
 
-    Array4D arrayRoeFluxTmp;
+    Array4D arrayGodFluxTmp;
     // 4-dimensional
-    // nx-1, ny-1, nz-1, nInteg
+    // gridNx-1, gridNy-1, gridNz-1, nInteg
 
     Array3D arrayH; 
     // Enthalpy, 3-dimensional, total specific enthalpy, NOT static specific enthalpy
-    // nx, ny, nz
+    // gridNx, gridNy, gridNz
 
     Array3D arraySoundSpeed; 
     // speed of sound, 3-dimensional
-    // nx, ny, nz
+    // gridNx, gridNy, gridNz
 
     std::vector<std::size_t> printPtcls;
 
@@ -153,8 +143,10 @@ namespace dem {
     void soundSpeed();
     void enthalpy();
     void flux(std::size_t, std::vector<Particle *> &ptcls);
-    void RoeFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
-    void HlleFlux(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
+    void exactSolver(REAL uL[], REAL uR[], REAL relaCoord, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
+    void RoeSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
+    void HllcSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
+    void HlleSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
     void UtoW(); // U - conserved; W - primitive
     void WtoU();
     void rotateIJK(std::vector<Particle *> &ptcls);
@@ -167,7 +159,12 @@ namespace dem {
     void calcPtclForce(std::vector<Particle *> &ptcls);
     void penalize(std::vector<Particle *> &ptcls);
     void plot(const char *) const;
-    void checkMomentum(std::vector<Particle *> &ptcl);    
+    void checkMomentum(std::vector<Particle *> &ptcl);   
+
+    void exactGuessPressure(REAL uL[], REAL uR[], REAL &pInit); 
+    void exactEvalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck);
+    void exactFindPrsVel(REAL uL[], REAL uR[], REAL &p, REAL &u);
+    void exactSampling(REAL uL[], REAL uR[], const REAL pStar, const REAL uStar, const REAL s, REAL &d, REAL &u, REAL &p);
   };
   
 } // name space dem
