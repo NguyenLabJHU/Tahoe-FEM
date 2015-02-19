@@ -8,6 +8,9 @@ namespace dem {
   // numerical EPS (NOT machine epsilon)
   const REAL EPS  = 1.0E-12;
 
+  // algorithm tolerance
+  const REAL TOL  = 1.0E-6;
+
   // random number seed (Not a constant)
   long idum       = -1;
 

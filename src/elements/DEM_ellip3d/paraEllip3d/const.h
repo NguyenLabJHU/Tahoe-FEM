@@ -13,6 +13,9 @@ namespace dem {
   // numerical EPS (NOT machine epsilon)
   extern const REAL EPS;
 
+  // algorithm tolerance
+  extern const REAL TOL;
+
   // random number seed (NOT a constant)
   extern long idum;
 
