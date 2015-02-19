@@ -528,6 +528,8 @@ namespace dem {
 	    REAL avgV   = (sqrt(UL[varDen])*UL[varVel[1]] + sqrt(UR[varDen])*UR[varVel[1]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
 	    REAL avgW   = (sqrt(UL[varDen])*UL[varVel[2]] + sqrt(UR[varDen])*UR[varVel[2]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
 	    REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
+	    REAL pStar;
+	    guessPressure(UL, UR, pStar);
 
 	    int solver = static_cast<int> (dem::Parameter::getSingleton().parameter["solver"]);
 	    switch (solver) {
@@ -547,21 +549,21 @@ namespace dem {
 	      HlleSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
 	      break;
 	    case 3:
-	      if (avgh <= 0 || negPrsDen)
+	      if (pStar <= UL[varPrs] || pStar <= UR[varPrs] || avgh <= 0 || negPrsDen) // first 2 expressions cover rarefaction and contact waves
 		HllcSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
-	      else
-		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+	      else // use Roe solver for shock waves
+		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k); 
 	      break;
 	    case 4:
-	      if (avgh <= 0 || negPrsDen)
+	      if (pStar <= UL[varPrs] || pStar <= UR[varPrs] || avgh <= 0 || negPrsDen) // first 2 expressions cover rarefaction and contact waves
 		HlleSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
-	      else
+	      else // use Roe solver for shock waves
 		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
 	      break;
 	    case 5:
-	      if (avgh <= 0 || negPrsDen)
+	      if (pStar <= UL[varPrs] || pStar <= UR[varPrs] || avgh <= 0 || negPrsDen) // first 2 expressions cover rarefaction and contact waves
 		exactSolver(UL, UR, 0, iDim, i, j, k);
-	      else
+	      else // use Roe solver for shock waves
 		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
 	      break;
 	    }
@@ -933,31 +935,30 @@ namespace dem {
     }
   }
 
-  void Fluid::exactSolver(REAL uL[], REAL uR[], REAL relaCoord, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Fluid::exactSolver(REAL UL[], REAL UR[], REAL relaCoord, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     REAL pStar, uStar;
-    exactFindPrsVel(uL, uR, pStar, uStar);
+    findPrsVel(UL, UR, pStar, uStar);
 
     REAL s = relaCoord/timeAccrued;
     REAL d, u, p;
-    exactSampling(uL, uR, pStar, uStar, s, d, u, p);
+    sampling(UL, UR, pStar, uStar, s, d, u, p);
     //if (iDim==2 && it==3 && jt==3 && kt==250) debugInf << " relaCoord=" << relaCoord << " pstar=" << pStar << " uStar=" << uStar << " den=" << d << " u=" << u << " p=" << p; 
     arrayGodFlux[it][jt][kt][varDen][iDim] = d*u;
     arrayGodFlux[it][jt][kt][varMom[0]][iDim] = d*u*u+p;
-    REAL v = uStar >= s ? uL[varVel[1]] : uR[varVel[1]]; // Equ. (4.115) of Toro
-    REAL w = uStar >= s ? uL[varVel[2]] : uR[varVel[2]];
+    REAL v = uStar >= s ? UL[varVel[1]] : UR[varVel[1]]; // Equ. (4.115) of Toro
+    REAL w = uStar >= s ? UL[varVel[2]] : UR[varVel[2]];
     arrayGodFlux[it][jt][kt][varMom[1]][iDim] = d*u*v;
     arrayGodFlux[it][jt][kt][varMom[2]][iDim] = d*u*w;
     arrayGodFlux[it][jt][kt][varEng][iDim] = u*(p*gama/(gama-1)+0.5*d*(u*u+v*v+w*w)); // u*(E+p)
   }
 
-  void Fluid::RoeSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Fluid::RoeSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     // it, jt, kt defined at cell faces
-
-    REAL avgRho =  sqrt(uL[varDen]*uR[varDen]);
-    REAL avgH   = (sqrt(uL[varDen])*HL + sqrt(uR[varDen])*HR)/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgV   = (sqrt(uL[varDen])*uL[varVel[1]] + sqrt(uR[varDen])*uR[varVel[1]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgW   = (sqrt(uL[varDen])*uL[varVel[2]] + sqrt(uR[varDen])*uR[varVel[2]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+    REAL avgRho =  sqrt(UL[varDen]*UR[varDen]);
+    REAL avgH   = (sqrt(UL[varDen])*HL + sqrt(UR[varDen])*HR)/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL avgU   = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL avgV   = (sqrt(UL[varDen])*UL[varVel[1]] + sqrt(UR[varDen])*UR[varVel[1]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL avgW   = (sqrt(UL[varDen])*UL[varVel[2]] + sqrt(UR[varDen])*UR[varVel[2]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
     REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy 
     REAL avgSoundSpeed = sqrt((gama-1)*avgh);
     
@@ -968,7 +969,7 @@ namespace dem {
 
     REAL avgWaveStr[5], du[9];
     for (std::size_t i = 0; i < nVar; ++i)
-      du[i] = uR[i] - uL[i];
+      du[i] = UR[i] - UL[i];
 
     avgWaveStr[varDen]    = (du[varPrs] - avgRho*avgSoundSpeed*du[varVel[0]]) / (2*avgSoundSpeed*avgSoundSpeed);
     avgWaveStr[varMom[0]] = du[varDen] - du[varPrs]/(avgSoundSpeed*avgSoundSpeed);
@@ -1009,64 +1010,44 @@ namespace dem {
 
     // entropy fix: use HartenHyman Entropy Fix and Roe-Averaged States
     // for left transonic rarefaction
-    REAL denStar = uL[varDen] + avgWaveStr[varDen];
-    REAL uStar = ( uL[varDen]*uL[varVel[0]] + avgWaveStr[varDen]*(avgU-avgSoundSpeed) ) / denStar;
-    REAL pStar = (gama-1)* (uL[varEng] + avgWaveStr[varDen]*(avgH-avgU*avgSoundSpeed) - 0.5*denStar*uStar*uStar );
+    REAL denStar = UL[varDen] + avgWaveStr[varDen];
+    REAL uStar = ( UL[varDen]*UL[varVel[0]] + avgWaveStr[varDen]*(avgU-avgSoundSpeed) ) / denStar;
+    REAL pStar = (gama-1)* (UL[varEng] + avgWaveStr[varDen]*(avgH-avgU*avgSoundSpeed) - 0.5*denStar*uStar*uStar );
     REAL aStarL= sqrt(gama*pStar/denStar);
-    REAL aL = sqrt(gama*uL[varPrs]/uL[varDen]);
-    REAL eigenL = uL[varVel[0]] - aL;
+    REAL aL = sqrt(gama*UL[varPrs]/UL[varDen]);
+    REAL eigenL = UL[varVel[0]] - aL;
     REAL eigenR = uStar - aStarL;
     if (eigenL < 0 && eigenR > 0)
       eigen[varDen] = eigenL * (eigenR-eigen[varDen])/(eigenR-eigenL);
-
-    /* // for debugging 123 problem
-    if (iDim==2 && it==22 && jt==22 && kt==49) 
-      debugInf << " ( ROE leftRare face49 iDim=" << iDim << " uL,uR=" << uL[varVel[0]] << " " << uR[varVel[0]] 
-	       << ") (eiL,eiR=" << eigenL << " " << eigenR << ") " ;
-    if (iDim==2 && it==22 && jt==22 && kt==50) 
-      debugInf << " ( ROE leftRare face50 iDim=" << iDim << " uL,uR=" << uL[varVel[0]] << " " << uR[varVel[0]] 
-	       << ") (eiL,eiR=" << eigenL << " " << eigenR << ") " ;
-    */
-
     // for right transonic rarefaction
-    denStar = uR[varDen] - avgWaveStr[varEng];
-    uStar = ( uR[varDen]*uR[varVel[0]] - avgWaveStr[varEng]*(avgU+avgSoundSpeed) ) / denStar;
-    pStar = (gama-1)* (uR[varEng] - avgWaveStr[varEng]*(avgH+avgU*avgSoundSpeed) - 0.5*denStar*uStar*uStar );
+    denStar = UR[varDen] - avgWaveStr[varEng];
+    uStar = ( UR[varDen]*UR[varVel[0]] - avgWaveStr[varEng]*(avgU+avgSoundSpeed) ) / denStar;
+    pStar = (gama-1)* (UR[varEng] - avgWaveStr[varEng]*(avgH+avgU*avgSoundSpeed) - 0.5*denStar*uStar*uStar );
     REAL aStarR = sqrt(gama*pStar/denStar);
-    REAL aR = sqrt(gama*uR[varPrs]/uR[varDen]);
+    REAL aR = sqrt(gama*UR[varPrs]/UR[varDen]);
     eigenL = uStar + aStarR;
-    eigenR = uR[varVel[0]] + aR;
+    eigenR = UR[varVel[0]] + aR;
     if (eigenL < 0 && eigenR > 0)
       eigen[varEng] = eigenR * (eigen[varEng]-eigenL)/(eigenR-eigenL);
-
-    /*
-    // for debugging 123 problem
-    if (iDim==2 && it==22 && jt==22 && kt==49) 
-      debugInf << " ( ROE rigtRare face49 iDim=" << iDim << " uL,uR=" << uL[varVel[0]] << " " << uR[varVel[0]] 
-	       << ") (eiL,eiR=" << eigenL << " " << eigenR << ") " ;
-    if (iDim==2 && it==22 && jt==22 && kt==50) 
-      debugInf << " ( ROE rigtRare face50 iDim=" << iDim << " uL,uR=" << uL[varVel[0]] << " " << uR[varVel[0]] 
-	       << ") (eiL,eiR=" << eigenL << " " << eigenR << ") " ;
     // end of entropy fix
-    */
 
     /*
     // entropy fix: use HartenHyman Entropy Fix and PrimitiveVariable Riemann Solver (PVRS)
-    REAL aBar = 0.5*(sqrt(gama*uL[varPrs]/uL[varDen])+sqrt(gama*uR[varPrs]/uR[varDen]));
-    REAL denBar = 0.5*(uL[varDen]+uR[varDen]);
-    REAL pStar = 0.5*(uL[varPrs]+uR[varPrs]) + 0.5*(uL[varVel[0]]-uR[varVel[0]])/(denBar*aBar);
-    REAL uStar = 0.5*(uL[varVel[0]]+uR[varVel[0]]) + 0.5*(uL[varPrs]-uR[varPrs])/(denBar*aBar);
-    REAL denStarL = uL[varDen] + (uL[varVel[0]]-uStar)*denBar/aBar;
-    REAL denStarR = uR[varDen] + (uStar-uR[varVel[0]])*denBar/aBar;
+    REAL aBar = 0.5*(sqrt(gama*UL[varPrs]/UL[varDen])+sqrt(gama*UR[varPrs]/UR[varDen]));
+    REAL denBar = 0.5*(UL[varDen]+UR[varDen]);
+    REAL pStar = 0.5*(UL[varPrs]+UR[varPrs]) + 0.5*(UL[varVel[0]]-UR[varVel[0]])/(denBar*aBar);
+    REAL uStar = 0.5*(UL[varVel[0]]+UR[varVel[0]]) + 0.5*(UL[varPrs]-UR[varPrs])/(denBar*aBar);
+    REAL denStarL = UL[varDen] + (UL[varVel[0]]-uStar)*denBar/aBar;
+    REAL denStarR = UR[varDen] + (uStar-UR[varVel[0]])*denBar/aBar;
 
     // for left transonic rarefaction
-    REAL eigenL = uL[varVel[0]] - sqrt(gama*uL[varPrs]/uL[varDen]);
+    REAL eigenL = UL[varVel[0]] - sqrt(gama*UL[varPrs]/UL[varDen]);
     REAL eigenR = uStar - sqrt(gama*pStar/denStarL);
     if (eigenL < 0 && eigenR > 0)
       eigen[varDen] = eigenL * (eigenR-eigen[varDen])/(eigenR-eigenL);
     // for right transonic rarefaction
     eigenL = uStar + sqrt(gama*pStar/denStarR);
-    eigenR = uR[varVel[0]] + sqrt(gama*uR[varPrs]/uR[varDen]);
+    eigenR = UR[varVel[0]] + sqrt(gama*UR[varPrs]/UR[varDen]);
     if (eigenL < 0 && eigenR > 0)
       eigen[varEng] = eigenR * (eigen[varEng]-eigenL)/(eigenR-eigenL);
     // end of entropy fix
@@ -1076,21 +1057,21 @@ namespace dem {
     // entropy fix: use HartenHyman Entropy Fix and TwoRarefaction Riemann Solver (TRRS)
     // it is supposed to work for 123 problem, but it actually does not.
     REAL z = 0.5*(gama-1)/gama;
-    REAL aL = sqrt(gama*uL[varPrs]/uL[varDen]);
-    REAL aR = sqrt(gama*uR[varPrs]/uR[varDen]);
-    REAL pStar = pow((aL+aR-0.5*(gama-1)*(uR[varVel[0]]-uL[varVel[0]]))/(aL/pow(uL[varPrs],z)+aR/pow(uR[varPrs],z)), 1/z);
+    REAL aL = sqrt(gama*UL[varPrs]/UL[varDen]);
+    REAL aR = sqrt(gama*UR[varPrs]/UR[varDen]);
+    REAL pStar = pow((aL+aR-0.5*(gama-1)*(UR[varVel[0]]-UL[varVel[0]]))/(aL/pow(UL[varPrs],z)+aR/pow(UR[varPrs],z)), 1/z);
     // for left transonic rarefaction
-    REAL aStarL = aL*pow(pStar/uL[varPrs],z);
-    REAL uStar = uL[varVel[0]] + 2/(gama-1)*(aL-aStarL);
-    REAL eigenL = uL[varVel[0]] - aL;
+    REAL aStarL = aL*pow(pStar/UL[varPrs],z);
+    REAL uStar = UL[varVel[0]] + 2/(gama-1)*(aL-aStarL);
+    REAL eigenL = UL[varVel[0]] - aL;
     REAL eigenR = uStar - aStarL;
     if (eigenL < 0 && eigenR > 0)
       eigen[varDen] = eigenL * (eigenR-eigen[varDen])/(eigenR-eigenL);
     // for right transonic rarefaction
-    REAL aStarR = aR*pow(pStar/uR[varPrs],z);
-    uStar = uR[varVel[0]] + 2/(gama-1)*(aStarR-aR);
+    REAL aStarR = aR*pow(pStar/UR[varPrs],z);
+    uStar = UR[varVel[0]] + 2/(gama-1)*(aStarR-aR);
     eigenL = uStar + aStarR;
-    eigenR = uR[varVel[0]] + aR;
+    eigenR = UR[varVel[0]] + aR;
     if (eigenL < 0 && eigenR > 0)
       eigen[varEng] = eigenR * (eigen[varEng]-eigenL)/(eigenR-eigenL);
     // end of entropy fix
@@ -1108,24 +1089,24 @@ namespace dem {
     }
   }
 
-  void Fluid::HlleSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
-    REAL avgH   = (sqrt(uL[varDen])*HL + sqrt(uR[varDen])*HR)/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgU   = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgV   = (sqrt(uL[varDen])*uL[varVel[1]] + sqrt(uR[varDen])*uR[varVel[1]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL avgW   = (sqrt(uL[varDen])*uL[varVel[2]] + sqrt(uR[varDen])*uR[varVel[2]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
+  void Fluid::HlleSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+    REAL avgH   = (sqrt(UL[varDen])*HL + sqrt(UR[varDen])*HR)/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL avgU   = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL avgV   = (sqrt(UL[varDen])*UL[varVel[1]] + sqrt(UR[varDen])*UR[varVel[1]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL avgW   = (sqrt(UL[varDen])*UL[varVel[2]] + sqrt(UR[varDen])*UR[varVel[2]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
     REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy 
     REAL avgSoundSpeed = sqrt((gama-1)*avgh);
 
-    REAL aL = sqrt(gama*uL[varPrs]/uL[varDen]);
-    REAL aR = sqrt(gama*uR[varPrs]/uR[varDen]);
-    REAL SL = std::min(avgU-avgSoundSpeed, uL[varVel[0]]-aL); // this is the core of HLLE, positively conservative
-    REAL SR = std::max(avgU+avgSoundSpeed, uR[varVel[0]]+aR);
+    REAL aL = sqrt(gama*UL[varPrs]/UL[varDen]);
+    REAL aR = sqrt(gama*UR[varPrs]/UR[varDen]);
+    REAL SL = std::min(avgU-avgSoundSpeed, UL[varVel[0]]-aL); // this is the core of HLLE, positively conservative
+    REAL SR = std::max(avgU+avgSoundSpeed, UR[varVel[0]]+aR);
     REAL uBar = (SR+SL)/2;
     REAL cBar = (SR-SL)/2;
 
     /*
-    REAL dBar = (sqrt(uL[varDen])*aL*aL+sqrt(uR[varDen])*aR*aR)/(sqrt(uL[varDen])+sqrt(uR[varDen])) 
-                + (0.5*sqrt(uL[varDen]*uR[varDen])/pow(sqrt(uL[varDen])+sqrt(uR[varDen]),2))*pow(uR[varVel[0]]-uL[varVel[0]],2);
+    REAL dBar = (sqrt(UL[varDen])*aL*aL+sqrt(UR[varDen])*aR*aR)/(sqrt(UL[varDen])+sqrt(UR[varDen])) 
+                + (0.5*sqrt(UL[varDen]*UR[varDen])/pow(sqrt(UL[varDen])+sqrt(UR[varDen]),2))*pow(UR[varVel[0]]-UL[varVel[0]],2);
     REAL SL = avgU - dBar; // the fastest signal velocities, avgU is uBar in Toro's book
     REAL SR = avgU + dBar;
 
@@ -1140,7 +1121,7 @@ namespace dem {
     REAL l[5] = {1-(gama-1)/2*uBar*uBar/(cBar*cBar), (gama-1)*uBar/(cBar*cBar), 0, 0, (1-gama)/(cBar*cBar)}; // what about 3D?
     REAL eta = 0;
     for (std::size_t i = 0; i < nInteg; ++i)
-      eta += l[i] * (uR[i] - uL[i]);
+      eta += l[i] * (UR[i] - UL[i]);
     REAL bNeg = std::min(SL, .0);
     REAL bPos = std::max(SR, .0);
     REAL delta = 1/(timeStep*(cBar+fabs(uBar)));
@@ -1150,7 +1131,7 @@ namespace dem {
 	arrayGodFlux[it][jt][kt][ie][iDim] = FL[ie];
     } else if (SL < 0 && SR > 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
-	arrayGodFlux[it][jt][kt][ie][iDim] = (SR*FL[ie]-SL*FR[ie]+SL*SR*(uR[ie]-uL[ie]))/(SR-SL);      
+	arrayGodFlux[it][jt][kt][ie][iDim] = (SR*FL[ie]-SL*FR[ie]+SL*SR*(UR[ie]-UL[ie]))/(SR-SL);      
     }else if (SR <= 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
 	arrayGodFlux[it][jt][kt][ie][iDim] = FR[ie];
@@ -1162,55 +1143,46 @@ namespace dem {
     */
   }
 
-  void Fluid::HllcSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
-    REAL avgU = (sqrt(uL[varDen])*uL[varVel[0]] + sqrt(uR[varDen])*uR[varVel[0]])/(sqrt(uL[varDen]) + sqrt(uR[varDen]));
-    REAL aL = sqrt(gama*uL[varPrs]/uL[varDen]);
-    REAL aR = sqrt(gama*uR[varPrs]/uR[varDen]);
+  void Fluid::HllcSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+    REAL avgU = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+    REAL aL = sqrt(gama*UL[varPrs]/UL[varDen]);
+    REAL aR = sqrt(gama*UR[varPrs]/UR[varDen]);
 
     ///*
     // HLLC part
     // Pressure-based estimate by Toro
-    REAL pStar=std::max(0.0, 0.5*(uL[varPrs]+uR[varPrs])-0.5*(uR[varVel[0]]-uL[varVel[0]])*0.25*(uL[varDen]+uR[varDen])*(aL+aR));
+    REAL pStar=std::max(0.0, 0.5*(UL[varPrs]+UR[varPrs])-0.5*(UR[varVel[0]]-UL[varVel[0]])*0.25*(UL[varDen]+UR[varDen])*(aL+aR));
 
     // Pressure-based estimate by TRRS
     //REAL z = 0.5*(gama-1)/gama;
-    //REAL pStar = pow((aL+aR-0.5*(gama-1)*(uR[varVel[0]]-uL[varVel[0]]))/(aL/pow(uL[varPrs],z)+aR/pow(uR[varPrs],z)), 1/z);
+    //REAL pStar = pow((aL+aR-0.5*(gama-1)*(UR[varVel[0]]-UL[varVel[0]]))/(aL/pow(UL[varPrs],z)+aR/pow(UR[varPrs],z)), 1/z);
 
     REAL qL, qR;
-    if (pStar <= uL[varPrs])
+    if (pStar <= UL[varPrs])
       qL = 1;
     else 
-      qL = sqrt(1+(gama+1)/(2*gama)*(pStar/uL[varPrs]-1));
-    if (pStar <= uR[varPrs])
+      qL = sqrt(1+(gama+1)/(2*gama)*(pStar/UL[varPrs]-1));
+    if (pStar <= UR[varPrs])
       qR = 1;
     else 
-      qR = sqrt(1+(gama+1)/(2*gama)*(pStar/uR[varPrs]-1));
-    REAL SL = uL[varVel[0]] - aL*qL; // the fastest signal velocities
-    REAL SR = uR[varVel[0]] + aR*qR;
+      qR = sqrt(1+(gama+1)/(2*gama)*(pStar/UR[varPrs]-1));
+    REAL SL = UL[varVel[0]] - aL*qL; // the fastest signal velocities
+    REAL SR = UR[varVel[0]] + aR*qR;
     // end of HLLC part
     //*/
 
     /*
     // Hlle part, this part does not work for 123 problem.
-    REAL dBar = (sqrt(uL[varDen])*aL*aL+sqrt(uR[varDen])*aR*aR)/(sqrt(uL[varDen])+sqrt(uR[varDen])) 
-                + (0.5*sqrt(uL[varDen]*uR[varDen])/pow(sqrt(uL[varDen])+sqrt(uR[varDen]),2))*pow(uR[varVel[0]]-uL[varVel[0]],2);
+    REAL dBar = (sqrt(UL[varDen])*aL*aL+sqrt(UR[varDen])*aR*aR)/(sqrt(UL[varDen])+sqrt(UR[varDen])) 
+                + (0.5*sqrt(UL[varDen]*UR[varDen])/pow(sqrt(UL[varDen])+sqrt(UR[varDen]),2))*pow(UR[varVel[0]]-UL[varVel[0]],2);
     REAL SL = avgU - dBar; // the fastest signal velocities, avgU is uBar in Toro's book
     REAL SR = avgU + dBar;
     // end of Hlle part
     */
 
-    REAL SStar = (uR[varPrs]-uL[varPrs]+uL[varDen]*uL[varVel[0]]*(SL-uL[varVel[0]])-uR[varDen]*uR[varVel[0]]*(SR-uR[varVel[0]])) / 
-                 (uL[varDen]*(SL-uL[varVel[0]])-uR[varDen]*(SR-uR[varVel[0]]));
+    REAL SStar = (UR[varPrs]-UL[varPrs]+UL[varDen]*UL[varVel[0]]*(SL-UL[varVel[0]])-UR[varDen]*UR[varVel[0]]*(SR-UR[varVel[0]])) / 
+                 (UL[varDen]*(SL-UL[varVel[0]])-UR[varDen]*(SR-UR[varVel[0]]));
     REAL DStar[5] = {0, 1, 0, 0, SStar};
-    
-    /*
-    if (iDim==2 && it==22 && jt==22 && kt==49) 
-      debugInf << " (HLLC face49 iDim=" << iDim << " uL,uR=" << uL[varVel[0]] << " " << uR[varVel[0]]
-	       << ") (SL,S*,SR=" << SL << " " << SStar << " " << SR << ") " ;
-    if (iDim==2 && it==22 && jt==22 && kt==50) 
-      debugInf << " (HLLC face50 iDim=" << iDim << " uL,uR=" << uL[varVel[0]] << " " << uR[varVel[0]]
-	       << ") (SL,S*,SR=" << SL << " " << SStar << " " << SR << ") " ;
-    */
 
     if (SL >= 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
@@ -1219,37 +1191,37 @@ namespace dem {
       REAL uStarL[5];
       uStarL[0] = 1;
       uStarL[1] = SStar;
-      uStarL[2] = uL[varVel[1]];
-      uStarL[3] = uL[varVel[2]];
-      uStarL[4] = uL[varEng]/uL[varDen] + (SStar-uL[varVel[0]])*(SStar+uL[varPrs]/uL[varDen]/(SL-uL[varVel[0]]));
+      uStarL[2] = UL[varVel[1]];
+      uStarL[3] = UL[varVel[2]];
+      uStarL[4] = UL[varEng]/UL[varDen] + (SStar-UL[varVel[0]])*(SStar+UL[varPrs]/UL[varDen]/(SL-UL[varVel[0]]));
       for (std::size_t i = 0; i < nInteg; ++i)
-	uStarL[i] *= uL[varDen]*(SL-uL[varVel[0]])/(SL-SStar);
+	uStarL[i] *= UL[varDen]*(SL-UL[varVel[0]])/(SL-SStar);
 
-      //REAL pLR = 0.5*(uL[varPrs]+uR[varPrs] + uL[varDen]*(SL-uL[varVel[0]])*(SStar-uL[varVel[0]]) + uR[varDen]*(SR-uR[varVel[0]])*(SStar-uR[varVel[0]]));
+      //REAL pLR = 0.5*(UL[varPrs]+UR[varPrs] + UL[varDen]*(SL-UL[varVel[0]])*(SStar-UL[varVel[0]]) + UR[varDen]*(SR-UR[varVel[0]])*(SStar-UR[varVel[0]]));
       for (std::size_t ie = 0; ie < nInteg; ++ie) {
-	arrayGodFlux[it][jt][kt][ie][iDim] = FL[ie] + SL*(uStarL[ie]-uL[ie]);
+	arrayGodFlux[it][jt][kt][ie][iDim] = FL[ie] + SL*(uStarL[ie]-UL[ie]);
 	// variant 1:
-	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SL*uL[ie]-FL[ie]) + SL*(uL[varPrs]+uL[varDen]*(SL-uL[varVel[0]])*(SStar-uL[varVel[0]]))*DStar[ie]) / (SL-SStar);
+	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SL*UL[ie]-FL[ie]) + SL*(UL[varPrs]+UL[varDen]*(SL-UL[varVel[0]])*(SStar-UL[varVel[0]]))*DStar[ie]) / (SL-SStar);
 	// variant 2:
-	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SL*uL[ie]-FL[ie]) + SL*pLR*DStar[ie]) / (SL-SStar);	
+	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SL*UL[ie]-FL[ie]) + SL*pLR*DStar[ie]) / (SL-SStar);	
       }
     } else if (SStar < 0 && SR > 0) {
       REAL uStarR[5];
       uStarR[0] = 1;
       uStarR[1] = SStar;
-      uStarR[2] = uR[varVel[1]];
-      uStarR[3] = uR[varVel[2]];
-      uStarR[4] = uR[varEng]/uR[varDen] + (SStar-uR[varVel[0]])*(SStar+uR[varPrs]/uR[varDen]/(SR-uR[varVel[0]]));
+      uStarR[2] = UR[varVel[1]];
+      uStarR[3] = UR[varVel[2]];
+      uStarR[4] = UR[varEng]/UR[varDen] + (SStar-UR[varVel[0]])*(SStar+UR[varPrs]/UR[varDen]/(SR-UR[varVel[0]]));
       for (std::size_t i = 0; i < nInteg; ++i)
-	uStarR[i] *= uR[varDen]*(SR-uR[varVel[0]])/(SR-SStar);
+	uStarR[i] *= UR[varDen]*(SR-UR[varVel[0]])/(SR-SStar);
 
-      //REAL pLR = 0.5*(uL[varPrs]+uR[varPrs] + uL[varDen]*(SL-uL[varVel[0]])*(SStar-uL[varVel[0]]) + uR[varDen]*(SR-uR[varVel[0]])*(SStar-uR[varVel[0]]));
+      //REAL pLR = 0.5*(UL[varPrs]+UR[varPrs] + UL[varDen]*(SL-UL[varVel[0]])*(SStar-UL[varVel[0]]) + UR[varDen]*(SR-UR[varVel[0]])*(SStar-UR[varVel[0]]));
       for (std::size_t ie = 0; ie < nInteg; ++ie) {
-	arrayGodFlux[it][jt][kt][ie][iDim] = FR[ie] + SR*(uStarR[ie]-uR[ie]);
+	arrayGodFlux[it][jt][kt][ie][iDim] = FR[ie] + SR*(uStarR[ie]-UR[ie]);
 	// variant 1:
-	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SR*uR[ie]-FR[ie]) + SR*(uR[varPrs]+uR[varDen]*(SR-uR[varVel[0]])*(SStar-uR[varVel[0]]))*DStar[ie]) / (SR-SStar);
+	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SR*UR[ie]-FR[ie]) + SR*(UR[varPrs]+UR[varDen]*(SR-UR[varVel[0]])*(SStar-UR[varVel[0]]))*DStar[ie]) / (SR-SStar);
 	// variant 2:
-	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SR*uR[ie]-FR[ie]) + SR*pLR*DStar[ie]) / (SR-SStar);	
+	//arrayGodFlux[it][jt][kt][ie][iDim] = (SStar*(SR*UR[ie]-FR[ie]) + SR*pLR*DStar[ie]) / (SR-SStar);	
       }
     } else if (SR <= 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
@@ -1601,32 +1573,30 @@ namespace dem {
     ofs.close();
   }
 
-  void Fluid::exactFindPrsVel(REAL uL[], REAL uR[], REAL &p, REAL &u) {
+  void Fluid::findPrsVel(REAL UL[], REAL UR[], REAL &p, REAL &u) {
     // purpose: to compute the solution for pressure and
     //          velocity in the Star Region
 
-    REAL dl = uL[varDen];
-    REAL dr = uR[varDen];
-    REAL ul = uL[varVel[0]];
-    REAL ur = uR[varVel[0]];
-    REAL pl = uL[varPrs];
-    REAL pr = uR[varPrs];
+    REAL dl = UL[varDen];
+    REAL dr = UR[varDen];
+    REAL ul = UL[varVel[0]];
+    REAL ur = UR[varVel[0]];
+    REAL pl = UL[varPrs];
+    REAL pr = UR[varPrs];
     REAL cl = sqrt(gama*pl/dl);
     REAL cr = sqrt(gama*pr/dr);
 
     const int maxIter = 20;
-    const REAL TOL = 1.0e-6;
     REAL change, fl, fld, fr, frd, pPrev, pstart, du;
 
-    // guessed value pstart is computed
-    exactGuessPressure(uL, uR, pstart);
+    guessPressure(UL, UR, pstart);
     pPrev = pstart;
     du = ur - ul;
 
     int i = 1;
     for ( ; i <= maxIter; ++i) {
-      exactEvalF(fl, fld, pPrev, dl, pl, cl);
-      exactEvalF(fr, frd, pPrev, dr, pr, cr);
+      evalF(fl, fld, pPrev, dl, pl, cl);
+      evalF(fr, frd, pPrev, dr, pr, cr);
       p = pPrev - (fl + fr + du)/(fld + frd);
       change = 2.0*abs((p - pPrev)/(p + pPrev));
       if (change <= TOL)
@@ -1642,24 +1612,23 @@ namespace dem {
     u = 0.5*(ul + ur + fr - fl);
   }
 
-  void Fluid::exactGuessPressure(REAL uL[], REAL uR[], REAL &pInit) {
+  void Fluid::guessPressure(REAL UL[], REAL UR[], REAL &pInit) {
     // purpose: to provide a guessed value for pressure
     //          pInit in the Star Region. The choice is made
     //          according to adaptive Riemann solver using
     //          the PVRS, TRRS and TSRS approximate
     //          Riemann solvers. See Sect. 9.5 of Chapt. 9 of Ref. 1
 
-    REAL dl = uL[varDen];
-    REAL dr = uR[varDen];
-    REAL ul = uL[varVel[0]];
-    REAL ur = uR[varVel[0]];
-    REAL pl = uL[varPrs];
-    REAL pr = uR[varPrs];
+    REAL dl = UL[varDen];
+    REAL dr = UR[varDen];
+    REAL ul = UL[varVel[0]];
+    REAL ur = UR[varVel[0]];
+    REAL pl = UL[varPrs];
+    REAL pr = UR[varPrs];
     REAL cl = sqrt(gama*pl/dl);
     REAL cr = sqrt(gama*pr/dr);  
 
     const REAL qUser = 2.0;
-    const REAL TOL = 1.0e-6;
 
     // compute guess pressure from PVRS Riemann solver
     REAL pPV = std::max(0.5*(pl + pr) + 0.5*(ul - ur)*0.25*(dl + dr)*(cl + cr), 0.0);
@@ -1675,9 +1644,8 @@ namespace dem {
 	REAL uStar = (pLR*ul/cl + ur/cr + 2.0/(gama-1.0)*(pLR - 1.0))/(pLR/cl + 1.0/cr);
 	REAL coefL = 1.0 + (gama-1.0)/2.0*(ul - uStar)/cl;
 	REAL coefR = 1.0 + (gama-1.0)/2.0*(uStar - ur)/cr;
-	REAL z = (gama-1)/2/gama;
 	pInit = 0.5*(pl*pow(coefL, static_cast<int> (2.0*gama/(gama-1))) + pr*pow(coefR, static_cast<int> (2.0*gama/(gama-1)))); // Equ.(9.36) of Toro.
-	//pInit = pow((cl+cr-(gama-1)/2*(ul-ur))/(cl/pow(pl,z)+cr/pow(pr,z)), 1/z); // Equ.(9.32) of Toro.
+	//pInit = pow((cl+cr-(gama-1)/2*(ul-ur))/(cl/pow(pl,(gama-1)/2/gama)+cr/pow(pr,(gama-1)/2/gama)), 2.0*gama/(gama-1)); // Equ.(9.32) of Toro.
 	pInit = std::max(pInit, TOL);
 	//debugInf << " !!!pInit=" << pInit << " pLR= " << pLR << " uStar=" << uStar << " coefL=" << coefL << " coefR=" << coefR << " cl=" << cl << " cr=" << cr << " ul=" << ul << " ur=" << ur;
       } 
@@ -1689,12 +1657,12 @@ namespace dem {
     }
   }
 
-  void Fluid::exactEvalF(REAL &f,
-			 REAL &fd,
-			 REAL &p,
-			 REAL &dk,
-			 REAL &pk,
-			 REAL &ck) {
+  void Fluid::evalF(REAL &f,
+		    REAL &fd,
+		    REAL &p,
+		    REAL &dk,
+		    REAL &pk,
+		    REAL &ck) {
     // purpose: to evaluate the pressure functions
     //          fl and fr in exact Riemann solver
     //          and their first derivatives
@@ -1712,25 +1680,25 @@ namespace dem {
     }
   }
 
-  void Fluid::exactSampling(REAL uL[], REAL uR[],
-			    const REAL pStar,
-			    const REAL uStar,
-			    const REAL s,
-			    REAL &d,
-			    REAL &u,
-			    REAL &p) {
+  void Fluid::sampling(REAL UL[], REAL UR[],
+		       const REAL pStar,
+		       const REAL uStar,
+		       const REAL s,
+		       REAL &d,
+		       REAL &u,
+		       REAL &p) {
     // purpose: to sample the solution throughout the wave
     //          pattern. Pressure pStar and velocity uStar in the
     //          star region are known. Sampling is performed
     //          in terms of the 'speed' s = x/t. Sampled
     //          values are d, u, p
 
-    REAL dl = uL[varDen];
-    REAL dr = uR[varDen];
-    REAL ul = uL[varVel[0]];
-    REAL ur = uR[varVel[0]];
-    REAL pl = uL[varPrs];
-    REAL pr = uR[varPrs];
+    REAL dl = UL[varDen];
+    REAL dr = UR[varDen];
+    REAL ul = UL[varVel[0]];
+    REAL ur = UR[varVel[0]];
+    REAL pl = UL[varPrs];
+    REAL pr = UR[varPrs];
     REAL cl = sqrt(gama*pl/dl);
     REAL cr = sqrt(gama*pr/dr);  
 
