@@ -162,10 +162,10 @@ namespace dem {
     void checkMomentum(std::vector<Particle *> &ptcl);   
 
   private:
-    void exactGuessPressure(REAL uL[], REAL uR[], REAL &pInit); 
-    void exactEvalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck);
-    void exactFindPrsVel(REAL uL[], REAL uR[], REAL &p, REAL &u);
-    void exactSampling(REAL uL[], REAL uR[], const REAL pStar, const REAL uStar, const REAL s, REAL &d, REAL &u, REAL &p);
+    void guessPressure(REAL uL[], REAL uR[], REAL &pInit); 
+    void evalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck);
+    void findPrsVel(REAL uL[], REAL uR[], REAL &p, REAL &u);
+    void sampling(REAL uL[], REAL uR[], const REAL pStar, const REAL uStar, const REAL s, REAL &d, REAL &u, REAL &p);
   };
   
 } // name space dem
