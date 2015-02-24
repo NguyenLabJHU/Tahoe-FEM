@@ -762,6 +762,7 @@ namespace dem {
     dtMin[2] = gridDz / gridZ.max();
     
     timeStep = std::min(timeStep, CFL * dtMin.min());
+    timeAccrued += timeStep;
     debugInf << std::endl
 	     << std::setw(OWID) << iteration 
 	     << std::setw(OWID) << timeStep 
