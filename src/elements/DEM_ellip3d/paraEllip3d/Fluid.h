@@ -143,6 +143,8 @@ namespace dem {
     void soundSpeed();
     void enthalpy();
     void flux(std::size_t, std::vector<Particle *> &ptcls);
+    void LaxFrieScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt);
+    void LaxWendScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt);
     void exactSolver(REAL uL[], REAL uR[], REAL relaCoord, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
     void RoeSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);
     void HllcSolver(REAL uL[], REAL uR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t idim, std::size_t i, std::size_t j, std::size_t k);

@@ -533,12 +533,6 @@ namespace dem {
 
 	    int solver = static_cast<int> (dem::Parameter::getSingleton().parameter["solver"]);
 	    switch (solver) {
-	    case -1:
-	      // exactSolver itself can provide exact solution to the full domain, if run separately.
-	      // herein exactSolver is used at each discritized face to give exact solution to local Riemann problem, for the purpose 
-	      // of comparing with other solvers.
-	      exactSolver(UL, UR, 0, iDim, i, j, k); // 0 = x/t = s
-	      break;
 	    case 0: 
 	      RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
 	      break;
@@ -565,12 +559,24 @@ namespace dem {
 		exactSolver(UL, UR, 0, iDim, i, j, k);
 	      else // use Roe solver for shock waves
 		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+	      break;	
+	    case -1:
+	      // exactSolver itself can provide exact solution to the full domain, if run separately.
+	      // herein exactSolver is used at each discritized face to give exact solution to local Riemann problem, for the purpose 
+	      // of comparing with other solvers.
+	      exactSolver(UL, UR, 0, iDim, i, j, k); // 0 = x/t = s
+	      break;
+	    case -2:
+	      LaxFrieScheme(UL, UR, FL, FR, iDim, i, j, k); // Lax-Friedrichs scheme
+	      break;
+	    case -3:
+	      LaxWendScheme(UL, UR, FL, FR, iDim, i, j, k); // Lax-Wendroff scheme (two-step Richtmyer version)
 	      break;
 	    }
 
 	  }
 	}
-      }
+      } // end of local Riemann problem
 
       for (std::size_t i = 0; i < gridNx -1; ++i)
 	for (std::size_t j = 0; j < gridNy -1; ++j)
@@ -934,6 +940,26 @@ namespace dem {
 	//arrayFlux[i][j][k][varEng]    = 1.0/porosity * arrayURota[i][j][k][varVel[0]] * (arrayURota[i][j][k][varEng] + arrayURota[i][j][k][varPrs]);  // u*(E + p) / porosity
       }
     }
+  }
+
+  void Fluid::LaxFrieScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+    for (std::size_t ie = 0; ie < nInteg; ++ie)
+      arrayGodFlux[it][jt][kt][ie][iDim] = (FL[ie]+FR[ie])/2 + (UL[ie]-UR[ie])/2*gridDz/timeStep; // Equ.(5.77) of Toro
+  }
+
+  void Fluid::LaxWendScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) { 
+    // Equ.(5.79) of Toro
+    REAL r  = (UL[0]+UR[0])/2 + (FL[0]-FR[0])/2*timeStep/gridDz;
+    REAL ru = (UL[1]+UR[1])/2 + (FL[1]-FR[1])/2*timeStep/gridDz;
+    REAL rv = (UL[2]+UR[2])/2 + (FL[2]-FR[2])/2*timeStep/gridDz;
+    REAL rw = (UL[3]+UR[3])/2 + (FL[3]-FR[3])/2*timeStep/gridDz;
+    REAL E  = (UL[4]+UR[4])/2 + (FL[4]-FR[4])/2*timeStep/gridDz;
+    REAL p = (E-0.5*r*(ru*ru+rv*rv+rw*rw)/(r*r))*(gama-1);
+    arrayGodFlux[it][jt][kt][varDen][iDim] = ru;
+    arrayGodFlux[it][jt][kt][varMom[0]][iDim] = ru*ru/r + p;
+    arrayGodFlux[it][jt][kt][varMom[1]][iDim] = ru*rv/r;
+    arrayGodFlux[it][jt][kt][varMom[2]][iDim] = ru*rw/r;
+    arrayGodFlux[it][jt][kt][varEng][iDim] = ru/r*(E + p);
   }
 
   void Fluid::exactSolver(REAL UL[], REAL UR[], REAL relaCoord, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
