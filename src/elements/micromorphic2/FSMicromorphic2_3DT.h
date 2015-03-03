@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.8 2015-02-20 19:23:50 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.9 2015-03-03 17:54:41 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -25,6 +25,7 @@
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
+#include "IntegratorT.h"
 
 namespace Tahoe {
 
@@ -103,8 +104,6 @@ public:
         kAlpha_nablachi,
         kCapped_Model_Flag,
         kDynamic_Analysis_Flag,
-        kBeta,
-        kGamma,
         kMicroInertia11,
         kMicroInertia12,
         kMicroInertia13,
@@ -844,6 +843,7 @@ private:
     void Form_IJ_1(void);
     void Form_IIJ_1(void);
     void Form_III_J(void);
+
     //////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////
 
