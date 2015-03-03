@@ -48,7 +48,6 @@ FSMicromorphic2_3DT::~FSMicromorphic2_3DT(void)
     delete fShapes_micro;
 }
 
-
 void FSMicromorphic2_3DT::Echo_Input_Data(void)
 {
     cout << "#######################################################" << endl;
@@ -114,8 +113,6 @@ void FSMicromorphic2_3DT::Echo_Input_Data(void)
     cout << "fMaterial_Params[kAlpha_nablachi] "            << fMaterial_Params[kAlpha_nablachi] << endl;
     cout << "fMaterial_Params[kCapped_Model_Flag] "         << fMaterial_Params[kCapped_Model_Flag] << endl;
     cout << "fMaterial_Params[kDynamic_Analysis_Flag] "     << fMaterial_Params[kDynamic_Analysis_Flag] << endl;
-    cout << "fMaterial_Params[kBeta] "     					<< fMaterial_Params[kBeta] << endl;
-    cout << "fMaterial_Params[kGamma] "     				<< fMaterial_Params[kGamma] << endl;
     cout << "fMaterial_Params[kMicroInertia11] "     		<< fMaterial_Params[kMicroInertia11] << endl;
     cout << "fMaterial_Params[kMicroInertia12] "     		<< fMaterial_Params[kMicroInertia12] << endl;
     cout << "fMaterial_Params[kMicroInertia13] "     		<< fMaterial_Params[kMicroInertia13] << endl;
@@ -329,29 +326,73 @@ void FSMicromorphic2_3DT::CloseStep(void)
     ElementSupport().OutputUsedAverage(extrap_values);
 
     /* temp space for group displacements */
-    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state ;
-    dArray2DT n_values(nodes_used.Length(), num_node_output);
 
-    /* collect nodal values */
-    const dArray2DT& fPhi = (*fMicro)[0];
-    const dArray2DT& fU = (*fDispl)[0];
-    for (int i = 0; i < nodes_used.Length(); i++)
-    {
-        int node = nodes_used[i];
-        double* row = n_values(i);
-        for (int j = 0; j < fPhi.MinorDim(); j++)
-        *row++ = fPhi(node,j);
+	if (fMaterial_Params[kDynamic_Analysis_Flag] == 1)
+	{
+		int num_node_output = fDispl->NumDOF() + fDispl->NumDOF() + fDispl->NumDOF()
+		+ fMicro->NumDOF() + fMicro->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state ;
+		dArray2DT n_values(nodes_used.Length(), num_node_output);
 
-        for (int j = 0; j < fU.MinorDim(); j++)
-        *row++ = fU(node,j);
+		/* collect nodal values */
+		const dArray2DT& fPhi = (*fMicro)[0];
+		const dArray2DT& fU = (*fDispl)[0];
+		const dArray2DT& fPhi_dot = (*fMicro)[1];
+		const dArray2DT& fU_dot = (*fDispl)[1];
+		const dArray2DT& fPhi_dotdot = (*fMicro)[2];
+		const dArray2DT& fU_dotdot = (*fDispl)[2];
+		for (int i = 0; i < nodes_used.Length(); i++)
+		{
+			int node = nodes_used[i];
+			double* row = n_values(i);
+			for (int j = 0; j < fPhi.MinorDim(); j++)
+			*row++ = fPhi(node,j);
+			for (int j = 0; j < fPhi_dot.MinorDim(); j++)
+			*row++ = fPhi_dot(node,j);
+			for (int j = 0; j < fPhi_dotdot.MinorDim(); j++)
+			*row++ = fPhi_dotdot(node,j);
 
-        double* p_stress = extrap_values(i);
-        for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
-        *row++ = p_stress[j];
-    }
+			for (int j = 0; j < fU.MinorDim(); j++)
+			*row++ = fU(node,j);
+			for (int j = 0; j < fU_dot.MinorDim(); j++)
+			*row++ = fU_dot(node,j);
+			for (int j = 0; j < fU_dotdot.MinorDim(); j++)
+			*row++ = fU_dotdot(node,j);
 
-    /* send */
-    ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
+			double* p_stress = extrap_values(i);
+			for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
+			*row++ = p_stress[j];
+		}
+	    /* send */
+	    //ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
+	    ElementSupport().WriteOutput(fOutputID, n_values);
+	}
+	else
+	{
+		int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state ;
+		dArray2DT n_values(nodes_used.Length(), num_node_output);
+
+		/* collect nodal values */
+		const dArray2DT& fPhi = (*fMicro)[0];
+		const dArray2DT& fU = (*fDispl)[0];
+
+		for (int i = 0; i < nodes_used.Length(); i++)
+		{
+			int node = nodes_used[i];
+			double* row = n_values(i);
+			for (int j = 0; j < fPhi.MinorDim(); j++)
+			*row++ = fPhi(node,j);
+
+			for (int j = 0; j < fU.MinorDim(); j++)
+			*row++ = fU(node,j);
+
+			double* p_stress = extrap_values(i);
+			for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
+			*row++ = p_stress[j];
+		}
+	    /* send */
+	    //ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
+	    ElementSupport().WriteOutput(fOutputID, n_values);
+	}
 
     }
 
@@ -441,7 +482,6 @@ void FSMicromorphic2_3DT::CloseStep(void)
     Elastic_LagrangianStn_n_Elements_IPs=Elastic_LagrangianStn_Elements_IPs;
     Elastic_MicroStnTensor_n_Elements_IPs=Elastic_MicroStnTensor_Elements_IPs;
     fEulerian_strain_Elements_n_IPs=fEulerian_strain_Elements_IPs;
-
   }
 
     //Counter_IPs_el_n=Counter_IPs_el;
@@ -835,6 +875,7 @@ void FSMicromorphic2_3DT::RegisterOutput(void)
  //   ,"F11","F22","F33","F12","F13","F21","F23","F31","F32","GAMMA(1,1,1)","GAMMA(2,1,2)","GAMMA(3,1,3)","GAMMA(1,2,1)","GAMMA(2,2,2)","GAMMA(3,2,3)",
   //  "GAMMA(1,3,1)","GAMMA(2,3,2)","GAMMA(3,3,3)"};
     //}
+
     int count = 0;
     for (int j = 0; j < fNumIP_micro; j++)
     {
@@ -859,34 +900,85 @@ void FSMicromorphic2_3DT::RegisterOutput(void)
     }
 
     /* output per node */
-    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
-    ArrayT<StringT> n_labels(num_node_output);
-    count = 0;
+    if (fMaterial_Params[kDynamic_Analysis_Flag] == 1)
+    {
+    	int num_node_output = fDispl->NumDOF() + fDispl->NumDOF() + fDispl->NumDOF()
+		+ fMicro->NumDOF() + fMicro->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
+		ArrayT<StringT> n_labels(num_node_output);
+		count = 0;
 
-    /* labels from micro-displacement-gradient */
-    const ArrayT<StringT>& micro_labels = fMicro->Labels();
-    for (int i = 0; i < micro_labels.Length(); i++)
-    n_labels[count++] = micro_labels[i];
+		/* labels from micro-displacement-gradient */
+		const ArrayT<StringT>& micro_labels = fMicro->Labels();
+		for (int i = 0; i < micro_labels.Length(); i++)
+		n_labels[count++] = micro_labels[i];
 
-    /* labels from displacement */
-    const ArrayT<StringT>& displ_labels = fDispl->Labels();
-    for (int i = 0; i < displ_labels.Length(); i++)
-    n_labels[count++] = displ_labels[i];
+		const ArrayT<StringT>& Vel_micro_labels = fMicro->VelMicro_Labels();
+		for (int i = 0; i < Vel_micro_labels.Length(); i++)
+		n_labels[count++] = Vel_micro_labels[i];
 
-    /* labels from strains and stresses at the nodes */
-    for (int i = 0; i < knumstrain+knumstress; i++)
-    n_labels[count++] = slabels3D[i];
+		const ArrayT<StringT>& Acc_micro_labels = fMicro->AccMicro_Labels();
+		for (int i = 0; i < Acc_micro_labels.Length(); i++)
+		n_labels[count++] = Acc_micro_labels[i];
 
-    /* labels from state variables at the nodes */
-    for (int i = 0; i < knum_d_state; i++)
-    n_labels[count++] = svlabels3D[i];
+		/* labels from displacement */
+		const ArrayT<StringT>& displ_labels = fDispl->Labels();
+		for (int i = 0; i < displ_labels.Length(); i++)
+		n_labels[count++] = displ_labels[i];
 
-    /* set output specifier */
-#pragma message("FSMicromorphic2_3DT::RegisterOutput: is this right? ")
-    OutputSetT output_set(fGeometryCode_displ, block_ID, fConnectivities, n_labels, e_labels, false);
+		const ArrayT<StringT>& velocity_labels = fDispl->Vel_Labels();
+		for (int i = 0; i < velocity_labels.Length(); i++)
+		n_labels[count++] = velocity_labels[i];
 
-    /* register and get output ID */
-    fOutputID = ElementSupport().RegisterOutput(output_set);
+		const ArrayT<StringT>& Acceleration_labels = fDispl->Acc_Labels();
+		for (int i = 0; i < Acceleration_labels.Length(); i++)
+		n_labels[count++] = Acceleration_labels[i];
+
+	    /* labels from strains and stresses at the nodes */
+	    for (int i = 0; i < knumstrain+knumstress; i++)
+	    n_labels[count++] = slabels3D[i];
+
+	    /* labels from state variables at the nodes */
+	    for (int i = 0; i < knum_d_state; i++)
+	    n_labels[count++] = svlabels3D[i];
+
+	    /* set output specifier */
+		#pragma message("FSMicromorphic2_3DT::RegisterOutput: is this right? ")
+	    OutputSetT output_set(fGeometryCode_displ, block_ID, fConnectivities, n_labels, e_labels, false);
+
+	    /* register and get output ID */
+	    fOutputID = ElementSupport().RegisterOutput(output_set);
+    }
+    else
+    {
+    	int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
+        ArrayT<StringT> n_labels(num_node_output);
+        count = 0;
+
+        /* labels from micro-displacement-gradient */
+        const ArrayT<StringT>& micro_labels = fMicro->Labels();
+        for (int i = 0; i < micro_labels.Length(); i++)
+        n_labels[count++] = micro_labels[i];
+
+        /* labels from displacement */
+        const ArrayT<StringT>& displ_labels = fDispl->Labels();
+        for (int i = 0; i < displ_labels.Length(); i++)
+        n_labels[count++] = displ_labels[i];
+
+        /* labels from strains and stresses at the nodes */
+        for (int i = 0; i < knumstrain+knumstress; i++)
+        n_labels[count++] = slabels3D[i];
+
+        /* labels from state variables at the nodes */
+        for (int i = 0; i < knum_d_state; i++)
+        n_labels[count++] = svlabels3D[i];
+
+        /* set output specifier */
+		#pragma message("FSMicromorphic2_3DT::RegisterOutput: is this right? ")
+        OutputSetT output_set(fGeometryCode_displ, block_ID, fConnectivities, n_labels, e_labels, false);
+
+        /* register and get output ID */
+        fOutputID = ElementSupport().RegisterOutput(output_set);
+    }
 }
 
 //#############################################################################
@@ -937,31 +1029,75 @@ void FSMicromorphic2_3DT::WriteOutput(void)
     /* get nodally averaged values */
     dArray2DT extrap_values;
     ElementSupport().OutputUsedAverage(extrap_values);
+	if (fMaterial_Params[kDynamic_Analysis_Flag] == 1)
+	{
+		/* temp space for group displacements */
+		int num_node_output = fDispl->NumDOF() + fDispl->NumDOF() + fDispl->NumDOF()
+		+ fMicro->NumDOF() + fMicro->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
+		dArray2DT n_values(nodes_used.Length(), num_node_output);
 
-    /* temp space for group displacements */
-    int num_node_output = fDispl->NumDOF() + fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
-    dArray2DT n_values(nodes_used.Length(), num_node_output);
+		/* collect nodal values */
+		const dArray2DT& fPhi = (*fMicro)[0];
+		const dArray2DT& fU = (*fDispl)[0];
+		const dArray2DT& fPhi_dot = (*fMicro)[1];
+		const dArray2DT& fU_dot = (*fDispl)[1];
+		const dArray2DT& fPhi_dotdot = (*fMicro)[2];
+		const dArray2DT& fU_dotdot = (*fDispl)[2];
+		for (int i = 0; i < nodes_used.Length(); i++)
+		{
+			int node = nodes_used[i];
+			double* row = n_values(i);
+			for (int j = 0; j < fPhi.MinorDim(); j++)
+			*row++ = fPhi(node,j);
+			for (int j = 0; j < fPhi_dot.MinorDim(); j++)
+			*row++ = fPhi_dot(node,j);
+			for (int j = 0; j < fPhi_dotdot.MinorDim(); j++)
+			*row++ = fPhi_dotdot(node,j);
 
-    /* collect nodal values */
-    const dArray2DT& fPhi = (*fMicro)[0];
-    const dArray2DT& fU = (*fDispl)[0];
-    for (int i = 0; i < nodes_used.Length(); i++)
-    {
-        int node = nodes_used[i];
-        double* row = n_values(i);
-        for (int j = 0; j < fPhi.MinorDim(); j++)
-            *row++ = fPhi(node,j);
+			for (int j = 0; j < fU.MinorDim(); j++)
+			*row++ = fU(node,j);
+			for (int j = 0; j < fU_dot.MinorDim(); j++)
+			*row++ = fU_dot(node,j);
+			for (int j = 0; j < fU_dotdot.MinorDim(); j++)
+			*row++ = fU_dotdot(node,j);
 
-        for (int j = 0; j < fU.MinorDim(); j++)
-            *row++ = fU(node,j);
+			double* p_stress = extrap_values(i);
+			for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
+				*row++ = p_stress[j];
+		}
+	    /* send */
+	    //ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
+	    ElementSupport().WriteOutput(fOutputID, n_values);
+	}
 
-        double* p_stress = extrap_values(i);
-        for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
-            *row++ = p_stress[j];
-    }
+	else
+	{
+		/* temp space for group displacements */
+		int num_node_output = fDispl->NumDOF()+ fMicro->NumDOF() + knumstrain + knumstress + knum_d_state;
+		dArray2DT n_values(nodes_used.Length(), num_node_output);
 
-    /* send */
-    ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
+		/* collect nodal values */
+		const dArray2DT& fPhi = (*fMicro)[0];
+		const dArray2DT& fU = (*fDispl)[0];
+
+		for (int i = 0; i < nodes_used.Length(); i++)
+		{
+			int node = nodes_used[i];
+			double* row = n_values(i);
+			for (int j = 0; j < fPhi.MinorDim(); j++)
+			*row++ = fPhi(node,j);
+
+			for (int j = 0; j < fU.MinorDim(); j++)
+			*row++ = fU(node,j);
+
+			double* p_stress = extrap_values(i);
+			for (int j = 0; j < (knumstrain+knumstress+knum_d_state); j++)
+				*row++ = p_stress[j];
+		}
+	    /* send */
+	    //ElementSupport().WriteOutput(fOutputID, n_values, fIPVariable);
+	    ElementSupport().WriteOutput(fOutputID, n_values);
+	}
 }
 
 
@@ -2519,7 +2655,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
       dGnablachidKappanablachi = 0.0;
       dGnablachidcohesion_nablachi = 0.0;
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
       fTemp_matrix_n_sd_x_nsd_kdd = 0.0;
       fTemp_matrix_n_sd_x_nsd_kdphi = 0.0;
       fTemp_matrix_n_sd_x_nsd_kphid = 0.0;
@@ -2545,7 +2681,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 		fKu_IJ=0.0;
 		fKphiu_IIJ=0.0;
 		fKphiu_IIIJ=0.0;
-=======
+
       fTemp_matrix_n_sd_x_nsd_kdd = 0.0;
       fTemp_matrix_n_sd_x_nsd_kdphi = 0.0;
       fTemp_matrix_n_sd_x_nsd_kphid = 0.0;
@@ -2559,7 +2695,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 		fKphiphi_MicroP = 0.0;
 		fKphiu_GRADMicroP = 0.0;
 		fKphiphi_GRADMicroP = 0.0;
->>>>>>> 1.25
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -3080,13 +3216,11 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                 Form_Finv_w_matrix();//output: Finv_w
                 Form_Finv_eta_matrix();//output: Finv_eta
 
-<<<<<<< FSMicromorphic2_3DT.cpp
 //                fs_micromorph3D_out << "Element" << ":" << e << endl;
 //                fs_micromorph3D_out << "Integration point" << IP << endl;
-=======
+
                 fs_micromorph3D_out << "Element" << ":" << e << endl;
                 fs_micromorph3D_out << "Integration point" << IP << endl;
->>>>>>> 1.25
 
                 /* [fDefGradInv_Grad_grad] will be formed */
                 Form_Grad_grad_transformation_matrix();//output:fDefGradInv_Grad_grad
@@ -3595,11 +3729,8 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         /* Trial Elastic deformation gradient tensor Fe will be formed */
                         fFe_tr.MultAB(fDeformation_Gradient,fFp_n_inverse);
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //                        fs_micromorph3D_out<<"fFe_tr= "<< fFe_tr <<endl;
-=======
-                        fs_micromorph3D_out<<"fFe_tr= "<< fFe_tr <<endl;
->>>>>>> 1.25
 
                         /* Trial Elastic Right Cauchy Green tensor will be formed */
                         fRight_Elastic_Cauchy_Green_tensor_tr.MultATB(fFe_tr,fFe_tr);
@@ -3614,11 +3745,9 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
                         /* Trial Micro Elastic deformation gradient tensor Chie will be formed */
                         fChie_tr.MultAB(ChiM,fChip_n_inverse);
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //                        fs_micromorph3D_out<<"fChie_tr= "<< fChie_tr <<endl;
-=======
-                        fs_micromorph3D_out<<"fChie_tr= "<< fChie_tr <<endl;
->>>>>>> 1.25
+
                         GXp = 0.0;
                         Micro_gradient_Plasticity_Occurrence = 0.0;
                         Micro_Plasticity_Occurrence = 0.0;
@@ -3647,8 +3776,9 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
 						if (fMaterial_Params[kDynamic_Analysis_Flag] == 1)
 						{
-							integrate_param = fMaterial_Params[kBeta]*delta_t*delta_t;
-							gamma_delta_t = fMaterial_Params[kGamma]*delta_t;
+							//*delta_t
+							integrate_param = fDispl->get_beta()*delta_t*delta_t;
+							gamma_delta_t = fDispl->get_gamma()*delta_t;
 						}
 
 
@@ -3704,11 +3834,9 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kNu],fTemp_matrix_nsd_x_nsd2);
                         fSPK_tr+=fTemp_matrix_nsd_x_nsd;
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //                        fs_micromorph3D_out<<"fSPK_tr= "<< fSPK_tr <<endl;
-=======
-                        fs_micromorph3D_out<<"fSPK_tr= "<< fSPK_tr <<endl;
->>>>>>> 1.25
+
 
                         /* Calculation of the trial second Relative stress SIGMA_S_tr (fSPK_tr) stress tensor*/
                         SIGMA_S_tr=0.0;
@@ -3729,11 +3857,8 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         fTemp_matrix_nsd_x_nsd.SetToScaled(fMaterial_Params[kKappa]-fMaterial_Params[kSigma_const],fTemp_matrix_nsd_x_nsd2);
                         SIGMA_S_tr+=fTemp_matrix_nsd_x_nsd;
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //                        fs_micromorph3D_out<<"SIGMA_S_tr= "<< SIGMA_S_tr <<endl;
-=======
-                        fs_micromorph3D_out<<"SIGMA_S_tr= "<< SIGMA_S_tr <<endl;
->>>>>>> 1.25
 
                         SIGMA_tr=0.0;
                         Temp_inv=Elastic_LagrangianStn_tr.Trace();
@@ -3749,11 +3874,8 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         fTemp_matrix_nsd_x_nsd.SetToScaled(2*(fMaterial_Params[kKappa]+fMaterial_Params[kNu]-fMaterial_Params[kSigma_const]),Symm_Elastic_MicroStnTensor_tr);
                         SIGMA_tr+=fTemp_matrix_nsd_x_nsd;
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //                        fs_micromorph3D_out<<"SIGMA_tr= "<< SIGMA_tr <<endl;
-=======
-                        fs_micromorph3D_out<<"SIGMA_tr= "<< SIGMA_tr <<endl;
->>>>>>> 1.25
 
                         Form_GXe_tr();
                         Form_GAMMAe_tr();
@@ -3764,7 +3886,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         Form_fNormdevMKLM_tr();
                         Form_kc_nablachi_n(IP);
                         Form_Norm_kc_nablachi_n();
-
+/*
                         fs_micromorph3D_out<<"fMKLM_tr= "<< fMKLM_tr <<endl;
                         fs_micromorph3D_out<<"Mean_fMKLM_tr= "<< Mean_fMKLM_tr <<endl;
                         fs_micromorph3D_out<<"fdevMKLM_tr= "<< fdevMKLM_tr <<endl;
@@ -3779,16 +3901,16 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                         fs_micromorph3D_out<<"GRAD_CHIM= "<< GRAD_CHIM <<endl;
                         fs_micromorph3D_out<<"fFp_n_inverse= "<< fFp_n_inverse <<endl;
                         fs_micromorph3D_out<<"fChip_n_inverse= "<< fChip_n_inverse <<endl;
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 */
 
 
-=======
 
-                        fs_micromorph3D_out<<"u= "<< u <<endl;
-                        fs_micromorph3D_out<<"phi= "<< Phi <<endl;
 
->>>>>>> 1.25
+//                        fs_micromorph3D_out<<"u= "<< u <<endl;
+//                        fs_micromorph3D_out<<"phi= "<< Phi <<endl;
+
+
                         /* Form terms related the cohesion and friction angle  in D-P yield function */
                         /* Initially Aphi is already assigined to fState_variables_n_IPs(IP,khc)=Apsi in TakeParameterList function*/
 
@@ -3991,15 +4113,15 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 							fdGdS_tr_transpose.Transpose(fdGdS_n);
 							fdGdS_tr_trace = fdGdS_n.Trace();
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //							fs_micromorph3D_out<<"fdGdS_tr= "<< fdGdS_tr <<endl;
 //							fs_micromorph3D_out<<"fdGdS_n= "<< fdGdS_n <<endl;
 
-=======
-							fs_micromorph3D_out<<"fdGdS_tr= "<< fdGdS_tr <<endl;
-							fs_micromorph3D_out<<"fdGdS_n= "<< fdGdS_n <<endl;
 
->>>>>>> 1.25
+//							fs_micromorph3D_out<<"fdGdS_tr= "<< fdGdS_tr <<endl;
+//							fs_micromorph3D_out<<"fdGdS_n= "<< fdGdS_n <<endl;
+
+
 							fdGchidSIGMA_tr= 0.0;
 							fdGchidSIGMA_tr.SetToScaled(Bpsi_chi*1.0/3.0,fIdentity_matrix);
 							fTemp_matrix_nsd_x_nsd.SetToScaled(1/fNormdevSIGMA_tr,fdevSIGMA_tr);
@@ -4011,15 +4133,13 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 							fdGchidSIGMA_tr_transpose.Transpose(fdGchidSIGMA_n);
 							fdGchidSIGMA_tr_trace = fdGchidSIGMA_n.Trace();
 
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 //							fs_micromorph3D_out<<"fdGchidSIGMA_tr= "<< fdGchidSIGMA_tr <<endl;
 //							fs_micromorph3D_out<<"fdGchidSIGMA_n= "<< fdGchidSIGMA_n <<endl;
 
-=======
-							fs_micromorph3D_out<<"fdGchidSIGMA_tr= "<< fdGchidSIGMA_tr <<endl;
-							fs_micromorph3D_out<<"fdGchidSIGMA_n= "<< fdGchidSIGMA_n <<endl;
+//							fs_micromorph3D_out<<"fdGchidSIGMA_tr= "<< fdGchidSIGMA_tr <<endl;
+//							fs_micromorph3D_out<<"fdGchidSIGMA_n= "<< fdGchidSIGMA_n <<endl;
 
->>>>>>> 1.25
 							fdGnablachidMKLM_tr = fdGnablachidMKLM_n;
 
 
@@ -5810,11 +5930,8 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 								fdGdS.SetToScaled(Bpsi*1.0/3.0,fIdentity_matrix);
 								fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
 								fdGdS+=fTemp_matrix_nsd_x_nsd;
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 								fdGdS*=0.000001;
-=======
-								fdGdS*=0.00001;
->>>>>>> 1.25
 
 								fTemp_matrix_nsd_x_nsd.MultABCT(fFe,SPK,fFe);
 								KirchhoffST.SetToScaled(Jp,fTemp_matrix_nsd_x_nsd);
@@ -5831,13 +5948,10 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 								fdGchidSIGMA.SetToScaled(Bpsi_chi*1.0/3.0,fIdentity_matrix);
 								fTemp_matrix_nsd_x_nsd.SetToScaled(1/fNormdevSIGMA,fdevSIGMA);
 								fdGchidSIGMA+=fTemp_matrix_nsd_x_nsd;
-<<<<<<< FSMicromorphic2_3DT.cpp
-								fdGchidSIGMA*=0.01;
-=======
-								fdGchidSIGMA*=0.00001;
->>>>>>> 1.25
 
-                                Form_dGnablachidMKLM();
+								fdGchidSIGMA*=0.01;
+
+								Form_dGnablachidMKLM();
                                 Form_dFnablachidMKLM();
 /*
     	                        fs_micromorph3D_out<<"GXp(0,0,0)= "<< GXp(0,0,0) <<endl;
@@ -10283,7 +10397,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 I3p_121_1 *= scale;
                                 fTemp_matrix_n_sd_x_nsd_kdd+= I3p_121_1;
 
-<<<<<<< FSMicromorphic2_3DT.cpp
                                 // fTemp_matrix_nudof_x_nchidof.MultATBC(fShapeDisplGrad,I3p_122_1,NCHI);
                                 scale =-1*fMaterial_Params[kNu]
                                 *Comp22*scale_const*Jp*(2*fMaterial_Params[kEta]-fMaterial_Params[kTau])*dFYchidSIGMA_Scol1;
@@ -19039,7 +19152,7 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                   scale =scale_const*Jp;
                                   fTemp_matrix_nchidof_x_nchidof *= scale;
                                   fKMphiphi_II12e_1 += fTemp_matrix_nchidof_x_nchidof;
-<<<<<<< FSMicromorphic2_3DT.cpp
+
 
                             	  if (fMaterial_Params[kDynamic_Analysis_Flag] == 1)
                             	  {
@@ -19061,8 +19174,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                 	  fMMphiphi_IIp_2 += fTemp_matrix_nchidof_x_nchidof;
                             	  }
 
-=======
->>>>>>> 1.25
                        ////////////////// Micro Gradient Plasticity /////////////////////////////////
                                   if(Micro_gradient_Plasticity_Occurrence == 1)
                                   {
@@ -21153,13 +21264,8 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                             fdGdS.SetToScaled(Bpsi*1.0/3.0,fIdentity_matrix);
                                             fTemp_matrix_nsd_x_nsd.SetToScaled(1/devfSPKinv,devSPK);
                                             fdGdS+=fTemp_matrix_nsd_x_nsd;
-<<<<<<< FSMicromorphic2_3DT.cpp
+
                                             fdGdS*=0.000001;
-//                                            fs_micromorph3D_out<<"fdGdS= "<< fdGdS <<endl;
-=======
-                                            fdGdS*=0.00001;
-                                            fs_micromorph3D_out<<"fdGdS= "<< fdGdS <<endl;
->>>>>>> 1.25
 
                                             Form_dGnablachidMKLM();
                                             Form_dFnablachidMKLM();
@@ -21186,13 +21292,10 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
                                             fdGchidSIGMA.SetToScaled(Bpsi_chi*1.0/3.0,fIdentity_matrix);
                                             fTemp_matrix_nsd_x_nsd.SetToScaled(1/fNormdevSIGMA,fdevSIGMA);
                                             fdGchidSIGMA+=fTemp_matrix_nsd_x_nsd;
-<<<<<<< FSMicromorphic2_3DT.cpp
+
                                             fdGchidSIGMA*=0.01;
-//                                            fs_micromorph3D_out<<"fdGchidSIGMA= "<< fdGchidSIGMA <<endl;
-=======
-                                            fdGchidSIGMA*=0.00001;
+
                                             fs_micromorph3D_out<<"fdGchidSIGMA= "<< fdGchidSIGMA <<endl;
->>>>>>> 1.25
                                         }
     								}
 
@@ -23722,8 +23825,6 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 
             fFphi_int *=-1;
 
-
-<<<<<<< FSMicromorphic2_3DT.cpp
             fKdd+=  fKuu_MicroP;
             fKdphi+=  fKuphi_MicroP;
             fKphid+=  fKphiu_MicroP;
@@ -23754,15 +23855,12 @@ void FSMicromorphic2_3DT::RHSDriver_monolithic(void)
 				fKphiphi+= fMphiphi;
 			}
 
-=======
             fKdd+=  fKuu_MicroP;
             fKdphi+=  fKuphi_MicroP;
             fKphid+=  fKphiu_MicroP;
             fKphid+=  fKphiu_GRADMicroP;
             fKphiphi+=  fKphiphi_MicroP;
             fKphiphi+=  fKphiphi_GRADMicroP;
-
->>>>>>> 1.25
         }
         if(iConstitutiveModelType==2)
         {
@@ -23977,7 +24075,7 @@ void FSMicromorphic2_3DT::DefineParameters(ParameterListT& list) const
     double c0_nablachi,c1_nablachi,c2_nablachi,Hc_nablachi,Fphi_nablachi,Dpsi_nablachi;
     double Kappa0,Kappa0_chi,Kappa0_nablachi,Kappa1_nablachi,Kappa2_nablachi,Hkappa,HKappa_chi;
     double HKappa_nablachi,R,R_chi,R_nablachi,Alpha,Alpha_chi,Alpha_nablachi,Capped_Model_Flag;
-    double Dynamic_Analysis_Flag,Beta_Int,Gamma_Int,MicroInertia11,MicroInertia12,MicroInertia13;
+    double Dynamic_Analysis_Flag,MicroInertia11,MicroInertia12,MicroInertia13;
     double MicroInertia21,MicroInertia22,MicroInertia23,MicroInertia31,MicroInertia32,MicroInertia33;
 
 
@@ -24057,8 +24155,6 @@ void FSMicromorphic2_3DT::DefineParameters(ParameterListT& list) const
     list.AddParameter(Capped_Model_Flag,"Capped_Model_Flag");
 
     list.AddParameter(Dynamic_Analysis_Flag,"Dynamic_Analysis_Flag");
-    list.AddParameter(Beta_Int,"Beta");
-    list.AddParameter(Gamma_Int,"Gamma");
     list.AddParameter(MicroInertia11,"MicroInertia11");
     list.AddParameter(MicroInertia12,"MicroInertia12");
     list.AddParameter(MicroInertia13,"MicroInertia13");
@@ -24194,8 +24290,6 @@ void FSMicromorphic2_3DT::TakeParameterList(const ParameterListT& list)
     fMaterial_Params[kAlpha_nablachi] = list.GetParameter("Alpha_nablachi");
     fMaterial_Params[kCapped_Model_Flag] = list.GetParameter("Capped_Model_Flag");
     fMaterial_Params[kDynamic_Analysis_Flag] = list.GetParameter("Dynamic_Analysis_Flag");
-    fMaterial_Params[kBeta] = list.GetParameter("Beta");
-    fMaterial_Params[kGamma] = list.GetParameter("Gamma");
     fMaterial_Params[kMicroInertia11] = list.GetParameter("MicroInertia11");
     fMaterial_Params[kMicroInertia12] = list.GetParameter("MicroInertia12");
     fMaterial_Params[kMicroInertia13] = list.GetParameter("MicroInertia13");
