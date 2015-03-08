@@ -20,8 +20,11 @@ namespace dem {
 
   // other global variables
   std::ofstream debugInf;         // debug info, only root process prints to debugInf
-  MPI_File overlapInf;            // contact overlap info, parallel IO
   std::size_t iteration;          // iteration number
   REAL timeStep;                  // time step
   REAL timeAccrued;               // accurued time
+#ifndef NDEBUG
+  MPI_File overlapInf;            // contact overlap info, parallel IO
+#endif
+
 }

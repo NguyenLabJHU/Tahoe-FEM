@@ -25,10 +25,13 @@ namespace dem {
 
   // other global variables
   extern std::ofstream debugInf;
-  extern MPI_File overlapInf;
   extern std::size_t iteration;
   extern REAL timeStep;
   extern REAL timeAccrued;
+
+#ifndef NDEBUG
+  extern MPI_File overlapInf;
+#endif
 
 }
 #endif

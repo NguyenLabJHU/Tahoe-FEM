@@ -62,8 +62,10 @@ int main(int argc, char* argv[]) {
   assemb.setCommunicator(boostWorld);
 
   // parallel IO for overlap info
+#ifndef NDEBUG
   MPI_File_open(MPI_Comm(boostWorld), "overlapInf", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dem::overlapInf);
   if(boostWorld.rank() == 0 && !dem::overlapInf) { std::cout << "stream error: main.cpp overlapInf" << std::endl; exit(-1);}
+#endif
 
   int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
   switch (simuType) {
@@ -148,7 +150,11 @@ int main(int argc, char* argv[]) {
     dem::debugInf << std::endl << "MPI_Wtime: " << MPI_Wtime() - time0 << " seconds" << std::endl;
     dem::debugInf.close();
   }
+
+#ifndef NDEBUG
   MPI_File_close(&dem::overlapInf);
+#endif
+
   return 0;
 }
 

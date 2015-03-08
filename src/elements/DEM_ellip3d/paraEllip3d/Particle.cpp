@@ -662,6 +662,7 @@ namespace dem {
     REAL E0 = young/(1-poisson*poisson); // rigid wall has infinite young's modulus
     REAL allowedOverlap = 2.0 * R0 * dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
     if (penetr > allowedOverlap) {
+#ifndef NDEBUG
       std::stringstream inf;
       inf.setf(std::ios::scientific, std::ios::floatfield);
       inf << "Particle.cpp: iter=" << std::setw(8) << iteration 
@@ -673,7 +674,7 @@ namespace dem {
       MPI_Status status;
       int length = OWID*2 + 8*3 + 19 + 7*3 + 8 + 1;
       MPI_File_write_shared(overlapInf, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
-
+#endif
       penetr = allowedOverlap;
     }
   
