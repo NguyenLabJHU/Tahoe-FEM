@@ -59,8 +59,10 @@ namespace dem {
     bool negPrsDen;    // handle cases of negative pressure or density
 
     Array4D arrayU;
-    Array4D arrayURota; // copy of arrayU in rotation.
-    Array4D arrayUPrev; // copy of arrayU for previous step used in Runge-Kutta
+    Array4D arrayURota;  // copy of arrayU in rotation.
+    Array4D arrayUN;     // for Runge-Kutta 
+    Array4D arrayUStar;  // for Runge-Kutta 
+    Array4D arrayUStar2; // for Runge-Kutta 
     // 4-dimensional, defined at cell centers
     // gridNx, gridNy, gridNz, nVar
     // (a) fixed:
@@ -107,8 +109,6 @@ namespace dem {
     // arrayFlux[i][j][k][4]: varEng
 
     Array5D arrayGodFlux; 
-    Array5D arrayGodFluxStep2; 
-    Array5D arrayGodFluxStep3; 
     // 5-dimensional, defined at cell faces
     // gridNx-1, gridNy-1, gridNz-1, nInteg, nDim
     // arrayGodFlux[i][j][k][0]: varDen
@@ -153,8 +153,9 @@ namespace dem {
     void WtoU();
     void rotateIJK(std::vector<Particle *> &ptcls);
     void inteStep1(std::vector<Particle *> &ptcls);
-    void inteStep2(std::vector<Particle *> &ptcls);
-    void inteStep3(std::vector<Particle *> &ptcls);
+    void RK2InteStep2(std::vector<Particle *> &ptcls);
+    void RK3InteStep2(std::vector<Particle *> &ptcls);
+    void RK3InteStep3(std::vector<Particle *> &ptcls);
 
     void getPtclInfo(std::vector<Particle *> &ptcls);
     void runOneStep(std::vector<Particle *> &ptcls);

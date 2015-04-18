@@ -286,17 +286,6 @@ namespace dem {
       }
     }
 
-    // gridNx, gridNy, gridNz, nVar
-    arrayUPrev.resize(gridNx);
-    for (std::size_t i = 0; i < arrayUPrev.size(); ++i) {
-      arrayUPrev[i].resize(gridNy);
-      for (std::size_t j = 0; j < arrayUPrev[i].size(); ++j) {
-	arrayUPrev[i][j].resize(gridNz);
-	for (std::size_t k = 0; k < arrayUPrev[i][j].size(); ++k) 
-	  arrayUPrev[i][j][k].resize(nVar);
-      }
-    }
-
     // gridNx, gridNy, gridNz, nInteg
     arrayFlux.resize(gridNx);
     for (std::size_t i = 0; i < arrayFlux.size(); ++i) {
@@ -322,34 +311,39 @@ namespace dem {
       }
     }
 
-    if (RK >= 1) {
-      // gridNx-1, gridNy-1, gridNz-1, nInteg, nDim
-      arrayGodFluxStep2.resize(gridNx-1);
-      for (std::size_t i = 0; i < arrayGodFluxStep2.size(); ++i) {
-	arrayGodFluxStep2[i].resize(gridNy-1);
-	for (std::size_t j = 0; j < arrayGodFluxStep2[i].size(); ++j) {
-	  arrayGodFluxStep2[i][j].resize(gridNz-1);
-	  for (std::size_t k = 0; k < arrayGodFluxStep2[i][j].size(); ++k) {
-	    arrayGodFluxStep2[i][j][k].resize(nInteg);
-	    for (std::size_t m = 0; m < arrayGodFluxStep2[i][j][k].size(); ++m)
-	      arrayGodFluxStep2[i][j][k][m].resize(nDim);
-	  }
+    if (RK >= 2) {
+      // gridNx, gridNy, gridNz, nVar
+      arrayUN.resize(gridNx);
+      for (std::size_t i = 0; i < arrayUN.size(); ++i) {
+	arrayUN[i].resize(gridNy);
+	for (std::size_t j = 0; j < arrayUN[i].size(); ++j) {
+	  arrayUN[i][j].resize(gridNz);
+	  for (std::size_t k = 0; k < arrayUN[i][j].size(); ++k) 
+	    arrayUN[i][j][k].resize(nVar);
 	}
       }
     }
 
-    if (RK == 2) {
-      // gridNx-1, gridNy-1, gridNz-1, nInteg, nDim
-      arrayGodFluxStep3.resize(gridNx-1);
-      for (std::size_t i = 0; i < arrayGodFluxStep3.size(); ++i) {
-	arrayGodFluxStep3[i].resize(gridNy-1);
-	for (std::size_t j = 0; j < arrayGodFluxStep3[i].size(); ++j) {
-	  arrayGodFluxStep3[i][j].resize(gridNz-1);
-	  for (std::size_t k = 0; k < arrayGodFluxStep3[i][j].size(); ++k) {
-	    arrayGodFluxStep3[i][j][k].resize(nInteg);
-	    for (std::size_t m = 0; m < arrayGodFluxStep3[i][j][k].size(); ++m)
-	      arrayGodFluxStep3[i][j][k][m].resize(nDim);
-	  }
+    if (RK == 3) {
+      // gridNx, gridNy, gridNz, nVar
+      arrayUStar.resize(gridNx);
+      for (std::size_t i = 0; i < arrayUStar.size(); ++i) {
+	arrayUStar[i].resize(gridNy);
+	for (std::size_t j = 0; j < arrayUStar[i].size(); ++j) {
+	  arrayUStar[i][j].resize(gridNz);
+	  for (std::size_t k = 0; k < arrayUStar[i][j].size(); ++k) 
+	    arrayUStar[i][j][k].resize(nVar);
+	}
+      }
+
+      // gridNx, gridNy, gridNz, nVar
+      arrayUStar2.resize(gridNx);
+      for (std::size_t i = 0; i < arrayUStar2.size(); ++i) {
+	arrayUStar2[i].resize(gridNy);
+	for (std::size_t j = 0; j < arrayUStar2[i].size(); ++j) {
+	  arrayUStar2[i][j].resize(gridNz);
+	  for (std::size_t k = 0; k < arrayUStar2[i][j].size(); ++k) 
+	    arrayUStar2[i][j][k].resize(nVar);
 	}
       }
     }
@@ -398,25 +392,21 @@ namespace dem {
   }
 
   void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
-    if (!negPrsDen) arrayUPrev = arrayU; 
-    else arrayU = arrayUPrev;
-  label1: inteStep1(ptcls); // arrayU updated
-    debugInf << std::setw(OWID) << " inteStep1";
-
-    if (RK >= 1) {
-      if (!negPrsDen) arrayUPrev = arrayU; 
-      else { arrayU = arrayUPrev; goto label1;}
-      arrayGodFluxStep2 = arrayGodFlux;
-      inteStep2(ptcls); // arrayU updated
-      debugInf << std::setw(OWID) << " inteStep2";      
-
-      if (RK == 2) {
-	if (!negPrsDen) arrayUPrev = arrayU; 
-	else { arrayU = arrayUPrev; goto label1;}
-	arrayGodFluxStep3 = arrayGodFlux;    
-	inteStep3(ptcls); // arrayU updated
-	debugInf << std::setw(OWID) << " inteStep3";
-      }
+    if (RK == 1) {
+      inteStep1(ptcls);
+    }
+    else if (RK == 2) {
+      arrayUN = arrayU;
+      inteStep1(ptcls);     // arrayU->arrayU* & arrayGodFlux->arrayGodFlux*
+      RK2InteStep2(ptcls); 
+    }
+    else if (RK == 3) {
+      arrayUN = arrayU;
+      inteStep1(ptcls);     // arrayU->arrayU* & arrayGodFlux->arrayGodFlux*
+      arrayUStar = arrayU;  // arrayU*
+      RK3InteStep2(ptcls);
+      arrayUStar2 = arrayU; // arrayU**
+      RK3InteStep3(ptcls);
     }
   }
 
@@ -438,7 +428,7 @@ namespace dem {
     UtoW();
   }
   
-  void Fluid::inteStep2(std::vector<Particle *> &ptcls) { 
+  void Fluid::RK2InteStep2(std::vector<Particle *> &ptcls) { 
     initGhostPoints();
     soundSpeed();
     enthalpy();
@@ -449,16 +439,15 @@ namespace dem {
       for (std::size_t j = 1; j < gridNy - 1; ++j)
 	for (std::size_t k = 1; k < gridNz - 1; ++k)
 	  for (std::size_t m = 0; m < nInteg; ++m)
-	    arrayU[i][j][k][m] -= (   timeStep / (2*RK*gridDx) * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0] 
-						        + (arrayGodFluxStep2[i][j][k][m][0] - arrayGodFluxStep2[i-1][j][k][m][0]) )
-				    + timeStep / (2*RK*gridDy) * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1] 
-						        + (arrayGodFluxStep2[i][j][k][m][1] - arrayGodFluxStep2[i][j-1][k][m][1]) )
-				    + timeStep / (2*RK*gridDz) * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2] 
-						        + (arrayGodFluxStep2[i][j][k][m][2] - arrayGodFluxStep2[i][j][k-1][m][2])) );
+	    arrayU[i][j][k][m] = 0.5*( arrayUN[i][j][k][m] + arrayU[i][j][k][m] -
+                                (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0]) 
+				 + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1]) 
+				 + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) ) ); 
+							       ;
     UtoW();
   }
 
-  void Fluid::inteStep3(std::vector<Particle *> &ptcls) { 
+  void Fluid::RK3InteStep2(std::vector<Particle *> &ptcls) { 
     initGhostPoints();
     soundSpeed();
     enthalpy();
@@ -469,17 +458,30 @@ namespace dem {
       for (std::size_t j = 1; j < gridNy - 1; ++j)
 	for (std::size_t k = 1; k < gridNz - 1; ++k)
 	  for (std::size_t m = 0; m < nInteg; ++m)
-	    arrayU[i][j][k][m] -= (   timeStep / (6*gridDx) * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0]
-						         +(arrayGodFluxStep2[i][j][k][m][0] - arrayGodFluxStep2[i-1][j][k][m][0])
-						      + 4*(arrayGodFluxStep3[i][j][k][m][0] - arrayGodFluxStep3[i-1][j][k][m][0]))
-				      
-				    + timeStep / (6*gridDy) * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1]
-						        + (arrayGodFluxStep2[i][j][k][m][1] - arrayGodFluxStep2[i][j-1][k][m][1])
-						      + 4*(arrayGodFluxStep3[i][j][k][m][1] - arrayGodFluxStep3[i][j-1][k][m][1]))
+	    arrayU[i][j][k][m] = 0.75*arrayUN[i][j][k][m] + 0.25*arrayUStar[i][j][k][m] - 
+                                 0.25* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
+                                        + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
+                                        + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) );
 
-				    + timeStep / (6*gridDz) * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]
-						        + (arrayGodFluxStep2[i][j][k][m][2] - arrayGodFluxStep2[i][j][k-1][m][2])
-						     + 4*( arrayGodFluxStep3[i][j][k][m][2] - arrayGodFluxStep3[i][j][k-1][m][2])) );
+    UtoW();
+  }
+
+  void Fluid::RK3InteStep3(std::vector<Particle *> &ptcls) { 
+    initGhostPoints();
+    soundSpeed();
+    enthalpy();
+    rotateIJK(ptcls);
+
+    // update conserved variables at the next time step
+    for (std::size_t i = 1; i < gridNx - 1 ; ++i)
+      for (std::size_t j = 1; j < gridNy - 1; ++j)
+	for (std::size_t k = 1; k < gridNz - 1; ++k)
+	  for (std::size_t m = 0; m < nInteg; ++m)
+	    arrayU[i][j][k][m] = ( arrayUN[i][j][k][m] + 2*arrayUStar2[i][j][k][m] - 
+                                   2* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
+                                       + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
+				       + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) ) )/3.0;
+
     UtoW();
   }
 
@@ -954,12 +956,12 @@ namespace dem {
     REAL rv = (UL[2]+UR[2])/2 + (FL[2]-FR[2])/2*timeStep/gridDz;
     REAL rw = (UL[3]+UR[3])/2 + (FL[3]-FR[3])/2*timeStep/gridDz;
     REAL E  = (UL[4]+UR[4])/2 + (FL[4]-FR[4])/2*timeStep/gridDz;
-    REAL p = (E-0.5*r*(ru*ru+rv*rv+rw*rw)/(r*r))*(gama-1);
-    arrayGodFlux[it][jt][kt][varDen][iDim] = ru;
+    REAL p  = (E-0.5*r*(ru*ru+rv*rv+rw*rw)/(r*r))*(gama-1);
+    arrayGodFlux[it][jt][kt][varDen][iDim]    = ru;
     arrayGodFlux[it][jt][kt][varMom[0]][iDim] = ru*ru/r + p;
     arrayGodFlux[it][jt][kt][varMom[1]][iDim] = ru*rv/r;
     arrayGodFlux[it][jt][kt][varMom[2]][iDim] = ru*rw/r;
-    arrayGodFlux[it][jt][kt][varEng][iDim] = ru/r*(E + p);
+    arrayGodFlux[it][jt][kt][varEng][iDim]    = ru/r*(E + p);
   }
 
   void Fluid::exactSolver(REAL UL[], REAL UR[], REAL relaCoord, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
@@ -1159,7 +1161,7 @@ namespace dem {
     } else if (SL < 0 && SR > 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
 	arrayGodFlux[it][jt][kt][ie][iDim] = (SR*FL[ie]-SL*FR[ie]+SL*SR*(UR[ie]-UL[ie]))/(SR-SL);      
-    }else if (SR <= 0) {
+    } else if (SR <= 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
 	arrayGodFlux[it][jt][kt][ie][iDim] = FR[ie];
     }
@@ -1178,11 +1180,11 @@ namespace dem {
     ///*
     // HLLC part
     // Pressure-based estimate by Toro
-    REAL pStar=std::max(0.0, 0.5*(UL[varPrs]+UR[varPrs])-0.5*(UR[varVel[0]]-UL[varVel[0]])*0.25*(UL[varDen]+UR[varDen])*(aL+aR));
+    REAL pStar=std::max(0.0, 0.5*(UL[varPrs]+UR[varPrs])-0.5*(UR[varVel[0]]-UL[varVel[0]])*0.25*(UL[varDen]+UR[varDen])*(aL+aR)); // Equ.(10.67) of Toro
 
     // Pressure-based estimate by TRRS
     //REAL z = 0.5*(gama-1)/gama;
-    //REAL pStar = pow((aL+aR-0.5*(gama-1)*(UR[varVel[0]]-UL[varVel[0]]))/(aL/pow(UL[varPrs],z)+aR/pow(UR[varPrs],z)), 1/z);
+    //REAL pStar = pow((aL+aR-0.5*(gama-1)*(UR[varVel[0]]-UL[varVel[0]]))/(aL/pow(UL[varPrs],z)+aR/pow(UR[varPrs],z)), 1/z); // Equ.(10.63) of Toro
 
     REAL qL, qR;
     if (pStar <= UL[varPrs])
@@ -1423,8 +1425,12 @@ namespace dem {
 		<< std::setw(OWID) << "pressureFx"
 		<< std::setw(OWID) << "pressureFy"
 		<< std::setw(OWID) << "pressureFz"
+		<< std::setw(OWID) << "internalFx"
+		<< std::setw(OWID) << "internalFy"
+		<< std::setw(OWID) << "internalFz"
 		<< std::setw(OWID) << "viscousCd"
 		<< std::setw(OWID) << "pressureCd"
+		<< std::setw(OWID) << "internalCd"
 		<< std::setw(OWID) << "totalCd"
 		<< std::setw(OWID) << "penalMx"
 		<< std::setw(OWID) << "penalMy"
@@ -1456,10 +1462,14 @@ namespace dem {
 	      << std::setw(OWID) << presForce.getX()
 	      << std::setw(OWID) << presForce.getY()
 	      << std::setw(OWID) << presForce.getZ()
+	      << std::setw(OWID) << penalForce.getX()*(Cdi/Cd)
+	      << std::setw(OWID) << penalForce.getY()*(Cdi/Cd)
+	      << std::setw(OWID) << penalForce.getZ()*(Cdi/Cd)
 
 	      << std::setw(OWID) << penalForce.getZ()/refF
 	      << std::setw(OWID) << presForce.getZ()/refF
-	      << std::setw(OWID) << (penalForce.getZ() + presForce.getZ())/refF
+	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd))/refF
+	      << std::setw(OWID) << (presForce.getZ() + penalForce.getZ()*(Cdi/Cd+1))/refF
 
 	      << std::setw(OWID) << penalMoment.getX()
 	      << std::setw(OWID) << penalMoment.getY()
@@ -1601,9 +1611,6 @@ namespace dem {
   }
 
   void Fluid::findPrsVel(REAL UL[], REAL UR[], REAL &p, REAL &u) {
-    // purpose: to compute the solution for pressure and
-    //          velocity in the Star Region
-
     REAL dl = UL[varDen];
     REAL dr = UR[varDen];
     REAL ul = UL[varVel[0]];
@@ -1614,8 +1621,9 @@ namespace dem {
     REAL cr = sqrt(gama*pr/dr);
 
     const int maxIter = 20;
-    REAL change, fl, fld, fr, frd, pPrev, pstart, du;
 
+    // compute pressure in Star Region
+    REAL change, fl, fld, fr, frd, pPrev, pstart, du;
     guessPressure(UL, UR, pstart);
     pPrev = pstart;
     du = ur - ul;
@@ -1640,11 +1648,9 @@ namespace dem {
   }
 
   void Fluid::guessPressure(REAL UL[], REAL UR[], REAL &pInit) {
-    // purpose: to provide a guessed value for pressure
-    //          pInit in the Star Region. The choice is made
-    //          according to adaptive Riemann solver using
-    //          the PVRS, TRRS and TSRS approximate
-    //          Riemann solvers. See Sect. 9.5 of Chapt. 9 of Ref. 1
+    // provide a guessed value for pressure pInit in the Star Region. The choice is made
+    // according to adaptive Riemann solver using the PVRS, TRRS and TSRS approximate
+    // Riemann solvers. See Sect. 9.5 of Toro
 
     REAL dl = UL[varDen];
     REAL dr = UR[varDen];
@@ -1658,13 +1664,13 @@ namespace dem {
     const REAL qUser = 2.0;
 
     // compute guess pressure from PVRS Riemann solver
-    REAL pPV = std::max(0.5*(pl + pr) + 0.5*(ul - ur)*0.25*(dl + dr)*(cl + cr), 0.0);
+    REAL pPV  = std::max(0.5*(pl + pr) + 0.5*(ul - ur)*0.25*(dl + dr)*(cl + cr), 0.0); // Equ.(4.47) of Toro.
     REAL pMin = std::min(pl, pr);
     REAL pMax = std::max(pl, pr);
     REAL qMax = pMax/pMin;
 
     if (qMax <= qUser && (pMin <= pPV && pPV <= pMax)) // select PVRS Riemann solver
-      pInit = pPV;     
+      pInit = pPV;
     else {
       if (pPV < pMin) { // select Two-Rarefaction Riemann solver
 	REAL pLR = pow(pl/pr, (gama-1.0)/(2.0*gama));
@@ -1676,7 +1682,7 @@ namespace dem {
 	pInit = std::max(pInit, TOL);
 	//debugInf << " !!!pInit=" << pInit << " pLR= " << pLR << " uStar=" << uStar << " coefL=" << coefL << " coefR=" << coefR << " cl=" << cl << " cr=" << cr << " ul=" << ul << " ur=" << ur;
       } 
-      else { // select Two-Shock Riemann solver with PVRS as estimate
+      else { // select Two-Shock Riemann solver with PVRS as estimate, Equ.(9.42) of Toro.
 	REAL gL = sqrt((2.0/(gama+1.0)/dl)/((gama-1.0)/(gama+1.0)*pl + pPV));
 	REAL gR = sqrt((2.0/(gama+1.0)/dr)/((gama-1.0)/(gama+1.0)*pr + pPV));
 	pInit = (gL*pl + gR*pr - (ur - ul))/(gL + gR);   
@@ -1684,22 +1690,12 @@ namespace dem {
     }
   }
 
-  void Fluid::evalF(REAL &f,
-		    REAL &fd,
-		    REAL &p,
-		    REAL &dk,
-		    REAL &pk,
-		    REAL &ck) {
-    // purpose: to evaluate the pressure functions
-    //          fl and fr in exact Riemann solver
-    //          and their first derivatives
-
-    if (p <= pk) {
-      // rarefaction wave
+  void Fluid::evalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck) {
+    // evaluate pressure functions fl and fr in exact Riemann solver and their first derivatives
+    if (p <= pk) { // rarefaction wave
       f = 2.0/(gama-1.0)*ck*(pow(p/pk, (gama-1.0)/(2.0*gama)) - 1.0);
       fd = (1.0/(dk*ck))*pow(p/pk, -(gama+1.0)/(2.0*gama));
-    } else {
-      // shock wave
+    } else { // shock wave
       REAL ak = 2.0/(gama+1.0)/dk;
       REAL bk = (gama-1.0)/(gama+1.0)*pk;
       f = (p - pk)*sqrt(ak/(bk + p));
@@ -1707,18 +1703,9 @@ namespace dem {
     }
   }
 
-  void Fluid::sampling(REAL UL[], REAL UR[],
-		       const REAL pStar,
-		       const REAL uStar,
-		       const REAL s,
-		       REAL &d,
-		       REAL &u,
-		       REAL &p) {
-    // purpose: to sample the solution throughout the wave
-    //          pattern. Pressure pStar and velocity uStar in the
-    //          star region are known. Sampling is performed
-    //          in terms of the 'speed' s = x/t. Sampled
-    //          values are d, u, p
+  void Fluid::sampling(REAL UL[], REAL UR[], const REAL pStar, const REAL uStar, const REAL s, REAL &d, REAL &u, REAL &p) {
+    // sample the solution throughout the wave pattern. Pressure pStar and velocity uStar in the star region are known. 
+    // Sampling is performed in terms of the 'speed' s = x/t. Sampled values are d, u, p
 
     REAL dl = UL[varDen];
     REAL dr = UR[varDen];
@@ -1731,88 +1718,71 @@ namespace dem {
 
     REAL c, pStarL, pStarR, sHL, sHR, sL, sR, sTL, sTR;
     //debugInf << " pStar=" << pStar << " uStar=" << uStar << " s=" << s;
-    if (s <= uStar) {
-      // sampling point lies to the left of the contact discontinuity
-      if (pStar <= pl) {
-	// left rarefaction
+    if (s <= uStar) { // sampling point lies to the left of the contact discontinuity
+      if (pStar <= pl) { // left rarefaction
 	sHL = ul - cl;
 	//debugInf << "  leftrare  sHL=" << sHL;
-	if (s <= sHL) {
-	  // sampled point is left data state
+	if (s <= sHL) { // sampled point is left data state
 	  d = dl;
 	  u = ul;
 	  p = pl;
 	} else {
 	  sTL = uStar - cl*pow(pStar/pl, (gama-1.0)/(2.0*gama));
 	  //debugInf << " sTL=" << sTL;
-	  if (s > sTL) {
-	    // sampled point is star left state
+	  if (s > sTL) { // sampled point is star left state
 	    d = dl*pow(pStar/pl, 1.0/gama);
 	    u = uStar;
 	    p = pStar;
-	    //debugInf << " ul=" << ul << " ur=" << ur << " u=" << u << " d=" << d;
-	  } else {
-	    // sampled point is inside left fan
+	  } else { // sampled point is inside left fan
 	    u = 2.0/(gama+1.0)*(cl + (gama-1.0)/2.0*ul + s);
 	    c = 2.0/(gama+1.0)*(cl + (gama-1.0)/2.0*(ul - s));
 	    d = dl*pow(c/cl, 2.0/(gama-1.0));
 	    p = pl*pow(c/cl, 2.0*gama/(gama-1.0));
-	    //debugInf << " ul=" << ul << " ur=" << ur << " u=" << u << " d=" << d;
 	  }
+	  //debugInf << " ul=" << ul << " ur=" << ur << " u=" << u << " d=" << d;
 	}
-      } else {
-	// left shock
+      } else { // left shock
 	pStarL = pStar/pl;
 	sL = ul - cl*sqrt((gama+1.0)/(2.0*gama)*pStarL + (gama-1.0)/(2.0*gama));
 	//debugInf << "  leftshock sL=" << sL;
-	if (s <= sL) {
-	  // sampled point is left data state
+	if (s <= sL) { // sampled point is left data state
 	  d = dl;
 	  u = ul;
 	  p = pl;
-	} else {
-	  // sampled point is star left state
+	} else { // sampled point is star left state
 	  d = dl*(pStarL + (gama-1.0)/(gama+1.0))/(pStarL*(gama-1.0)/(gama+1.0) + 1.0);
 	  u = uStar;
 	  p = pStar;
 	}
       }
-    } else {
-      // sampling point lies to the right of the contact discontinuity
-      if (pStar > pr) {
-	// right shock
+    } else { // sampling point lies to the right of the contact discontinuity
+      if (pStar > pr) { // right shock
 	pStarR = pStar/pr;
 	sR  = ur + cr*sqrt((gama+1.0)/(2.0*gama)*pStarR + (gama-1.0)/(2.0*gama));
 	//debugInf << " rightshock sR=" << sR;
-	if (s >= sR) {
-	  // sampled point is right data state
+	if (s >= sR) { // sampled point is right data state
 	  d = dr;
 	  u = ur;
 	  p = pr;
-	} else {
-	  // sampled point is star right state
+	} else { // sampled point is star right state
 	  d = dr*(pStarR + (gama-1.0)/(gama+1.0))/(pStarR*(gama-1.0)/(gama+1.0) + 1.0);
 	  u = uStar;
 	  p = pStar;
 	}
-      } else {
-	// right rarefaction
+      } else { 	// right rarefaction
 	sHR = ur + cr;
 	//debugInf << " rightrare  sHR=" << sHR;
-	if (s >= sHR) {
-	  // sampled point is right data state
+	if (s >= sHR) { // sampled point is right data state
 	  d = dr;
 	  u = ur;
 	  p = pr;
 	} else {
 	  sTR = uStar + cr*pow(pStar/pr, (gama-1.0)/(2.0*gama));
-	  if (s <= sTR) {
-	    // sampled point is star right state
+	  if (s <= sTR) { // sampled point is star right state
 	    d = dr*pow(pStar/pr, 1.0/gama);
 	    u = uStar;
 	    p = pStar;
-	  } else {
-	    // sampled point is inside left fan
+	  } else { // sampled point is inside left fan
 	    u = 2.0/(gama+1.0)*(-cr + (gama-1.0)/2.0*ur + s);
 	    c = 2.0/(gama+1.0)*(cr - (gama-1.0)/2.0*(ur - s));
 	    d = dr*pow(c/cr, 2.0/(gama-1.0));
