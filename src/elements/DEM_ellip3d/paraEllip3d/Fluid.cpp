@@ -633,9 +633,9 @@ namespace dem {
 	// 1. momentum penalization
 	for (std::size_t m = 0; m < nDim; ++m) {
 	  // a. momentum penalization
-	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep * (Cdi/Cd+1) ;
+	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep / porosity * (Cdi/Cd+1) ;
 	  // b. influence of momentum penalization on energy
-	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep * (Cdi/Cd+1);
+	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep / porosity * (Cdi/Cd+1);
 	}
 
 	// 2. porosity correction
@@ -644,8 +644,8 @@ namespace dem {
 	//   b. influence of porosity correction (1-1.0/porosity)*momQuot[m] and particle velocity term u0[m]/porosity*denQuot[m] on energy
 	if (inGrid) {
 	  for (std::size_t m = 0; m < nDim; ++m)
-	    arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2))
-                                         * ( (1-1.0/porosity)*momQuot[m] + u0[m]/porosity*denQuot[m] ) * timeStep;
+	    arrayU[i][j][k][varEng]  += (arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2))
+                                         * ( (1-1.0/porosity)*momQuot[m] + u0[m]/porosity*denQuot[m] ) * timeStep) / porosity;
 	}
 
       }
@@ -931,15 +931,15 @@ namespace dem {
 
 	// all 5 equations are modified in terms of porosity and Darcy's velocity for high-porosity material
 	// continuity equation modified on porosity
-	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayURota[i][j][k][varDen] * (arrayURota[i][j][k][varVel[0]] - u0[iDim]) ; // rho*(u-u0) / porosity
+	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayURota[i][j][k][varDen] * (arrayURota[i][j][k][varVel[0]] - u0[iDim]) ; // rho*(u-u0)/porosity
 
 	// momentum equations modified on porosity
-	arrayFlux[i][j][k][varMom[0]] = 1.0/porosity * arrayURota[i][j][k][varDen] * pow(arrayURota[i][j][k][varVel[0]],2) + arrayURota[i][j][k][varPrs]; // rho*u^2 / porosity + p*porosity
-	arrayFlux[i][j][k][varMom[1]] = 1.0/porosity * arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[1]]; // (rho*u)*v / porosity
-	arrayFlux[i][j][k][varMom[2]] = 1.0/porosity * arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[2]]; // (rho*u)*w / porosity
+	arrayFlux[i][j][k][varMom[0]] = arrayURota[i][j][k][varDen] * pow(arrayURota[i][j][k][varVel[0]],2) + arrayURota[i][j][k][varPrs]/porosity; // rho*u^2 + p/porosity
+	arrayFlux[i][j][k][varMom[1]] = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[1]]; // (rho*u)*v
+	arrayFlux[i][j][k][varMom[2]] = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[2]]; // (rho*u)*w
 
 	// energy equation modified on porosity
-	//arrayFlux[i][j][k][varEng]    = 1.0/porosity * arrayURota[i][j][k][varVel[0]] * (arrayURota[i][j][k][varEng] + arrayURota[i][j][k][varPrs]);  // u*(E + p) / porosity
+	arrayFlux[i][j][k][varEng]    = arrayURota[i][j][k][varVel[0]] * (arrayURota[i][j][k][varEng] + arrayURota[i][j][k][varPrs]/porosity);  // u*(E + p/porosity)
       }
     }
   }
@@ -1466,10 +1466,10 @@ namespace dem {
 	      << std::setw(OWID) << penalForce.getY()*(Cdi/Cd)
 	      << std::setw(OWID) << penalForce.getZ()*(Cdi/Cd)
 
-	      << std::setw(OWID) << penalForce.getZ()/refF
-	      << std::setw(OWID) << presForce.getZ()/refF
-	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd))/refF
-	      << std::setw(OWID) << (presForce.getZ() + penalForce.getZ()*(Cdi/Cd+1))/refF
+	      << std::setw(OWID) << penalForce.getZ()/refF // viscousCd
+	      << std::setw(OWID) << presForce.getZ()/refF  // pressureCd
+	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd))/refF // internalCd
+	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd+1))/refF // totalCd
 
 	      << std::setw(OWID) << penalMoment.getX()
 	      << std::setw(OWID) << penalMoment.getY()
