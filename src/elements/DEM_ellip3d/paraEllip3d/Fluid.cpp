@@ -198,15 +198,14 @@ namespace dem {
     }
 
     REAL aNum = (z2F - z1F) / gridDz;
-    if (aNum != ceil(aNum))
-      debugInf << "fluid domain in z direction is not precisely grided!" << std::endl;
-
+    if (aNum != ceil(aNum) && aNum != floor(aNum)) // not a perfect method
+      debugInf << "fluid domain in z direction is NOT precisely grided!" << std::endl;
     aNum = (x2F - x1F) / gridDx;
-    if (aNum != ceil(aNum))
-      debugInf << "fluid domain in x direction is not precisely grided!" << std::endl;
+    if (aNum != ceil(aNum) && aNum != floor(aNum))
+      debugInf << "fluid domain in x direction is NOT precisely grided!" << std::endl;
     aNum = (y2F - y1F) / gridDy;
-    if (aNum != ceil(aNum))
-      debugInf << "fluid domain in y direction is not precisely grided!" << std::endl;
+    if (aNum != ceil(aNum) && aNum != floor(aNum))
+      debugInf << "fluid domain in y direction is NOT precisely grided!" << std::endl;
 
     /*
     debugInf << "nVar " << nVar << std::endl;
@@ -1469,7 +1468,7 @@ namespace dem {
 	      << std::setw(OWID) << penalForce.getZ()/refF // viscousCd
 	      << std::setw(OWID) << presForce.getZ()/refF  // pressureCd
 	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd))/refF // internalCd
-	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd+1))/refF // totalCd
+	      << std::setw(OWID) << ( penalForce.getZ()*(Cdi/Cd+1) + presForce.getZ() )/refF // totalCd
 
 	      << std::setw(OWID) << penalMoment.getX()
 	      << std::setw(OWID) << penalMoment.getY()
