@@ -1,4 +1,4 @@
-# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/makefile,v 1.1 2006-08-03 01:10:40 thao Exp $
+# $Header: /home/regueiro/tahoe_cloudforge_repo_snapshots/development/src/elements/fiber_composite/makefile,v 1.2 2015-05-20 04:05:30 tahoe.vickynguyen Exp $
 # created: tdnguye (07/04/2006)
 #
 # This makefile is divided into four sections:
@@ -21,7 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	UpLagFiberCompT.o
+	UpLagFiberCompT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,7 +41,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	UpLagFiberCompT.cpp
+	UpLagFiberCompT.cpp 
 
 ##################### (3) headers
 #
@@ -53,7 +53,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	UpLagFiberCompT.h
+	UpLagFiberCompT.h 
+
 
 HDR_LINK = $(HDR:.h=.h_link)
 

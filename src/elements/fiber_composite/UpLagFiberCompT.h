@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.h,v 1.8 2013-02-01 19:44:45 tahoe.kziegler Exp $ */
+/* $Id: UpLagFiberCompT.h,v 1.9 2015-05-20 04:05:30 tahoe.vickynguyen Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPLAG_FIB_COMP_T_
@@ -12,7 +12,6 @@
 #include "dArray2DT.h"
 
 namespace Tahoe {
-
 class FSFiberMatSupportT;
 
 /** Update Lagrangian fiber composite element.  Fibers families are assumed   *
@@ -89,8 +88,6 @@ protected:
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 protected:
-	StringT fUserFile;
-	ifstreamT fDataInput;
 
 	/*element list of fiber orientation vectors in global (lab) coordinates*/
 	/*num_elem< num_fibers x nsd >*/

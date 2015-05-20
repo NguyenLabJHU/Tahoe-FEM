@@ -1,4 +1,4 @@
-/* $Id: UpLagFiberCompT.cpp,v 1.17 2013-02-01 19:52:48 tahoe.kziegler Exp $ */
+/* $Id: UpLagFiberCompT.cpp,v 1.18 2015-05-20 04:05:30 tahoe.vickynguyen Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpLagFiberCompT.h"
 
@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
@@ -378,11 +379,11 @@ void UpLagFiberCompT::Readfiberfile(const ParameterListT& fibers)
 {
 const char caller[] = "UpLagFiberCompT::Readfiberfile";
 
-fUserFile = fibers.GetParameter("data_input_file_root");
-fDataInput.open(fUserFile);
-int nsd = NumSD();
+  StringT fUserFile = fibers.GetParameter("data_input_file_root");
+  ifstreamT fDataInput(fUserFile);
+  int nsd = NumSD();
 
-if (fDataInput.is_open())
+  if (fDataInput.is_open())
   {
 	cout << "fiber file successfully open"<<"\n";
 		/* the file should contain as many lines as elements*/
@@ -435,7 +436,7 @@ if (fDataInput.is_open())
 			P_vec(1,1) = g[1];
 			P_vec(1,2) = g[2];
 			
-
+//
 			/*normal to fiber plane = n*/
 			CrossProduct(f,g,n);
 			P_vec(2,0) = n[0];
@@ -452,11 +453,11 @@ if (fDataInput.is_open())
 	//for (int i=0;i<NumElements(); i++) {
 //			dArray2DT& P_vec = fFiber_list[i];
 //			cout << P_vec(0,0)<<" "<<P_vec(0,1)<< " "<<P_vec(0,2)<<endl;
-//			cout << P_vec(1,0)<<" "<<P_vec(1,1)<< " "<<P_vec(1,2)<<endl;
-//			cout << P_vec(2,0)<<" "<<P_vec(2,1)<< " "<<P_vec(2,2)<<endl;
-//		cout << "----------------------"<<endl;
-//		
-//	}
+//		cout << P_vec(1,0)<<" "<<P_vec(1,1)<< " "<<P_vec(1,2)<<endl;
+//		cout << P_vec(2,0)<<" "<<P_vec(2,1)<< " "<<P_vec(2,2)<<endl;
+//	cout << "----------------------"<<endl;
+	  //	
+	//}
 	 
 fDataInput.close(); 
 	cout<< "fiber vector file closed"<<endl;
@@ -733,9 +734,9 @@ void UpLagFiberCompT::ReadAxi(const ParameterListT& fibers)
 			P_vec(2,1) = n_r[1];
 			P_vec(2,2) = n_r[2];
 
-#ifdef DEBUG
+//#ifdef DEBUG
 //		cout << "\nfiber vectors: "<<P_vec;
-#endif DEBUG			
+//#endif DEBUG			
 		}	
 	}
 	
