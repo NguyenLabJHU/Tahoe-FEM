@@ -609,12 +609,8 @@ namespace dem {
 
 	// calculate momentum and density quotient before modification
 	bool inGrid = (i > 0 && i < gridNx-1 && j > 0 && j < gridNy-1 && k > 0 && k < gridNz-1 );
-	REAL momQuot[3], denQuot[3], u0[3];
+	REAL denQuot[3], u0[3];
 	if (inGrid) {
-	  momQuot[0] = (arrayU[i+1][j][k][varMom[0]] - arrayU[i-1][j][k][varMom[0]]) / (2*gridDx);
-	  momQuot[1] = (arrayU[i][j+1][k][varMom[1]] - arrayU[i][j-1][k][varMom[1]]) / (2*gridDy);
-	  momQuot[2] = (arrayU[i][j][k+1][varMom[2]] - arrayU[i][j][k-1][varMom[2]]) / (2*gridDz);
-
 	  denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
 	  denQuot[1] = (arrayU[i][j+1][k][varDen] - arrayU[i][j-1][k][varDen]) / (2*gridDy);
 	  denQuot[2] = (arrayU[i][j][k+1][varDen] - arrayU[i][j][k-1][varDen]) / (2*gridDz);
@@ -631,20 +627,19 @@ namespace dem {
 
 	// 1. momentum penalization
 	for (std::size_t m = 0; m < nDim; ++m) {
-	  // a. momentum penalization
-	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep / porosity * (Cdi/Cd+1) ;
-	  // b. influence of momentum penalization on energy
-	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep / porosity * (Cdi/Cd+1);
+	  // a. momentum penalization, note Cdi is controlled by porosity while Cd is not (Cd/Cd=1)
+	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk]*arrayPenalForce[i][j][k][m]*timeStep * (Cdi/Cd/porosity + 1);
+	  // b. influence of momentum penalization on energy, note Cdi is controlled by porosity while Cd is not (Cd/Cd=1)
+	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk]*arrayPenalForce[i][j][k][m]*arrayU[i][j][k][varVel[m]]*timeStep * (Cdi/Cd/porosity + 1);
 	}
 
-	// 2. porosity correction
-	//   a. porosity corrections are incorporated by changes in flux()
+	// 2. mass penalization
+	//   a. mass source term is incorporated by changes in flux(), so it is not computed here.
 
-	//   b. influence of porosity correction (1-1.0/porosity)*momQuot[m] and particle velocity term u0[m]/porosity*denQuot[m] on energy
+	//   b. influence of mass source term u0[m]*denQuot[m] on energy, it is approximate to d(rho*u0)/dx.
 	if (inGrid) {
 	  for (std::size_t m = 0; m < nDim; ++m)
-	    arrayU[i][j][k][varEng]  += (arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2))
-                                         * ( (1-1.0/porosity)*momQuot[m] + u0[m]/porosity*denQuot[m] ) * timeStep) / porosity;
+	    arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2)) * (u0[m]*denQuot[m]) * timeStep / porosity;
 	}
 
       }
@@ -939,7 +934,7 @@ namespace dem {
 	u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
-	// all 5 equations are modified in terms of porosity and Darcy's velocity for high-porosity material
+	// equations are modified in terms of porosity and superficial velocity (Darcy's velocity) for porous material
 	// continuity equation modified on porosity
 	arrayFlux[i][j][k][varDen]    = 1.0/porosity * arrayURota[i][j][k][varDen] * (arrayURota[i][j][k][varVel[0]] - u0[iDim]) ; // rho*(u-u0)/porosity
 
