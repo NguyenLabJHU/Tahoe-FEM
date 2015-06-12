@@ -278,6 +278,8 @@ namespace dem {
     if (mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+    
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
       bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
@@ -295,11 +297,12 @@ namespace dem {
 
       dragForce();
 
-      updateParticle();   
-      updateGridMaxZ();
-      // updateGridMaxZ() is for deposition or explosion. If they go out of side walls, particles are discarded.
-      // updateGrid() updates all six directions, thus side walls may "disappear" if particles go far out of side walls 
-      // and cause some grids to extrude out of side walls.
+      updateParticle();
+      if (gridUpdate == 0)
+	updateGridMaxZ(); // if they go out of side walls, particles are discarded.
+      else if (gridUpdate == 1)
+	updateGrid();     // updates all six directions, thus side walls may "disappear" if particles go 
+                          // far out of side walls and cause some grids to extrude out of side walls.
 
       /**/timeCount += timeStep;
       /**/timeAccrued += timeStep;
