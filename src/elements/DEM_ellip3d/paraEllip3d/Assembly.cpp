@@ -289,11 +289,11 @@ namespace dem {
 
       /**/calcTimeStep(); // use values from last step, must call before findContact (which clears data)
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (isBdryProcess() || gridUpdate == 1) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (isBdryProcess() || gridUpdate == 1) boundaryForce();
 
       dragForce();
 
@@ -301,8 +301,10 @@ namespace dem {
       if (gridUpdate == 0)
 	updateGridMaxZ(); // if they go out of side walls, particles are discarded.
       else if (gridUpdate == 1)
-	updateGrid();     // updates all six directions, thus side walls may "disappear" if particles go 
-                          // far out of side walls and cause some grids to extrude out of side walls.
+	updateGrid5();    // updates in 5 directions, side walls may "disappear" if grids explode substantially.
+      else if (gridUpdate == 2)
+	updateGrid();     // updates in 6 direcitons, side walls may "disappear" similarly.
+
 
       /**/timeCount += timeStep;
       /**/timeAccrued += timeStep;
@@ -2132,11 +2134,24 @@ namespace dem {
   }
 
 
+  void Assembly::updateGrid5() {
+    updateGridMinX();
+    updateGridMaxX();
+    updateGridMinY();
+    updateGridMaxY();
+    updateGridMaxZ();
+  }
+
+
   void Assembly::updateGridMinX() {
     REAL pMinX = getPtclMinX(particleVec);
     REAL minX = 0;
     MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
   
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
+    minX = std::max(minX, v1.getX() - 0.5*vspan.getX());
     setGrid(Rectangle(minX - gradation.getPtclMaxRadius(),
 		      grid.getMinCorner().getY(),
 		      grid.getMinCorner().getZ(),
@@ -2150,7 +2165,11 @@ namespace dem {
     REAL pMaxX = getPtclMaxX(particleVec);
     REAL maxX = 0;
     MPI_Allreduce(&pMaxX, &maxX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
-  
+
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
+    maxX = std::min(maxX, v2.getX() + 0.5*vspan.getX());
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      grid.getMinCorner().getY(),
 		      grid.getMinCorner().getZ(),
@@ -2165,6 +2184,10 @@ namespace dem {
     REAL minY = 0;
     MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
   
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
+    minY = std::max(minY, v1.getY() - 0.5*vspan.getY());
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      minY - gradation.getPtclMaxRadius(),
 		      grid.getMinCorner().getZ(),
@@ -2179,6 +2202,10 @@ namespace dem {
     REAL maxY = 0;
     MPI_Allreduce(&pMaxY, &maxY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
   
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
+    maxY = std::min(maxY, v2.getY() + 0.5*vspan.getY());
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      grid.getMinCorner().getY(),
 		      grid.getMinCorner().getZ(),
@@ -2192,7 +2219,7 @@ namespace dem {
     REAL pMinZ = getPtclMinZ(particleVec);
     REAL minZ = 0;
     MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
-  
+
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      grid.getMinCorner().getY(),
 		      minZ - gradation.getPtclMaxRadius(),
