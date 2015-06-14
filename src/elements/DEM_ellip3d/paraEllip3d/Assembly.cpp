@@ -2148,8 +2148,8 @@ namespace dem {
     REAL minX = 0;
     MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
   
-    Vec v1 = grid.getMinCorner();
-    Vec v2 = grid.getMaxCorner();
+    Vec v1 = allContainer.getMinCorner();
+    Vec v2 = allContainer.getMaxCorner();
     Vec vspan = v2 - v1;
     minX = std::max(minX, v1.getX() - 0.5*vspan.getX());
     setGrid(Rectangle(minX - gradation.getPtclMaxRadius(),
@@ -2166,8 +2166,8 @@ namespace dem {
     REAL maxX = 0;
     MPI_Allreduce(&pMaxX, &maxX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
 
-    Vec v1 = grid.getMinCorner();
-    Vec v2 = grid.getMaxCorner();
+    Vec v1 = allContainer.getMinCorner();
+    Vec v2 = allContainer.getMaxCorner();
     Vec vspan = v2 - v1;
     maxX = std::min(maxX, v2.getX() + 0.5*vspan.getX());
     setGrid(Rectangle(grid.getMinCorner().getX(),
@@ -2184,8 +2184,8 @@ namespace dem {
     REAL minY = 0;
     MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
   
-    Vec v1 = grid.getMinCorner();
-    Vec v2 = grid.getMaxCorner();
+    Vec v1 = allContainer.getMinCorner();
+    Vec v2 = allContainer.getMaxCorner();
     Vec vspan = v2 - v1;
     minY = std::max(minY, v1.getY() - 0.5*vspan.getY());
     setGrid(Rectangle(grid.getMinCorner().getX(),
@@ -2202,8 +2202,8 @@ namespace dem {
     REAL maxY = 0;
     MPI_Allreduce(&pMaxY, &maxY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
   
-    Vec v1 = grid.getMinCorner();
-    Vec v2 = grid.getMaxCorner();
+    Vec v1 = allContainer.getMinCorner();
+    Vec v2 = allContainer.getMaxCorner();
     Vec vspan = v2 - v1;
     maxY = std::min(maxY, v2.getY() + 0.5*vspan.getY());
     setGrid(Rectangle(grid.getMinCorner().getX(),
