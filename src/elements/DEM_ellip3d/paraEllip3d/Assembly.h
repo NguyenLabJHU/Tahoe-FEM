@@ -177,13 +177,18 @@ namespace dem {
     void gatherBdryContact();
 
     void updateGrid();
-    void updateGrid5();
     void updateGridMinX();
     void updateGridMaxX();
     void updateGridMinY();
     void updateGridMaxY();
     void updateGridMinZ();
     void updateGridMaxZ();    
+
+    void updateGridExplosion();
+    void updateGridMinXExplosion();
+    void updateGridMaxXExplosion();
+    void updateGridMinYExplosion();
+    void updateGridMaxYExplosion();
 
     void openDepositProg(std::ofstream &ofs, const char *str);
     void printDepositProg(std::ofstream &ofs);
