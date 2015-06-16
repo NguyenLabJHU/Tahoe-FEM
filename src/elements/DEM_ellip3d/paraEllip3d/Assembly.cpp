@@ -245,9 +245,11 @@ namespace dem {
 
   void Assembly::deposit(const char *inputBoundary,
 			 const char *inputParticle) 
-  {     
+  {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
+
     if (mpiRank == 0) {
-      readBoundary(inputBoundary); 
+      readBoundary(inputBoundary, gridUpdate); 
       readParticle(inputParticle);
       openDepositProg(progressInf, "deposit_progress");
     }
@@ -277,10 +279,7 @@ namespace dem {
     }
     if (mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
-	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
-    
-    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
-
+	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl; 
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
       bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
@@ -3316,15 +3315,27 @@ namespace dem {
   }
 
 
-  void Assembly::readBoundary(const char *str) {
+  void Assembly::readBoundary(const char *str, const int gridUpdate) {
     std::ifstream ifs(str);
     if(!ifs) { debugInf << "stream error: readBoundary" << std::endl; exit(-1); }
 
     REAL x1, y1, z1, x2, y2, z2;
     ifs >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
     setContainer(Rectangle(x1, y1, z1, x2, y2, z2));
-    // compute grid assumed to be the same as container, change in scatterParticle() if necessary.
-    setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
+    // compute grid may or may not be the same as container, change in scatterParticle() if necessary.
+    if (gridUpdate == 0 || gridUpdate == 2)
+      setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
+    else if (gridUpdate == 1) {
+      Vec v1 = allContainer.getMinCorner();
+      Vec v2 = allContainer.getMaxCorner();
+      Vec vspan = v2 - v1;
+      setGrid(Rectangle(v1.getX() - 0.5*vspan.getX(),
+			v1.getY() - 0.5*vspan.getY(),
+			v1.getZ(),
+			v2.getX() + 0.5*vspan.getX(),
+			v2.getY() + 0.5*vspan.getY(),
+			v2.getZ() ));
+    }
 
     boundaryVec.clear();
     Boundary *bptr;

@@ -164,7 +164,7 @@ namespace dem {
     void setCavity(Rectangle cav) { cavity = cav; }
 
     void readParticle(const char *str);
-    void readBoundary(const char *str);
+    void readBoundary(const char *str, const int gridUpdate=0);
     void scatterParticle();
     void commuParticle();
     bool isBdryProcess();
