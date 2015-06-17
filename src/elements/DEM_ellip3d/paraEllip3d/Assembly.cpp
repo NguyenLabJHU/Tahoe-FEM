@@ -301,10 +301,9 @@ namespace dem {
       if (gridUpdate == 0)
 	updateGridMaxZ();
       else if (gridUpdate == 1)
-	updateGridExplosion();// updates in 5 directions, side walls may "disappear" if grids explode substantially.
+	updateGridExplosion();
       else if (gridUpdate == 2)
-	updateGrid();         // updates in 6 direcitons, side walls may "disappear" similarly.
-
+	updateGrid();
 
       /**/timeCount += timeStep;
       /**/timeAccrued += timeStep;
