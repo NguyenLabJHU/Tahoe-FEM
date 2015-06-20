@@ -1124,10 +1124,10 @@ namespace dem {
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       openDepositProg(progressInf, "couple_progress");
-      /*1*/ fluid.initParameter(allContainer, gradation);
-      /*2*/ fluid.initialize();
     }
     scatterParticle();
+    /*1*/ fluid.initParameter(allContainer, gradation);
+    /*2*/ fluid.initialize();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
