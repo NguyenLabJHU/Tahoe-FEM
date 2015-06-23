@@ -1371,7 +1371,10 @@ namespace dem {
 	avgVelGap += vfabs(Vec(uxFluid-ux, uyFluid-uy, uzFluid-uz));
 
 	// principal axis decomposition
-	Vec globalDelta = Vec(fabs(uxFluid - ux)*(uxFluid - ux), fabs(uyFluid - uy)*(uyFluid - uy), fabs(uzFluid - uz)*(uzFluid - uz));
+	// Vec globalDelta = Vec(fabs(uxFluid - ux)*(uxFluid - ux), fabs(uyFluid - uy)*(uyFluid - uy), fabs(uzFluid - uz)*(uzFluid - uz));
+	Vec velocityGap = Vec(uxFluid - ux, uyFluid - uy, uzFluid - uz);
+	Vec globalDelta = vfabs(velocityGap) * velocityGap;
+
 	Vec localDelta = (*it)->globalToLocal(globalDelta);
 	Vec localPenal, globalPenal;
 	// localDelta needs to project in local frame in order to calculate local penalization forces
