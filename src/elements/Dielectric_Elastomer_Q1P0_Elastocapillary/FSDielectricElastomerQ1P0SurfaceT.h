@@ -92,7 +92,8 @@ namespace Tahoe {
     dMatrixT fAmm_mat2;	// mechanical material part of Hessian matrix
     dMatrixT fAmm_geo2;	// mechanical geometric part of Hessian matrix
     dMatrixT fB2, fD2, fLHS2;
-    double fSurfTension;
+    double fSurfTension, fNewSurfTension;
+    double fT_0;
 
 	dMatrixT tempstiff;
   };
