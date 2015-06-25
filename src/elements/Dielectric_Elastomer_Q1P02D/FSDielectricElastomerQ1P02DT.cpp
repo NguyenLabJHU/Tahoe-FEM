@@ -10,6 +10,9 @@
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
 
+#include <iostream>
+#include <fstream>
+
 /* ISSUES:
 1.  AddNodalForce - calls SetGlobalShape, which is modified in the Q1P0 formulation.
 	Could be a problem for reaction force output accuracy
@@ -19,6 +22,7 @@
 
 // materials lists (3D only)
 #include "FSSolidMatList2DT.h"
+using namespace std;
 
 namespace Tahoe {
 
@@ -331,6 +335,20 @@ void FSDielectricElastomerQ1P02DT::SetShape(void)
 	bool needs_F = Needs_F(material_number);
 	bool needs_F_last = Needs_F_last(material_number);
 
+	fNa_0.Dimension(ElementSupport().NumNodes());
+	fDNa_0.Dimension(NumSD(), ElementSupport().NumNodes());
+	fJ.Dimension(NumSD());
+	fJ_0_inv.Dimension(NumSD());
+	fGrad_U.Dimension(2, 2);
+
+
+	double px[2] = {0.0, 0.0};
+	dArrayT coords_0(NumSD(), px);
+	fShapes->GradU(fLocDisp, fGrad_U, coords_0, fNa_0, fDNa_0);
+	//cout << fGrad_U[0] << fGrad_U[1] << fGrad_U[2] << fGrad_U[3] << endl;
+	fGrad_U.PlusIdentity(); // Computing F_0
+	double J_0 = fGrad_U.Det();
+
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
 	{
@@ -340,7 +358,7 @@ void FSDielectricElastomerQ1P02DT::SetShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
-			F *= pow(v/(H*J), 1.0/3.0);
+			F *= pow((v*J_0)/(H*J), 1.0/2.0);
 			
 			/* store Jacobian */
 			fJacobian[i] = J;
@@ -353,7 +371,7 @@ void FSDielectricElastomerQ1P02DT::SetShape(void)
 			dMatrixT& F = fF_last_List[i];
 
 			double J = F.Det();
-			F *= pow(v_last/(H*J), 1.0/3.0);
+			F *= pow((v_last*J_0)/(H*J), 1.0/2.0);
 		}
 	}	
   }
@@ -537,6 +555,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 			/* loop over nodes (double-noding OK) */
 			int dex = 0;
 			int dex2 = 0;
+			int whichdof;
 			for (int i = 0; i < nodes_u.Length(); i++)
 			{
 				if (nodes_u[i] == node)
@@ -546,6 +565,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 					{
 						er1 = fRHS[dex2+2*NumElementNodes()];
 						react[0] = er1;
+						whichdof = 1;
 					}
 					else	// otherwise do mechanical
 					{
@@ -553,10 +573,11 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 						mr2 = fRHS[dex+1];	
 						react[0] = mr1;
 						react[1] = mr2;
+						whichdof = NumDOF();
 					}
 					
 					/* components for node - mechanical + electrical DOFs */
-					nodalforce.Set(TotalNumDOF(), react.Pointer(0));
+					nodalforce.Set(whichdof, react.Pointer(0));
 
 					/* accumulate */
 					force += nodalforce;
@@ -618,7 +639,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 		
 		/* detF correction */
 		double J_correction = J_bar/fJacobian[CurrIP()];
-		double p = J_correction*cauchy.Trace()/3.0;
+		double p = J_correction*cauchy.Trace()/2.0;
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
@@ -679,11 +700,28 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 	fLHS.AddBlock(0, 0, fAmm_mat);
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
+			// Saving the fLHS matrix
+		/* ofstream myLHS;
+		myLHS.open("fLHS_bulk.txt");
+		for (int i = 0; i < fLHS.Rows(); i++)
+		{
+			for (int j = 0; j < fLHS.Cols(); j++)
+			{
+				// myLHS << "fLHS(" << i << "," << j << ")= " << fLHS(i, j); // List the values of fLHS(i,j)
+				if (fLHS(i, j) == 0)
+					myLHS << "0.00000" << " ";
+				else
+					myLHS << fLHS(i, j) << " "; // See the matrix form of fLHS for a quick look
+			}
+			myLHS << endl;
+		}
+		myLHS.close(); */
   }
 
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomerQ1P02DT::FormKd(double constK)
   {  	
+	//  cout << "FormKd" << endl;
 	/* element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
@@ -707,8 +745,8 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 	p_bar = 0.0;
 
     fCurrShapes->TopIP();
-    while (fCurrShapes->NextIP() ) 
-    {    
+    while (fCurrShapes->NextIP() )
+    {
 		/* strain displacement matrix */
 		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
 
@@ -723,7 +761,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 		double J_correction = J_bar/fJacobian[CurrIP()];
 		
 		/* integrate pressure */
-		p_bar += (*Weight)*(*Det)*J_correction*cauchy.Trace()/3.0;
+		p_bar += (*Weight)*(*Det)*J_correction*cauchy.Trace()/2.0;
 
 		/* double scale factor */
 		double scale = constK*(*Det++)*(*Weight++);   
@@ -733,8 +771,13 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
     
  	  	/* electrical stress in current configuration */
  	  	dArrayT di = fCurrMaterial->d_i();
+ 	  	//for (int i = 0; i < di.Length(); i++)
+ 	  	// 	  		cout << di[i] << endl;
+ 	  	//cout << scale << endl;
+ 	  	//cout << J_correction << endl;
  	  	di *= scale*J_correction;
- 	  	
+ 	  	//for (int i = 0; i < di.Length(); i++)
+ 	  	//  		cout << di[i] << endl;
  	  	/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
 		fGradNa.MultTx(di, Relec, 1.0, dMatrixT::kAccumulate);  
@@ -743,7 +786,16 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
   	Relec *= -1.0;	
  	Rtotal.CopyIn(0, Rmech);
  	Rtotal.CopyIn(Rmech.Length(), Relec);
- 	fRHS += Rtotal; 	
+ 	fRHS += Rtotal; 
+	
+            /* Saving RHS to a file */
+           // ofstream myRHS;
+           // myRHS.open("fRHS_bulk.txt");
+           // for (int i = 0; i < fRHS.Length(); i++)
+            //{
+            //      myRHS << "fRHS(" << i << ") = " << fRHS[i] << endl;
+           // }
+           // myRHS.close();
  
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()]; 
@@ -954,6 +1006,7 @@ void FSDielectricElastomerQ1P02DT::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT&
     dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
     dArrayT ipspeed(nsd), ipprincipal(nsd);
     dMatrixT ippvector(nsd);
+    dArrayT Eall(nsd+1);
 
     // set shallow copies
     double* pall = nodal_space.Pointer();
@@ -976,10 +1029,10 @@ void FSDielectricElastomerQ1P02DT::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT&
     ndElectricDisplacement.Alias(nen, n_codes[ND_ELEC_DISP], pall);
     pall += ndElectricDisplacement.Length();
 
-//    ndElectricField.Alias(nen, n_codes[ND_ELEC_FLD], pall);
-//    pall += ndElectricField.Length();
- 	ndElectricField.Alias(nen, NumSD(), pall);
- 	pall += ndElectricField.Length();
+    ndElectricField.Alias(nen, n_codes[ND_ELEC_FLD], pall);
+    pall += ndElectricField.Length();
+// 	ndElectricField.Alias(nen, NumSD(), pall);
+// 	pall += ndElectricField.Length();
     
     ndElectricScalarPotential.Alias(nen, n_codes[ND_ELEC_POT_SCALAR], pall);
     pall += ndElectricScalarPotential.Length();
@@ -1246,13 +1299,18 @@ void FSDielectricElastomerQ1P02DT::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT&
 
         // electric field
         const dArrayT& E = fCurrMaterial->E_I();
+        double emag = E.Magnitude();
+        Eall[0] = E[0];
+        Eall[1] = E[1];
+        Eall[2] = emag;
+        //Eall = E;
         if (n_codes[ND_ELEC_FLD]) {
           if (qNoExtrap) {
             for (int k = 0; k < nen; k++) {
-              ndElectricField.AddToRowScaled(k, Na_X_ip_w(k, 0), E);
+              ndElectricField.AddToRowScaled(k, Na_X_ip_w(k, 0), Eall);
             }
           } else {
-            fShapes->Extrapolate(E, ndElectricField);
+            fShapes->Extrapolate(Eall, ndElectricField);
           }
         }
 

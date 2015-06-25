@@ -178,6 +178,11 @@ namespace Tahoe {
 	dMatrixT fb_sig;
 	/*@}*/
 
+	dArrayT   fNa_0;
+	dArray2DT fDNa_0;
+	dMatrixT  fJ, fJ_0_inv;
+	dMatrixT fGrad_U;
+
 	/** \name work space - from UpdatedLagrangianT.h */
 	/*@{*/
 	dMatrixT fCauchyStress;	/**< matrix for Cauchy stress tensor: [nsd] x [nsd] */
