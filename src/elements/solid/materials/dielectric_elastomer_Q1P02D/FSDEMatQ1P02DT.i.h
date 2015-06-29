@@ -568,6 +568,27 @@ namespace Tahoe {
 
   }
 
+  inline const dMatrixT&
+  FSDEMatQ1P02DT::a_ijkl()
+  {
+	  const dSymMatrixT& sigma = s_ij();
+	  const dMatrixT& cijkl = C_IJKL();
+
+	  cout << sigma << endl;
+
+	  fa(0, 0) = cijkl(0, 0) + 4*sigma(0, 0);
+	  fa(0, 1) = cijkl(0, 1);
+	  fa(0, 2) = cijkl(0, 2);
+	  fa(1, 0) = cijkl(1, 0);
+	  fa(1, 1) = cijkl(1, 1) + 4*sigma(1, 1);
+	  fa(1, 2) = cijkl(1, 2) + 4*sigma(0, 1);
+	  fa(2, 0) = cijkl(2, 0);
+	  fa(2, 1) = cijkl(2, 1) + 4*sigma(1, 0);
+	  fa(2, 2) = cijkl(2, 2) + 4*sigma(0, 0);
+	  cout << "hello" <<endl;
+	  return fa;
+  }
+
   // Cauchy stress
   inline const dSymMatrixT&
   FSDEMatQ1P02DT::s_ij()

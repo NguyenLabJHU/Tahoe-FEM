@@ -335,18 +335,18 @@ void FSDielectricElastomerQ1P02DT::SetShape(void)
 	bool needs_F = Needs_F(material_number);
 	bool needs_F_last = Needs_F_last(material_number);
 
+	/* Getting ready for calculating F_0 */
 	fNa_0.Dimension(ElementSupport().NumNodes());
 	fDNa_0.Dimension(NumSD(), ElementSupport().NumNodes());
 	fJ.Dimension(NumSD());
 	fJ_0_inv.Dimension(NumSD());
-	fGrad_U.Dimension(2, 2);
+	fGrad_U.Dimension(2, NumSD());
 
 
 	double px[2] = {0.0, 0.0};
 	dArrayT coords_0(NumSD(), px);
 	fShapes->GradU(fLocDisp, fGrad_U, coords_0, fNa_0, fDNa_0);
-	//cout << fGrad_U[0] << fGrad_U[1] << fGrad_U[2] << fGrad_U[3] << endl;
-	fGrad_U.PlusIdentity(); // Computing F_0
+	fGrad_U.PlusIdentity(); // Computing F_0 Need to be confirmed!!!
 	double J_0 = fGrad_U.Det();
 
 	/* loop over integration points */
@@ -632,8 +632,8 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 	/* S T R E S S   S T I F F N E S S */			
 		/* compute Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
+		const dMatrixT& a = fCurrMaterial->a_ijkl();
 		cauchy.ToMatrix(fCauchyStress);
-		
 		/* determinant of modified deformation gradient */
 		double J_bar = DeformationGradient().Det();
 		
@@ -647,10 +647,10 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 
 		/* integration constants */		
 		fCauchyStress *= scale*J_correction;
+
 	
 		/* using the stress symmetry */
-		fAmm_geo.MultQTBQ(fGradNa, fCauchyStress, format, dMatrixT::kAccumulate);
- 
+		fAmm_geo.MultQTBQ(fGradNa, a, format, dMatrixT::kAccumulate);
 	/* M A T E R I A L   S T I F F N E S S */									
 		/* strain displacement matrix */
 		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);

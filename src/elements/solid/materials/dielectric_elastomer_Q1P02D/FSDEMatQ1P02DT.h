@@ -51,6 +51,8 @@ namespace Tahoe {
     // spatial mechanical tangent modulus
     virtual const dMatrixT& c_ijkl();
 
+    virtual const dMatrixT& a_ijkl();
+
     // Cauchy stress
     virtual const dSymMatrixT& s_ij();
 
@@ -110,6 +112,8 @@ namespace Tahoe {
     dMatrixT fTangentElectromechanical;
     dMatrixT fTangentElectromechanicalSpatial;    
     dMatrixT fTangentElectrical;
+
+    dMatrixT fa;
 
   };
 
