@@ -48,7 +48,7 @@ endif
 
 ifeq ($(PLATFORM), excalibur)
  ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /home/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.40
+  BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.40
  endif
 endif
 
