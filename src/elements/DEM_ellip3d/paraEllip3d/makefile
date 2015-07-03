@@ -30,7 +30,8 @@ ifeq ($(PLATFORM), spirit)
   BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-intelmpi-4.1.3.048-intel-compilers-13.0.1
  endif
  ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /work4/projects/openmpi/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
+  #BOOST_ROOT = /work4/projects/openmpi/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
+  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
  endif
 endif
 
