@@ -167,6 +167,7 @@ namespace dem {
     void readBoundary(const char *str);
     void scatterParticle();
     void commuParticle();
+    void calcNeighborRanks();
     bool isBdryProcess();
     void releaseRecvParticle();
     void releaseGatheredParticle();

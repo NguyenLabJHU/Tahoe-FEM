@@ -252,6 +252,7 @@ namespace dem {
       openDepositProg(progressInf, "deposit_progress");
     }
     scatterParticle(); // scatter particles only once; also updates grid for the first time
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -392,6 +393,7 @@ namespace dem {
       openCompressProg(balancedInf, "isotropic_balanced");
     }
     scatterParticle();
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -545,6 +547,7 @@ namespace dem {
       openCompressProg(balancedInf, "odometer_balanced");
     }
     scatterParticle();
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -682,6 +685,7 @@ namespace dem {
       openCompressProg(progressInf, "triaxial_progress");
     }
     scatterParticle();
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -777,6 +781,7 @@ namespace dem {
       openCompressProg(progressInf, "plnstrn_progress");
     }
     scatterParticle();
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -874,6 +879,7 @@ namespace dem {
       openCompressProg(balancedInf, "trueTriaxial_balanced");
     }
     scatterParticle();
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1124,6 +1130,7 @@ namespace dem {
       /*2*/ fluid.initialize();
     }
     scatterParticle();
+    calcNeighborRanks();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1604,19 +1611,7 @@ namespace dem {
 	    mpiCoords[2] == 0 || mpiCoords[2] == mpiProcZ - 1);
   }
 
-
-  void Assembly::commuParticle() 
-  {
-    // determine container of each process
-    Vec v1 = grid.getMinCorner();
-    Vec v2 = grid.getMaxCorner();
-    Vec vspan = v2 - v1;
-    container = Rectangle(v1.getX() + vspan.getX() / mpiProcX * mpiCoords[0],
-			  v1.getY() + vspan.getY() / mpiProcY * mpiCoords[1],
-			  v1.getZ() + vspan.getZ() / mpiProcZ * mpiCoords[2],
-			  v1.getX() + vspan.getX() / mpiProcX * (mpiCoords[0] + 1),
-			  v1.getY() + vspan.getY() / mpiProcY * (mpiCoords[1] + 1),
-			  v1.getZ() + vspan.getZ() / mpiProcZ * (mpiCoords[2] + 1));
+  void Assembly::calcNeighborRanks(){	// the ranks of the neighbor blocks just need to be calculated once before time loop
 
     // find neighboring blocks
     rankX1 = -1; rankX2 = -1; rankY1 = -1; rankY2 = -1; rankZ1 = -1; rankZ2 = -1;
@@ -1779,6 +1774,22 @@ namespace dem {
     neighborCoords[2] = mpiCoords[2];
     ++neighborCoords[0]; ++neighborCoords[1]; ++neighborCoords[2];
     MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y2Z2);
+
+  }
+
+
+  void Assembly::commuParticle() 
+  {
+    // determine container of each process
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
+    container = Rectangle(v1.getX() + vspan.getX() / mpiProcX * mpiCoords[0],
+			  v1.getY() + vspan.getY() / mpiProcY * mpiCoords[1],
+			  v1.getZ() + vspan.getZ() / mpiProcZ * mpiCoords[2],
+			  v1.getX() + vspan.getX() / mpiProcX * (mpiCoords[0] + 1),
+			  v1.getY() + vspan.getY() / mpiProcY * (mpiCoords[1] + 1),
+			  v1.getZ() + vspan.getZ() / mpiProcZ * (mpiCoords[2] + 1));
 
     // if found, communicate with neighboring blocks
     std::vector<Particle*> particleX1, particleX2;
