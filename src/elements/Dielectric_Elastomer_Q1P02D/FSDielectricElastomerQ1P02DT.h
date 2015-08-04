@@ -128,6 +128,8 @@ namespace Tahoe {
     void Workspace();
 	void MassMatrix();
 
+    //void Set_G(const dArray2DT& DNaX, dMatrixT& B_C);
+
 	/** compute mean shape function gradient, H (reference volume), and
 	 * current element volume, equation (2.20) */
 	void SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) const;
@@ -178,16 +180,21 @@ namespace Tahoe {
 	dMatrixT fb_sig;
 	/*@}*/
 
-	dArrayT   fNa_0;
-	dArray2DT fDNa_0;
-	dMatrixT  fJ, fJ_0_inv;
-	dMatrixT fGrad_U;
+	dArrayT   Na_0;
+	dArray2DT DNa_0;
+	dMatrixT  fGrad_U_0;
+	dMatrixT  fGrad_UU_0;
+
+	//dArrayT A;
 
 	/** \name work space - from UpdatedLagrangianT.h */
 	/*@{*/
 	dMatrixT fCauchyStress;	/**< matrix for Cauchy stress tensor: [nsd] x [nsd] */
 	dMatrixT fStressStiff;	/**< "compact" stress stiffness contribution: [nen] x [nen] */
 	dMatrixT fGradNa;       /**< shape function gradients matrix: [nsd] x [nen] */
+
+	dMatrixT fG_0; /* discrete spatial gradient operator at centroid */
+	dMatrixT fQ;
 	/*@}*/
 
   private:
@@ -198,6 +205,7 @@ namespace Tahoe {
     // Stiffness storage
     dMatrixT fAmm_mat;	// mechanical material part of Hessian matrix
     dMatrixT fAmm_geo;	// mechanical geometric part of Hessian matrix
+    dMatrixT fAmm_neto; // mechanical part according to Neto et. al formulation
     dMatrixT fAme;	// mechanical-electrical coupling part of Hessian matrix
     dMatrixT fAem;	// electrical-mechanical coupling part of Hessian matrix
     dMatrixT fAee;	// electrical-electrical coupling part of Hessian matrix
