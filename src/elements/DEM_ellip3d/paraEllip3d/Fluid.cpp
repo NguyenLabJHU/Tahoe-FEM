@@ -836,23 +836,13 @@ namespace dem {
 	for (std::size_t j = 0; j < gridNy; ++j)
 	  for (std::size_t k = 0; k < gridNz; ++k) {
 	    REAL radius = sqrt(pow(arrayGridCoord[i][j][k][0]-x0L,2) + pow(arrayGridCoord[i][j][k][1]-y0L,2) + pow(arrayGridCoord[i][j][k][2]-z0L,2));
-	    if ( radius <= r0L) {
-	      // physical distribution of rho, u, p is nonlinear increasing, closer to constant distribution than linear distribution.
-	      // constant distribution of rho, u, p
+	    if (radius <= r0L) {
 	      arrayU[i][j][k][varDen]    = rhoL;
 	      arrayU[i][j][k][varPrs]    = pL;
-	      arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/radius;
-	      arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/radius;
-	      arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/radius;
-
-	      /*
-	      // linear increasing distribution of rho, u, p
-	      arrayU[i][j][k][varDen]    = rhoL*radius/r0L;
-	      arrayU[i][j][k][varPrs]    = pL*radius/r0L;
 	      arrayU[i][j][k][varVel[0]] = uL*(arrayGridCoord[i][j][k][0]-x0L)/r0L;
 	      arrayU[i][j][k][varVel[1]] = uL*(arrayGridCoord[i][j][k][1]-y0L)/r0L;
 	      arrayU[i][j][k][varVel[2]] = uL*(arrayGridCoord[i][j][k][2]-z0L)/r0L;
-	      */
+
 	    } else {
 	      arrayU[i][j][k][varDen]    = rhoR;
 	      arrayU[i][j][k][varPrs]    = pR;
