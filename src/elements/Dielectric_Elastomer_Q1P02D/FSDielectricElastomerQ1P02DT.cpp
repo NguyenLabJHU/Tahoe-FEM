@@ -685,13 +685,13 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 		fAmm_mat.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
 
 	/* A D D I T I O N A L    S T I F F N E S S (Neto eq. 15.10 second integral) */
-    	const dArray2DT& DNa = fCurrShapes->Derivatives_U();
+    /*	const dArray2DT& DNa = fCurrShapes->Derivatives_U();
     	Set_G(DNa, fG);
 
     	double px[2] = {0.0, 0.0};
     	dArrayT coords_0(NumSD(), px);
     	fCurrShapes->EvaluateShapeFunctions(coords_0, Na_0, DNa_0);
-    	Set_G(DNa_0, fG_0);
+    	Set_G(DNa_0, fG_0);  // Need Set_G in SolidElementT
 
     	dMatrixT a = fCurrMaterial->a_ijkl();
     	dSymMatrixT sigma = fCurrMaterial->s_ij();
@@ -722,7 +722,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
     	fG_0 -= fG; // G_0 - G
 
     	/* fAmm_neto is the additional stiffness to the standard stiffness proposed by Neto. See Neto Box (15.2) */
-    	fAmm_neto.MultATBC(fG, fQ, fG_0, format, dMatrixT::kAccumulate); // K_neto = K_neto + w*J*G^T*[q]*(G_0 - G)
+    	//fAmm_neto.MultATBC(fG, fQ, fG_0, format, dMatrixT::kAccumulate); // K_neto = K_neto + w*J*G^T*[q]*(G_0 - G)
 
 		/* Electromechanical Coupling Stiffnesses in current configuration */
 	/* May need to modify integration constants (scale) for BIJ and EIJK as compared to CIJKL */
