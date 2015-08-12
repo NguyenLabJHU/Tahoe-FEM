@@ -1,4 +1,4 @@
-/* $Id: AnisoScleraWaxs_expo.h,v 1.1 2013-02-01 19:30:54 tahoe.kziegler Exp $ */
+/* $Id: AnisoScleraWaxs_expo.h,v 1.2 2015-08-12 14:55:29 tahoe.vickynguyen Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _AnisoScleraWaxs_expo_
 #define _AnisoScleraWaxs_expo_
@@ -126,7 +126,6 @@ private:
 protected:
 	// for the fiber dispersion parameter
 	StringT fUserFile;
-	ifstreamT fDataInput;
 	/* element list of fiber dispersion parameter*/
 	ArrayT<dArrayT> fFiberDispersion_list;
 

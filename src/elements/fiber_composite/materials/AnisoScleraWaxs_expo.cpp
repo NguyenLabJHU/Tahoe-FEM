@@ -1,4 +1,4 @@
-/* $Id: AnisoScleraWaxs_expo.cpp,v 1.1 2013-02-01 19:30:54 tahoe.kziegler Exp $ */
+/* $Id: AnisoScleraWaxs_expo.cpp,v 1.2 2015-08-12 14:55:29 tahoe.vickynguyen Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "AnisoScleraWaxs_expo.h"
@@ -9,6 +9,7 @@
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
 #include "ofstreamT.h"
+#include "ifstreamT.h"
 //#include "FSFiberMatSupportT.h"
 
 
@@ -1688,7 +1689,8 @@ void AnisoScleraWaxs_expo::Construct(void)
 {
 	
 	// open the dispersion file
-	fDataInput.open(fUserFile);
+        ifstreamT fDataInput(fUserFile);
+  //	fDataInput.open(fUserFile);
 	if (fDataInput.is_open()) 
 	{
 		cout << "\n WAXS file successfully open \n";
