@@ -20,6 +20,11 @@
 3.  Integration factor for K terms multiplied by beta*dt^2 - correct!
 */
 
+/* TO-DO:
+1.  Confirming calculation of F_0 according to Neto paper.
+2.  Needed to modify the FormStiffness and FormKd accordingly.
+*/
+
 // materials lists (3D only)
 #include "FSSolidMatList2DT.h"
 using namespace std;
@@ -96,6 +101,7 @@ namespace Tahoe {
 	/* Tangent moduli for LHS */
     fAmm_mat.Dimension(nme, nme);
     fAmm_geo.Dimension(nen, nen);	// dimensions changed for Q1P0!
+    fAmm_neto.Dimension(nme, nme);  // 8x8 for Q1 element!
     fAme.Dimension(nme, nel);
     fAem.Dimension(nel, nme);
     fAee.Dimension(nel, nel);
@@ -336,30 +342,31 @@ void FSDielectricElastomerQ1P02DT::SetShape(void)
 	bool needs_F_last = Needs_F_last(material_number);
 
 	/* Getting ready for calculating F_0 */
-	fNa_0.Dimension(ElementSupport().NumNodes());
-	fDNa_0.Dimension(NumSD(), ElementSupport().NumNodes());
-	fJ.Dimension(NumSD());
-	fJ_0_inv.Dimension(NumSD());
-	fGrad_U.Dimension(2, NumSD());
+	Na_0.Dimension(ElementSupport().NumNodes());
+	DNa_0.Dimension(NumSD(), ElementSupport().NumNodes());
+	fGrad_U_0.Dimension(2, NumSD());
+	fGrad_U_0 = 0.0;
 
-
+	/* Calculating F_0 HOPEFULLY, deformation gradient at centroid Neto et al. formulation */
 	double px[2] = {0.0, 0.0};
 	dArrayT coords_0(NumSD(), px);
-	fShapes->GradU(fLocDisp, fGrad_U, coords_0, fNa_0, fDNa_0);
-	fGrad_U.PlusIdentity(); // Computing F_0 Need to be confirmed!!!
-	double J_0 = fGrad_U.Det();
+	fShapes->GradU(fLocDisp, fGrad_U_0, coords_0, Na_0, DNa_0);
+	fGrad_U_0.PlusIdentity(); // Computing F_0 = I + Grad_U
+	double J_0 = fGrad_U_0.Det();
 
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
 	{
+
 		/* deformation gradient */
 		if (needs_F)
 		{
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
-			F *= pow((v*J_0)/(H*J), 1.0/2.0);
-			
+			//F *= pow((J_0)/(J), 1.0/2.0); // Fbar (Neto) method
+			F *= pow((v)/(H*J), 1.0/2.0); // Q1P0 method
+
 			/* store Jacobian */
 			fJacobian[i] = J;
 		}
@@ -369,11 +376,12 @@ void FSDielectricElastomerQ1P02DT::SetShape(void)
 		{
 			/* "replace" dilatation */
 			dMatrixT& F = fF_last_List[i];
-
 			double J = F.Det();
-			F *= pow((v_last*J_0)/(H*J), 1.0/2.0);
+			//F *= pow((J_0)/(J), 1.0/2.0); // Fbar (Neto) method
+			F *= pow((v_last)/(H*J), 1.0/2.0); // Q1P0 method
 		}
 	}	
+
   }
 
   // write all current element information to the stream
@@ -589,6 +597,10 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 	}
 }
 
+ // void FSDielectricElastomerQ1P02DT::Set_G(const dArray2DT& DNaX, dMatrixT& G)
+ // {
+
+ // }
 /* calculate the LHS of residual, or element stiffness matrix */
   void FSDielectricElastomerQ1P02DT::FormStiffness(double constK)
   {
@@ -608,9 +620,16 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 
     fAmm_mat = 0.0;
     fAmm_geo = 0.0;
+    fAmm_neto = 0.0;
     fAme = 0.0;
     fAem = 0.0;
     fAee = 0.0;
+    fG_0.Dimension(2.0*NumSD(), NumSD()*NumElementNodes());  /* Initialization of G_0 */
+    //fG_0 = 0.0;
+
+    fQ.Dimension(4, 4); // for plane strain problem
+    //fQ = 0.0;
+
 
 	/* integration */
 	const double* Det    = fCurrShapes->IPDets();
@@ -627,41 +646,85 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 		/* NOTE:  constK = beta * dt^2 */
 		double scale = constK*(*Det++)*(*Weight++);
 		/* scale factor for K matrix terms without beta * dt^2 factor */
- 		double scale1 = scale/constK;	
-	
+ 		double scale1 = scale/constK;
+
+
 	/* S T R E S S   S T I F F N E S S */			
 		/* compute Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
-		const dMatrixT& a = fCurrMaterial->a_ijkl();
-		cauchy.ToMatrix(fCauchyStress);
+ 		cauchy.ToMatrix(fCauchyStress);
+
 		/* determinant of modified deformation gradient */
 		double J_bar = DeformationGradient().Det();
-		
+
 		/* detF correction */
-		double J_correction = J_bar/fJacobian[CurrIP()];
-		double p = J_correction*cauchy.Trace()/2.0;
+		//double J_correction = 1.0; // For Neto fomulation
+		double J_correction = J_bar/fJacobian[CurrIP()]; //For Q1P0 formulation
+		//double p = fCauchyStress.Trace()/2.0;
+		//cout << J_correction << endl;
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
 		fb_sig.MultAB(fCauchyStress, fGradNa);
 
-		/* integration constants */		
-		fCauchyStress *= scale*J_correction;
 
+		/* integration constants */
+		fCauchyStress *= scale*J_correction;
 	
 		/* using the stress symmetry */
-		fAmm_geo.MultQTBQ(fGradNa, a, format, dMatrixT::kAccumulate);
-	/* M A T E R I A L   S T I F F N E S S */									
-		/* strain displacement matrix */
-		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
+		fAmm_geo.MultQTBQ(fGradNa, fCauchyStress, format, dMatrixT::kAccumulate);
 
+	/* M A T E R I A L   S T I F F N E S S */
+		/* strain displacement matrix */
+		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB); // For Q1P0 formulation
+		//Set_B(fCurrShapes->Derivatives_U(), fB); // Neto formulation
 		/* get D matrix */
 		fD.SetToScaled(scale*J_correction, fCurrMaterial->c_ijkl());
-						
+
 		/* accumulate */
 		fAmm_mat.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
-		
-	/* Electromechanical Coupling Stiffnesses in current configuration */
+
+	/* A D D I T I O N A L    S T I F F N E S S (Neto eq. 15.10 second integral) */
+    	const dArray2DT& DNa = fCurrShapes->Derivatives_U();
+    	Set_G(DNa, fG);
+
+    	double px[2] = {0.0, 0.0};
+    	dArrayT coords_0(NumSD(), px);
+    	fCurrShapes->EvaluateShapeFunctions(coords_0, Na_0, DNa_0);
+    	Set_G(DNa_0, fG_0);
+
+    	dMatrixT a = fCurrMaterial->a_ijkl();
+    	dSymMatrixT sigma = fCurrMaterial->s_ij();
+
+
+    	fQ(0, 0) = 0.5*(a(0, 0) + a(0, 1)) - 0.5*sigma(0, 0);
+    	fQ(0, 1) = 0.0;
+    	fQ(0, 2) = 0.0;
+    	fQ(0, 3) = 0.5*(a(0, 0) + a(0, 1)) - 0.5*sigma(0, 0);
+
+    	fQ(1, 0) = 0.5*(a(2, 0) + a(2, 1)) - 0.5*sigma(0, 1);
+    	fQ(1, 1) = 0.0;
+    	fQ(1, 2) = 0.0;
+    	fQ(1, 3) = 0.5*(a(2, 0) + a(2, 1)) - 0.5*sigma(0, 1);
+
+    	fQ(2, 0) = 0.5*(a(2, 0) + a(2, 1)) - 0.5*sigma(0, 1);
+    	fQ(2, 1) = 0.0;
+    	fQ(2, 2) = 0.0;
+    	fQ(2, 3) = 0.5*(a(2, 0) + a(2, 1)) - 0.5*sigma(0, 1);
+
+    	fQ(3, 0) = 0.5*(a(1, 0) + a(1, 1)) - 0.5*sigma(1, 1);
+    	fQ(3, 1) = 0.0;
+    	fQ(3, 2) = 0.0;
+    	fQ(3, 3) = 0.5*(a(1, 0) + a(1, 1)) - 0.5*sigma(1, 1);
+
+    	fQ *= scale;
+
+    	fG_0 -= fG; // G_0 - G
+
+    	/* fAmm_neto is the additional stiffness to the standard stiffness proposed by Neto. See Neto Box (15.2) */
+    	fAmm_neto.MultATBC(fG, fQ, fG_0, format, dMatrixT::kAccumulate); // K_neto = K_neto + w*J*G^T*[q]*(G_0 - G)
+
+		/* Electromechanical Coupling Stiffnesses in current configuration */
 	/* May need to modify integration constants (scale) for BIJ and EIJK as compared to CIJKL */
 	/* J_correction for eijk terms? */
 		dMatrixT bij = fCurrMaterial->b_ij();
@@ -698,6 +761,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 
 	/* Assemble into fLHS, or element stiffness matrix */
 	fLHS.AddBlock(0, 0, fAmm_mat);
+	//fLHS.AddBlock(0, 0, fAmm_neto); //Additional term for Neto formulation
 	fLHS.AddBlock(fAmm_mat.Rows(), fAmm_mat.Cols(), fAee);
 	fLHS.AddBlock(0, fAmm_mat.Cols(), fAme);
 			// Saving the fLHS matrix
@@ -721,7 +785,7 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
 /* Compute RHS, or residual of element equations */
   void FSDielectricElastomerQ1P02DT::FormKd(double constK)
   {  	
-	//  cout << "FormKd" << endl;
+
 	/* element preliminaries */
     const int nsd = NumSD();
     const int nen = NumElementNodes();
@@ -748,17 +812,19 @@ void FSDielectricElastomerQ1P02DT::AddNodalForce(const FieldT& field, int node, 
     while (fCurrShapes->NextIP() )
     {
 		/* strain displacement matrix */
-		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
+		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB); // For Q1P0 formulation
+		//Set_B(fCurrShapes->Derivatives_U(), fB); // For Neto formulation
 
 		/* B^T * Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
 		fB.MultTx(cauchy, fNEEvec);
-		
+		//cout << fB.Rows() << fB.Cols() << endl;
 		/* determinant of modified deformation gradient */
 		double J_bar = DeformationGradient().Det();
 		
 		/* detF correction */
-		double J_correction = J_bar/fJacobian[CurrIP()];
+		//double J_correction = 1.0; // for Neto formulation
+		double J_correction = J_bar/fJacobian[CurrIP()]; // for Q1P0 formulation
 		
 		/* integrate pressure */
 		p_bar += (*Weight)*(*Det)*J_correction*cauchy.Trace()/2.0;
