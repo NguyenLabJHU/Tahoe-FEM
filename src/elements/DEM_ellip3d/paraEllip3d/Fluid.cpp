@@ -382,6 +382,8 @@ namespace dem {
     initialCondition(); 
     soundSpeed(); // for printing Mach number
     debugInf << std::setw(OWID) << "iteration" 
+	     << std::setw(OWID) << "demTimeStep"
+	     << std::setw(OWID) << "cfdTimeStep" 
 	     << std::setw(OWID) << "timeStep" 
 	     << std::setw(OWID) << "timeAccrued" /*
 	     << std::setw(OWID) << "uZMax"
@@ -763,10 +765,15 @@ namespace dem {
     dtMin[1] = gridDy / gridY.max();
     dtMin[2] = gridDz / gridZ.max();
     
-    timeStep = std::min(timeStep, CFL * dtMin.min());
+    REAL ptclTimeStep = timeStep;
+    REAL fluidTimeStep = CFL * dtMin.min();
+    timeStep = std::min(ptclTimeStep, fluidTimeStep);
+    // timeStep = std::min(timeStep, CFL * dtMin.min());
     timeAccrued += timeStep;
     debugInf << std::endl
 	     << std::setw(OWID) << iteration 
+	     << std::setw(OWID) << ptclTimeStep 
+	     << std::setw(OWID) << fluidTimeStep 
 	     << std::setw(OWID) << timeStep 
 	     << std::setw(OWID) << timeAccrued /*
 	     << std::setw(OWID) << velZ.max()
