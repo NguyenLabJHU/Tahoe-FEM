@@ -376,6 +376,18 @@ namespace dem {
     }
   }
 
+  void Fluid::coordToIndex(REAL x, REAL y, REAL z, std::size_t &i, std::size_t &j, std::size_t &k) {
+    i = static_cast<std::size_t> ( (x - (x1F - gridDx/2)) / gridDx );
+    j = static_cast<std::size_t> ( (y - (y1F - gridDy/2)) / gridDy );
+    k = static_cast<std::size_t> ( (z - (z1F - gridDz/2)) / gridDz );
+  }
+
+  void Fluid::coordToIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k) {
+    i = static_cast<std::size_t> ( (v.getX() - (x1F - gridDx/2)) / gridDx );
+    j = static_cast<std::size_t> ( (v.getY() - (y1F - gridDy/2)) / gridDy );
+    k = static_cast<std::size_t> ( (v.getZ() - (z1F - gridDz/2)) / gridDz );
+  }
+
   void Fluid::initialize() {
     negPrsDen = false;
     RankineHugoniot();
@@ -599,8 +611,8 @@ namespace dem {
   }
 
   void Fluid::penalize(std::vector<Particle *> &ptcls) {
-    // 2nd implementation: higher efficiency
-    // for cells that are enclosed by particle volumes
+    // this implementation has higher efficiency than that of checking every fluid cell.
+    // for cells that are occupied by particle volumes
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
@@ -647,37 +659,6 @@ namespace dem {
       }
     }
   }
-
-  /*
-  // 1st implementation: lower efficiency
-  for (std::size_t i = 0; i < gridNx; ++i)
-    for (std::size_t j = 0; j < gridNy; ++j)
-      for (std::size_t k = 0; k < gridNz; ++k) {
-
-	// calculate momentum quotient before modification
-	bool inGrid = (i > 0 && i < gridNx-1 && j > 0 && j < gridNy-1 && k > 0 && k < gridNz-1 );
-	REAL momQuot[3];
-	if (inGrid) {
-	  momQuot[0] = (arrayU[i+1][j][k][varMom[0]] - arrayU[i-1][j][k][varMom[0]]) / (2*gridDx);
-	  momQuot[1] = (arrayU[i][j+1][k][varMom[1]] - arrayU[i][j-1][k][varMom[1]]) / (2*gridDy);
-	  momQuot[2] = (arrayU[i][j][k+1][varMom[2]] - arrayU[i][j][k-1][varMom[2]]) / (2*gridDz);
-	}
-
-	// penalization
-	for (std::size_t m = 0; m < nDim; ++m) {
-	  // momentum penalization
-	  arrayU[i][j][k][varMom[m]] -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * timeStep;
-	  // energy penalization
-	  arrayU[i][j][k][varEng]    -= arrayU[i][j][k][varMsk] * arrayPenalForce[i][j][k][m] * arrayU[i][j][k][varVel[m]] * timeStep;
-	}
-
-	// influence of mass penalization on energy
-	if (inGrid) {
-	  for (std::size_t m = 0; m < nDim; ++m)
-	    arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (0.5*pow(arrayU[i][j][k][varVel[m]],2)*(1.0/porosity-1)) * momQuot[m] * timeStep;
-	}
-      }
-  */
   
   void Fluid::initGhostPoints() {
     // non-reflecting BCs
@@ -914,7 +895,7 @@ namespace dem {
 	  arrayFlux[i][j][k][varEng]    = arrayURota[i][j][k][varVel[0]] * (arrayURota[i][j][k][varEng] + arrayURota[i][j][k][varPrs]);  // u*(E + p)
 	}  
 
-    // for cells that are enclosed by particle volumes
+    // for cells that are occupied by particle volumes
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
@@ -1301,14 +1282,15 @@ namespace dem {
 	}
   }
 
+  /*
   void Fluid::getPtclInfo(std::vector<Particle *> &ptcls) {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
     // 0 ~ (n-1), including boundaries
     for (std::size_t i = 0; i < arrayGridCoord.size() ; ++i)
-      for (std::size_t j = 0; j <  arrayGridCoord[i].size(); ++j)
-	for (std::size_t k = 0; k <  arrayGridCoord[i][j].size(); ++k) {
+      for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) {
 
 	  arrayU[i][j][k][varMsk] = 0;
 	  REAL coordX = arrayGridCoord[i][j][k][0];
@@ -1319,8 +1301,44 @@ namespace dem {
 	    if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= 0 ) { // inside particle surface
 	      arrayU[i][j][k][varMsk] = 1; 
 	      (*it)->recordFluidGrid(i, j, k);
+	      break; // save time
 	    }
 	}
+  }
+  */
+
+  void Fluid::getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation) {
+    // two particles could have overlapping fluid grids in the following algorithm using maxGrid in 
+    // all 3 directions, so do not clear masks inside the loops, instead, clear masks here.
+    for (std::size_t i = 0; i < gridNx; ++i)
+      for (std::size_t j = 0; j < gridNy; ++j)
+	for (std::size_t k = 0; k < gridNz; ++k)
+	  arrayU[i][j][k][varMsk] = 0;
+
+    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
+      (*it)->clearFluidGrid();
+
+    std::size_t maxGrid = static_cast<std::size_t> (ceil(gradation.getPtclMaxRadius() / gridDx) ) ;
+    std::size_t ip, jp, kp;
+
+    for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      coordToIndex((*it)->getCurrPos(), ip, jp, kp); 
+      //debugInf << std::setw(OWID) << maxGrid  << std::setw(OWID) << ip << std::setw(OWID) << jp << std::setw(OWID) << kp;
+      // ensure each grid is in the valid range 0 ~ (n-1)
+      // never subtract two numbers of type std::size_t
+      for (std::size_t i = std::max((int)ip - (int)maxGrid, 0); i < std::min(ip + maxGrid + 1, gridNx); ++i)
+	for (std::size_t j = std::max((int)jp - (int)maxGrid, 0); j < std::min(jp + maxGrid + 1, gridNy); ++j)
+	  for (std::size_t k = std::max((int)kp - (int)maxGrid, 0); k < std::min(kp + maxGrid +1, gridNz); ++k) {
+	    REAL coordX = arrayGridCoord[i][j][k][0];
+	    REAL coordY = arrayGridCoord[i][j][k][1];
+	    REAL coordZ = arrayGridCoord[i][j][k][2];
+
+	    if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= 0 ) { // inside particle surface
+	      arrayU[i][j][k][varMsk] = 1; 
+	      (*it)->recordFluidGrid(i, j, k);
+	    }
+	  }
+    }
   }
 
   void Fluid::calcPtclForce(std::vector<Particle *> &ptcls) {

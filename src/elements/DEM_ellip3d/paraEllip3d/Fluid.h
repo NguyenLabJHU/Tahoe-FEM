@@ -81,9 +81,9 @@ namespace dem {
     Array4D arrayGridCoord; 
     // fluid grid coordinates, 4-dimensional
     // gridNx, gridNy, gridNz, nDim
-    // arrayGridCoord[i][j][k][0]: coorgridDx
-    // arrayGridCoord[i][j][k][1]: coorgridDy
-    // arrayGridCoord[i][j][k][2]: coorgridDz
+    // arrayGridCoord[i][j][k][0]: coordX
+    // arrayGridCoord[i][j][k][1]: coordY
+    // arrayGridCoord[i][j][k][2]: coordZ
 
     Array4D arrayPenalForce;
     // fluid grid forces, 4-dimensional
@@ -157,7 +157,10 @@ namespace dem {
     void RK3InteStep2(std::vector<Particle *> &ptcls);
     void RK3InteStep3(std::vector<Particle *> &ptcls);
 
-    void getPtclInfo(std::vector<Particle *> &ptcls);
+    void coordToIndex(REAL x, REAL y, REAL z, std::size_t &i, std::size_t &j, std::size_t &k);
+    void coordToIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k);
+
+    void getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation);
     void runOneStep(std::vector<Particle *> &ptcls);
     void calcPtclForce(std::vector<Particle *> &ptcls);
     void penalize(std::vector<Particle *> &ptcls);
