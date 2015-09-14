@@ -41,7 +41,7 @@
 
 //#define BINNING
 //#define DEM_PROFILE
-#define CFD_PROFILE
+//#define CFD_PROFILE
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
@@ -1235,13 +1235,14 @@ namespace dem {
 
 #ifdef CFD_PROFILE
       gettimeofday(&time_7, NULL);
-#endif
       debugInf << std::setw(OWID) << timediffsec(time_2, time_3)
 	       << std::setw(OWID) << timediffsec(time_3, time_4)
 	       << std::setw(OWID) << timediffsec(time_4, time_5)
 	       << std::setw(OWID) << timediffsec(time_5, time_6)
 	       << std::setw(OWID) << timediffsec(time_2, time_6)
 	       << std::setw(OWID) << timediffsec(time_1, time_7) - timediffsec(time_2, time_6);
+#endif
+
       ++iteration;
     } 
   
