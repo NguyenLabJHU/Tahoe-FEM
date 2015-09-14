@@ -431,10 +431,13 @@ namespace dem {
     rotateIJK(ptcls);
 
     // update conserved variables at the next time step
-    for (std::size_t i = 1; i < gridNx - 1 ; ++i)
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t k = 1; k < gridNz - 1; ++k)
-	  for (std::size_t m = 0; m < nInteg; ++m)
+    std::size_t i, j, k, m;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
+    for (i = 1; i < gridNx - 1 ; ++i)
+      for (j = 1; j < gridNy - 1; ++j)
+	for (k = 1; k < gridNz - 1; ++k)
+	  for (m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] -= (   timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
 				    + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
 				    + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) );
@@ -448,10 +451,13 @@ namespace dem {
     rotateIJK(ptcls);
 
     // update conserved variables at the next time step
-    for (std::size_t i = 1; i < gridNx - 1 ; ++i)
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t k = 1; k < gridNz - 1; ++k)
-	  for (std::size_t m = 0; m < nInteg; ++m)
+    std::size_t i, j, k, m;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
+    for (i = 1; i < gridNx - 1 ; ++i)
+      for (j = 1; j < gridNy - 1; ++j)
+	for (k = 1; k < gridNz - 1; ++k)
+	  for (m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] = 0.5*( arrayUN[i][j][k][m] + arrayU[i][j][k][m] -
                                 (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0]) 
 				 + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1]) 
@@ -467,10 +473,13 @@ namespace dem {
     rotateIJK(ptcls);
 
     // update conserved variables at the next time step
-    for (std::size_t i = 1; i < gridNx - 1 ; ++i)
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t k = 1; k < gridNz - 1; ++k)
-	  for (std::size_t m = 0; m < nInteg; ++m)
+    std::size_t i, j, k, m;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
+    for (i = 1; i < gridNx - 1 ; ++i)
+      for (j = 1; j < gridNy - 1; ++j)
+	for (k = 1; k < gridNz - 1; ++k)
+	  for (m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] = 0.75*arrayUN[i][j][k][m] + 0.25*arrayUStar[i][j][k][m] - 
                                  0.25* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
                                         + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
@@ -486,10 +495,13 @@ namespace dem {
     rotateIJK(ptcls);
 
     // update conserved variables at the next time step
-    for (std::size_t i = 1; i < gridNx - 1 ; ++i)
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t k = 1; k < gridNz - 1; ++k)
-	  for (std::size_t m = 0; m < nInteg; ++m)
+    std::size_t i, j, k, m;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
+    for (i = 1; i < gridNx - 1 ; ++i)
+      for (j = 1; j < gridNy - 1; ++j)
+	for (k = 1; k < gridNz - 1; ++k)
+	  for (m = 0; m < nInteg; ++m)
 	    arrayU[i][j][k][m] = ( arrayUN[i][j][k][m] + 2*arrayUStar2[i][j][k][m] - 
                                    2* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
                                        + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
@@ -519,14 +531,21 @@ namespace dem {
 
       flux(iDim, ptcls); // variables defined at cell centers
 
+      int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+      // the value of a private variable is undefined when parallel construct is entered, so do not assign value here.
+      std::size_t i, j, k;
+      std::size_t IL[3], IR[3];
+      REAL UL[9], UR[9], FL[5], FR[5], HL, HR, avgH, avgU, avgV, avgW, avgh, pStar;
+      int solver;
+
       // for local Riemann problem
-      for (std::size_t i = 0; i < gridNx - 1; ++i) { // variables defined at cell faces
-	for (std::size_t j = 0; j < gridNy - 1; ++j) {
-	  for (std::size_t k = 0; k < gridNz -1; ++k) {
-	    std::size_t IL[3] = {i, j, k};
-	    std::size_t IR[3] = {i, j, k};
-	    IR[iDim] += 1;
-	    REAL UL[9], UR[9], FL[5], FR[5], HL, HR; // local variable only
+#pragma omp parallel for num_threads(ompThreads) private(i,j,k,IL,IR,UL,UR,FL,FR,HL,HR,avgH,avgU,avgV,avgW,avgh,pStar,solver) schedule(dynamic)
+      for (i = 0; i < gridNx - 1; ++i) { // variables defined at cell faces
+	for (j = 0; j < gridNy - 1; ++j) {
+	  for (k = 0; k < gridNz -1; ++k) {
+	    IL[0]=i; IL[1]=j; IL[2]=k; 
+	    IR[0]=i; IR[1]=j; IR[2]=k; 
+	    IR[iDim] += 1;    
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
 	    for (std::size_t m = 0; m < nVar; ++m) {
@@ -538,15 +557,14 @@ namespace dem {
 	      FR[m] = arrayFlux[IR[0]] [IR[1]] [IR[2]] [m];
 	    }    
 
-	    REAL avgH   = (sqrt(UL[varDen])*HL + sqrt(UR[varDen])*HR)/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
-	    REAL avgU   = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
-	    REAL avgV   = (sqrt(UL[varDen])*UL[varVel[1]] + sqrt(UR[varDen])*UR[varVel[1]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
-	    REAL avgW   = (sqrt(UL[varDen])*UL[varVel[2]] + sqrt(UR[varDen])*UR[varVel[2]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
-	    REAL avgh   = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
-	    REAL pStar;
+	    avgH = (sqrt(UL[varDen])*HL + sqrt(UR[varDen])*HR)/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+	    avgU = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+	    avgV = (sqrt(UL[varDen])*UL[varVel[1]] + sqrt(UR[varDen])*UR[varVel[1]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+	    avgW = (sqrt(UL[varDen])*UL[varVel[2]] + sqrt(UR[varDen])*UR[varVel[2]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
+	    avgh = avgH - 0.5*(avgU*avgU + avgV*avgV + avgW*avgW); // static specific enthalpy
 	    guessPressure(UL, UR, pStar);
 
-	    int solver = static_cast<int> (dem::Parameter::getSingleton().parameter["solver"]);
+	    solver = static_cast<int> (dem::Parameter::getSingleton().parameter["solver"]);
 	    switch (solver) {
 	    case 0: 
 	      RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
@@ -730,9 +748,12 @@ namespace dem {
     std::valarray<REAL> velZ(gridNx * gridNy * gridNz);
     std::valarray<REAL> sound(gridNx * gridNy * gridNz);
 
-    for (std::size_t i = 0; i < gridNx ; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k) {
+    std::size_t i, j, k;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
+    for (i = 0; i < gridNx ; ++i)
+      for (j = 0; j < gridNy; ++j)
+	for (k = 0; k < gridNz; ++k) {
 	  gridX[i + j * gridNx + k * gridNx * gridNy] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
 	  gridY[i + j * gridNx + k * gridNx * gridNy] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
 	  gridZ[i + j * gridNx + k * gridNx * gridNy] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
@@ -764,17 +785,23 @@ namespace dem {
   }
 
   void Fluid::soundSpeed() {
-    for (std::size_t i = 0; i < gridNx ; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k)
+    std::size_t i, j, k;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
+    for (i = 0; i < gridNx ; ++i)
+      for (j = 0; j < gridNy; ++j)
+	for (k = 0; k < gridNz; ++k)
 	  arraySoundSpeed[i][j][k] = sqrt(gama * arrayU[i][j][k][varPrs] / arrayU[i][j][k][varDen]);
   }
 
   // total specific enthalphy, NOT static specific enthalpy
   void Fluid::enthalpy() {
-    for (std::size_t i = 0; i < gridNx ; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k)
+    std::size_t i, j, k;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
+    for (i = 0; i < gridNx ; ++i)
+      for (j = 0; j < gridNy; ++j)
+	for (k = 0; k < gridNz; ++k)
 	  arrayH[i][j][k] = (arrayU[i][j][k][varEng] + arrayU[i][j][k][varPrs]) / arrayU[i][j][k][varDen];
   }
 
