@@ -40,7 +40,8 @@
 #include <omp.h>
 
 //#define BINNING
-//#define TIME_PROFILE
+//#define DEM_PROFILE
+#define CFD_PROFILE
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
@@ -1157,7 +1158,12 @@ namespace dem {
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     */
-    while (timeAccrued < timeTotal) { 
+
+    struct timeval time_1, time_2, time_3, time_4, time_5, time_6, time_7;
+    while (timeAccrued < timeTotal) {
+#ifdef CFD_PROFILE
+      gettimeofday(&time_1, NULL);
+#endif
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
@@ -1168,10 +1174,25 @@ namespace dem {
 
       clearContactForce();
 
-      /*4*/ fluid.getPtclInfo(particleVec); // not allParticleVec
+#ifdef CFD_PROFILE
+      gettimeofday(&time_2, NULL);
+#endif
+      /*4*/ fluid.getPtclInfo(particleVec, gradation); // not allParticleVec
+#ifdef CFD_PROFILE
+      gettimeofday(&time_3, NULL);
+#endif
       /*5*/ fluid.runOneStep(particleVec);
+#ifdef CFD_PROFILE
+      gettimeofday(&time_4, NULL);
+#endif
       /*6*/ fluid.calcPtclForce(particleVec); // not allParticleVec
+#ifdef CFD_PROFILE
+      gettimeofday(&time_5, NULL);
+#endif
       /*7*/ fluid.penalize(particleVec);
+#ifdef CFD_PROFILE
+      gettimeofday(&time_6, NULL);
+#endif
       //fluid.checkMomentum(particleVec);
 
       internalForce();
@@ -1212,6 +1233,15 @@ namespace dem {
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       */
 
+#ifdef CFD_PROFILE
+      gettimeofday(&time_7, NULL);
+#endif
+      debugInf << std::setw(OWID) << timediffsec(time_2, time_3)
+	       << std::setw(OWID) << timediffsec(time_3, time_4)
+	       << std::setw(OWID) << timediffsec(time_4, time_5)
+	       << std::setw(OWID) << timediffsec(time_5, time_6)
+	       << std::setw(OWID) << timediffsec(time_2, time_6)
+	       << std::setw(OWID) << timediffsec(time_1, time_7) - timediffsec(time_2, time_6);
       ++iteration;
     } 
   
@@ -3464,7 +3494,7 @@ namespace dem {
     if (ompThreads == 1) { // non-openmp single-thread version, time complexity bigO(n x n), n is the number of particles.  
       contactVec.clear();
     
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
       REAL time_r = 0; // time consumed in contact resolution, i.e., tmpContact.isOverlapped()
       gettimeofday(&time_p1, NULL); 
 #endif
@@ -3480,12 +3510,12 @@ namespace dem {
 	       && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
 	       && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
 	    Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
 	    gettimeofday(&time_r1, NULL); 
 #endif
 	    if(tmpContact.isOverlapped())
 	      contactVec.push_back(tmpContact);    // containers use value semantics, so a "copy" is pushed back.
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
 	    gettimeofday(&time_r2, NULL); 
 	    time_r += timediffsec(time_r1, time_r2);
 #endif
@@ -3493,7 +3523,7 @@ namespace dem {
 	}
       }	
     
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
       gettimeofday(&time_p2, NULL);
       debugInf<< std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
 #endif
@@ -3503,7 +3533,7 @@ namespace dem {
     else if (ompThreads > 1) { // openmp implementation: various loop scheduling - (static), (static,1), (dynamic), (dynamic,1)
       contactVec.clear();
     
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
       gettimeofday(&time_p1, NULL); 
 #endif
     
@@ -3530,7 +3560,7 @@ namespace dem {
 	}
       }
     
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
       gettimeofday(&time_p2, NULL);
       debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
 #endif
@@ -3551,7 +3581,7 @@ namespace dem {
       for (std::vector<Contact>::iterator it = contactVec.begin(); it != contactVec.end(); ++it)
 	it->checkinPrevTgt(contactTgtVec); // checkin previous tangential force and displacment    
     
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
       gettimeofday(&time_p1,NULL); 
 #endif 
 
@@ -3566,7 +3596,7 @@ namespace dem {
       for (std::size_t i = 0; i < 3; ++i)
 	pAvg[i] /= contactVec.size();
     
-#ifdef TIME_PROFILE
+#ifdef DEM_PROFILE
       gettimeofday(&time_p2,NULL);
       debugInf << std::setw(OWID) << "internalForce=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::endl; 
 #endif   
@@ -4641,7 +4671,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    int possContact = 0;
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p1,NULL); 
    #endif
 
@@ -4700,7 +4730,7 @@ debugfile);         // output file, debug info
    }
    }
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
    #endif
@@ -4715,7 +4745,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    int possContact = 0;
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p1,NULL); 
    #endif
    int tid;   // thread id
@@ -4753,7 +4783,7 @@ debugfile);         // output file, debug info
    }
    }
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf <<  std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
    #endif
@@ -4767,7 +4797,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    int possContact = 0;
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p1,NULL); 
    #endif
    int tid;   // thread id
@@ -4801,7 +4831,7 @@ debugfile);         // output file, debug info
    }
    }
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
    #endif
@@ -4815,7 +4845,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    int possContact = 0;
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p1,NULL); 
    #endif
    int tid;   // thread id
@@ -4853,7 +4883,7 @@ debugfile);         // output file, debug info
    }
    }
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
    #endif
@@ -4867,7 +4897,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    int possContact = 0;
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p1,NULL); 
    #endif
 
@@ -4895,7 +4925,7 @@ debugfile);         // output file, debug info
    }
   
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
    #endif
@@ -4913,7 +4943,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    possContactNum = 0;
 
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    REAL time_r = 0; // time consumed in contact resolution, i.e., tmpContact.isOverlapped()
    gettimeofday(&time_p1,NULL); 
    #endif
@@ -4930,12 +4960,12 @@ debugfile);         // output file, debug info
    && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
    Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
    ++possContactNum;
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 
    #endif
    if(tmpContact.isOverlapped())
    contactVec.push_back(tmpContact);    // containers use value semantics, so a "copy" is pushed back.
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_r2,NULL); 
    time_r += timediffsec(time_r1, time_r2);
    #endif
@@ -4943,7 +4973,7 @@ debugfile);         // output file, debug info
    }
    }	
     
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
    #endif
@@ -4957,7 +4987,7 @@ debugfile);         // output file, debug info
    contactVec.clear();
    possContactNum = 0;
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    REAL time_r = 0;
    gettimeofday(&time_p1,NULL); 
    #endif
@@ -5045,12 +5075,12 @@ debugfile);         // output file, debug info
    ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
    contact<Particle> tmpContact(it, pt); // a local and temparory object
    ++possContactNum;
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 
    #endif
    if(tmpContact.isOverlapped())
    contactVec.push_back(tmpContact);   // containers use value semantics, so a "copy" is pushed back.
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_r2,NULL); 
    time_r += timediffsec(time_r1, time_r2);
    #endif
@@ -5074,12 +5104,12 @@ debugfile);         // output file, debug info
    ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
    contact<Particle> tmpContact(it, pt); // a local and temparory object
    ++possContactNum;
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 
    #endif
    if(tmpContact.isOverlapped())
    contactVec.push_back(tmpContact);   // containers use value semantics, so a "copy" is pushed back.
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_r2,NULL); 
    time_r += timediffsec(time_r1, time_r2);
    #endif
@@ -5093,7 +5123,7 @@ debugfile);         // output file, debug info
 	
    }
   
-   #ifdef TIME_PROFILE
+   #ifdef DEM_PROFILE
    gettimeofday(&time_p2,NULL);
    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
    #endif
