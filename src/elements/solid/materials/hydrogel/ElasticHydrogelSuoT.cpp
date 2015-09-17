@@ -1,4 +1,4 @@
-/* $Id: ElasticHydrogelSuoT.cpp,v 1.1 2013-11-25 22:24:31 tahoe.xiaorui Exp $ */
+/* $Id: ElasticHydrogelSuoT.cpp,v 1.2 2015-09-17 10:31:09 tahoe.xiaorui Exp $ */
 /* created : RX (1/5/2012) */
 #include "ElasticHydrogelSuoT.h"
 #include "ParameterContainerT.h"
@@ -153,14 +153,14 @@ const dMatrixT& ElasticHydrogelSuoT::c_ijkl(void)
 	
     /*fPot->DevStress(fEigs_dev, ftau);
     ftau += fPot->MeanStress(Je);  */  
-     double fmu=fPot->GetMu();
+     double fmu=fPot->GetMu()*solidfraction0;
 	 int nsd = ftau.Length();
      ftau[0] = fmu*(alpha*alpha*fEigs[0]-1.0);
      ftau[1] = fmu*(alpha*alpha*fEigs[1]-1.0);
   
     if (nsd == 3)
     ftau[2] = fmu*(alpha*alpha*fEigs[2]-1.0);
-	ftau += fPot->MeanStress(Je);
+	ftau += fPot->MeanStress(Je)*solidfraction0;
 	
     //cout<<"\n the stress is: "<< ftau[0];
 	//TO DO:: calculate Gamma
@@ -185,7 +185,7 @@ const dMatrixT& ElasticHydrogelSuoT::c_ijkl(void)
 
 	/*double factor=fkappa*mu*(*fSolidFraction)*J/(R*fT*(1/(*fSolidFraction-1)+1+2*fchi*(*fSolidFraction))-fkappa*mu*(2*(*fSolidFraction)*J-1));*/
 	
-    fDtauDe += fPot->MeanMod(Je)*(1.0+factor);
+    fDtauDe += fPot->MeanMod(Je)*(1.0+factor)*solidfraction0;
 	
     dSymMatrixT& Gamma = fDtauDe;
     Gamma(0,0) -= 2.0*ftau[0];
@@ -300,17 +300,37 @@ const dSymMatrixT& ElasticHydrogelSuoT::s_ij(void)
 	fEigs_dev *= pow(Je, -2.0*third);
 	
 	/*fPot->DevStress(fEigs_dev, ftau);*/
-	 double fmu=fPot->GetMu();
+	 double fmu=fPot->GetMu()*solidfraction0;
 	 int nsd = ftau.Length();
      ftau[0] = fmu*(alpha*alpha*fEigs[0]-1.0);
      ftau[1] = fmu*(alpha*alpha*fEigs[1]-1.0);
   
     if (nsd == 3)
     ftau[2] = fmu*(alpha*alpha*fEigs[2]-1.0);
-
-	ftau += fPot->MeanStress(Je);
-	
+   /* if(CurrElementNumber()==0&&CurrIP()==0)
+    {
+        cout <<"\n shear part stress:  "<<ftau[0];
+        cout <<"\n shear modulus multipy phi0 is:  "<<fmu;
+        cout <<"\n phi0 -1/3 is:  "<<alpha;
+        cout<<"\n pricipal egienvalue  is: "<<fEigs[0];
+        //  cout <<"\n residule is: "<<res;
+    }*/
+// try to direct write down the mean stress 4/5/2015 RX
+//	ftau += fPot->MeanStress(Je)*solidfraction0;
+        double fkappa=fPot->GetKappa();
+    double bulkstress=fkappa*solidfraction0*(Je*Je-1.0)/2.0;
+    ftau +=bulkstress;
 	fStress3D = fSpectralDecompSpat.EigsToRank2(ftau);
+   // ftau += fPot->MeanStress(Je)*solidfraction0;
+ /*   if(CurrElementNumber()==0&&CurrIP()==0)
+    {
+//cout <<"\n shear part stress:  "<<ftau[0];
+        cout <<"\n bulk modulus is:  "<<fkappa;
+        cout <<"\n bulk stress is:  "<<bulkstress;
+        cout<<"\n total stress is: "<<ftau[0];
+      //  cout <<"\n residule is: "<<res;
+    } */
+
 
 	if (NumSD() == 2)
     {
@@ -479,7 +499,7 @@ void ElasticHydrogelSuoT::TakeParameterList(const ParameterListT& list)
 void  ElasticHydrogelSuoT::PointInitialize(void)
 {
 	/* allocate element storage */
-	ElementCardT& element = CurrentElement();	
+    ElementCardT& element = CurrentElement();
 	if (CurrIP() == 0)
 	{
 		ElementCardT& element = CurrentElement();
@@ -583,10 +603,14 @@ void ElasticHydrogelSuoT::CalculatePhi(double& phi,  const double& phi_n, const 
     double alpha=pow(solidfraction0,-1.0*third);
 	double res=R*fT*(log(1-phi)+phi+fchi*phi*phi)-fkappa*upsilon*phi/2*(pow(alpha,6.0)*phi*J*phi*J-1);
 	double error=sqrt(res*res);
-  /*  cout <<"\n temperature is:  "<<fT;
+ /*    if(CurrElementNumber()==0&&CurrIP()==0)
+     {
+   cout <<"\n temperature is:  "<<fT;
 	cout <<"\n flory huggins parameter is:  "<<fchi; 
 	cout <<"\n J is:  "<<J;
-	cout <<"\n residule is: "<<res; */
+    cout<<"\n phi is: "<<phi;
+	cout <<"\n residule is: "<<res;
+     } */
 	int iteration=0;
 	while (error>ctol && iteration <  maxiteration)
 	{ 
@@ -599,7 +623,7 @@ void ElasticHydrogelSuoT::CalculatePhi(double& phi,  const double& phi_n, const 
 		res=R*fT*(log(1-phi)+phi+fchi*phi*phi)-fkappa*upsilon*phi/2*(pow(alpha,6.0)*phi*J*phi*J-1);
 		error=sqrt(res*res);
 	}
-/*    if(CurrElementNumber()==0&&CurrIP()==0)
+/*   if(CurrElementNumber()==0&&CurrIP()==0)
     {cout <<"\n polymer concentration is:  "<<phi;
         cout <<"\n residule is: "<<res;} */
 	if (iteration >= maxiteration) 
