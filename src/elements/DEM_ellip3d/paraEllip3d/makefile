@@ -43,7 +43,8 @@ endif
 
 ifeq ($(PLATFORM), lightning)
  ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich6.3.1_PrgEnv-intel5.2.14
+  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich6.3.1_PrgEnv-intel5.2.14
+  BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
  endif
 endif
 
