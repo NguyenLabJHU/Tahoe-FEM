@@ -8,12 +8,14 @@ PLATFORM = soilblast
 #PLATFORM = janus
 #PLATFORM = lightning
 #PLATFORM = excalibur
+#PLATFORM = thunder
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
 #COMPILERS = intel-intel
 #COMPILERS = intel-sgi
 #COMPILERS = intel-cray
+#COMPILERS = gcc-sgi
 
 ###3. boost location
 ifeq ($(PLATFORM), soilblast)
@@ -54,6 +56,16 @@ ifeq ($(PLATFORM), excalibur)
  endif
 endif
 
+ifeq ($(PLATFORM), thunder)
+ ifeq ($(COMPILERS), intel-sgi)
+  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.3.187
+ endif
+ ifeq ($(COMPILERS), gcc-sgi)
+  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
+ endif
+
+endif
+
 ifeq ($(PLATFORM), janus)
  ifeq ($(COMPILERS), gcc-openmpi)
   #BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.7.3_gcc-4.8.2_ib
@@ -85,8 +97,16 @@ ifeq ($(COMPILERS), intel-sgi)
  MPICXX = mpicxx
 endif
 
+ifeq ($(COMPILERS), gcc-sgi)
+ MPICXX = mpicxx
+endif
+
 # OpenMP
 ifeq ($(COMPILERS), gcc-openmpi)
+ OPENMP = -fopenmp
+endif
+
+ifeq ($(COMPILERS), gcc-sgi)
  OPENMP = -fopenmp
 endif
 
