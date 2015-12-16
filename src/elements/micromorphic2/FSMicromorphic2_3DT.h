@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.9 2015-03-03 17:54:41 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.10 2015-12-16 14:26:07 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -113,7 +113,7 @@ public:
         kMicroInertia31,
         kMicroInertia32,
         kMicroInertia33,
-
+        kQ8P8_0_Q27P8_1_Flag,
         kg,
         kg1,
         kg2,
@@ -508,9 +508,15 @@ private:
     dArrayT                u_vec;          // solid displacement in vector form
     dArrayT                u_dot_vec;          // solid velocity in vector form
     dArrayT                u_dotdot_vec;          // solid acceleration in vector form
+    dArrayT                u_vec_n;          // solid displacement for previous time step in vector form
+    dArrayT                u_dot_vec_n;          // solid velocity for previous time step in vector form
+    dArrayT                u_dotdot_vec_n;          // solid acceleration for previous time step in vector form
     dArrayT                Phi_vec;        // micro-displacement-gradient in vector form
     dArrayT                Phi_dot_vec;        // first derivative of micro-displacement-gradient in vector form
     dArrayT                Phi_dotdot_vec;        // second derivative of micro-displacement-gradient in vector form
+    dArrayT                Phi_vec_n;        // micro-displacement-gradient for previous time step in vector form
+    dArrayT                Phi_dot_vec_n;        // first time derivative of micro-displacement tensor for previous time step in vector form
+    dArrayT                Phi_dotdot_vec_n;        // second time derivative of micro-displacement tensor for previous time step in vector form
 
     /*@}*/
 
@@ -520,7 +526,7 @@ private:
     int n_en_micro, ndof_per_nd_micro, n_en_micro_x_ndof_per_nd_micro, ndof_per_nd_micro_x_n_sd;
     int step_number;
     int iConstitutiveModelType;
-    //double Alpha;
+    double Alpha_int_param;
 
     //name of output vector
     StringT output;
@@ -558,6 +564,32 @@ private:
     dArrayT         fFd_ext;
     dArrayT         fFphi_int;
     dArrayT         fFphi_ext;
+
+    dMatrixT fCdd;
+    dMatrixT fCdphi;
+    dMatrixT fCphid;
+    dMatrixT fCphiphi;
+
+    dMatrixT fCdd_temp;
+    dMatrixT fCdphi_temp;
+    dMatrixT fCphid_temp;
+    dMatrixT fCphiphi_temp;
+
+    dArrayT fKdd_n;
+    dArrayT fKdphi_n;
+    dArrayT fKphid_n;
+    dArrayT fKphiphi_n;
+
+    dArrayT fCdd_dn;
+    dArrayT fCdphi_dn;
+    dArrayT fCphiphi_dn;
+    dArrayT fCphid_dn;
+    dArrayT fCdd_d;
+    dArrayT fCdphi_d;
+    dArrayT fCphiphi_d;
+    dArrayT fCphid_d;
+
+
 
     dArrayT         fGrad_disp_vector;
     dMatrixT        fGrad_disp_matrix;
@@ -663,6 +695,11 @@ private:
     dMatrixT        fDeformation_Gradient;
     dMatrixT		fDeformation_Gradient_n;
 
+
+    dArray2DT       fMicro_Deformation_Gradient_Elements_IPs;
+    dArray2DT		fMicro_Deformation_Gradient_IPs;
+    dMatrixT        fMicro_Deformation_Gradient;
+    dMatrixT        Length_scale_vector;
 
     ///Runge Kutta matrices
     dMatrixT		fTemp_Runge_Kutta_K1_nsd_x_nsd;
@@ -843,6 +880,7 @@ private:
     void Form_IJ_1(void);
     void Form_IIJ_1(void);
     void Form_III_J(void);
+
 
     //////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////
@@ -1184,6 +1222,22 @@ private:
     dArrayT Vint_2_temp;
     dArrayT Vint_3_temp;
     dArrayT Vint_3;
+
+
+    dArray2DT fFd_int_temp_Elements;
+    dArrayT fFd_int_temp_n;
+    dArrayT fFd_int_temp;
+    dArray2DT fFd_int_temp_n_Elements;
+    dArrayT Vint_1_stiffness_save;
+
+
+    dArray2DT fFphi_int_temp_Elements;
+    dArrayT fFphi_int_temp_n;
+    dArrayT fFphi_int_temp;
+    dArray2DT fFphi_int_temp_n_Elements;
+    dArrayT Vint_2_stiffness_save;
+
+
     dArrayT fV1;
     dArrayT fV2;
     dArrayT fV3;
@@ -4273,6 +4327,7 @@ private:
     void Form_Gradient_of_solid_shape_functions(const dMatrixT &fShapeDisplGrad_temp);
     void Form_micro_shape_functions(const double* &shapes_micro_X);
     void Form_deformation_gradient_tensor(void);
+    void Form_micro_deformation_gradient_tensor(void);
     void Form_Grad_grad_transformation_matrix(void);
     void Form_deformation_gradient_inv_vector(void);
     void Extract_six_values_from_symmetric_tensor(const dMatrixT &fTensor,dArrayT& fTemp_six_values);
