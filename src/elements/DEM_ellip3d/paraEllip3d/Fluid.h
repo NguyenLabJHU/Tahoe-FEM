@@ -33,7 +33,6 @@ namespace dem {
     REAL Cd;           // drag coefficient
     REAL porosity;     // particle porosity as porous media
     REAL Cdi;          // fictitious drag coefficient inside porous media
-    REAL velMod;       // velocity correction coefficient in total enthalpy as porous media
     REAL RK;           // Runge-Kutta scheme
     REAL CFL;          // Courant-Friedrichs-Lewy condition
     REAL gama;         // ratio of specific heat capacity of air
