@@ -17,6 +17,7 @@
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/timer/timer.hpp>
+#include <sys/resource.h>
 
 // serialization of pointers to objects of derived classes
 // http://www.boost.org/doc/libs/1_50_0/libs/serialization/doc/serialization.html#registration
@@ -154,6 +155,11 @@ int main(int argc, char* argv[]) {
 #ifndef NDEBUG
   MPI_File_close(&dem::overlapInf);
 #endif
+
+  struct rusage ru;
+  getrusage(RUSAGE_SELF, &ru);
+  std::cout << std::endl << "process " << boostWorld.rank()
+	    << " resident_memory " << ru.ru_maxrss/1024.0 << " MB, shared_memory " << ru.ru_ixrss/1024.0 << " MB." << std::endl;
 
   return 0;
 }
