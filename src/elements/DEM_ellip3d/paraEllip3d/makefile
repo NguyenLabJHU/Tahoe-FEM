@@ -16,6 +16,7 @@ COMPILERS = gcc-openmpi
 #COMPILERS = intel-sgi
 #COMPILERS = intel-cray
 #COMPILERS = gcc-sgi
+#COMPILERS = gcc-cray
 
 ###3. boost location
 ifeq ($(PLATFORM), soilblast)
@@ -54,6 +55,9 @@ ifeq ($(PLATFORM), excalibur)
  ifeq ($(COMPILERS), intel-cray)
   BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.40
  endif
+ ifeq ($(COMPILERS), gcc-cray)
+  BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-gnu5.2.40
+ endif
 endif
 
 ifeq ($(PLATFORM), thunder)
@@ -85,20 +89,24 @@ ifeq ($(COMPILERS), gcc-openmpi)
  MPICXX = mpic++
 endif
 
-ifeq ($(COMPILERS), intel-intel)
- MPICXX = mpiicpc
+ifeq ($(COMPILERS), gcc-sgi)
+ MPICXX = mpicxx
 endif
 
-ifeq ($(COMPILERS), intel-cray)
+ifeq ($(COMPILERS), gcc-cray)
  MPICXX = CC
+endif
+
+ifeq ($(COMPILERS), intel-intel)
+ MPICXX = mpiicpc
 endif
 
 ifeq ($(COMPILERS), intel-sgi)
  MPICXX = mpicxx
 endif
 
-ifeq ($(COMPILERS), gcc-sgi)
- MPICXX = mpicxx
+ifeq ($(COMPILERS), intel-cray)
+ MPICXX = CC
 endif
 
 # OpenMP
@@ -110,16 +118,20 @@ ifeq ($(COMPILERS), gcc-sgi)
  OPENMP = -fopenmp
 endif
 
+ifeq ($(COMPILERS), gcc-cray)
+ OPENMP = -fopenmp
+endif
+
 ifeq ($(COMPILERS), intel-intel)
+ OPENMP = -openmp -mt_mpi
+endif
+
+ifeq ($(COMPILERS), intel-sgi)
  OPENMP = -openmp -mt_mpi
 endif
 
 ifeq ($(COMPILERS), intel-cray)
  OPENMP = -openmp
-endif
-
-ifeq ($(COMPILERS), intel-sgi)
- OPENMP = -openmp -mt_mpi
 endif
 
 # optimize or debug
