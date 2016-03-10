@@ -1,4 +1,4 @@
-/* $Id: FSMicromorphic2_3DT.h,v 1.10 2015-12-16 14:26:07 tahoe.fash5153 Exp $ */
+/* $Id: FSMicromorphic2_3DT.h,v 1.11 2016-03-10 01:45:24 tahoe.fash5153 Exp $ */
 //DEVELOPMENT
 #ifndef _FS_MICROMORPHIC2_3D_T_H_
 #define _FS_MICROMORPHIC2_3D_T_H_
@@ -104,15 +104,9 @@ public:
         kAlpha_nablachi,
         kCapped_Model_Flag,
         kDynamic_Analysis_Flag,
-        kMicroInertia11,
-        kMicroInertia12,
-        kMicroInertia13,
-        kMicroInertia21,
-        kMicroInertia22,
-        kMicroInertia23,
-        kMicroInertia31,
-        kMicroInertia32,
-        kMicroInertia33,
+        kLength_scale1,
+        kLength_scale2,
+        kLength_scale3,
         kQ8P8_0_Q27P8_1_Flag,
         kg,
         kg1,
@@ -610,6 +604,8 @@ private:
     dMatrixT        fDefGradInv_Grad_grad;
 
     dMatrixT        fIdentity_matrix;
+    dMatrixT        fTemp_matrix_nsd_x_one;
+    dMatrixT        fTemp_matrix_nsd_x_one1;
     dMatrixT        fTemp_matrix_nsd_x_nsd;
     dMatrixT        fTemp_matrix_nsd_x_nsd2;
     dMatrixT        fTemp_matrix_nsd_x_nsd3;
@@ -814,14 +810,15 @@ private:
     dMatrixT fTemp_matrix_n_sd_x_nsd_kphiphi;
     dMatrixT fTemp_matrix_n_sd_x_nsd_kphid_GRAD;
     dMatrixT fTemp_matrix_n_sd_x_nsd_kphiphi_GRAD;
+    dMatrixT fTemp_matrix_n_sd_x_nsd_kphiphi_GRAD_GRAD;
 
-    dMatrixT fKuu_MicroP;
-    dMatrixT fKuphi_MicroP;
-    dMatrixT fKphiu_MicroP;
-    dMatrixT fKphiphi_MicroP;
+    dMatrixT fKuu_Plastic;
+    dMatrixT fKuphi_Plastic;
+    dMatrixT fKphiu_Plastic;
+    dMatrixT fKphiphi_Plastic;
 
-    dMatrixT fKphiu_GRADMicroP;
-    dMatrixT fKphiphi_GRADMicroP;
+    dMatrixT fKphiu_GRADPlastic;
+    dMatrixT fKphiphi_GRADPlastic;
 
     dMatrixT VarfFe_Delgammachi_transpose;
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -829,7 +826,7 @@ private:
     //////////////////////// Variables defined for dynamic analysis //////////////////
     //////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////
-    dMatrixT fMicroInertia;
+    //dMatrixT fMicroInertia;
     dMatrixT Chi_dotdotM;
     dArrayT Chi_dotdot_vec;
     dMatrixT fShapedispl_row_matrix;
@@ -978,6 +975,9 @@ private:
     dMatrixT fTemp_matrix_nchidof_x_nchidof;
     dMatrixT fTemp_matrix_nchidof_x_nudof;
     dMatrixT fTemp_matrix_nudof_x_nudof;
+    dMatrixT fTemp_matrix_nudof_x_nudof_Mdd;
+    dMatrixT fTemp_matrix_nchidof_x_nchidof_Mphiphi;
+
 
     dMatrixT fH1_Etagrad;
     dMatrixT TransShapeDisplGrad;
@@ -4546,6 +4546,9 @@ private:
 
 
 	void Form_GXp(void);
+	void Form_GXp_Macro_plasticity(void);
+	void Form_GXp_Micro_plasticity(void);
+	void Form_GXp_Coupled_plasticity(void);
 	void Form_fMKLM_tr(void);
 	void Form_Mean_fMKLM_tr(void);
 	void Form_fdevMKLM_tr(void);
