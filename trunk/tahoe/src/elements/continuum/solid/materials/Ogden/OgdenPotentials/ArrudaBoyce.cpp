@@ -1,4 +1,4 @@
-/* $Id: ArrudaBoyce.cpp,v 1.4 2011-12-01 21:11:37 bcyansfn Exp $ */
+/* $Id: ArrudaBoyce.cpp,v 1.5 2016-03-17 13:44:58 tdnguye Exp $ */
 /* created:   TDN (7/2007) */
 /* Arruda, E.M and Boyce, M.C., JMPS, v41, pp. 389-412*/
 #include "ArrudaBoyce.h"
@@ -63,7 +63,7 @@ double ArrudaBoyce::Energy(const dArrayT& lambda_bar, const double& J, double te
   double x = fLangevin.Function(r);
   double y = fLangevin.Function(r0);
   
-  double phi = fmuN*(temperature/fT0)*flambdaL*flambdaL*(r*x + log(x/sinh(x)) - 1.0/flambdaL*y - log(y/sinh(y)));
+  double phi = 0.5*fmuN*(temperature/fT0)*flambdaL*flambdaL*(r*x + log(x/sinh(x)) - 1.0/flambdaL*y - log(y/sinh(y)));
   phi += MeanEnergy(J);
 
   return(phi);
