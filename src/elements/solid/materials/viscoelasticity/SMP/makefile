@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2013-02-01 16:51:25 tahoe.xiaorui Exp $
+# $Id: makefile,v 1.6 2016-03-17 13:43:05 tahoe.vickynguyen Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = SMP_simple.o \
 	SMP_multi.o \
         SMP_solvent.o \
-        SMP_multisolvent.o
-
+        SMP_multisolvent.o \
+        ET_multi.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +46,8 @@ DEP = $(OBJ:.o=.d)
 SRC = SMP_simple.cpp \
 	SMP_multi.cpp \
         SMP_solvent.cpp \
-        SMP_multisolvent.cpp
+        SMP_multisolvent.cpp \
+	ET_multi.cpp 
 
 ##################### (3) headers
 #
@@ -60,8 +61,8 @@ SRC = SMP_simple.cpp \
 HDR = SMP_simple.h \
 	SMP_multi.h \
         SMP_solvent.h \
-        SMP_multisolvent.h
-        
+        SMP_multisolvent.h \
+	ET_multi.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
