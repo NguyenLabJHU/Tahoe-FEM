@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.23 2014-08-26 00:00:53 hspark Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.24 2016-03-17 13:47:33 tdnguye Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -75,6 +75,7 @@
 #include "FDSV_KStV2D.h"
 #include "SMP_simple.h"
 #include "SMP_multi.h"
+#include "ET_multi.h"
 //#include "SMP_solvent.h"
 //#include "SMP_multisolvent.h"
 #include "ModBoyceVisco.h"
@@ -204,6 +205,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTIC_MATERIALS_DEV
 		sub_lists.AddSub("SMP_simple");
 		sub_lists.AddSub("SMP_multi");
+		sub_lists.AddSub("ET_multi");
 		//        sub_lists.AddSub("SMP_solvent");
 		//		sub_lists.AddSub("SMP_multisolvent");
 		sub_lists.AddSub("ModBoyceVisco");
@@ -349,6 +351,8 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat= new SMP_simple;
 	else if (name == "SMP_multi")
 		mat= new SMP_multi;
+	else if (name == "ET_multi")
+		mat= new ET_multi;
 	//    else if (name == "SMP_solvent")
 	//		mat= new SMP_solvent;
 	//	else if (name == "SMP_multisolvent")

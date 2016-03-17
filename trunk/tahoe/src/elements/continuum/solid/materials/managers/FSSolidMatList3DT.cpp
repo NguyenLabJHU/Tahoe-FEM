@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.48 2013-11-27 18:52:48 xiaorui Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.49 2016-03-17 13:47:33 tdnguye Exp $ */
 /*Modified by RXiao 2013/11/26 by adding hydrogel and SMP-solvent  model*/
 #include "FSSolidMatList3DT.h"
 
@@ -157,6 +157,7 @@
 #include "SMP_multi.h"
 #include "SMP_solvent.h"
 #include "SMP_multisolvent.h"
+#include "ET_multi.h"
 #include "ModBoyceVisco.h"
 #include "BergstromBoyce.h"
 #endif
@@ -263,6 +264,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 	    sub_lists.AddSub("SMP_multi");
 		sub_lists.AddSub("SMP_solvent");
 		sub_lists.AddSub("SMP_multisolvent");
+	    sub_lists.AddSub("ET_multi");
 		sub_lists.AddSub("ModBoyceVisco");
 		sub_lists.AddSub("BergstromBoyce");	
 #endif
@@ -478,6 +480,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 	else if (name == "SMP_multisolvent")
 		mat= new SMP_multisolvent;
 		/*add the following sentence*/
+	else if (name == "ET_multi")
+        mat= new ET_multi;
 	else if (name == "ModBoyceVisco")
 		mat= new ModBoyceVisco;
 	else if (name == "BergstromBoyce")
