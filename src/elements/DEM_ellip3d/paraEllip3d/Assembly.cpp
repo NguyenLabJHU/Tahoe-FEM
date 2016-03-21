@@ -249,12 +249,18 @@ namespace dem {
   {
     int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
 
+    REAL pretime0, pretime1, pretime2;
+    pretime0=MPI_Wtime();
     if (mpiRank == 0) {
       readBoundary(inputBoundary, gridUpdate); 
       readParticle(inputParticle);
       openDepositProg(progressInf, "deposit_progress");
     }
+    pretime1=MPI_Wtime();
     scatterParticle(); // scatter particles only once; also updates grid for the first time
+    pretime2=MPI_Wtime();
+    debugInf << std::setw(OWID) << "readFile" << std::setw(OWID) << pretime1-pretime0
+	     << std::setw(OWID) << "scatterPtcl" << std::setw(OWID) << pretime2-pretime1 << std::endl;
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
