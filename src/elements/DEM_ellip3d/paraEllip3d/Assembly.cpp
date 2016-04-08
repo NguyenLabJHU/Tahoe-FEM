@@ -42,6 +42,7 @@
 //#define BINNING
 //#define DEM_PROFILE
 //#define CFD_PROFILE
+#define MODULE_TIME
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
@@ -268,17 +269,23 @@ namespace dem {
     int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
 
     REAL pretime0, pretime1, pretime2;
+#ifdef MODULE_TIME
     pretime0=MPI_Wtime();
+#endif
     if (mpiRank == 0) {
       readBoundary(inputBoundary, gridUpdate); 
       readParticle(inputParticle);
       openDepositProg(progressInf, "deposit_progress");
     }
+#ifdef MODULE_TIME
     pretime1=MPI_Wtime();
+#endif
     scatterParticle(); // scatter particles only once; also updates grid for the first time
+#ifdef MODULE_TIME
     pretime2=MPI_Wtime();
     debugInf << std::setw(OWID) << "readFile" << std::setw(OWID) << pretime1-pretime0
 	     << std::setw(OWID) << "scatterPtcl" << std::setw(OWID) << pretime2-pretime1 << std::endl;
+#endif
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -288,7 +295,7 @@ namespace dem {
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
 
-    REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
+    REAL time0, time1, time2, commuT, gridT, migraT, gatherT, totalT;
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     char cstr0[50];
@@ -303,7 +310,7 @@ namespace dem {
       printBdryContact(combineString(cstr0, "deposit_bdrycntc_", iterSnap -1, 3));
     }
     if (mpiRank == 0)
-      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "gridT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl; 
 
 #ifdef PAPI
@@ -330,8 +337,13 @@ namespace dem {
       //while (iteration <= endStep) {
       bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
 
-      commuT = migraT = gatherT = totalT = 0;  time0 = MPI_Wtime();
-      commuParticle(); if (toCheckTime) time2 = MPI_Wtime(); commuT = time2 - time0;
+#ifdef MODULE_TIME
+      if (toCheckTime) {commuT = gridT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();}
+#endif
+      commuParticle(); 
+#ifdef MODULE_TIME
+      if (toCheckTime) time2 = MPI_Wtime(); commuT = time2 - time0;
+#endif
 
       /**/calcTimeStep(); // use values from last step, must call before findContact (which clears data)
       findContact();
@@ -344,21 +356,32 @@ namespace dem {
       dragForce();
 
       updateParticle();
+#ifdef MODULE_TIME
+      if (toCheckTime) time1 = MPI_Wtime();
+#endif
       if (gridUpdate == 0)
 	updateGridMaxZ();
       else if (gridUpdate == 1)
 	updateGridExplosion();
       else if (gridUpdate == 2)
 	updateGrid();
+#ifdef MODULE_TIME
+      if (toCheckTime) time2 = MPI_Wtime(); gridT = time2 - time1;
+#endif
 
       /**/timeCount += timeStep;
       /**/timeAccrued += timeStep;
       /**/if (timeCount >= timeIncr/netSnap) { 
 	//if (iteration % (netStep / netSnap) == 0) {
+#ifdef MODULE_TIME
 	if (toCheckTime) time1 = MPI_Wtime();
+#endif
 	gatherParticle();
 	gatherBdryContact();
-	gatherEnergy(); if (toCheckTime) time2 = MPI_Wtime(); gatherT = time2 - time1;
+	gatherEnergy(); 
+#ifdef MODULE_TIME
+	if (toCheckTime) time2 = MPI_Wtime(); gatherT = time2 - time1;
+#endif
 
 	char cstr[50];
 	if (mpiRank == 0) {
@@ -375,12 +398,17 @@ namespace dem {
       }
 
       releaseRecvParticle(); // late release because printContact refers to received particles
+#ifdef MODULE_TIME
       if (toCheckTime) time1 = MPI_Wtime();
-      migrateParticle(); if (toCheckTime) time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+#endif
+      migrateParticle(); 
+#ifdef MODULE_TIME
+      if (toCheckTime) time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       if (mpiRank == 0 && toCheckTime) // ignore gather and print time at this step
-	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
-		 << std::setw(OWID) << totalT - commuT - migraT << std::setw(OWID) << totalT 
-		 <<std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT  << std::setw(OWID) << gridT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT - commuT - gridT - migraT << std::setw(OWID) << totalT 
+		 << std::setw(OWID) << (commuT + gridT + migraT)/totalT*100 << std::endl;
+#endif
       ++iteration;
     } 
 
