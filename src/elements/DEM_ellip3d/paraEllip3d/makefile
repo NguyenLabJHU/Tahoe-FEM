@@ -21,6 +21,7 @@ COMPILERS = gcc-openmpi
 ###3. boost location
 ifeq ($(PLATFORM), soilblast)
  BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+ PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
  #BOOST_ROOT = default
 endif
 
@@ -35,6 +36,7 @@ ifeq ($(PLATFORM), spirit)
  ifeq ($(COMPILERS), intel-sgi)
   #BOOST_ROOT = /work4/projects/openmpi/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
+  PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.11_intel-compilers-13.0.1
  endif
 endif
 
@@ -54,6 +56,7 @@ endif
 ifeq ($(PLATFORM), excalibur)
  ifeq ($(COMPILERS), intel-cray)
   BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.40
+  PAPI_ROOT = /usr/people/yanb/local/papi-5.4.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
  endif
  ifeq ($(COMPILERS), gcc-cray)
   BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-gnu5.2.40
@@ -63,6 +66,7 @@ endif
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.3.187
+  PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.3.187
  endif
  ifeq ($(COMPILERS), gcc-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
@@ -159,6 +163,11 @@ ifeq ($(PLATFORM), soilblast)
    BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
    BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
    BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
+
+   PAPI_INCLUDE=-I$(PAPI_ROOT)/include
+   PAPI_LIB_DIR=-L$(PAPI_ROOT)/lib
+   PAPI_LIBS=-lpapi
+   PAPI_RUN_LIB_DIR=-Wl,-rpath=$(PAPI_ROOT)/lib
   endif
 else
 # for spirit, janus, garnet
@@ -166,12 +175,17 @@ else
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
  BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
+
+ PAPI_INCLUDE=-I$(PAPI_ROOT)/include
+ PAPI_LIB_DIR=-L$(PAPI_ROOT)/lib
+ PAPI_LIBS=-lpapi
+ PAPI_RUN_LIB_DIR=-Wl,-rpath=$(PAPI_ROOT)/lib
 endif
 
-INCLUDE=$(BOOST_INCLUDE)
-LIB_DIR=$(BOOST_LIB_DIR)
-LIBS=$(BOOST_LIBS)
-RUN_LIB_DIR=$(BOOST_RUN_LIB_DIR)
+INCLUDE=$(BOOST_INCLUDE) $(PAPI_INCLUDE)
+LIB_DIR=$(BOOST_LIB_DIR) $(PAPI_LIB_DIR)
+LIBS=$(BOOST_LIBS) $(PAPI_LIBS)
+RUN_LIB_DIR=$(BOOST_RUN_LIB_DIR) $(PAPI_RUN_LIB_DIR)
 
 ###3. makefile
 SOURCES = $(wildcard *.cpp)

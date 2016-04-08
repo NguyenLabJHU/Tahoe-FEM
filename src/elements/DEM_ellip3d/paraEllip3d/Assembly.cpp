@@ -48,6 +48,24 @@ static struct timeval time_w1, time_w2; // for wall-clock time record
 static struct timeval time_p1, time_p2; // for internal wall-clock time profiling, can be used on any piece of code
 static struct timeval time_r1, time_r2; // for internal wall-clock time profiling for contact resolution only (excluding space search)
 
+//#define PAPI 1
+//#define PAPI_FLOPS 1
+//#define PAPI_CACHE 1
+
+#ifdef PAPI
+#include "papi.h"
+static double papi_gettime() {
+  return (double)PAPI_get_virt_usec()/1000000.0;
+}
+#if defined PAPI_FLOPS
+ #define NUM_EVENTS 2
+ #define LLD " PAPI_FP_OPS: %15lld\n MFLOPS: 15%f\n PAPI_L3_TCM: %15lld\n"
+#elif defined PAPI_CACHE
+ #define NUM_EVENTS 3
+ #define LLD " PAPI_L3_TCM: %15lld\n PAPI_L2_TCM: %15lld\n PAPI_L1_TCM %15lld\n"
+#endif
+#endif
+
 namespace dem {
 
   struct timeval timediff(const struct timeval &time1, const struct timeval &time2) {
@@ -287,6 +305,27 @@ namespace dem {
     if (mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl; 
+
+#ifdef PAPI
+#if defined PAPI_FLOPS
+    int Events[NUM_EVENTS] = {PAPI_FP_OPS, PAPI_L3_TCM};
+#elif defined PAPI_CACHE
+    int Events[NUM_EVENTS] = {PAPI_L3_TCM, PAPI_L2_TCM, PAPI_L1_TCM};
+#endif
+    long long values[NUM_EVENTS];
+    double papi_t0, papi_t1;
+    papi_t0 = papi_gettime();
+    if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
+      printf("PAPI_library_init error. \n"); fflush(stdout);
+      exit(1);
+    }
+    const size_t EVENT_MAX = PAPI_num_counters();
+    printf("# Max counters = %zd\n", EVENT_MAX); fflush(stdout);
+    if (PAPI_start_counters(Events, NUM_EVENTS) != PAPI_OK) {
+      printf("PAPI_start_counters error. \n"); fflush(stdout);
+      exit(1);
+    }
+#endif
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
       bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
@@ -344,6 +383,20 @@ namespace dem {
 		 <<std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       ++iteration;
     } 
+
+#ifdef PAPI
+    if (PAPI_read_counters(values, NUM_EVENTS) != PAPI_OK) {
+      printf("PAPI_read_counters error. \n"); fflush(stdout);
+      exit(1);
+    } else {
+      papi_t1 = papi_gettime();
+#if defined PAPI_FLOPS
+      printf(LLD, values[0], (double)values[0]/1000000.0/(papi_t1-papi_t0), values[1]); fflush(stdout);
+#elif defined PAPI_CACHE
+      printf(LLD, values[0], values[1], values[2]); fflush(stdout);
+#endif
+    }
+#endif
   
     if (mpiRank == 0) closeProg(progressInf);
   }
