@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.158 2014-08-25 23:59:45 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.159 2016-04-28 15:37:12 tdnguye Exp $ */
 
 /* Revision 1.148  2011/11/28 15:26:08  hspark
 /* correct 2D DE visco
@@ -91,6 +91,7 @@
 #include "SimoQ1P0Axi_inv.h"
 #include "DiffusionElementT.h"
 #include "NLDiffusionElementT.h"
+#include "NLConvDiffusionElementT.h"
 #include "HyperbolicDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
@@ -262,11 +263,11 @@
 #endif
 
 #ifdef SOLID_OPTIMIZATION_DEV
-//#include "SS_Optimize_Primal.h";
-#include "SS_Optimize_Dual.h";
-#include "FSFiber_Optimize_Dual.h";
-#include "FSFiber_OptSurf.h";
-#include "FSFiber_OptNS.h";
+//#include "SS_Optimize_Primal.h"
+#include "SS_Optimize_Dual.h"
+#include "FSFiber_Optimize_Dual.h"
+#include "FSFiber_OptSurf.h"
+#include "FSFiber_OptNS.h"
 #endif
 
 #ifdef MICROMORPHIC_DEV
@@ -284,6 +285,10 @@
 
 #ifdef XFEM_DEV
 #include "SSXfem2DT.h"
+#endif
+
+#ifdef EFFECTIVE_TEMPERATURE
+#include "FSThermoMechT.h"
 #endif
 
 using namespace Tahoe;
@@ -422,6 +427,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("diffusion");
 		sub_lists.AddSub("viscous_drag");
 		sub_lists.AddSub("nonlinear_diffusion");
+		sub_lists.AddSub("nonlinear_diffusion_general_convection");
 		sub_lists.AddSub("hyperbolic_diffusion");
 		sub_lists.AddSub("small_strain");
 		sub_lists.AddSub("updated_lagrangian");
@@ -475,6 +481,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef DIELECTRIC_ELASTOMER_2D_VISCO
     sub_lists.AddSub("dielectric_elastomer_2D_visco");
+#endif
+
+#ifdef EFFECTIVE_TEMPERATURE
+    sub_lists.AddSub("thermo_mech_coupled");
 #endif
 
 #ifdef HUWASHIZU
@@ -719,6 +729,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new ViscousDragT(fSupport);
 	else if (name == "nonlinear_diffusion")
 		return new NLDiffusionElementT(fSupport);
+	else if (name == "nonlinear_diffusion_general_convection")
+		return new NLConvDiffusionElementT(fSupport);
 	else if (name == "hyperbolic_diffusion")
 		return new HyperbolicDiffusionElementT(fSupport);
 	else if (name == "small_strain")
@@ -799,6 +811,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef DIELECTRIC_ELASTOMER_2D_VISCO
   else if (name == "dielectric_elastomer_2D_visco")
     return new FSDielectricElastomer2DViscoT(fSupport);
+#endif
+
+#ifdef EFFECTIVE_TEMPERATURE
+  else if (name == "thermo_mech_coupled")
+    return new FSThermoMechT(fSupport);
 #endif
 
 #ifdef HUWASHIZU
