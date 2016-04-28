@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2005-08-12 05:20:48 paklein Exp $
+# $Id: makefile,v 1.6 2016-04-28 15:36:33 tdnguye Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,7 +22,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	DiffusionElementT.o \
 	HyperbolicDiffusionElementT.o \
-	NLDiffusionElementT.o
+	NLDiffusionElementT.o \
+	NLConvDiffusionElementT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -44,7 +45,8 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	DiffusionElementT.cpp \
 	HyperbolicDiffusionElementT.cpp \
-	NLDiffusionElementT.cpp
+	NLDiffusionElementT.cpp \
+	NLConvDiffusionElementT.cpp
 
 ##################### (3) headers
 #
@@ -58,7 +60,8 @@ SRC = \
 HDR = \
 	DiffusionElementT.h \
 	HyperbolicDiffusionElementT.h \
-	NLDiffusionElementT.h
+	NLDiffusionElementT.h \
+	NLConvDiffusionElementT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
