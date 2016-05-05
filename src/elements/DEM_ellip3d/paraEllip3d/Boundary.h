@@ -180,7 +180,7 @@ namespace dem {
     void clearContactInfo();
 
     virtual void updateIsotropic(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
-    virtual void updateOdometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
+    virtual void updateOedometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updatePlaneStrain(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateTrueTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ, REAL sigmaX, REAL sigmaY) {}
@@ -237,7 +237,7 @@ namespace dem {
     void printContactInfo(std::ostream &os);
 
     void updateIsotropic(REAL sigma, REAL areaX, REAL areaY, REAL areaZ);
-    void updateOdometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
+    void updateOedometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
     void updateTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
     void updatePlaneStrain(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
     void updateTrueTriaxial(REAL simga, REAL areaX, REAL areaY, REAL areaZ, REAL sigmaX, REAL sigmaY);

@@ -627,14 +627,14 @@ namespace dem {
   }
 
 
-  void Assembly::odometer() 
+  void Assembly::oedometer() 
   {
-    std::size_t odometerType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["odometerType"]);
+    std::size_t oedometerType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["oedometerType"]);
     if (mpiRank == 0) {
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      openCompressProg(progressInf, "odometer_progress");
-      openCompressProg(balancedInf, "odometer_balanced");
+      openCompressProg(progressInf, "oedometer_progress");
+      openCompressProg(balancedInf, "oedometer_balanced");
     }
     scatterParticle();
 
@@ -654,11 +654,11 @@ namespace dem {
     std::vector<REAL> &sigmaPath = dem::Parameter::getSingleton().sigmaPath;
     std::size_t sigma_i = 0;
 
-    if (odometerType == 1) {
+    if (oedometerType == 1) {
       REAL sigmaStart = dem::Parameter::getSingleton().parameter["sigmaStart"];
       sigmaInc = (sigmaEnd - sigmaStart) / sigmaDiv;
       sigmaVar = sigmaStart;
-    } else if (odometerType == 2) {
+    } else if (oedometerType == 2) {
       sigmaVar = sigmaPath[sigma_i];
       sigmaInc = (sigmaPath[sigma_i+1] -  sigmaPath[sigma_i])/sigmaDiv;
       sigmaEnd = sigmaPath[sigmaPath.size()-1];
@@ -670,11 +670,11 @@ namespace dem {
     char cstr0[50];
     REAL distX, distY, distZ;
     if (mpiRank == 0) {
-      plotBoundary(strcat(combineString(cstr0, "odometer_bdryplot_", iterSnap - 1, 3), ".dat"));
-      plotGrid(strcat(combineString(cstr0, "odometer_gridplot_", iterSnap - 1, 3), ".dat"));
-      printParticle(combineString(cstr0, "odometer_particle_", iterSnap - 1, 3));
-      printBdryContact(combineString(cstr0, "odometer_bdrycntc_", iterSnap -1, 3));
-      printBoundary(combineString(cstr0, "odometer_boundary_", iterSnap - 1, 3));
+      plotBoundary(strcat(combineString(cstr0, "oedometer_bdryplot_", iterSnap - 1, 3), ".dat"));
+      plotGrid(strcat(combineString(cstr0, "oedometer_gridplot_", iterSnap - 1, 3), ".dat"));
+      printParticle(combineString(cstr0, "oedometer_particle_", iterSnap - 1, 3));
+      printBdryContact(combineString(cstr0, "oedometer_bdrycntc_", iterSnap -1, 3));
+      printBoundary(combineString(cstr0, "oedometer_boundary_", iterSnap - 1, 3));
       getStartDimension(distX, distY, distZ);
     }
     if (mpiRank == 0)
@@ -694,7 +694,7 @@ namespace dem {
 
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
-      updateBoundary(sigmaVar, "odometer");
+      updateBoundary(sigmaVar, "oedometer");
       updateGrid();
    
       if (iteration % (netStep / netSnap) == 0) {
@@ -704,14 +704,14 @@ namespace dem {
 
 	char cstr[50];
 	if (mpiRank == 0) {
-	  plotBoundary(strcat(combineString(cstr, "odometer_bdryplot_", iterSnap, 3), ".dat"));
-	  plotGrid(strcat(combineString(cstr, "odometer_gridplot_", iterSnap, 3), ".dat"));
-	  printParticle(combineString(cstr, "odometer_particle_", iterSnap, 3));
-	  printBdryContact(combineString(cstr, "odometer_bdrycntc_", iterSnap, 3));
-	  printBoundary(combineString(cstr, "odometer_boundary_", iterSnap, 3));
+	  plotBoundary(strcat(combineString(cstr, "oedometer_bdryplot_", iterSnap, 3), ".dat"));
+	  plotGrid(strcat(combineString(cstr, "oedometer_gridplot_", iterSnap, 3), ".dat"));
+	  printParticle(combineString(cstr, "oedometer_particle_", iterSnap, 3));
+	  printBdryContact(combineString(cstr, "oedometer_bdrycntc_", iterSnap, 3));
+	  printBoundary(combineString(cstr, "oedometer_boundary_", iterSnap, 3));
 	  printCompressProg(progressInf, distX, distY, distZ);
 	}
-	printContact(combineString(cstr, "odometer_contact_", iterSnap, 3));      
+	printContact(combineString(cstr, "oedometer_contact_", iterSnap, 3));      
 	++iterSnap;
       }
 
@@ -722,22 +722,22 @@ namespace dem {
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
-      if (odometerType == 1) {
-	if (tractionErrorTol(sigmaVar, "odometer")) {
+      if (oedometerType == 1) {
+	if (tractionErrorTol(sigmaVar, "oedometer")) {
 	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	}
-	if (tractionErrorTol(sigmaEnd, "odometer")) {
+	if (tractionErrorTol(sigmaEnd, "oedometer")) {
 	  if (mpiRank == 0) {
-	    printParticle("odometer_particle_end");
-	    printBdryContact("odometer_bdrycntc_end");
-	    printBoundary("odometer_boundary_end");
+	    printParticle("oedometer_particle_end");
+	    printBdryContact("oedometer_bdrycntc_end");
+	    printBoundary("oedometer_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
 	  break;
 	}
-      } else if (odometerType == 2) {
-	if (tractionErrorTol(sigmaVar, "odometer")) {
+      } else if (oedometerType == 2) {
+	if (tractionErrorTol(sigmaVar, "oedometer")) {
 	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	  if (sigmaVar == sigmaPath[sigma_i+1]) {
@@ -745,11 +745,11 @@ namespace dem {
 	    sigmaInc = (sigmaPath[sigma_i+1] -  sigmaPath[sigma_i])/sigmaDiv;
 	  }
 	}
-	if (tractionErrorTol(sigmaEnd, "odometer")) {
+	if (tractionErrorTol(sigmaEnd, "oedometer")) {
 	  if (mpiRank == 0) {
-	    printParticle("odometer_particle_end");
-	    printBdryContact("odometer_bdrycntc_end");
-	    printBoundary("odometer_boundary_end");
+	    printParticle("oedometer_particle_end");
+	    printBdryContact("oedometer_bdrycntc_end");
+	    printBoundary("oedometer_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
 	  break;
@@ -1189,7 +1189,7 @@ namespace dem {
 		  && fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
 		  && fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol );
 
-    else if (type.compare("odometer") == 0)
+    else if (type.compare("oedometer") == 0)
       return ( fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
 	       && fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol );
 
@@ -3741,9 +3741,9 @@ namespace dem {
       if (type.compare("isotropic") == 0) {
 	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateIsotropic(sigma, areaX, areaY, areaZ);
-      } else if (type.compare("odometer") == 0) {
+      } else if (type.compare("oedometer") == 0) {
 	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
-	  (*it)->updateOdometer(sigma, areaX, areaY, areaZ);
+	  (*it)->updateOedometer(sigma, areaX, areaY, areaZ);
       } else if (type.compare("triaxial") == 0) {
 	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateTriaxial(sigma, areaX, areaY, areaZ);

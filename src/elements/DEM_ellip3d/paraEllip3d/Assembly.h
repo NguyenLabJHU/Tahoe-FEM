@@ -154,7 +154,7 @@ namespace dem {
     void coupleWithGas();    
 
     void isotropic();
-    void odometer();
+    void oedometer();
     void triaxial();
     void planeStrain();
     void trueTriaxial();

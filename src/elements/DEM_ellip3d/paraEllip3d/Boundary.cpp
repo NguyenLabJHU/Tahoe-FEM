@@ -214,7 +214,7 @@ namespace dem {
     prevVeloc = veloc;
   }
 
-  void planeBoundary::updateOdometer(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
+  void planeBoundary::updateOedometer(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
 
     REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
     REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];

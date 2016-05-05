@@ -100,11 +100,11 @@ int main(int argc, char* argv[]) {
   case 203: // isotropic type 3 - conduct loading-unloading-reloading path
     assemb.isotropic();
     break; 
-  case 301: // odometer type 1 - increase loading pressure
-    assemb.odometer();
+  case 301: // oedometer type 1 - increase loading pressure
+    assemb.oedometer();
     break; 
-  case 302: // odometer type 2 - loading-unloading-reloading
-    assemb.odometer();
+  case 302: // oedometer type 2 - loading-unloading-reloading
+    assemb.oedometer();
     break; 
   case 401: // triaxial type 1 - constant confining pressure
     assemb.triaxial();
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 // Among the simulations types:
 // 1-deposit
 // 2-isotropic
-// 3-odometer
+// 3-oedometer
 // 4-triaxial
 // 5-plane strain
 // 6-true triaxial
