@@ -1,3 +1,4 @@
+# requires module load and swap commands to build
 MAKE        = make
 DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__POSIX_THREADS__ -DEIGHT_BYTE_REAL
 COMP_C      = mpicc
@@ -5,7 +6,7 @@ COMP_CC     = mpic++
 COMP_F      = mpif90
 COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated -fpermissive
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
