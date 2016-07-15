@@ -198,7 +198,29 @@ void LatticeOrient::WriteTexture(int group, int elem, int intpt, int ngrn,
 
 void LatticeOrient::AnglesToRotMatrix(const dArrayT& angle, dMatrixT& C) const 
 {
-  double sps, cps, sth, cth, sph, cph;
+
+    double s1, c1, s2, c2, s3, c3;
+    
+    s1 = sin(angle[0]);
+    c1 = cos(angle[0]);
+    s2 = sin(angle[1]);
+    c2 = cos(angle[1]);
+    s3 = sin(angle[2]);
+    c3 = cos(angle[2]);
+    
+    C(0,0) = c1*c3  - s1*c2*s3;
+    C(1,0) = s1*c3 + c1*c2*s3;;
+    C(2,0) = s3*s2;
+    C(0,1) = -c1*s3 - s1*c2*c3;
+    C(1,1) = -s1*s3 + c1*c2*c3;
+    C(2,1) =  c3*s2;
+    C(0,2) =  s1*s2;
+    C(1,2) =  -c1*s2;
+    C(2,2) =  c2;
+    
+
+/* Esteban's Original 
+ double sps, cps, sth, cth, sph, cph;
 
   sps = sin(angle[0]);
   cps = cos(angle[0]);
@@ -216,6 +238,7 @@ void LatticeOrient::AnglesToRotMatrix(const dArrayT& angle, dMatrixT& C) const
   C(0,2) =  cps * sth;
   C(1,2) =  sps * sth;
   C(2,2) =  cth;
+ */
 }
 
 void LatticeOrient::RotMatrixToAngles(const dMatrixT& C, dArrayT& angle) const

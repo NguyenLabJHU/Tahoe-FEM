@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.19 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.20 2016-07-15 13:07:10 tdnguye Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -178,7 +178,6 @@ void PolyCrystalMatT::SetSlipSystems()
 {
   // read crystal structure
   fInput >> fCrystalType;
-
   // construct slip system geometry
   switch(fCrystalType)
     {
@@ -187,18 +186,25 @@ void PolyCrystalMatT::SetSlipSystems()
       break;
 
     case SlipGeometry::kBCC:
-      //fSlipGeometry = new BCCGeometry();
-      throwRunTimeError("PolyCrystalMatT::SetSlipSystems: BCC not implemented");
+        cout << "\n PolyCrystalMatT::SetSlipSystems: BCC not validated";
+        fSlipGeometry = new BCCGeometry();
+ //     throwRunTimeError("PolyCrystalMatT::SetSlipSystems: BCC not implemented");
       break;
 
     case SlipGeometry::kHCP:
-      //fSlipGeometry = new HCPGeometry();
-      throwRunTimeError("PolyCrystalMatT::SetSlipSystems: HCP not implemented");
+        cout << "\n PolyCrystalMatT::SetSlipSystems: HCP not validated";
+        fSlipGeometry = new HCPGeometry();
+  //    throwRunTimeError("PolyCrystalMatT::SetSlipSystems: HCP not implemented");
       break;
 
     case SlipGeometry::kFCC24:
       fSlipGeometry = new FCCGeometry24();
       break;
+
+    case SlipGeometry::kPE:
+        cout << "\n PolyCrystalMatT::SetSlipSystems: PE slip system not validated";
+        fSlipGeometry = new PEGeometry();
+    break;
 
     default:
       throwRunTimeError("PolyCrystalMatT::SetSlipSystems: Bad fCrystalType");
@@ -298,7 +304,6 @@ void PolyCrystalMatT::SetCrystalElasticity()
 {
   // input elasticity code
   fInput >> fElastCode;
-
   // select crystal elasticity type
   switch(fElastCode)
     {
@@ -310,7 +315,11 @@ void PolyCrystalMatT::SetCrystalElasticity()
       fElasticity = new CubicCrystalElast(*this);
       break;
 
-    default:
+    case CrystalElasticity::kPECrysElast:
+        fElasticity = new PECrystalElast(*this);
+         break;
+
+        default:
       throwRunTimeError("PolyCrystalMatT::SetCrystalElasticity: Bad fElastCode");
       break;
     }
@@ -325,7 +334,6 @@ void PolyCrystalMatT::SetConstitutiveSolver()
 {
   // input solver code
   fInput >> fSolverCode;
-
   // number of variables in nonlinear solver
   int numvar = NumberOfUnknowns();
 

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.22 2009-05-21 22:30:27 tdnguye Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.23 2016-07-15 13:07:10 tdnguye Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -7,7 +7,9 @@
 #include "PowerLawIKinetics.h"
 #include "PowerLawIIKinetics.h"
 #include "HaasenKinetics.h"
+#include "SinhKinetics.h"
 #include "VoceHardening.h"
+#include "LatentHardening.h"
 #include "HaasenHardening.h"
 #include "ElementCardT.h"
 #include "ElementBlockDataT.h"
@@ -28,8 +30,10 @@ const int kNSD = 3;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 3;
-static const char* Labels[kNumOutput] = {"VM_stress", "abs_dg", "dg"};
+const int kNumOutput = 24; //Assume 12 slip systems.  Some lattice models will have fewer.
+static const char* Labels[kNumOutput] = {"VM_stress", "abs_dg", "dg","Fp11","Fp12", "Fp13","Fp21","Fp22", "Fp23","Fp31","Fp32","Fp33",
+"dgamma1","dgamma2","dgamma3","dgamma4","dgamma5","dgamma6","dgamma7","dgamma8","dgamma9","dgamma10","dgamma11","dgamma12", };
+
 
 /* to output some messages */
 const bool XTAL_MESSAGES = true;
@@ -150,8 +154,9 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
              {
 	       // Schmidt tensor in Bbar configuration (sample axes)
 	       for (int i = 0; i < fNumSlip; i++)
-                   fZ[i].MultQBQT(fRotMat, fZc[i]);
-
+           {
+               fZ[i].MultQBQT(fRotMat, fZc[i]);
+           }
 	       // compute crystal state
 	       SolveCrystalState();
 	  
@@ -249,24 +254,33 @@ void LocalCrystalPlastFp::FormRHS(const dArrayT& fparray, dArrayT& rhs)
 
   // elastic right Cauchy-Green tensor 
   fCeBar.MultQTBQ(fFpi, fC);
+//    cout << "\nfCeBar: "<<fCeBar;
 
   // Resolve Shear Stress on Slip Systems
   ResolveShearStress();
+//    cout << "\nfTau: "<<fTau;
 
   // slip shearing rate (note: used by slip hardening classes)
   for (int i = 0; i < fNumSlip; i++)
      fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
 
+//    cout << "\nfDGamma: "<< fDGamma;
   // compute residual : SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1)) + pen*(detFp-1)*I
   // ... term: SUM(GamDot*Z)
   fMatx1 = 0.;
   for (int i = 0; i < fNumSlip; i++)
+  {
      fMatx1.AddScaled(fDGamma[i]/fdt, fZ[i]);
-
+ //     cout << "\nfZ[i]: "<<fZ[i];
+  }
+//    cout << "\nfMatx1: "<< fMatx1;
+    
   // ... SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1))
   fMatx2.MultAB(fFp_n, fFpi);
+
   fMatx3.SetToCombination(1.0, fIMatx, -1.0, fMatx2);
   fMatx1.AddScaled(-1.0/fdt, fMatx3);
+//    cout << "\nfMatx2: "<< fMatx2;
  
   // ... SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1)) + pen*(detFp-1)*I
   fMatx1.AddScaled(fPenalty*(fFp.Det()-1.0), fIMatx);
@@ -392,6 +406,7 @@ void LocalCrystalPlastFp::OutputLabels(ArrayT<StringT>& labels) const
 
 void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 {
+    /*initialize*/
   // gather element/integ point information
   ElementCardT& element = CurrentElement();
   int group = ContinuumElement().ElementGroupNumber();
@@ -447,17 +462,30 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 	{
 	  // recover local data
 	  LoadCrystalData(element, intpt, igrn);
+        int j = 11;
 	  for (int i = 0; i< fNumSlip; i++)
 	  {
 	    absgamma += fabs(fGamma[i]);
 	    gamma += fGamma[i];
+        j++;
+        output[j] += fGamma[i]/fNumGrain;
 	  }
 	}
        absgamma/= fNumGrain;
        gamma /=fNumGrain;
        output[1] = absgamma;
        output[2] = gamma;
-  // compute texture of aggregate, if requested
+
+    output[3] = fFp(0,0);
+    output[4] = fFp(0,1);
+    output[5] = fFp(0,2);
+    output[6] = fFp(1,0);
+    output[7] = fFp(1,1);
+    output[8] = fFp(1,2);
+    output[9] = fFp(2,0);
+    output[10] = fFp(2,1);
+    output[11] = fFp(2,2);
+      // compute texture of aggregate, if requested
   int step = fFSMatSupport->StepNumber();
   int nsteps = fFSMatSupport->NumberOfSteps();
 
@@ -576,6 +604,7 @@ void LocalCrystalPlastFp::SetSlipKinetics()
 {
   // read slip kinetics code model
   fInput >> fKinEqnCode;
+//    cout << "\nfKinEqnCode: "<<fKinEqnCode;
 
   // select slip hardening law
   switch(fKinEqnCode)
@@ -592,6 +621,10 @@ void LocalCrystalPlastFp::SetSlipKinetics()
       fKinetics = new HaasenKinetics(*this);
       break;
 
+    case SlipKinetics::kSinh:          // Haasen power law (iso)
+            fKinetics = new SinhKinetics(*this);
+            break;
+
     default:
       throwRunTimeError("LocalCrystalPlastFp::SetSlipKinetics: Bad fKinEqnCode");
     }
@@ -604,6 +637,7 @@ void LocalCrystalPlastFp::SetSlipHardening()
   fInput >> fHardCode;
 
   // select slip hardening law
+//    cout << "\nfHardCode: "<< fHardCode;
   switch(fHardCode)
     {
     case SlipHardening::kHard_L1:           // Voce's model (iso)
@@ -611,8 +645,8 @@ void LocalCrystalPlastFp::SetSlipHardening()
       break;
       
     case SlipHardening::kHard_L2:           // latent type hard law
-      //fHardening = new LatentHardening(*this);
-      throwRunTimeError("LocalCrystalPlastFp::SetSlipHardening: Not implemented");
+      fHardening = new LatentHardening(*this);
+      //throwRunTimeError("LocalCrystalPlastFp::SetSlipHardening: Not implemented");
       break;
 
     case SlipHardening::kHard_L3:           // Haasen's model (iso)
@@ -714,6 +748,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
 
   // right Cauchy-Green tensor
   fC.MultATA(fFt);
+//    cout << "\nfC: "<<fC;
 
   // initial guess for first sub-increment (uses fFe_n)
   if (subIncr == 1)
@@ -735,6 +770,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
           {
             // iter level 1: solve for Fp; Hardness = constant
             SolveForPlasticDefGradient(ierr);
+//              cout<<"\nierrorIt: "<<ierr;
             if (ierr != 0)
                {
                  if (XTAL_MESSAGES)
@@ -748,7 +784,10 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             SolveForHardening();
       
             // check convergence of state
-            stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
+              stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
+//              cout<<"\nfTolerState: "<< fTolerState;
+//              cout<<"\nconvergedhard: "<< fHardening->Converged(fTolerState);
+//              cout<<"\nstateConverged: "<< stateConverged;
 //              stateConverged = true;
          }
 	  
@@ -782,7 +821,9 @@ void LocalCrystalPlastFp::InitialEstimateForFp()
   // initial estimate for Fp
   fMatx1.Inverse(fFe_n);
   fFp.MultAB(fMatx1, fFt);
+//    cout << "\nfFp: "<<fFp;
   fFp /= pow(fFp.Det(), 1./3.);
+//    cout << "\nfFp_dev: "<<fFp;
 
   // norm of Fp (to check convergence of state iterations)
   fFpNorm0 = sqrt(fFp.ScalarProduct());
@@ -803,8 +844,10 @@ void LocalCrystalPlastFp::InitialEstimateForHardening()
 
 void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 {
-  // 9x1 array form of Fp
+//    cout << "\n ierr0: "<<ierr;
+    // 9x1 array form of Fp
   Rank2ToArray9x1(fFp, fFpArray);
+//    cout << "\nfFp2: "<<fFp;
 
   // uses "kind of" continuation method based on rate sensitivity exponent
   fKinetics->SetUpRateSensitivity();
@@ -814,7 +857,7 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
        fKinetics->ComputeRateSensitivity();
  
        // solve for Fp
-       try { fSolver->Solve(fSolverPtr, fFpArray, ierr); }
+      try { fSolver->Solve(fSolverPtr, fFpArray, ierr);}
        catch(ExceptionT::CodeT code) 
            {
              if (XTAL_MESSAGES) 

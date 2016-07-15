@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.23 2005-01-21 16:51:21 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.24 2016-07-15 13:07:10 tdnguye Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -6,9 +6,11 @@
 #include "NLCSolver.h"
 #include "PowerLawIKinetics.h"
 #include "PowerLawIIKinetics.h"
+#include "SinhKinetics.h"
 #include "HaasenKinetics.h"
 #include "VoceHardening.h"
 #include "HaasenHardening.h"
+#include "LatentHardening.h"
 #include "ElementCardT.h"
 
 #include "Utils.h"
@@ -591,6 +593,10 @@ void LocalCrystalPlast::SetSlipKinetics()
     case SlipKinetics::kHaasen:          // Haasen power law (iso)
       fKinetics = new HaasenKinetics(*this);
       break;
+    
+        case SlipKinetics::kSinh:          // Haasen power law (iso)
+            fKinetics = new SinhKinetics(*this);
+            break;
 
     default:
       throwRunTimeError("LocalCrystalPlast::SetSlipKinetics: Bad fKinEqnCode");
@@ -611,8 +617,8 @@ void LocalCrystalPlast::SetSlipHardening()
       break;
       
     case SlipHardening::kHard_L2:           // latent type hard law
-      //fHardening = new LatentHardening(*this);
-      throwRunTimeError("LocalCrystalPlast::SetSlipHardening: Not implemented");
+      fHardening = new LatentHardening(*this);
+//      throwRunTimeError("LocalCrystalPlast::SetSlipHardening: Not implemented");
       break;
 
     case SlipHardening::kHard_L3:           // Haasen's model (iso)

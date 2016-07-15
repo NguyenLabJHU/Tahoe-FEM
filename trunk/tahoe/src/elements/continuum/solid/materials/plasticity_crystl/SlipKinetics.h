@@ -32,7 +32,8 @@ class SlipKinetics
   // enum variable for crystal kinetic equation models
   enum SlipKinEqn { kPowLawI  = 1,     // dir hardening
                     kPowLawII = 2,     // dir/nondir hardening
-                    kHaasen   = 3 };   // Haasen's model
+      kHaasen   = 3,   // Haasen's model
+    kSinh   = 4 };   // Eyring
 
   // constructor
   SlipKinetics(PolyCrystalMatT& poly);
