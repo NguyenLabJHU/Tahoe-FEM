@@ -29,9 +29,11 @@ OBJ = \
 	PowerLawIIKinetics.o \
 	HaasenKinetics.o \
 	SlipHardening.o \
+        SinhKinetics.o \
 	VoceHardening.o \
 	HaasenHardening.o \
 	VoceGradHardening.o \
+	LatentHardening.o \
 	GradientTools.o \
 	GradientTools_C.o
 
@@ -68,6 +70,7 @@ SRC = \
 	LatticeOrient.cpp \
 	CrystalElasticity.cpp \
 	SlipKinetics.cpp \
+	SinhKinetics.cpp \
 	PowerLawIKinetics.cpp \
 	PowerLawIIKinetics.cpp \
 	HaasenKinetics.cpp \
@@ -75,6 +78,7 @@ SRC = \
 	VoceHardening.cpp \
 	HaasenHardening.cpp \
 	VoceGradHardening.cpp \
+	LatentHardening.cpp \
 	GradientTools.cpp \
 	GradientTools_C.cpp
 
@@ -103,6 +107,7 @@ HDR = \
 	LatticeOrient.h \
 	CrystalElasticity.h \
 	SlipKinetics.h \
+	SinhKinetics.h \
 	PowerLawIKinetics.h \
 	PowerLawIIKinetics.h \
 	HaasenKinetics.h \
@@ -110,6 +115,7 @@ HDR = \
 	VoceHardening.h \
 	HaasenHardening.h \
 	VoceGradHardening.h \
+	LatentHardening.h \
 	GradientTools.h \
 	GradientTools_C.h
 

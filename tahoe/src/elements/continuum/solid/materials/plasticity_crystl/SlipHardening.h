@@ -19,6 +19,7 @@ class GradCrystalPlastFp;
 class PowerLawIKinetics;
 class PowerLawIIKinetics;
 class HaasenKinetics;
+class SinhKinetics;
 class NLCSolver;
 class ifstreamT;
 class dMatrixT;
@@ -31,7 +32,7 @@ class SlipHardening
  public:
   // enumeration for hardening models for local crystal plast
   enum LocHardModel { kHard_L1 = 1,     // iso hardening type (Voce's model)  
-		      kHard_L2 = 2,     // iso/kin hardening type
+		      kHard_L2 = 2,     // iso/kin hardening type (Latent hardening)
                       kHard_L3 = 3 };   // iso hardening type (Haasen's model)
 
   // enumeration for hardening models for gradient crystal plast

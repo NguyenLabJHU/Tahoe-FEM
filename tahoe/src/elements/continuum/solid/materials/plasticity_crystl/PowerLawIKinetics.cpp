@@ -154,10 +154,11 @@ void PowerLawIKinetics::SetUpRateSensitivity()
 
 void PowerLawIKinetics::ComputeRateSensitivity()
 {
-  fk = min(2.e0*fk, fkmax);
-  fMatProp[0] = 1.e0 / fk;
-  if (fk == fkmax) fMatProp[0] = fxm;
-
+  //fk = min(2.e0*fk, fkmax);
+  //fMatProp[0] = 1.e0 / fk;
+  //if (fk == fkmax) fMatProp[0] = fxm;
+   fMatProp[0] = fxm;
+    
   // compute new Max/Min values of argument in power law
   MaxMinArgPowerLaw(fMatProp[0]);
 }

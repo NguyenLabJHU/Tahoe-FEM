@@ -12,6 +12,7 @@ const int kSlipFCC   = 12;
 const int kSlipBCC   = 12;
 const int kSlipHCP   = 12;
 const int kSlipFCC24 = 24;   // differentiate (+) and (-) slip directions
+const int kSlipPE    = 9;
 
 /* Base Class */
 
@@ -155,34 +156,34 @@ void BCCGeometry::SetSlipVectors()
     throwRunTimeError("BCCGeometry::SetSlipVectors: NumSlip != 12");
 
   // Miller indices normal to the slip plane 
-  fVecM[0][0] = 1.; fVecM[0][1] = 1.; fVecM[0][2] =-1.;
-  fVecM[1][0] = 1.; fVecM[1][1] = 1.; fVecM[1][2] =-1.;
-  fVecM[2][0] = 1.; fVecM[2][1] = 1.; fVecM[2][2] =-1.;
+  fVecM[0][0] = 0.; fVecM[0][1] = 1.; fVecM[0][2] = 1.;
+  fVecM[1][0] = 1.; fVecM[1][1] = 0.; fVecM[1][2] = 1.;
+  fVecM[2][0] = 1.; fVecM[2][1] = -1.; fVecM[2][2] = 0.;
 
-  fVecM[3][0] = 1.; fVecM[3][1] =-1.; fVecM[3][2] =-1.;
-  fVecM[4][0] = 1.; fVecM[4][1] =-1.; fVecM[4][2] =-1.;
-  fVecM[5][0] = 1.; fVecM[5][1] =-1.; fVecM[5][2] =-1.;
+  fVecM[3][0] = 0.; fVecM[3][1] = 1.; fVecM[3][2] =-1.;
+  fVecM[4][0] = 1.; fVecM[4][1] = 0.; fVecM[4][2] = 1.;
+  fVecM[5][0] = 1.; fVecM[5][1] = 1.; fVecM[5][2] = 0.;
 
-  fVecM[6][0] = 1.; fVecM[6][1] =-1.; fVecM[6][2] = 1.;
-  fVecM[7][0] = 1.; fVecM[7][1] =-1.; fVecM[7][2] = 1.;
-  fVecM[8][0] = 1.; fVecM[8][1] =-1.; fVecM[8][2] = 1.;
+  fVecM[6][0] = 0.; fVecM[6][1] = 1.; fVecM[6][2] = 1.;
+  fVecM[7][0] = 1.; fVecM[7][1] = 0.; fVecM[7][2] =-1.;
+  fVecM[8][0] = 1.; fVecM[8][1] = 1.; fVecM[8][2] = 0.;
 
-  fVecM[ 9][0] = 1.; fVecM[ 9][1] = 1.; fVecM[ 9][2] = 1.;
-  fVecM[10][0] = 1.; fVecM[10][1] = 1.; fVecM[10][2] = 1.;
-  fVecM[11][0] = 1.; fVecM[11][1] = 1.; fVecM[11][2] = 1.;
+  fVecM[ 9][0] = 0.; fVecM[ 9][1] = 1.; fVecM[ 9][2] =-1.;
+  fVecM[10][0] = 1.; fVecM[10][1] = 0.; fVecM[10][2] =-1.;
+  fVecM[11][0] = 1.; fVecM[11][1] =-1.; fVecM[11][2] = 0.;
 
   // Miller indices tangent to the slip plane
-  fVecS[0][0] = 0.; fVecS[0][1] = 1.; fVecS[0][2] = 1.;
-  fVecS[1][0] = 1.; fVecS[1][1] = 0.; fVecS[1][2] = 1.;
-  fVecS[2][0] = 1.; fVecS[2][1] =-1.; fVecS[2][2] = 0.;
+  fVecS[0][0] = 1.; fVecS[0][1] = 1.; fVecS[0][2] =-1.;
+  fVecS[1][0] = 1.; fVecS[1][1] = 1.; fVecS[1][2] =-1.;
+  fVecS[2][0] = 1.; fVecS[2][1] = 1.; fVecS[2][2] =-1.;
 
-  fVecS[3][0] = 0.; fVecS[3][1] = 1.; fVecS[3][2] =-1.;
-  fVecS[4][0] = 1.; fVecS[4][1] = 0.; fVecS[4][2] = 1.;
-  fVecS[5][0] = 1.; fVecS[5][1] = 1.; fVecS[5][2] = 0.;
+  fVecS[3][0] = 1.; fVecS[3][1] =-1.; fVecS[3][2] =-1.;
+  fVecS[4][0] = 1.; fVecS[4][1] =-1.; fVecS[4][2] =-1.;
+  fVecS[5][0] = 1.; fVecS[5][1] =-1.; fVecS[5][2] =-1.;
 
-  fVecS[6][0] = 0.; fVecS[6][1] = 1.; fVecS[6][2] = 1.;
-  fVecS[7][0] = 1.; fVecS[7][1] = 0.; fVecS[7][2] =-1.;
-  fVecS[8][0] = 1.; fVecS[8][1] = 1.; fVecS[8][2] = 0.;
+  fVecS[6][0] = 1.; fVecS[6][1] =-1.; fVecS[6][2] = 1.;
+  fVecS[7][0] = 1.; fVecS[7][1] =-1.; fVecS[7][2] = 1.;
+  fVecS[8][0] = 1.; fVecS[8][1] =-1.; fVecS[8][2] = 1.;
 
   fVecS[ 9][0] = 1.; fVecS[ 9][1] = 1.; fVecS[ 9][2] = 1.;
   fVecS[10][0] = 1.; fVecS[10][1] = 1.; fVecS[10][2] = 1.;
@@ -217,34 +218,34 @@ void HCPGeometry::SetSlipVectors()
     throwRunTimeError("HCPGeometry::SetSlipVectors: NumSlip != 12");
 
   // ...
-  fVecM[0][0] = 1.; fVecM[0][1] = 1.; fVecM[0][2] =-1.;
-  fVecM[1][0] = 1.; fVecM[1][1] = 1.; fVecM[1][2] =-1.;
-  fVecM[2][0] = 1.; fVecM[2][1] = 1.; fVecM[2][2] =-1.;
+  fVecM[0][0] = 2.; fVecM[0][1] =-1.; fVecM[0][2] = 1.;
+  fVecM[1][0] = 1.; fVecM[1][1] = 2.; fVecM[1][2] =-1.;
+  fVecM[2][0] = 1.; fVecM[2][1] = 1.; fVecM[2][2] = 2.;
 
-  fVecM[3][0] = 1.; fVecM[3][1] =-1.; fVecM[3][2] =-1.;
-  fVecM[4][0] = 1.; fVecM[4][1] =-1.; fVecM[4][2] =-1.;
-  fVecM[5][0] = 1.; fVecM[5][1] =-1.; fVecM[5][2] =-1.;
+  fVecM[3][0] = 2.; fVecM[3][1] = 1.; fVecM[3][2] = 1.;
+  fVecM[4][0] = 1.; fVecM[4][1] = 2.; fVecM[4][2] =-1.;
+  fVecM[5][0] = 1.; fVecM[5][1] =-1.; fVecM[5][2] = 2.;
 
-  fVecM[6][0] = 1.; fVecM[6][1] =-1.; fVecM[6][2] = 1.;
-  fVecM[7][0] = 1.; fVecM[7][1] =-1.; fVecM[7][2] = 1.;
-  fVecM[8][0] = 1.; fVecM[8][1] =-1.; fVecM[8][2] = 1.;
+  fVecM[6][0] = 2.; fVecM[6][1] = 1.; fVecM[6][2] =-1.;
+  fVecM[7][0] = 1.; fVecM[7][1] = 2.; fVecM[7][2] = 1.;
+  fVecM[8][0] = 1.; fVecM[8][1] =-1.; fVecM[8][2] =-2.;
 
-  fVecM[ 9][0] = 1.; fVecM[ 9][1] = 1.; fVecM[ 9][2] = 1.;
-  fVecM[10][0] = 1.; fVecM[10][1] = 1.; fVecM[10][2] = 1.;
-  fVecM[11][0] = 1.; fVecM[11][1] = 1.; fVecM[11][2] = 1.;
+  fVecM[ 9][0] = 2.; fVecM[ 9][1] =-1.; fVecM[ 9][2] =-1.;
+  fVecM[10][0] = 1.; fVecM[10][1] =-2.; fVecM[10][2] = 1.;
+  fVecM[11][0] = 1.; fVecM[11][1] = 1.; fVecM[11][2] =-2.;
 
   // ...
-  fVecS[0][0] = 0.; fVecS[0][1] = 1.; fVecS[0][2] = 1.;
-  fVecS[1][0] = 1.; fVecS[1][1] = 0.; fVecS[1][2] = 1.;
-  fVecS[2][0] = 1.; fVecS[2][1] =-1.; fVecS[2][2] = 0.;
+  fVecS[0][0] = 1.; fVecS[0][1] = 1.; fVecS[0][2] =-1.;
+  fVecS[1][0] = 1.; fVecS[1][1] = 1.; fVecS[1][2] =-1.;
+  fVecS[2][0] = 1.; fVecS[2][1] = 1.; fVecS[2][2] =-1.;
 
-  fVecS[3][0] = 0.; fVecS[3][1] = 1.; fVecS[3][2] =-1.;
-  fVecS[4][0] = 1.; fVecS[4][1] = 0.; fVecS[4][2] = 1.;
-  fVecS[5][0] = 1.; fVecS[5][1] = 1.; fVecS[5][2] = 0.;
+  fVecS[3][0] = 1.; fVecS[3][1] =-1.; fVecS[3][2] =-1.;
+  fVecS[4][0] = 1.; fVecS[4][1] =-1; fVecS[4][2]  =-1.;
+  fVecS[5][0] = 1.; fVecS[5][1] =-1.; fVecS[5][2] =-1.;
 
-  fVecS[6][0] = 0.; fVecS[6][1] = 1.; fVecS[6][2] = 1.;
-  fVecS[7][0] = 1.; fVecS[7][1] = 0.; fVecS[7][2] =-1.;
-  fVecS[8][0] = 1.; fVecS[8][1] = 1.; fVecS[8][2] = 0.;
+  fVecS[6][0] = 1.; fVecS[6][1] =-1.; fVecS[6][2] = 1.;
+  fVecS[7][0] = 1.; fVecS[7][1] =-1.; fVecS[7][2] = 1.;
+  fVecS[8][0] = 1.; fVecS[8][1] =-1.; fVecS[8][2] = 1.;
 
   fVecS[ 9][0] = 1.; fVecS[ 9][1] = 1.; fVecS[ 9][2] = 1.;
   fVecS[10][0] = 1.; fVecS[10][1] = 1.; fVecS[10][2] = 1.;
@@ -343,3 +344,91 @@ void FCCGeometry24::SetSlipVectors()
   fVecS[22][0] =-1.; fVecS[22][1] = 0.; fVecS[22][2] = 1.;
   fVecS[23][0] =-1.; fVecS[23][1] = 1.; fVecS[23][2] = 0.;
 }
+
+/* Derived Class PEGeometry 
+ according to Aurelie Azoug's notes*/
+PEGeometry::PEGeometry():
+SlipGeometry(kSlipPE)
+{
+    // set Miller indices for HCP
+    SetSlipVectors();
+    
+    // compute slip system quantities
+    InitializeSlipQnts();
+}
+
+PEGeometry::~PEGeometry() {}
+
+void PEGeometry::PrintName(ostream& out) const
+{
+    //print crystal structure type
+    out << "    Polyethylene crystal structure\n";
+}
+
+void PEGeometry::SetSlipVectors()
+{
+    // check for bad input value
+    if (fNumSlip != kSlipPE)
+        throwRunTimeError("PEGeometry::SetSlipVectors: NumSlip != 9");
+    
+    // ...permutated From Aurelie's slides
+    fVecM[0][0] = 0.; fVecM[0][1] = 0.; fVecM[0][2] =1.;    /*A*/
+    fVecM[1][0] = 1.; fVecM[1][1] = 0.; fVecM[1][2] =0.;    /*B*/ /*Crystal chain slip*/
+    fVecM[2][0] = 1.; fVecM[2][1] = 0.; fVecM[2][2] =1.;    /*C*/
+    
+    fVecM[3][0] = 0.; fVecM[3][1] =0.; fVecM[3][2] =1.;     /*D*/
+    fVecM[4][0] = 1.; fVecM[4][1] =0.; fVecM[4][2] =0.;     /*E*/   /*Crystal transverse slip*/
+    fVecM[5][0] = 1.; fVecM[5][1] =0.; fVecM[5][2] =1.;     /*F*/
+    
+    fVecM[6][0] = 0.; fVecM[6][1] =1.; fVecM[6][2] = 0.;    /*K*/   /*Kink Bands*/
+    fVecM[7][0] = 0.; fVecM[7][1] =1.; fVecM[7][2] = 0.;    /*K*/
+    
+    fVecM[8][0] = 0.; fVecM[8][1] =1.; fVecM[8][2] = 0.;    /*Chain Pull*/
+    
+    // ...
+    fVecS[0][0] = 0.; fVecS[0][1] = 1.; fVecS[0][2] = 0.;
+    fVecS[1][0] = 0.; fVecS[1][1] = 1.; fVecS[1][2] = 0.;
+    fVecS[2][0] = 0.; fVecS[2][1] = 1.; fVecS[2][2] = 0.;
+    
+    fVecS[3][0] = 1.; fVecS[3][1] = 0.; fVecS[3][2] = 0.;
+    fVecS[4][0] = 0.; fVecS[4][1] = 0.; fVecS[4][2] = 1.;
+    fVecS[5][0] = -1.; fVecS[5][1] = 0.; fVecS[5][2] = 1.;
+    
+    fVecS[6][0] = 0.; fVecS[6][1] = 0.; fVecS[6][2] = 1.;
+    fVecS[7][0] = 1.; fVecS[7][1] = 0.; fVecS[7][2] = 0.;
+    
+    fVecS[8][0] = 0.; fVecS[8][1] = 1.; fVecS[8][2] = 0.;
+
+    
+    
+#if (0)
+    // ...From Aurelie's slides
+    fVecM[0][0] = 1.; fVecM[0][1] = 0.; fVecM[0][2] =0.;    /*A*/
+    fVecM[1][0] = 0.; fVecM[1][1] = 1.; fVecM[1][2] =0.;    /*B*/ /*Crystal chain slip*/
+    fVecM[2][0] = 1.; fVecM[2][1] = 1.; fVecM[2][2] =0.;    /*C*/
+    
+    fVecM[3][0] = 1.; fVecM[3][1] =0.; fVecM[3][2] =0.;     /*D*/
+    fVecM[4][0] = 0.; fVecM[4][1] =1.; fVecM[4][2] =0.;     /*E*/   /*Crystal transverse slip*/
+    fVecM[5][0] = 1.; fVecM[5][1] =1.; fVecM[5][2] =0.;     /*F*/
+    
+    fVecM[6][0] = 0.; fVecM[6][1] =0.; fVecM[6][2] = 1.;    /*K*/   /*Kink Bands*/
+    fVecM[7][0] = 0.; fVecM[7][1] =0.; fVecM[7][2] = 1.;    /*K*/
+    
+    fVecM[8][0] = 0.; fVecM[8][1] =0.; fVecM[8][2] = 1.;    /*Chain Pull*/
+    
+    // ...
+    fVecS[0][0] = 0.; fVecS[0][1] = 0.; fVecS[0][2] = 1.;
+    fVecS[1][0] = 0.; fVecS[1][1] = 0.; fVecS[1][2] = 1.;
+    fVecS[2][0] = 0.; fVecS[2][1] = 0.; fVecS[2][2] = 1.;
+    
+    fVecS[3][0] = 0.; fVecS[3][1] = 1.; fVecS[3][2] = 0.;
+    fVecS[4][0] = 1.; fVecS[4][1] = 0.; fVecS[4][2] = 0.;
+    fVecS[5][0] = 1.; fVecS[5][1] = -1.; fVecS[5][2] = 0.;
+    
+    fVecS[6][0] = 1.; fVecS[6][1] = 0.; fVecS[6][2] = 0.;
+    fVecS[7][0] = 0.; fVecS[7][1] = 1.; fVecS[7][2] = 0.;
+    
+    fVecS[8][0] = 0.; fVecS[8][1] = 0.; fVecS[8][2] = 1.;
+#endif
+}
+

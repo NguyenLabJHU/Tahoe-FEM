@@ -34,7 +34,7 @@ void SlipHardening::SetHardeningSolver(ifstreamT& in, int numvar)
 {
   int ksolve;
   in >> ksolve;
-
+ //   cout << "\nsolver type: "<<ksolve;
   switch(ksolve)
     {
       // Newton's method + line search
@@ -55,6 +55,8 @@ void SlipHardening::SetHardeningSolver(ifstreamT& in, int numvar)
   // modify some default values of solver
   int maxiter;
   in >> maxiter;
+//    cout << "\nmax iter: "<<maxiter;
+
   fSolver->SetMaxIterations(maxiter);
 
   double functol;
@@ -63,6 +65,7 @@ void SlipHardening::SetHardeningSolver(ifstreamT& in, int numvar)
 
   double gradtol;
   in >> gradtol;
+//    cout << "\ngradtol: "<<gradtol;
   fSolver->SetGradTol(gradtol);
 }
 
