@@ -1,4 +1,4 @@
-/* $Id: BoyceViscoPlasticity.cpp,v 1.12 2016-07-19 13:51:33 tdnguye Exp $ */
+/* $Id: BoyceViscoPlasticity.cpp,v 1.13 2016-07-19 13:54:50 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "BoyceViscoPlasticity.h"
@@ -320,9 +320,6 @@ const dMatrixT& BoyceViscoPlasticity::c_ijkl(void)
 	}
 	else fModulus = fModulus3D;
 
-    cout << "\nfModulus3D: "<<fModulus3D;
-    cout << "\nfModulus: "<<fModulus<<endl;;
-
 	const dMatrixT& Ftotal = F_total();
 	fModulus *= 1.0/Ftotal.Det();
 
@@ -361,10 +358,8 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
 		fEigs_e = fSpectralDecompSpat.Eigenvalues();
 		const ArrayT<dArrayT>& eigenvectors_e=fSpectralDecompSpat.Eigenvectors();
 
-		cout << "\nF: "<<F;
 		/*calc elastic stretch tensor*/
 		ComputeEigs_e(fEigs, fEigs_e);
-		cout << "\nfEigs_e: "<<fEigs_e;
 
 		const double le0 = fEigs_e[0];
 		const double le1 = fEigs_e[1];
@@ -378,7 +373,6 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
 		fEigs_Stress[0] = fmu*Je23*(le0-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
 		fEigs_Stress[1] = fmu*Je23*(le1-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
 		fEigs_Stress[2] = fmu*Je23*(le2-leb) + 0.5*fkappa*(le0*le1*le2 - 1.0);
-        cout << "\nfEigs_Stress: "<<fEigs_Stress;
 
 		/*calculate Fv_n+1*/
 		fEigs_e[0] = sqrt(fEigs_e[0]);
@@ -428,8 +422,7 @@ const dSymMatrixT& BoyceViscoPlasticity::s_ij(void)
         fStress[2] = fStress3D[5];
     }
     else fStress = fStress3D;
-	cout <<"\nstress: "<<fStress<<endl;
-	const dMatrixT& Ftotal = F_total();	
+	const dMatrixT& Ftotal = F_total();
     fStress *= 1.0/Ftotal.Det();
 	return fStress;
 }
@@ -1029,12 +1022,10 @@ void BoyceViscoPlasticity::Initialize(void)
 }
 void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
-    cout <<"\nJere0"<<endl;
 	const char caller[] = "BoyceViscoPlasticity::Compute_Calg";
 	if(fIntegration == BoyceBaseT::kImplicit)
 	{
 		fexplicit = ComputeEigs_e_Implicit(eigenstretch, eigenstretch_e);
-        cout << "\nfexplicit: "<<fexplicit;
 		if(fexplicit)
 			fexplicit = ComputeEigs_e_Explicit(eigenstretch, eigenstretch_e); 
 	}
@@ -1046,7 +1037,6 @@ void BoyceViscoPlasticity::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& e
 
 bool BoyceViscoPlasticity::ComputeEigs_e_Explicit(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
-    cout <<"\nJereE"<<endl;
 	const double l0 = eigenstretch[0];
 	const double l1 = eigenstretch[1];		
 	const double l2 = eigenstretch[2];		
@@ -1123,7 +1113,6 @@ bool BoyceViscoPlasticity::ComputeEigs_e_Explicit(const dArrayT& eigenstretch, d
 bool BoyceViscoPlasticity::ComputeEigs_e_Implicit(const dArrayT& eigenstretch, dArrayT& eigenstretch_e) 
 {		
 	const double ctol = 1.00e-10;
-    cout <<"\nJere"<<endl;
 	
 	const double l0 = eigenstretch[0];		
 	const double l1 = eigenstretch[1];		
@@ -1197,7 +1186,6 @@ bool BoyceViscoPlasticity::ComputeEigs_e_Implicit(const dArrayT& eigenstretch, d
 	fRes[2] = ep_e2 + dt*f*Te2 - ep_tr2;
 	fRes[3] = s - dt*g - s_n;
 	double tol = sqrt(fRes[0]*fRes[0] + fRes[1]*fRes[1] + fRes[2]*fRes[2] + fRes[3]*fRes[3]);
-    cout << "\ntol"<<tol;
 
 
 	int iteration  = 0;
@@ -1352,7 +1340,6 @@ bool BoyceViscoPlasticity::ComputeEigs_e_Implicit(const dArrayT& eigenstretch, d
 
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(fRes[0]*fRes[0] + fRes[1]*fRes[1] + fRes[2]*fRes[2] + fRes[3]*fRes[3]);
-        cout << "\ntol"<<tol<<endl;
 
 	}
 	if (iteration >= max_iteration)
@@ -1371,7 +1358,6 @@ bool BoyceViscoPlasticity::ComputeEigs_e_Implicit(const dArrayT& eigenstretch, d
 dMatrixT BoyceViscoPlasticity::DefGrad(void)
 {
 	const dMatrixT& F = F_mechanical();
-    cout << "\nF_mech: "<<F;
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
