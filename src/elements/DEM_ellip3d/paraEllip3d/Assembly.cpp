@@ -39,7 +39,7 @@
 #include <sys/time.h>
 #include <omp.h>
 
-//#define BINNING
+#define BIGON
 //#define DEM_PROFILE
 //#define CFD_PROFILE
 #define MODULE_TIME
@@ -3575,7 +3575,7 @@ namespace dem {
     ofs.close();
   }
 
-
+#ifndef BIGON
   void Assembly::findContact() { // various implementations
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 
@@ -3657,6 +3657,158 @@ namespace dem {
 
   }
 
+// else of #ifndef BIGON
+#else
+  void Assembly::findContact() { 
+  // 1. Binning methods, cell slightly larger than maximum particle.
+  // 2. To work with parallelization, mergeParticleVec and an expanded/virtual container must be used to account for 
+  //    particles received from other processes.
+  // 3. updateParticle() only updates particleVec, not mergeParticleVec. 
+    contactVec.clear();
+  
+#ifdef DEM_PROFILE
+    REAL time_r = 0;
+    gettimeofday(&time_p1,NULL); 
+#endif
+    REAL cellSize = gradation.getPtclMaxRadius() * 2.0;
+    Rectangle virtualContainer(container.getMinCorner() - Vec(cellSize), container.getMaxCorner() + Vec(cellSize));
+    int  nx = floor (virtualContainer.getDimx() / cellSize);
+    int  ny = floor (virtualContainer.getDimy() / cellSize);
+    int  nz = floor (virtualContainer.getDimz() / cellSize);
+    REAL dx = virtualContainer.getDimx() / nx;
+    REAL dy = virtualContainer.getDimy() / ny;
+    REAL dz = virtualContainer.getDimz() / nz;
+    Vec  minCorner= virtualContainer.getMinCorner();
+    REAL x0 = minCorner.getX();
+    REAL y0 = minCorner.getY();
+    REAL z0 = minCorner.getZ();
+    // debugInf << "nx ny nz dx dy dz=" << " " << nx << " " << ny << " " << nz << " " << dx << " " << dy << " " << dz << std::endl;
+    
+    // 26 neighbors of each cell
+    int neighbor[26][3];
+    int count = 0;
+    for (int i = -1; i < 2; ++i)
+      for (int j = -1; j < 2; ++j)
+	for (int k = -1; k < 2; ++k) {
+	  if (! (i == 0 && j == 0 && k == 0 ) ) {
+	    neighbor[count][0] = i;
+	    neighbor[count][1] = j;
+	    neighbor[count][2] = k;
+	    ++count;
+	  }
+	}
+ 
+    // 4-dimensional array of cellVec
+    typedef std::pair<bool, std::vector<Particle*> > cellT;
+    std::vector< std::vector< std::vector < cellT > > > cellVec;
+    cellVec.resize(nx);
+    for (int i = 0; i < cellVec.size(); ++i) {
+      cellVec[i].resize(ny);
+      for (int j = 0; j < cellVec[i].size(); ++j)
+	cellVec[i][j].resize(nz);
+    }
+    // mark each cell as not searched
+    for (int i = 0; i < nx; ++i)
+      for (int j = 0; j < ny; ++j)
+	for (int k = 0; k < nz; ++k)
+	  cellVec[i][j][k].first = false; // has not ever been searched
+
+    // find particles in each cell
+    REAL x1, x2, y1, y2, z1, z2;
+    for (int i = 0; i < nx; ++i)
+      for (int j = 0; j < ny; ++j)
+	for (int k = 0; k < nz; ++k) {
+	  x1 = x0 + dx * i;
+	  x2 = x0 + dx * (i + 1);
+	  y1 = y0 + dy * j;
+	  y2 = y0 + dy * (j + 1);
+	  z1 = z0 + dz * k;
+	  z2 = z0 + dz * (k + 1);
+	  for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
+	    Vec center = mergeParticleVec[pt]->getCurrPos();
+	    if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
+		center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
+		center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS)
+	      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] );
+	  }
+	}
+  
+    // for each cell
+    Particle *it, *pt;
+    Vec u, v;
+    for (int i = 0; i < nx; ++i)
+      for (int j = 0; j < ny; ++j)
+	for (int k = 0; k < nz; ++k) {
+
+	  // for particles inside the cell	  
+	  for (int m = 0; m < cellVec[i][j][k].second.size(); ++m) {
+	    it = cellVec[i][j][k].second[m];
+	    u  = it->getCurrPos();
+	  
+	    // for particles inside the cell itself   
+	    for (int n = m + 1; n < cellVec[i][j][k].second.size(); ++n) {
+	      //debugInf <<  i << " " << j << " " << k << " " << "m n size=" << m << " " << n << " " <<  cellVec[i][j][k].size() << std::endl;
+	      pt = cellVec[i][j][k].second[n];
+	      v  = pt->getCurrPos();
+	      if ( ( vfabs(u-v) < it->getA() + pt->getA() )  &&
+		   ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
+		   ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
+		   ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
+		Contact tmpContact(it, pt); // a local and temparory object
+#ifdef DEM_PROFILE
+		gettimeofday(&time_r1,NULL); 
+#endif
+		if(tmpContact.isOverlapped())
+		  contactVec.push_back(tmpContact);   // containers use value semantics, so a "copy" is pushed back.
+#ifdef DEM_PROFILE
+		gettimeofday(&time_r2,NULL); 
+		time_r += timediffsec(time_r1, time_r2);
+#endif
+	      }
+	    }
+	  
+	    // for 26 neighboring cells
+	    for (int ncell = 0; ncell < 26; ++ncell ) {
+	      int ci = i + neighbor[ncell][0];
+	      int cj = j + neighbor[ncell][1];
+	      int ck = k + neighbor[ncell][2];
+	      if (ci > -1 && ci < nx && cj > -1 && cj < ny && ck > -1 && ck < nz && cellVec[ci][cj][ck].first == false ) {
+		//debugInf << "i j k m ncell ci cj ck size contacts= " << i << " " << j << " " << k << " " << m  << " " << ncell << " " << ci << " " << cj << " " << ck << " " << cellVec[ci][cj][ck].second.size() << " "  << contactVec.size() << std::endl;
+		std::vector<Particle*> vt = cellVec[ci][cj][ck].second;
+		for (int n = 0; n < vt.size(); ++n) {
+		  pt = vt[n];
+		  v  = pt->getCurrPos();
+		  if ( ( vfabs(u-v) < it->getA() + pt->getA() )  &&
+		       ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
+		       ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
+		       ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
+		    Contact tmpContact(it, pt); // a local and temparory object
+#ifdef DEM_PROFILE
+		    gettimeofday(&time_r1,NULL); 
+#endif
+		    if(tmpContact.isOverlapped())
+		      contactVec.push_back(tmpContact);   // containers use value semantics, so a "copy" is pushed back.
+#ifdef DEM_PROFILE
+		    gettimeofday(&time_r2,NULL); 
+		    time_r += timediffsec(time_r1, time_r2);
+#endif
+		  
+		  }
+		}
+	      }
+	    }
+	  }
+
+	  cellVec[i][j][k].first = true; // searched, will not be searched again. Note this marks the cell itself, not the neighbors.
+	}
+  
+#ifdef DEM_PROFILE
+    gettimeofday(&time_p2,NULL);
+    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
+#endif
+  }
+#endif
+// else of #ifndef BIGON
 
   void Assembly::internalForce(){
     REAL pAvg[3], sum[3];
@@ -5084,8 +5236,8 @@ debugfile);         // output file, debug info
    int  ny = floor (container.getDimy() / maxDiameter);
    int  nz = floor (container.getDimz() *1.5 / maxDiameter);
    REAL dx = container.getDimx() / nx;
-   REAL dy = container.getDimx() / ny;
-   REAL dz = container.getDimx() *1.5 / nz;
+   REAL dy = container.getDimy() / ny;
+   REAL dz = container.getDimz() *1.5 / nz;
    Vec  minCorner= container.getMinCorner();
    REAL x0 = minCorner.getX();
    REAL y0 = minCorner.getY();
