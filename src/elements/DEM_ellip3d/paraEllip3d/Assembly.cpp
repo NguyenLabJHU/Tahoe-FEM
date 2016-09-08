@@ -59,8 +59,8 @@ static double papi_gettime() {
   return (double)PAPI_get_virt_usec()/1000000.0;
 }
 #if defined PAPI_FLOPS
- #define NUM_EVENTS 2
- #define LLD " PAPI_FP_OPS: %15lld\n MFLOPS: 15%f\n PAPI_L3_TCM: %15lld\n"
+ #define NUM_EVENTS 3
+ #define LLD " PAPI_FP_OPS: %15lld\n MFLOPS: 15%f\n PAPI_L3_TCM: %15lld\n PAPI_MEM_SCY: %15lld\n"
 #elif defined PAPI_CACHE
  #define NUM_EVENTS 3
  #define LLD " PAPI_L3_TCM: %15lld\n PAPI_L2_TCM: %15lld\n PAPI_L1_TCM %15lld\n"
@@ -315,7 +315,7 @@ namespace dem {
 
 #ifdef PAPI
 #if defined PAPI_FLOPS
-    int Events[NUM_EVENTS] = {PAPI_FP_OPS, PAPI_L3_TCM};
+    int Events[NUM_EVENTS] = {PAPI_FP_OPS, PAPI_L3_TCM, PAPI_MEM_SCY};
 #elif defined PAPI_CACHE
     int Events[NUM_EVENTS] = {PAPI_L3_TCM, PAPI_L2_TCM, PAPI_L1_TCM};
 #endif
@@ -419,7 +419,7 @@ namespace dem {
     } else {
       papi_t1 = papi_gettime();
 #if defined PAPI_FLOPS
-      printf(LLD, values[0], (double)values[0]/1000000.0/(papi_t1-papi_t0), values[1]); fflush(stdout);
+      printf(LLD, values[0], (double)values[0]/1000000.0/(papi_t1-papi_t0), values[1], values[2]); fflush(stdout);
 #elif defined PAPI_CACHE
       printf(LLD, values[0], values[1], values[2]); fflush(stdout);
 #endif
