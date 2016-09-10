@@ -3713,6 +3713,9 @@ namespace dem {
 	for (int k = 0; k < nz; ++k)
 	  cellVec[i][j][k].first = false; // has not ever been searched
 
+    // mark each mergeParticle as not assigned
+    std::vector<bool> mergeParticleVecFlag(mergeParticleVec.size(), false);
+
     // find particles in each cell
     REAL x1, x2, y1, y2, z1, z2;
     for (int i = 0; i < nx; ++i)
@@ -3726,10 +3729,13 @@ namespace dem {
 	  z2 = z0 + dz * (k + 1);
 	  for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
 	    Vec center = mergeParticleVec[pt]->getCurrPos();
-	    if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
+	    if (!mergeParticleVecFlag[pt] &&
+		center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
 		center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
-		center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS)
+		center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) {
 	      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] );
+	      mergeParticleVecFlag[pt] = true;
+	    }
 	  }
 	}
   
