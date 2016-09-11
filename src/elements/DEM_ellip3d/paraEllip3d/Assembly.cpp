@@ -3671,6 +3671,8 @@ namespace dem {
     gettimeofday(&time_p1,NULL); 
 #endif
     REAL cellSize = gradation.getPtclMaxRadius() * 2.0;
+    // be aware that a virtualContainer gets unnecessary halo layers for boundary processes in parallel computing,
+    // but it does not affect numerical results.
     Rectangle virtualContainer(container.getMinCorner() - Vec(cellSize), container.getMaxCorner() + Vec(cellSize));
     int  nx = floor (virtualContainer.getDimx() / cellSize);
     int  ny = floor (virtualContainer.getDimy() / cellSize);
@@ -3678,7 +3680,7 @@ namespace dem {
     REAL dx = virtualContainer.getDimx() / nx;
     REAL dy = virtualContainer.getDimy() / ny;
     REAL dz = virtualContainer.getDimz() / nz;
-    Vec  minCorner= virtualContainer.getMinCorner();
+    Vec  minCorner = virtualContainer.getMinCorner();
     REAL x0 = minCorner.getX();
     REAL y0 = minCorner.getY();
     REAL z0 = minCorner.getZ();
@@ -3713,10 +3715,26 @@ namespace dem {
 	for (int k = 0; k < nz; ++k)
 	  cellVec[i][j][k].first = false; // has not ever been searched
 
-    // mark each mergeParticle as not assigned
-    std::vector<bool> mergeParticleVecFlag(mergeParticleVec.size(), false);
+    // assign particles to each cell, this is O(n) algorithm
+    for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
+      Vec center = mergeParticleVec[pt]->getCurrPos();
+      int i = floor((center.getX()-x0) / dx);
+      int j = floor((center.getY()-y0) / dy);
+      int k = floor((center.getZ()-z0) / dz);    
+      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] ); // i, j, k guaranteed not out of range
+    }
+    /* ensure no particles are missed
+    int totalPtcl = 0;
+    for (int i = 0; i < nx; ++i)
+      for (int j = 0; j < ny; ++j)
+	for (int k = 0; k < nz; ++k) {
+	  totalPtcl += cellVec[i][j][k].second.size();
+	}
+    debugInf << "particle: input = " << mergeParticleVec.size() << " assigned = " << totalPtcl << std::endl;
+    */
 
-    // find particles in each cell
+    /* this is actually a low efficiency O(n^2) algorithm, not recommended.
+    std::vector<bool> mergeParticleVecFlag(mergeParticleVec.size(), false);
     REAL x1, x2, y1, y2, z1, z2;
     for (int i = 0; i < nx; ++i)
       for (int j = 0; j < ny; ++j)
@@ -3738,7 +3756,8 @@ namespace dem {
 	    }
 	  }
 	}
-  
+    */
+
     // for each cell
     Particle *it, *pt;
     Vec u, v;
