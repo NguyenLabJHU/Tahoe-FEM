@@ -3715,6 +3715,10 @@ namespace dem {
 	for (int k = 0; k < nz; ++k)
 	  cellVec[i][j][k].first = false; // has not ever been searched
 
+#ifdef DEM_PROFILE
+    static struct timeval time_p11;
+    gettimeofday(&time_p11,NULL); 
+#endif
     // assign particles to each cell, this is O(n) algorithm
     for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
       Vec center = mergeParticleVec[pt]->getCurrPos();
@@ -3732,6 +3736,10 @@ namespace dem {
 	}
     debugInf << "particle: input = " << mergeParticleVec.size() << " assigned = " << totalPtcl << std::endl;
     */
+#ifdef DEM_PROFILE
+    static struct timeval time_p22;
+    gettimeofday(&time_p22,NULL); 
+#endif
 
     /* this is actually a low efficiency O(n^2) algorithm, not recommended.
     std::vector<bool> mergeParticleVecFlag(mergeParticleVec.size(), false);
@@ -3829,7 +3837,9 @@ namespace dem {
   
 #ifdef DEM_PROFILE
     gettimeofday(&time_p2,NULL);
-    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r; 
+    debugInf << std::setw(OWID) << "findContact=" << std::setw(OWID) << timediffsec(time_p1, time_p2)
+	     << std::setw(OWID) << "initialize=" << std::setw(OWID) << timediffsec(time_p1, time_p11) << std::setw(OWID) << "assigning=" << std::setw(OWID) <<  timediffsec(time_p11, time_p22)
+	     << std::setw(OWID) << "searching=" << std::setw(OWID) << timediffsec(time_p22, time_p2) - time_r  << std::setw(OWID) << "isOverlapped=" << std::setw(OWID) << time_r;
 #endif
   }
 #endif
