@@ -38,6 +38,10 @@ double PowerLawIKinetics::Phi(double tau, int is)
 {
   // compute Phi
   double tauIso = fHard.IsoHardeningStress(is);
+ 
+//    cout << "\ntauIso: "<< is << "\t"<<tauIso;
+    
+
 //  double qnt = pow(fabs(tau)/tauIso, 1./fMatProp[0]-1.);
 //  double qnt = exp( (1./fMatProp[0]-1.)*log(fabs(tau)/tauIso) );
 

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.23 2016-07-15 13:07:10 tdnguye Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.24 2016-09-13 03:32:13 tdnguye Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -30,8 +30,8 @@ const int kNSD = 3;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 24; //Assume 12 slip systems.  Some lattice models will have fewer.
-static const char* Labels[kNumOutput] = {"VM_stress", "abs_dg", "dg","Fp11","Fp12", "Fp13","Fp21","Fp22", "Fp23","Fp31","Fp32","Fp33",
+const int kNumOutput = 21; //Assume 12 slip systems.  Some lattice models will have fewer.
+static const char* Labels[kNumOutput] = {"VM_stress", "abs_dg", "dg","Cp11","Cp22", "Cp33","Cp23","Cp13", "Cp12",
 "dgamma1","dgamma2","dgamma3","dgamma4","dgamma5","dgamma6","dgamma7","dgamma8","dgamma9","dgamma10","dgamma11","dgamma12", };
 
 
@@ -106,8 +106,12 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
       // total deformation gradients
       Compute_Ftot_last_3D(fFtot_n);
       Compute_Ftot_3D(fFtot);
-
-//	cout << "\nF: "<<fFtot;
+        if (CurrIP()==0 && CurrElementNumber()==0 && 0)
+        {
+            cout <<"\n: sij fFtot"<<fFtot;
+            cout <<"\n: sij fFtot_n"<<fFtot_n;
+            cout << "\n: sij fFp_n: "<<fFp_n;
+        }
 
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{
@@ -132,12 +136,13 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
               fFSMatSupport->IterationNumber() <= -1)
 	     {
 	       // defomation gradient
-               fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
+/* TDN
+        fMatx1.SetToCombination(1., fFtot, -1., fFtot_n);
 	       fFt.SetToCombination(1., fFtot_n, 100.0 / 100.0, fMatx1);
-//			cout << "\nfFt: "<<fFt;
+ */
+             fFt = fFtot;
 	       // elastic tensors
                fFpi.Inverse(fFp_n);
-//			cout << "\nfFpi: "<<fFpi;
 	       fFe.MultAB(fFt, fFpi);
 	       fCeBar.MultATA(fFe);
 
@@ -159,6 +164,10 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
            }
 	       // compute crystal state
 	       SolveCrystalState();
+                 if (CurrIP()==0 && CurrElementNumber()==0 && 0)
+                 {
+                     cout << "\n: sij fFp: "<<fFp;
+                 }
 	  
      	       // compute crystal Cauchy stress
 	       CrystalS_ij();
@@ -170,6 +179,17 @@ const dSymMatrixT& LocalCrystalPlastFp::s_ij()
 	  // add stress and moduli to corresponding averaged quantities
 	  fsavg_ij.AddScaled(1./fNumGrain, fs_ij);
 	  //fcavg_ijkl.AddScaled(1./fNumGrain, fc_ijkl); // **do not use for LS**
+        int check=0;
+        for (int i =0; i < fsavg_ij.Length(); i++)
+                if(isnan(fsavg_ij[i]) )
+                    check=1;
+        
+        if (check==1)
+        {
+            cout << "\nCurrElm and CurrIP: "<<CurrElementNumber()<<"\t"<<CurrIP();
+            cout << "\n: sij fFp: "<<fFp;
+            cout << "\n: sij fsavg_ij: "<<fsavg_ij;
+        }
 	}
     }
 
@@ -237,6 +257,17 @@ const dMatrixT& LocalCrystalPlastFp::c_ijkl()
 
 	// add moduli to corresponding averaged quantities
 	fcavg_ijkl.AddScaled(1./fNumGrain, fc_ijkl);
+         int check=0;
+         for (int i =0; i < fcavg_ijkl.Length(); i++)
+             if(isnan(fcavg_ijkl[i]) )
+                 check=1;
+         
+         if (check==1)
+         {
+             cout << "\nCurrElm and CurrIP: "<<CurrElementNumber()<<"\t"<<CurrIP();
+             cout << "\n: cijk fsavg_ij: "<<fcavg_ijkl;
+         }
+
      }
 
   // return averaged moduli
@@ -254,15 +285,17 @@ void LocalCrystalPlastFp::FormRHS(const dArrayT& fparray, dArrayT& rhs)
 
   // elastic right Cauchy-Green tensor 
   fCeBar.MultQTBQ(fFpi, fC);
-//    cout << "\nfCeBar: "<<fCeBar;
 
   // Resolve Shear Stress on Slip Systems
   ResolveShearStress();
-//    cout << "\nfTau: "<<fTau;
 
   // slip shearing rate (note: used by slip hardening classes)
   for (int i = 0; i < fNumSlip; i++)
      fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
+    if (CurrElementNumber()==0&&CurrIP()==0 &&0)
+    {
+        cout << "\n dGamma: "<<fDGamma;
+    }
 
 //    cout << "\nfDGamma: "<< fDGamma;
   // compute residual : SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1)) + pen*(detFp-1)*I
@@ -275,7 +308,16 @@ void LocalCrystalPlastFp::FormRHS(const dArrayT& fparray, dArrayT& rhs)
   }
 //    cout << "\nfMatx1: "<< fMatx1;
     
-  // ... SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1))
+    if (CurrElementNumber()==0&&CurrIP()==0 && 0)
+    {
+        cout << "\n rhs fFp: "<<fFp;
+//        cout << "\nfFpi: "<<fFp;
+//        cout << "\nfTau: "<<fTau;
+//        cout << "\nfDGamma: "<< fDGamma;
+    }
+
+    
+    // ... SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1))
   fMatx2.MultAB(fFp_n, fFpi);
 
   fMatx3.SetToCombination(1.0, fIMatx, -1.0, fMatx2);
@@ -285,8 +327,19 @@ void LocalCrystalPlastFp::FormRHS(const dArrayT& fparray, dArrayT& rhs)
   // ... SUM(GamDot*Z) - 1/dt*(I-Fp_n*Fp^(-1)) + pen*(detFp-1)*I
   fMatx1.AddScaled(fPenalty*(fFp.Det()-1.0), fIMatx);
 
-  // 9x1 array form of residual
+#if 0
+    if (CurrElementNumber()==0&&CurrIP()==0 && 0)
+    {
+        cout << "\nFMatx2: "<<fMatx2;
+        cout <<"\nfMatx3: "<<fMatx3;
+        cout << "\nfPenalty: "<<fPenalty;
+        cout <<"\nfIMatx: "<<fIMatx;
+    }
+#endif
+        // 9x1 array form of residual
   Rank2ToArray9x1(fMatx1, rhs);
+    if(CurrIP()==0 && CurrElementNumber()==0 &&0)
+        cout << "\nrhs: "<<rhs;
 }
 
 /* form Jacobian for local Newton iteration */
@@ -342,6 +395,9 @@ void LocalCrystalPlastFp::FormLHS(const dArrayT& fparray, dMatrixT& lhs)
 
   // gradient term contribution (when local, it does nothing)
   AddGradTermToLHS(lhs, fFpi);
+    if (CurrElementNumber()==0&&CurrIP()==0 && 0)
+        cout << "\nlhs: "<<lhs;
+
 }
 
 void LocalCrystalPlastFp::UpdateHistory()
@@ -462,7 +518,7 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 	{
 	  // recover local data
 	  LoadCrystalData(element, intpt, igrn);
-        int j = 11;
+        int j = 8;
 	  for (int i = 0; i< fNumSlip; i++)
 	  {
 	    absgamma += fabs(fGamma[i]);
@@ -475,16 +531,14 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
        gamma /=fNumGrain;
        output[1] = absgamma;
        output[2] = gamma;
-
-    output[3] = fFp(0,0);
-    output[4] = fFp(0,1);
-    output[5] = fFp(0,2);
-    output[6] = fFp(1,0);
-    output[7] = fFp(1,1);
-    output[8] = fFp(1,2);
-    output[9] = fFp(2,0);
-    output[10] = fFp(2,1);
-    output[11] = fFp(2,2);
+    
+    fCeBar.MultATA(fFp);
+    output[3] = fCeBar[0];
+    output[4] = fCeBar[1];
+    output[5] = fCeBar[2];
+    output[6] = fCeBar[3];
+    output[8] = fCeBar[4];
+    output[9] = fCeBar[5];
       // compute texture of aggregate, if requested
   int step = fFSMatSupport->StepNumber();
   int nsteps = fFSMatSupport->NumberOfSteps();
@@ -821,6 +875,13 @@ void LocalCrystalPlastFp::InitialEstimateForFp()
   // initial estimate for Fp
   fMatx1.Inverse(fFe_n);
   fFp.MultAB(fMatx1, fFt);
+    
+    if (CurrElementNumber()==0&&CurrIP()==0 && 0)
+    {
+        cout << "\nIEFpfFe_n: "<<fFe_n;
+        cout << "\nIEFpfFt: "<<fFt;
+        cout << "\nIEFp fFp: "<<fFp;
+    }
 //    cout << "\nfFp: "<<fFp;
   fFp /= pow(fFp.Det(), 1./3.);
 //    cout << "\nfFp_dev: "<<fFp;
@@ -847,7 +908,9 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 //    cout << "\n ierr0: "<<ierr;
     // 9x1 array form of Fp
   Rank2ToArray9x1(fFp, fFpArray);
-//    cout << "\nfFp2: "<<fFp;
+    
+    if (CurrElementNumber()==0&&CurrIP()==0 && 0)
+                cout << "\nSFPG fFp: "<<fFp;
 
   // uses "kind of" continuation method based on rate sensitivity exponent
   fKinetics->SetUpRateSensitivity();
@@ -881,7 +944,11 @@ void LocalCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 
   // recover 3x3 matrix form of Fp
   Rank2FromArray9x1(fFp, fFpArray);
-  fFp /= pow(fFp.Det(), 1./3.);
+
+//    if (CurrElementNumber()==0&&CurrIP()==0)
+//            cout << "\nfFp: "<<fFp;
+  
+    fFp /= pow(fFp.Det(), 1./3.);
 
   // norm of Fp
   fFpNorm = sqrt(fFp.ScalarProduct());
@@ -1061,7 +1128,26 @@ void LocalCrystalPlastFp::ResolveShearStress()
   fSBar.ToMatrix(fMatxSb);
   fMatx1.MultAB(fMatxCe, fMatxSb); 
   for (int i = 0; i < fNumSlip; i++)
+  {
      fTau[i] = dArrayT::Dot(fMatx1, fZ[i]);
+      if(CurrElementNumber()==0 && CurrIP()==0 && 0)
+      {
+      cout << "\ni: "<<i;
+      cout << "\nfTau: "<<fTau[i];
+      cout << "\nfZ: "<<fZ[i];
+      }
+
+  }
+    if(CurrElementNumber()==0 && CurrIP()==0 && 0)
+    {
+        cout << "\nfcBar_ijkl: "<<fcBar_ijkl;
+
+        cout << "\n fEbar: "<<fEeBar;
+        cout << "\n fSbar: "<<fSBar;
+        cout << "\n fMatx1: "<<fMatx1;
+        cout << "\nfTau: "<<fTau;
+    }
+
 }
 
 void LocalCrystalPlastFp::Rank2ToArray9x1(const dMatrixT& matrix, dArrayT& array)
