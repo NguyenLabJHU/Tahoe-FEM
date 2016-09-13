@@ -103,7 +103,7 @@ PECrystalElast::PECrystalElast(PolyCrystalMatT& poly)
     ifstreamT& in = poly.Input_x();
     
     // read material constants
-    in >> fC11 >> fC22 >> fC33 >> fC12 >> fC13 >> fC23 >> fC44 >> fC55 >> fC66;
+    in >> fC11 >> fC12 >> fC13 >> fC22 >> fC23 >> fC33 >> fC44 >> fC55 >> fC66;
     /*convention: 12 -> 1122, 44-> 2323, 55-> 1313, 66-> 1212*/
     
 }
@@ -120,9 +120,25 @@ void PECrystalElast::ElasticityProps(dArrayT& matprop) const
 
 void PECrystalElast::ComputeModuli(dMatrixT& moduli) const
 {
-    // initialize moduli
     moduli = 0.0;
+
+    moduli(0,0) = fC11;
+    moduli(0,1) = fC12;
+    moduli(0,2) = fC13;
     
+    moduli(1,1) = fC22;
+    moduli(1,2) = fC23;
+
+    moduli(2,2) = fC33;
+    
+    moduli(3,3) = fC44;
+    moduli(4,4) = fC55;
+    moduli(5,5) = fC66;
+
+    // symmetric
+    moduli.CopySymmetric();
+    
+#if 0
     // 3D symmetric Sij compliance index matrix
     moduli(0,0) = 1.0/fC11;
     moduli(0,1) = -fC12/fC22; // First lines are Aurelie's original.
@@ -144,6 +160,8 @@ void PECrystalElast::ComputeModuli(dMatrixT& moduli) const
     //3D stiffness matrix.
     moduli.Inverse();
 //    cout << "\nmoduli: "<< moduli;
+    
+#endif
 }
 
 bool PECrystalElast::IsIsotropic() const { return false; }

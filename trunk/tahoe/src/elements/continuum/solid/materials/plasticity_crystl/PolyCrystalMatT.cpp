@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.20 2016-07-15 13:07:10 tdnguye Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.21 2016-09-13 03:32:13 tdnguye Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -382,6 +382,11 @@ void PolyCrystalMatT::SolveCrystalState()
 
   // time step and deformation gradient
   fdt = ContinuumElement().ElementSupport().TimeStep();
+    if(CurrElementNumber()==0 && CurrIP()==0 &&0)
+    {
+        cout << "\nSCS fFt: "<<fFt;
+        cout <<"\n SCS tot Def: "<<F_total();
+    }
   fFt = fFtot;
 
   // iterate to compute crystal state
