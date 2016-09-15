@@ -3722,10 +3722,14 @@ namespace dem {
     // assign particles to each cell, this is O(n) algorithm
     for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
       Vec center = mergeParticleVec[pt]->getCurrPos();
-      int i = floor((center.getX()-x0) / dx);
-      int j = floor((center.getY()-y0) / dy);
-      int k = floor((center.getZ()-z0) / dz);    
-      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] ); // i, j, k guaranteed not out of range
+      int i = int((center.getX()-x0) / dx); // must use int, NOT floor, because floor at left border may result in -1, e.g. floor(-1.0e-8)
+      int j = int((center.getY()-y0) / dy);
+      int k = int((center.getZ()-z0) / dz);
+      if (i > nx - 1) i = nx - 1; // in case a particle is out of right border
+      if (j > ny - 1) j = ny - 1;
+      if (k > nz - 1) k = nz - 1;
+      // the above constrains work better than things like (i > -1 && i < nx) because it does not ignore any particles.
+      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] );
     }
     /* ensure no particles are missed
     int totalPtcl = 0;
