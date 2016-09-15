@@ -1,4 +1,4 @@
-/* $Id: NLV_Nfibers.cpp,v 1.5 2011-12-01 20:38:03 beichuan Exp $ */
+/* $Id: NLV_Nfibers.cpp,v 1.6 2016-09-15 15:46:28 tahoe.vickynguyen Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Nfibers.h"
@@ -204,8 +204,54 @@ void NLV_Nfibers::ComputeOutput(dArrayT& output)
 		*pb++ = 1.0;
 	}
 	output[9] = F.Det();
-//	if (CurrElementNumber() == 0 && CurrIP() == 0)
-//		cout <<F;
+
+    
+#if(0) //for debugging only
+	if (CurrElementNumber() == 0 && CurrIP() == 0)
+    {
+        cout <<setprecision(16)<< "\nTime: "<<fFSMatSupport->Time();
+        cout <<setprecision(16)<< "\nTime Step: "<<fFSMatSupport->TimeStep();
+        cout <<setprecision(16)<< "\nF: "<<F_mechanical();
+        Compute_C(fC);
+        cout << setprecision(16)<<"\nC: "<<fC;
+        
+        ComputeMatrixStress(fC, fFiberStress);
+        cout<<setprecision(16)<<"\nEQ Matrix Stress: "<<fFiberStress;
+        
+        /*fiber contribution*/
+        ComputeFiberStretch(fC, fFiberStretch);
+        FSFiberMatViscT::ComputeFiberStress(fFiberStretch, fFiberStress);
+        cout<<setprecision(16)<<"\nEQ Fiber Stress: "<<fFiberStress;
+        
+		for (int i = 0; i < fNumMatProcess && fNumMatProcess > 0; i++)
+		{
+            ComputeMatrixCv(fC, fC_vn[i], fC_v[i], i);
+			ComputeMatrixStress(fC, fC_v[i], fFiberStress, i, dSymMatrixT::kOverwrite);
+            cout <<setprecision(16)<< "\nMatrix Cv: "<<fC_v[i];
+            cout <<setprecision(16)<< "\nCv_n: "<<fC_vn[i];
+            cout <<setprecision(16)<< "\nNEQ stress: "<<fFiberStress;
+		}
+ 		int j = fNumMatProcess;
+       for (int i = 0; i < fNumFibProcess && fNumFibProcess > 0; i++)
+		{
+			/*rotate stretches in fiber plane*/
+			ComputeFiberStretch(fC_vn[j], fFiberStretch_vn);
+ 			ComputeFiberStretch(fC_v[j], fFiberStretch_v);
+            NLV_Nfibers::Compute_Cv(fFiberStretch, fFiberStretch_vn,
+                                    fFiberStretch_v, i);
+			         
+			/*compute fiber stress*/
+			ComputeFiberStress(fFiberStretch, fFiberStretch_v, fFiberStress, i);
+            
+            cout <<setprecision(16)<< "\nFiber viscous stretch: "<<fFiberStretch_v;
+            cout <<setprecision(16)<< "\nFiber viscous stretch_n: "<<fFiberStretch_vn;
+            cout <<setprecision(16)<< "\nNEQ fiber stress: "<<fFiberStress;
+			j++;
+		}
+        cout <<setprecision(16)<< "\ntotal stress: "<<fStress;
+    }
+#endif
+    
 }
 
 
@@ -444,7 +490,7 @@ void NLV_Nfibers::ComputeFiberStress (const dSymMatrixT& FiberStretch, const dSy
 			double I4, s4;
 			I4 = FiberStretch[0]*cost*cost + FiberStretch[1]*sint*sint + 2.0*FiberStretch[5]*sint*cost;	
 		
-			/*calc 2dW/dI*/
+			/*calc 2dW/dI, except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 			s4 = fPot_f(fibnum,pindex+1)->DFunction(I4);
 			FiberStress[0] += cost*cost*s4;
 			FiberStress[1] += sint*sint*s4;
@@ -457,7 +503,7 @@ void NLV_Nfibers::ComputeFiberStress (const dSymMatrixT& FiberStretch, const dSy
 			I4 = FiberStretch[0]*cost*cost + FiberStretch[1]*sint*sint + 2.0*FiberStretch[5]*sint*cost;	
 			Iv4 = FiberStretch_v[0]*cost*cost + FiberStretch_v[1]*sint*sint + 2.0*FiberStretch_v[5]*sint*cost;
 			Ie4 = I4/Iv4;
-			/*calc 2dWeq/dI*/
+			/*calc 2dWeq/dI except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 			s4 = fPot_f(fibnum,pindex+1)->DFunction(Ie4);
 		
 			FiberStress[0] += cost*cost*s4/Iv4;
@@ -500,7 +546,7 @@ void NLV_Nfibers::ComputeFiberMod (const dSymMatrixT& FiberStretch, const dSymMa
 			if (!fsame)
 				fibnum = i;
 				
-			/*calc 2dW/dI*/
+			/*calc 2dW/dI except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 			s4 = fPot_f(fibnum,pindex+1)->DFunction(I4); 
 			d4= fPot_f(fibnum,pindex+1)->DDFunction(I4);
 		
@@ -633,10 +679,12 @@ void NLV_Nfibers::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMatrixT&
 		/*calculate elastic structural invariants*/
 		double I4, Iv4, Iv4n, Ie4;
 		I4 = FiberStretch[0]*cost*cost + FiberStretch[1]*sint*sint + 2.0*FiberStretch[5]*sint*cost;	
-		Iv4 = FiberStretch_v[0]*cost*cost + FiberStretch_v[1]*sint*sint + 2.0*FiberStretch_v[5]*sint*cost;
-		double lv1 = sqrt(Iv4);
+//		Iv4 = FiberStretch_v[0]*cost*cost + FiberStretch_v[1]*sint*sint + 2.0*FiberStretch_v[5]*sint*cost;
+//		double lv1 = sqrt(Iv4);
 		Iv4n = FiberStretch_vn[0]*cost*cost + FiberStretch_vn[1]*sint*sint + 2.0*FiberStretch_vn[5]*sint*cost;
 		double lv1n = sqrt(Iv4n);
+        Iv4 = Iv4n;
+        double lv1 = sqrt(Iv4);
 		Ie4 = I4/Iv4;
 		 
 		double s4, d4;
@@ -649,16 +697,23 @@ void NLV_Nfibers::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMatrixT&
 
 		double r1 = lv1 - dt/eta1*sig1*lv1 - lv1n;
 
-/*		cout <<"\ndt: "<<dt;
-		cout << "\nI: "<<I4<<"\t"<<Iv4<<"\t"<<Ie4;
-		cout << "\nsig1: "<<sig1;
-		cout << "\nr1: "<<r1;
-*/		
+#if (0)  //for debugging only
+        if (CurrElementNumber() == 0 && CurrIP() == 0)
+        {
+            cout << "\niteration: "<<0;
+            cout << "\nlv1: "<<lv1;
+            cout << "\nlv1n: "<<lv1n;
+            cout << "\nsig1: "<< sig1;
+            cout << "\neta: "<<eta1;
+            cout << "\nr: "<<r1;
+        }
+#endif
 		double error = sqrt(r1*r1);
 		int iteration = 0;
 		
 		while (error > kSmall && iteration < 10)
 		{	
+			iteration++;
 			/*deta_i/dsig_i*/
 			double deta1 = fVisc_f(fibnum,pindex)->DFunction(sig1);
 
@@ -679,11 +734,21 @@ void NLV_Nfibers::Compute_Cv(const dSymMatrixT& FiberStretch, const dSymMatrixT&
 			sig1 = s4*Ie4;
 								
 			eta1 = fVisc_f(fibnum,pindex)->Function(sig1);
-	
-			r1 = lv1 - dt/eta1*sig1*lv1 - lv1n;
-		
+            r1 = lv1 - dt/eta1*sig1*lv1 - lv1n;
+            
+#if (0)  //for debugging only
+            if (CurrElementNumber() == 0 && CurrIP() == 0)
+            {
+                cout << "\niteration: "<<iteration;
+                cout << "\nlv1: "<<lv1;
+                cout << "\nlv1n: "<<lv1n;
+                cout << "\nsig1: "<< sig1;
+                cout << "\neta: "<<eta1;
+                cout << "\nr: "<<r1;
+                cout << "\nk: "<<k1;
+            }
+#endif
 			error = sqrt(r1*r1);
-			iteration++;
 /*		7/2-7/12 <<"\niteration: "<<iteration;
 		cout<< "\nerror: "<<error;
 */

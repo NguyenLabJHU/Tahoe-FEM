@@ -323,8 +323,13 @@ void FSDielectricElastomerQ1P0T::SetShape(void)
 
 		fShapes->GradU(fLocScalarPotential, E1, i);
 		E1 *= -1.0;
-		for (int i = 0; i < NumSD(); i++)
+/* Original Is this a bug?
+ for (int i = 0; i < NumSD(); i++)
 			E[i] = E1(0,i);
+ */
+/*TDN:*/
+		for (int j = 0; j < NumSD(); j++)
+			E[j] = E1(0,j);
       }
       
 	/* shape function wrt current config - Q1P0 */

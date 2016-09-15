@@ -1,4 +1,4 @@
-/* $Id: QLV_Nfibers.cpp,v 1.5 2011-12-01 20:38:03 beichuan Exp $ */
+/* $Id: QLV_Nfibers.cpp,v 1.6 2016-09-15 15:46:28 tahoe.vickynguyen Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "QLV_Nfibers.h"
@@ -91,7 +91,53 @@ void QLV_Nfibers::ComputeOutput(dArrayT& output)
 	/*deformed P2 fiber orientation*/
 	F.Multx(p_is, pb);
 	pb += NumSD();
-}
+    
+    if (CurrElementNumber() ==0 && CurrIP()==0)
+    {
+        cout <<setprecision(16)<< "\nTime: "<<fFSMatSupport->Time();
+        cout <<setprecision(16)<< "\nTime Step: "<<fFSMatSupport->TimeStep();
+        const dMatrixT& F = F_mechanical();
+        fb.MultAAT(F);
+        fC.MultATA(F);
+        cout <<setprecision(16)<< "\nF: "<<F_mechanical();
+        cout <<setprecision(16)<< "\nb: "<<fb;
+        cout <<setprecision(16)<< "\nC: "<<fC;
+
+        const dMatrixT& F_n = F_mechanical_last();
+        fb_n.MultAAT(F_n);
+        fC_n.MultATA(F_n);
+        cout <<setprecision(16)<< "\nF_n: "<<F_mechanical_last();
+        cout <<setprecision(16)<< "\nb_n: "<<fb_n;
+        cout <<setprecision(16)<< "\nC_n: "<<fC_n;
+       
+        double J = F.Det();
+        
+        ComputeMatrixStress(fb, fFiberStress);
+        cout<<setprecision(16)<<"\nEQ Matrix Stress: "<<fFiberStress;
+        cout<<setprecision(16)<<"\n pressure: "<<(fPot_m[0]->MeanStress(J))/J;
+        
+        ComputeFiberStretch(fC, fFiberStretch);
+        ComputeFiberStress(fFiberStretch, fFiberStress);
+        cout<<setprecision(16)<<"\nEQ Fiber Stress: "<<fFiberStress;
+        
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+        for (int i = 0; i < fNumMatProcess && fNumMatProcess > 0; i++)
+        {
+            cout <<setprecision(16)<< "\nMatrix Overstess: "<<fHm[i];
+            cout<<setprecision(16)<< "\nMatrix OVerstress_n: "<<fHm_n[i];
+        }
+        for (int i = 0; i < fNumFibProcess && fNumFibProcess > 0; i++)
+        {
+            cout <<setprecision(16)<< "\nFiber Overstess: "<<fhf[i];
+            cout<<setprecision(16)<< "\nFiber OVerstress_n: "<<fhf_n[i];
+            
+        }
+        cout <<setprecision(16)<< "\ntotal stress "<<fStress;
+
+    }
+
+ }
 
 /* modulus */
 const dMatrixT& QLV_Nfibers::C_IJKL(void)
@@ -188,6 +234,7 @@ const dSymMatrixT& QLV_Nfibers::S_IJ(void)
 	/*fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 	ComputeFiberStress(fFiberStretch, fFiberStress);
+
 	/* rotate and assemble stress to lab coordinates */
 	AssembleFiberStress(fFiberStress, fStress);
 	
@@ -229,24 +276,45 @@ if (fNumMatProcess + fNumFibProcess > 0)
 	{
 		for (int i = 0; i < fNumMatProcess && fNumMatProcess > 0; i++)
 		{
-			const dMatrixT& F_n = F_mechanical_last();  /*calculate inelastic deviatoric stress*/
-			fb_n.MultAAT(F_n); 		/*b = FF^T*/
+			//const dMatrixT& F_n = F_mechanical_last();  /*calculate inelastic deviatoric stress*/
+			//fb_n.MultAAT(F_n); 		/*b = FF^T*/
+			//ComputeMatrixOverStress(fb, fb_n,  fHm[i], fHm_n[i],  i);
 
-			/*calculate neq. matrix contribution*/
-			ComputeMatrixOverStress(fb, fb_n,  fHm[i], fHm_n[i],  i);
 			fStress.AddScaled(1.0, fHm[i]);
 		}
 		for (int i = 0; i < fNumFibProcess && fNumFibProcess > 0; i++)
 		{			
 			/* neq. fiber contribution*/
-			ComputeFiberOverStress(fFiberStretch, fFiberStretch_n, fFiberStress, fhf[i], fhf_n[i], i);
-				
+//			ComputeFiberOverStress(fFiberStretch, fFiberStretch_n, fFiberStress, fhf[i], fhf_n[i], i);
+            const dArray2DT& Fibers = FiberMatSupportT().Fiber_Vec();
+            int numfibers = Fibers.MajorDim();
+            numfibers--;
+            
+            fFiberStress = 0.0;
+            
+            /*Get  orthogonal coordinate basis for fiber plane*/
+            const dMatrixT& Q = GetRotation();
+            const double* p1 = Q(0);
+            const double* p2 = Q(1);
+            dArrayT& axial = fhf[i];
+            int fibnum = 0;
+            for (int i = 0; i<numfibers; i++)
+            {
+                if (!fsame)
+                    fibnum = i;
+                double cost = Fibers(i,0)*p1[0] + Fibers(i,1)*p1[1] + Fibers(i,2)*p1[2];
+                double sint = Fibers(i,0)*p2[0] + Fibers(i,1)*p2[1] + Fibers(i,2)*p2[2];
+                
+                fFiberStress[0] += axial[fibnum]*cost*cost;
+                fFiberStress[1] += axial[fibnum]*sint*sint;
+                fFiberStress[5] += axial[fibnum]*sint*cost;
+            }
 			/* rotate neq. stress to lab coordinates and assemble in fStress */
 			AssembleFiberStress(fFiberStress, fStress);
 		}
 	}
 }
-	return(fStress);
+    return (fStress);
 }
 
 /* material description */
@@ -268,6 +336,7 @@ const dSymMatrixT& QLV_Nfibers::s_ij(void)
 	
 	/* transform */
 	fStress.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, S_IJ()));
+    
 	return fStress;
 }
 
@@ -750,9 +819,13 @@ void QLV_Nfibers::ComputeMatrixOverStress (const dSymMatrixT& Stretch, const dSy
 	fPot_m[process_index+1]->DevStress(fEigs, ftau_n);
 		
 	/*calculate exp(-0.5*dt/tau_S)*(s_n+1 - s_n);*/
-	ftau.AddScaled(-1.0, ftau_n);		
+//	ftau.AddScaled(-1.0, ftau_n);
+//	ftau.AddScaled(-1.0, ftau_n);
 	const dMatrixT& F_tot = F_total();
+    const dMatrixT& F_n = F_total_last();
+    
 	H.AddScaled(alpha, PullBack(F_tot,fSpectralDecompSpat.EigsToRank2(ftau)));
+	H.AddScaled(-alpha, PullBack(F_n,fSpectralDecompSpat.EigsToRank2(ftau_n)));
 
 	/*Q_n+1 = exp(-dt/tau_S)*Q_n + exp(-0.5*dt/tau_S)*(s - s_n)*/
 	H.AddScaled(beta, H_n);
@@ -961,7 +1034,7 @@ void QLV_Nfibers::ComputeFiberOverStress (const dSymMatrixT& FiberStretch, const
 		/*calc 2dWeq/dI*/
 		s4_n = fPot_f(fibnum, pindex+1)->DFunction(I4_n);
 		
-		h[fibnum] = beta*h_n[fibnum] + alpha*(s4-s4_n);				
+		h[fibnum] = beta*h_n[fibnum] + alpha*(s4-s4_n);
 		FiberStress[0] += h[fibnum]*cost*cost;
 		FiberStress[1] += h[fibnum]*sint*sint;
 		FiberStress[5] += h[fibnum]*sint*cost;				
@@ -994,7 +1067,7 @@ void QLV_Nfibers::ComputeFiberStress (const dSymMatrixT& FiberStretch, dSymMatri
 		/*calculate I4*/
 		double I4, s4;
 		I4 = FiberStretch[0]*cost*cost + FiberStretch[1]*sint*sint + 2.0*FiberStretch[5]*sint*cost;	
-		/*calc 2dW/dI*/
+		/*calc 2dW/dI = dW/dlambda 1/dlambda, except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 		s4 = fPot_f(fibnum, 0)->DFunction(I4); 
 
 		FiberStress[0] += cost*cost*s4;
@@ -1030,7 +1103,7 @@ void QLV_Nfibers::ComputeFiberMod (const dSymMatrixT& FiberStretch, dSymMatrixT&
 		/*calculate I4*/
 		double I4, s4, d4;
 		I4 = FiberStretch[0]*cost*cost + FiberStretch[1]*sint*sint + 2.0*FiberStretch[5]*sint*cost;	
-		/*calc 2dW/dI*/
+		/*calc 2dW/dI, except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 		s4 = fPot_f(fibnum, 0)->DFunction(I4); 
 		d4= fPot_f(fibnum, 0)->DDFunction(I4);
 
@@ -1084,7 +1157,7 @@ void QLV_Nfibers::ComputeFiberAlgMod (const dSymMatrixT& FiberStretch, const dSy
 		/*calculate I4*/
 		double I4, s4, d4;
 		I4 = FiberStretch[0]*cost*cost + FiberStretch[1]*sint*sint + 2.0*FiberStretch[5]*sint*cost;	
-		/*calc 2dW/dI*/
+		/*calc 2dW/dI, except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 		s4 = fPot_f(fibnum, pindex+1)->DFunction(I4); 
 		d4= fPot_f(fibnum, pindex+1)->DDFunction(I4);
 
@@ -1099,7 +1172,7 @@ void QLV_Nfibers::ComputeFiberAlgMod (const dSymMatrixT& FiberStretch, const dSy
 		double I4_n, s4_n;
 
 		I4_n = FiberStretch_n[0]*cost*cost + FiberStretch_n[1]*sint*sint + 2.0*FiberStretch_n[5]*sint*cost;
-		/*calc 2dWeq/dI*/
+		/*calc 2dWeq/dI, except that this calculations below are missing a factor of 2.  This is an error that is in the papers*/
 		s4_n = fPot_f(fibnum, pindex+1)->DFunction(I4_n);
 
 		h[fibnum] = beta*h_n[fibnum] + alpha*(s4-s4_n);				

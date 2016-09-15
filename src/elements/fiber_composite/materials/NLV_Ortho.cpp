@@ -1,4 +1,4 @@
-/* $Id: NLV_Ortho.cpp,v 1.3 2011-12-01 20:38:03 beichuan Exp $ */
+/* $Id: NLV_Ortho.cpp,v 1.4 2016-09-15 15:46:28 tahoe.vickynguyen Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "NLV_Ortho.h"
@@ -1664,7 +1664,7 @@ void NLV_Ortho::dWdI(const dArrayT& I, dArrayT& dW, const int pindex)
 	double I5 = I[1];
 	double I6 = I[2];
 	double I7 = I[3];
-
+//TDN: The calculations below are missing a factor of 2.  This is an error that is in the papers*/
 
 	dW[0] = fPot1_f4[pindex+1]->DFunction(I4);
 	dW[2] = fPot2_f4[pindex+1]->DFunction(I6);
@@ -1680,6 +1680,7 @@ void NLV_Ortho::ddWddI(const dArrayT& I, dArrayT& dW, dArrayT& ddW, const int pi
 	double I6 = I[2];
 	double I7 = I[3];
 
+//TDN: The calculations below are missing a factor of 2.  This is an error that is in the papers*/
 	dW[0] = fPot1_f4[pindex+1]->DFunction(I4);
 	dW[2] = fPot2_f4[pindex+1]->DFunction(I6);
 	dW[1] = fPot1_f5[pindex+1]->DFunction(I5);

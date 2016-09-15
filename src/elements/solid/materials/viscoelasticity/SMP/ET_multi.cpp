@@ -1,4 +1,4 @@
-/* $Id: ET_multi.cpp,v 1.1 2016-03-17 13:43:05 tahoe.vickynguyen Exp $ */
+/* $Id: ET_multi.cpp,v 1.2 2016-09-15 15:46:41 tahoe.vickynguyen Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "ET_multi.h"
@@ -22,8 +22,8 @@ const double third = 1.0/3.0;
 const double small = 1.0e-10;
 const double big = 1.0e-10;
 
-const int kNumOutputVar =6;
-static const char* Labels[kNumOutputVar] = {"J", "incr_structural_heat",  "incr_latent_heat", "inc_plastic_work","total_incr_heat","heat_deficit"};
+const int kNumOutputVar =7;
+static const char* Labels[kNumOutputVar] = {"J", "incr_structural_heat",  "incr_latent_heat", "inc_plastic_work","total_incr_heat","heat_deficit", "iviscosity"};
 
 /***********************************************************************
  * Public
@@ -87,7 +87,9 @@ double ET_multi::IncrementalHeat(void)
 	/* trust the "current" element is already loaded */
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
-//    cout <<"\n:"<< *fHeat;
+/*    if(CurrElementNumber()==0&&CurrIP()==1)
+        cout <<"\n incremental heat:"<< *fHeat;
+ */
     return(*fHeat);
 }
 
@@ -99,6 +101,9 @@ const dMatrixT& ET_multi::ThermalDeformation_Inverse(void) /*eq.(13)?,eq.(5)TDN*
 
 double ET_multi::StrainEnergyDensity(void)
 {
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+
 	/*calculates equilibrium part*/
 	const dMatrixT& F = F_total();
 	if (NumSD() == 2)
@@ -139,8 +144,6 @@ double ET_multi::StrainEnergyDensity(void)
     
     energy *= precoeff;
 	/*adds nonequilibrium part */
-	ElementCardT& element = CurrentElement();
-	Load(element, CurrIP());
     
 	for (int i = 0; i < fNumS; i++)
 	{
@@ -491,6 +494,8 @@ const dMatrixT& ET_multi::c_ijkl(void)
 
 void ET_multi::ComputeOutput(dArrayT& output)
 {
+	double Tn = Compute_Temperature();
+
 	const dMatrixT& F = MechanicalDeformation();
 	if (NumSD() == 2)
 	{
@@ -516,6 +521,7 @@ void ET_multi::ComputeOutput(dArrayT& output)
     double l2 = fEigs[2];
 
 	double J = sqrt(fEigs.Product());
+    double iJ = 1.0/J;
     fEigs_dev = fEigs;
 	fEigs_dev *= pow(J,-2.0*third);
     
@@ -571,6 +577,7 @@ void ET_multi::ComputeOutput(dArrayT& output)
     double heat = structural + latentheat;
     
     double plasticw =0.0;
+    ftau = 0.0;
     double stress1 = ftau_EQ[0];
     double stress2 = ftau_EQ[1];
     double stress3 = ftau_EQ[2];
@@ -605,25 +612,51 @@ void ET_multi::ComputeOutput(dArrayT& output)
         stress1 += ftau_NEQ[0];
         stress2 += ftau_NEQ[1];
         stress3 += ftau_NEQ[2];
+        ftau += ftau_NEQ;
 	}
     
     stress1+=fPot[0]->MeanStress(J);
     stress2+=fPot[0]->MeanStress(J);
     stress3+=fPot[0]->MeanStress(J);
-
+    
     /*add contribution from plastic work*/
     heat += plasticw;
     const double Temp = Compute_Temperature();
     const double Temp_last = Compute_Temperature_last();
 
-    double dt = fFSMatSupport->TimeStep();
+    /*calculate viscosity*/
+ 	double ScTn = 0.0;
+    double prefactor = 1.0;
+	for(int k=0; k<fNumR; k++)
+	{
+		double phi=fdalpha[k];
+        ScTn += fdeltac*phi*log(fTfk[k]/fT2);
+        prefactor += phi*fafrac*(1.0 - 1.0/(1.0+exp(-fb_decay*(fTfk[k]/fTess - 1.0))))*(Tn/fTfk[k]-1.0);
+    }
+    double ScTntemp = ScTn;
+    double smag = prefactor*iJ*sqrt(0.5*(ftau[0]*ftau[0]+ftau[1]*ftau[1]+ftau[2]*ftau[2]));
+	fEigs_dev = fEigs;
+	fEigs_dev *= pow(J, -2.0*third);
+    double energy = fPot[0]->Energy(fEigs_dev, J) /*eq.(14)TDN*/;
+    energy -= fPot[0]->MeanEnergy(J);
+    ScTn -= energy/fT0;
 
+    double ietabar = StressRelaxationFunc(Tn, smag);   /*eq.(24)*/
+    double itaubar = StructuralRelaxationFunc(Tn, ScTn);
+
+    double dt = fFSMatSupport->TimeStep();
+/*    if(CurrElementNumber()==0&& CurrIP()==0)
+    {
+        cout<<setprecision(12)<<"\nEigs: "<<sqrt(fEigs[1])<<"\tTn: "<<Tn<<"\tTf: "<<fTfk<<"\t Entropy: "<<ScTn<<"\tScTntemp: "<<ScTntemp<<"\tenergy/T0: "<<energy/fT0<<"\tsmag: "<<smag<<"\titaubar: "<<itaubar<<"\tviscosity: "<< itaubar*ietabar;
+    }
+*/
     output[0] = J;
     output[1] = structural/dt;
     output[2] = latentheat/dt;
     output[3] = plasticw/dt;
     output[4] = heat/dt;
     output[5] = rho*fcg*(Temp-Temp_last)/(stress1*depsilon0 + stress2*depsilon1+stress3*depsilon2);
+    output[6] =itaubar*ietabar;
 }
 /*************************************************************************
  *	PUBLIC
@@ -1118,7 +1151,7 @@ void ET_multi::ResetHistory(void)
 
 void ET_multi::Compute_Tei(const dArrayT& eigs_n, const dArrayT& eigs, const dArrayT& eigs_tr, const dArrayT& DScDe, const dArrayT& stretche,const dArrayT& stressk, const dArrayT& Tfk_n, dArrayT& Tfk)
 {
-    double ctol = 1.0e-10;
+    double ctol = 1.0e-8;
 	/*time step*/
 	double dt = fFSMatSupport->TimeStep();
 	/*current temperature*/
@@ -1147,7 +1180,6 @@ void ET_multi::Compute_Tei(const dArrayT& eigs_n, const dArrayT& eigs, const dAr
     double depsilon2=(0.5*log(l2)-0.5*log(l2_last));
 	
     double prefactor = 1.0;
-	double temp = 0.0;
 	double ScTn = 0.0;
 	for(int k=0; k<fNumR; k++)
 	{
@@ -1196,22 +1228,27 @@ void ET_multi::Compute_Tei(const dArrayT& eigs_n, const dArrayT& eigs, const dAr
     
     double itaubar = StructuralRelaxationFunc(Tn, ScTn);
 
-    for(int k=0; k<fNumR; k++)
+ 	double temp = 0.0;
+   for(int k=0; k<fNumR; k++)
 	{
 		double itauRk = itaubar/ftimesR[k];
         double frac2 = fafrac*(1.0 - 1.0/(1.0+exp(-fb_decay*(Tfk[k]/fTess - 1.0))))/fdeltac;
+ /*       if(CurrElementNumber()==0 && CurrIP()==1)
+            cout<< "\nfrac2: "<<frac2;
+  */
         /*residual*/
 		fRdel[k] = Tfk[k] - Tfk_n[k] + dt*itauRk*(Tfk[k]-Tn)-frac1*flatenth[k]-frac2*plasticw;
 		temp += fRdel[k]*fRdel[k];
-/*        if(CurrElementNumber()==0 && CurrIP()==1)
-       {
-            cout<< "\ndepsilon: "<<depsilon0<<"\t"<<depsilon1<<"\t"<<depsilon2;
-            cout<< "\nstress: "<<ftau_EQ[0]<<"\t"<<ftau_EQ[1]<<"\t"<<ftau_EQ[2];
-            cout << "\nlatenth: "<<flatenth[k]<<"\tScTn: "<<ScTn<<"\titauR: "<<itauRk<<"\tTfk-Tn: "<<Tfk[k]-Tn;
-           cout <<"\nitauRk: "<<itauRk;
-        cout << "\ndt*itauRk*(Tfk[k]-Tn): "<<dt*itauRk*(Tfk[k]-Tn)<<"\tfrac1*flatenth[k]: "<<frac1*flatenth[k]<<"\tfrac2*plasticw: "<<frac2*plasticw<<"\tTfk-Tn: "<<Tfk[k]-Tn;
+ /*       if(CurrElementNumber()==0 && CurrIP()==0)
+        {
+            //           cout<< "\ndepsilon: "<<depsilon0<<"\t"<<depsilon1<<"\t"<<depsilon2;
+            //           cout<< "\nstress: "<<ftau_EQ[0]<<"\t"<<ftau_EQ[1]<<"\t"<<ftau_EQ[2];
+            //cout << "\nlatenth: "<<flatenth[k]<<"\tScTn: "<<ScTn<<"\titauR: "<<itauRk<<"\tTfk-Tn: "<<Tfk[k]-Tn;
+            //cout << "\nSc: "<< ScTn<<"\titauRk: "<<itauRk<<"\trdel"<<fRdel;
+            cout << "\ndt*itauRk*(Tfk[k]-Tn): "<<dt*itauRk*(Tfk[k]-Tn)<<"\tfrac1*flatenth[k]: "<<frac1*flatenth[k]<<"\tfrac2*plasticw: "<<frac2*plasticw<<"\tTfk-Tn: "<<Tfk[k]-Tn;
         }
- */
+  */
+ 
 	}
     
 	double tol = sqrt(temp);
@@ -1276,16 +1313,17 @@ void ET_multi::Compute_Tei(const dArrayT& eigs_n, const dArrayT& eigs, const dAr
             fRdel[k] = Tfk[k] + dt*itauRk*(Tfk[k]-Tn) - Tfk_n[k]-frac1*flatenth[k]-frac2*plasticw;
             temp += fRdel[k]*fRdel[k];
  
-/*            if(CurrElementNumber()==0 && CurrIP()==1)
+/*            if(CurrElementNumber()==0 && CurrIP()==0)
             {
-                cout<< "\ndepsilon: "<<depsilon0<<"\t"<<depsilon1<<"\t"<<depsilon2;
-                cout<< "\nstress: "<<ftau_EQ[0]/fT0<<"\t"<<ftau_EQ[1]/fT0<<"\t"<<ftau_EQ[2]/fT0;
-                cout << "\nlatenth: "<<flatenth[k]<<"\tScTn: "<<ScTn<<"\titauR: "<<itauRk<<"\tTfk-Tn: "<<Tfk[k]-Tn;
-                cout <<"\nitauRk: "<<itauRk;
+                //           cout<< "\ndepsilon: "<<depsilon0<<"\t"<<depsilon1<<"\t"<<depsilon2;
+                //           cout<< "\nstress: "<<ftau_EQ[0]<<"\t"<<ftau_EQ[1]<<"\t"<<ftau_EQ[2];
+                //cout << "\nlatenth: "<<flatenth[k]<<"\tScTn: "<<ScTn<<"\titauR: "<<itauRk<<"\tTfk-Tn: "<<Tfk[k]-Tn;
+                //cout << "\nSc: "<< ScTn<<"\titauRk: "<<itauRk<<"\trdel"<<fRdel;
                 cout << "\ndt*itauRk*(Tfk[k]-Tn): "<<dt*itauRk*(Tfk[k]-Tn)<<"\tfrac1*flatenth[k]: "<<frac1*flatenth[k]<<"\tfrac2*plasticw: "<<frac2*plasticw<<"\tTfk-Tn: "<<Tfk[k]-Tn;
             }
  */
-       }
+
+  }
         
         tol = sqrt(temp);
 
@@ -1758,7 +1796,7 @@ void ET_multi::Compute_Kneq(dMatrixT& Modulus1, dMatrixT& Modulus2)
 void ET_multi::Compute_le(const ArrayT<dSymMatrixT>& C_vn, ArrayT<dSymMatrixT>& C_v, const dArrayT& Tfk_n, dArrayT& Tfk, double& heat) /*Solving eq.(23)*/
 {
 	
-    double ctol = 1.00e-10;
+    double ctol = 1.00e-9;
 	int maxiter = 20;
     double frac1 = 1.0/fdeltac;
     double ScTn = 0.0;
@@ -1797,6 +1835,7 @@ void ET_multi::Compute_le(const ArrayT<dSymMatrixT>& C_vn, ArrayT<dSymMatrixT>& 
     double l2_last = fEigs_last[2];
 
     const dMatrixT& F = F_total();
+//    cout << "\nF: "<<F;
 	if (NumSD() == 2)
 	{
 		fF3D[0] = F[0];
@@ -1946,20 +1985,21 @@ void ET_multi::Compute_le(const ArrayT<dSymMatrixT>& C_vn, ArrayT<dSymMatrixT>& 
         r0 = epse0 - epstr0 + 0.5*dt*ietaSk*s0;
         r1 = epse1 - epstr1 + 0.5*dt*ietaSk*s1;
         r2 = epse2 - epstr2 + 0.5*dt*ietaSk*s2;
-/*       if(CurrElementNumber()==0 && CurrIP()==1)
+ /*       if(CurrElementNumber()==0 && CurrIP()==0)
         {
-            cout << "\nitaubar:"<<itaubar;
-            cout<< "\nviscosity: "<<ietaSk;
-            cout << "\nScTn: "<<ScTn;
-            cout<< "\nsmag: "<<smag;
+            cout<<setprecision(12)<< "\nTf: "<<Tfk;
+            cout<< "\tsmag: "<<smag;
+            //                cout<< "\tsmag: "<<smag<< "\ttau: "<<ftau<<"\tJ: "<<1.0/iJ<<"\tprefactor: "<<prefactor;
+            cout << "\tScTn: "<<ScTn;
+            cout << "\titau:"<<itauSk;
+            cout<< "\tiviscosity: "<<ietaSk;
             cout<< "\nres : "<<r0<<"\t"<<r1<<"\t"<<r2;
-            cout<< "\nietaS : "<<0.5*dt*ietaSk*s0<<"\t"<<0.5*dt*ietaSk*s1<<"\t"<<0.5*dt*ietaSk*s2;
             cout<< "\nepse0 : "<<epse0<<"\t"<<epse1<<"\t"<<epse0;
-            cout<< "\nepstr0 : "<<epstr0<<"\t"<<epstr1<<"\t"<<epstr0;
-            cout<< "\nepse0-epstr0 : "<<epse0-epstr0<<"\t"<<epse1-epstr1<<"\t"<<epse0-epstr0;
-            cout<<"\nplasticwk: "<<plasticw;
+            cout<< "\nepse0-epstr0 : "<<epse0-epstr0<<"\t"<<epse1-epstr1<<"\t"<<epse2-epstr2;
+            cout<< "\nstressres : "<<0.5*dt*ietaSk*s0<<"\t"<<0.5*dt*ietaSk*s1<<"\t"<<0.5*dt*ietaSk*s2;
+            cout<<"\ntplasticwk: "<<plasticw;
         }
- */
+  */
         
 		temp += r0*r0 + r1*r1+ r2*r2;
 		*pr++ = r0;
@@ -2307,20 +2347,21 @@ void ET_multi::Compute_le(const ArrayT<dSymMatrixT>& C_vn, ArrayT<dSymMatrixT>& 
 			r1 = epse1 - epstr1 + 0.5*dt*ietaSk*s1;
 			r2 = epse2 - epstr2 + 0.5*dt*ietaSk*s2;
             
-/*            if(CurrElementNumber()==0 && CurrIP()==1)
+ /*           if(CurrElementNumber()==0 && CurrIP()==0)
             {
-                cout << "\nitaubar:"<<itaubar;
-                cout<< "\nviscosity: "<<ietaSk;
-                cout << "\nScTn: "<<ScTn;
-                cout<< "\nsmag: "<<smag;
+                cout<<setprecision(12)<< "\nTf: "<<Tfk;
+                cout<< "\tsmag: "<<smag;
+                //                cout<< "\tsmag: "<<smag<< "\ttau: "<<ftau<<"\tJ: "<<1.0/iJ<<"\tprefactor: "<<prefactor;
+                cout << "\tScTn: "<<ScTn;
+                cout << "\titau:"<<itauSk;
+                cout<< "\tiviscosity: "<<ietaSk;
                 cout<< "\nres : "<<r0<<"\t"<<r1<<"\t"<<r2;
-                cout<< "\nietaS : "<<0.5*dt*ietaSk*s0<<"\t"<<0.5*dt*ietaSk*s1<<"\t"<<0.5*dt*ietaSk*s2;
                 cout<< "\nepse0 : "<<epse0<<"\t"<<epse1<<"\t"<<epse0;
-                cout<< "\nepstr0 : "<<epstr0<<"\t"<<epstr1<<"\t"<<epstr0;
-                cout<< "\nepse0-epstr0 : "<<epse0-epstr0<<"\t"<<epse1-epstr1<<"\t"<<epse0-epstr0;
-                cout<<"\nplasticwk: "<<plasticw;
-           }
- */
+                cout<< "\nepse0-epstr0 : "<<epse0-epstr0<<"\t"<<epse1-epstr1<<"\t"<<epse2-epstr2;
+                cout<< "\nstressres : "<<0.5*dt*ietaSk*s0<<"\t"<<0.5*dt*ietaSk*s1<<"\t"<<0.5*dt*ietaSk*s2;
+                cout<<"\ntplasticwk: "<<plasticw;
+            }
+  */
 
 			temp += r0*r0 + r1*r1+ r2*r2;
 			*pr++ = r0;

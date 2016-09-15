@@ -1,4 +1,4 @@
-/* $Id: FSFiberMatViscT.cpp,v 1.12 2010-06-24 13:49:17 thao Exp $ */
+/* $Id: FSFiberMatViscT.cpp,v 1.13 2016-09-15 15:46:28 tahoe.vickynguyen Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSFiberMatViscT.h"
 #include "FSFiberMatSupportT.h"
@@ -113,7 +113,8 @@ const dSymMatrixT& FSFiberMatViscT::S_IJ(void)
 	/*matrix contribution*/
 	/*calculate matrix contribution*/
 	ComputeMatrixStress(fC, fStress);
-	/*fiber contribution*/
+
+    /*fiber contribution*/
 	ComputeFiberStretch(fC, fFiberStretch);
 
 	ComputeFiberStress(fFiberStretch, fFiberStress);
@@ -157,7 +158,6 @@ if (fNumMatProcess + fNumFibProcess > 0)
 
 			/*compute fiber stress*/
 			ComputeFiberStress(fFiberStretch, fFiberStretch_v, fFiberStress, i);
-
 			/* rotate neq. stress to lab coordinates and assemble in fStress */
 			AssembleFiberStress(fFiberStress, fStress);
 
@@ -185,15 +185,16 @@ if (fNumMatProcess + fNumFibProcess > 0)
 		}
 	}
 }
-		if (0)
-	{
+#if(0) // debugging only
+{
 		cout << "\nelem: "<<CurrElementNumber()<<"\tip: "<<CurrIP();
 //		cout << "\nQ: "<<GetRotation();
 		cout << "\nfC: "<<fC;
 		cout << "\nS: "<<fStress;
 //		cout<< "\nFiberStretch: "<<fFiberStretch;
 //		cout <<"\nMatrixMod: "<<fModulus;
-	}
+}
+#endif
 	return(fStress);
 }
 
@@ -509,8 +510,25 @@ void FSFiberMatViscT::ComputeMatrixStress (const dSymMatrixT& Stretch, const dSy
 		
 	/*dev stress*/
 	fPot_m[process_index+1]->DevStress(fEigs, ftau);
+    
+#if(0) //debugging only
+    if(CurrElementNumber()==0 && CurrIP()==0)
+    {
+        cout<<"\ndev stress: "<<ftau;
+        cout<<"\nreconsructured stress: "<<fSpectralDecompSpat.EigsToRank2(ftau);
+        cout<< "\nmean stress: "<<	(fPot_m[process_index+1]->MeanStress(J))/J;
+    }
+#endif
+    
 	/*mean stress*/
 	ftau += fPot_m[process_index+1]->MeanStress(J);
+    if(CurrElementNumber()==0 && CurrIP()==0)
+    {
+        cout<<"\nreconsructured tot stress: "<<fSpectralDecompSpat.EigsToRank2(ftau);
+        const dMatrixT& F_tot = F_total();
+       cout<< "\npulled back stress: "<<PullBack(F_tot,fSpectralDecompSpat.EigsToRank2(ftau));
+    }
+
 
 	const dMatrixT& F_tot = F_total();
 	Stress.AddScaled(1.0, PullBack(F_tot,fSpectralDecompSpat.EigsToRank2(ftau)));	
@@ -721,6 +739,8 @@ void FSFiberMatViscT::ComputeMatrixCv(const dSymMatrixT& Stretch, const dSymMatr
 	
 	double tol;
 	
+    //TDN:
+    int iteration = 0;
 	/*initializes principle viscous stretch*/
 	do 
 	{
@@ -760,6 +780,9 @@ void FSFiberMatViscT::ComputeMatrixCv(const dSymMatrixT& Stretch, const dSymMatr
 	    double res1 = ep_e1 + dt*0.5*ietaS*s1  - ep_tr1;
 	    double res2 = ep_e2 + dt*0.5*ietaS*s2  - ep_tr2;
 		
+//        if (CurrElementNumber() == 0 && CurrIP() == 0)
+//            cout << "\niter: "<<iteration<<"\t res: "<< res0<< "\t"<<res1<< "\t"<<res2;
+        
 		/*calc dres_A/dep_B*/
 		fiK_m(0,0) = 1+0.5*ietaS*dt*c00;
 		fiK_m(1,1) = 1+0.5*ietaS*dt*c11;
@@ -773,6 +796,9 @@ void FSFiberMatViscT::ComputeMatrixCv(const dSymMatrixT& Stretch, const dSymMatr
 		fiK_m(2,0) = fiK_m(0,2);
 		fiK_m(1,0) = fiK_m(0,1);
 
+//        if (CurrElementNumber() == 0 && CurrIP() == 0)
+//            cout << "\nK: "<<fiK_m;
+
 		/*inverts KAB*/
 		fiK_m.Inverse(fiK_m);
 
@@ -785,6 +811,11 @@ void FSFiberMatViscT::ComputeMatrixCv(const dSymMatrixT& Stretch, const dSymMatr
 	    ep_e0 += dep_e0;
 	    ep_e1 += dep_e1;
 	    ep_e2 += dep_e2;
+
+//        if (CurrElementNumber() == 0 && CurrIP() == 0)
+//            cout << "\nnew eigs_e: "<<exp(ep_e0)<<"\t"<<exp(ep_e1)<<"\t"<<exp(ep_e2);
+  
+        iteration = iteration+1;
 	    
 	    le[0] = exp(2.0*ep_e0);
 	    le[1] = exp(2.0*ep_e1);
