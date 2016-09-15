@@ -37,8 +37,10 @@ ifeq ($(PLATFORM), spirit)
   #BOOST_ROOT = /work4/projects/openmpi/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
   #BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
   #PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.11_intel-compilers-13.0.1
-  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.0.3
-  PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.0.3
+  #BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.0.3
+  #PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.0.3
+  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.14_intel-compilers-16.0.3
+  PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-16.0.3
  endif
 endif
 
