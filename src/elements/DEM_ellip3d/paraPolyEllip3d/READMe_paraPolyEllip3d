@@ -1,0 +1,31 @@
+09/16/2016
+The modifications in paraPolyEllip3d.
+1, Particle class: (a) new variables for principal lengths, aplus, aminus, bplus, bminus, cplus, cminus
+		   (b) new variables for mass center of poly-ellipsoids, i.e. currCenterMass
+		   (c) volume calculation, mass calculation and moment inertia in the constructor
+		   (d) 8 sets of coefficient for contact search, updated in every time step, and the 
+		       corresponding set will be used for the contact search in that octant
+		   (e) in intersectWithLine(), getRadius(), nearestPTOnPlane(), planeRBForce(), and cylinderRBForce()
+		       difference cases are considered for different octants. In planeRBForce() and cylinderRBForce()
+		       contact predetection is processed before the real calculation of the contact force. 
+		       The contact predetection algorithm is described in our poly-ellipsoid paper. 
+		       Also in these two force calculation functions, the moment of the contact force is
+		       calculated against the mass center
+		   (f) in update(), the mass center of the poly-ellipsoid is calculated from the equiation of motion.
+		       The geometry center is then calculated based on the relative position between the two centers.
+
+2, Contact class:  (a) isOverlapped(), there are two steps in the contact predetection. In step 1, two cuboids
+		       containing the two poly-ellipsoids are used to check if there is possibility for the 
+		       two poly-ellipsoids to be in contact by using the overlapping of the two cuboids. 
+		       In step 2, 8 small cuboids are constructed for each poly-ellipsoid in 8 octants.
+		       Again, they are used to check whether the two octants will be contact or not. 
+		       Details about this contact predetection can be found in our poly-ellipsoid paper.
+		   (b) contactForce(), again moment of contact force is calculated against mass center
+
+3, Assembly class: (a) readParticle() and printParticle() are modificated for poly-ellipsoids, three new 
+		       variables are added in the input file and output file, i.e. aminus, bminus, and cminus.
+		   (b) findContact(), the predetection here is using two spheres. Now in poly-ellipsoid, the 
+		       a may not be the max principal semi-length, so (*pt)->getMassRadius() is the one to return
+		       the longest principal semi-length.
+		   (c) Since the neighboring CPUs are always the same during the simulation once the CPUs are
+		       assigned, then calculate neighboring CPUS (ranks) only once.
