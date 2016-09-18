@@ -3671,7 +3671,7 @@ namespace dem {
     gettimeofday(&time_p1,NULL); 
 #endif
     REAL cellSize = gradation.getPtclMaxRadius() * 2.0;
-    // be aware that a virtualContainer gets unnecessary halo layers for boundary processes in parallel computing,
+    // beware that a virtualContainer gets unnecessary halo layers for boundary processes in parallel computing,
     // but it does not affect numerical results.
     Rectangle virtualContainer(container.getMinCorner() - Vec(cellSize), container.getMaxCorner() + Vec(cellSize));
     int  nx = floor (virtualContainer.getDimx() / cellSize);
@@ -3773,8 +3773,8 @@ namespace dem {
     // for each cell
     Particle *it, *pt;
     Vec u, v;
-    for (int i = 0; i < nx; ++i)
-      for (int j = 0; j < ny; ++j)
+    for (int i = 0; i < nx; ++i)    // use [0,nx-1] instead of [1,nx-2] because the latter could miss internal particles, e.g., left border of cell[1]
+      for (int j = 0; j < ny; ++j)  // does not coincide with the original compute grid due to the numerical fact that dx (and dy, dz) may not be equal to cellSize precisely.
 	for (int k = 0; k < nz; ++k) {
 
 	  // for particles inside the cell	  
