@@ -57,7 +57,8 @@ void assembly::calculateGranularStrain(int num_step, int total_num, const char* 
 		<< setw(OWID) << "from rate" 
 		<< setw(OWID) << "from rate" 
 		<< setw(OWID) << "from rate"
-		<< setw(OWID) << "particle" << endl
+		<< setw(OWID) << "particle"
+		<< setw(OWID) << "void" << endl
 	        << setw(OWID) << "dvdx_11"	// for spatial velocity gradient tensor, deformation rate tensor
 	        << setw(OWID) << "dvdx_12"
 	        << setw(OWID) << "dvdx_13"
@@ -76,7 +77,8 @@ void assembly::calculateGranularStrain(int num_step, int total_num, const char* 
 	        << setw(OWID) << "epsilon_31"
 	        << setw(OWID) << "epsilon_32"
 	        << setw(OWID) << "epsilon_33"
-		<< setw(OWID) << "number" << std::endl;
+		<< setw(OWID) << "number"
+		<< setw(OWID) << "ratio" << std::endl;
 
 
     matrix spatial_dvdx(3,3);	// average spatial velocity gradient tensor
@@ -84,7 +86,11 @@ void assembly::calculateGranularStrain(int num_step, int total_num, const char* 
     matrix curr_dvdx(3,3);	// current spatial velocity gradient tensor
     matrix prev_strain_rate(3,3);
     matrix curr_strain_rate(3,3);	// current strain based on deformation rate tensor
-
+    matrix curr_F(3,3);			// deformation gradient
+    curr_F(1,1) = 1; curr_F(2,2) = 1; curr_F(3,3) = 1;	// initial deformation gradient is 1
+    REAL J_n = 1;	// last step Jacobian, initial Jacobian is 1
+    REAL J_nplus1=1;	// current Jacobian
+    REAL curr_porosity;	// current porosity
 
     // initialize previousStrain(3,3)
     for(int i_ps=0; i_ps!=2; i_ps++){
@@ -133,6 +139,7 @@ std::cout << "zmin: " << zmin << "  zmax: " << zmax << std::endl;
     RVE_number = 0;	// the number of particles in RVE
     REAL px, py, pz;
     ParticleVec_part.clear();
+    REAL volume_soil = 0;
     for (it_p=ParticleVec.begin();it_p!=ParticleVec.end();++it_p)  {	
 	px = (*it_p)->getCurrPosition().getx();
 	py = (*it_p)->getCurrPosition().gety();
@@ -140,9 +147,11 @@ std::cout << "zmin: " << zmin << "  zmax: " << zmax << std::endl;
 	if(px>=RVE_xmin && px<=RVE_xmax && py>=RVE_ymin && py<=RVE_ymax && pz>=RVE_zmin && pz<=RVE_zmax){	// means this particle is in RVE
 		ParticleVec_part.push_back(*it_p);
 		RVE_number++;
+		volume_soil = volume_soil+(*it_p)->getVolume();
 	}
-    
-    }
+    } 
+    REAL volume_box = (RVE_xmax-RVE_xmin)*(RVE_ymax-RVE_ymin)*(RVE_zmax-RVE_zmin);
+    curr_porosity = volume_soil/volume_box;
 
     if(RVE_number<5){	// Qhull needs more than 4 particles
 	progressinf << "\n the number of particles in this RVE becomes: " << RVE_number << std::endl;
@@ -199,7 +208,8 @@ std::cout << "begin step " << i+1 << "!" << std::endl;
 	// tessellate again
 	createInputForQhull();
 	callQhull();
-	readTesse_finite("tess_info");
+	readTesse_finite("tess_info");
+
 
 	// calculate strain by rate
 	prev_strain_rate.clear();
@@ -213,6 +223,17 @@ std::cout << "begin step " << i+1 << "!" << std::endl;
 	
 	curr_rate = 0.5*(curr_dvdx+curr_dvdx.getTrans());	// current spatial deformation rate
 	curr_strain_rate = prev_strain_rate+(curr_rate-curr_dvdx.getTrans()*prev_strain_rate-prev_strain_rate*curr_dvdx)*time_interval[i];
+	curr_F = (1+time_interval[i]*curr_dvdx)*curr_F;		// equation (24) in granular_stress_strain paper
+
+	// get Jocabian of deformation gradient
+	REAL F11 = curr_F(1,1);	REAL F12 = curr_F(1,2);	REAL F13 = curr_F(1,3);
+	REAL F21 = curr_F(2,1);	REAL F22 = curr_F(2,2);	REAL F23 = curr_F(2,3);
+	REAL F31 = curr_F(3,1);	REAL F32 = curr_F(3,2);	REAL F33 = curr_F(3,3);
+	J_nplus1 = F11*(F22*F33-F23*F32)-F12*(F21*F33-F23*F31)+F13*(F21*F32-F22*F31);
+	
+	curr_porosity = 1-(1-curr_porosity)*J_n/J_nplus1;	// as in Rich's note "2016_04_05_void_ratio_notes.pdf"
+
+	J_n = J_nplus1;	// update J
 
 	progressinf << setw(OWID) << spatial_dvdx(1,1) << setw(OWID) << spatial_dvdx(1,2) << setw(OWID) << spatial_dvdx(1,3)
 		    << setw(OWID) << spatial_dvdx(2,1) << setw(OWID) << spatial_dvdx(2,2) << setw(OWID) << spatial_dvdx(2,3)
@@ -221,6 +242,7 @@ std::cout << "begin step " << i+1 << "!" << std::endl;
 		    << setw(OWID) << curr_strain_rate(2,1) << setw(OWID) << curr_strain_rate(2,2) << setw(OWID) << curr_strain_rate(2,3)
 		    << setw(OWID) << curr_strain_rate(3,1) << setw(OWID) << curr_strain_rate(3,2) << setw(OWID) << curr_strain_rate(3,3)
 		    << setw(OWID) << RVE_number
+		    << setw(OWID) << curr_porosity/(1-curr_porosity)
 	            << endl;
 
     } // end for
@@ -652,15 +674,22 @@ void assembly::readSample(const char* str){
 	cout << "stream error!" << endl; exit(-1);
     }
     REAL temp;
-    for(int i=0; i<nstep; i++){
-    	ifs >> temp;
-    }
+//    for(int i=0; i<nstep; i++){
+//    	ifs >> temp;
+//    }
 
 
     ParticleVec.clear();
 
     REAL a, b, c, px,py,pz,dax,day,daz,dbx,dby,dbz,dcx,dcy,dcz;
     REAL vx,vy,vz,omx,omy,omz,fx,fy,fz,mx,my,mz;
+
+    REAL xmin_initial, xmax_initial;
+    REAL ymin_initial, ymax_initial;
+    REAL zmin_initial, zmax_initial;
+    REAL xmin_final, xmax_final;
+    REAL ymin_final, ymax_final;
+    REAL zmin_final, zmax_final;
     for (int i=0;i<TotalNum;i++){
 	ifs >> temp;
 
@@ -670,10 +699,48 @@ void assembly::readSample(const char* str){
 	for(int j=0; j<nstep; j++){
 	    ifs >> posi_x[j] >> posi_y[j] >> posi_z[j];
 	}	
+	REAL tmp_v; 	// volume of the particle
+	ifs >> tmp_v;
+	if(i==0){
+	    xmin_initial = posi_x[0]; xmax_initial = posi_x[0];
+	    ymin_initial = posi_y[0]; ymax_initial = posi_y[0];
+	    zmin_initial = posi_x[0]; zmax_initial = posi_z[0];
+	    xmin_final = posi_x[nstep-1]; xmax_final = posi_x[nstep-1];
+	    ymin_final = posi_y[nstep-1]; ymax_final = posi_y[nstep-1];
+	    zmin_final = posi_x[nstep-1]; zmax_final = posi_z[nstep-1];
+	}
+	else{
+	    if(xmin_initial>posi_x[0]) xmin_initial=posi_x[0];
+	    if(xmax_initial<posi_x[0]) xmax_initial=posi_x[0];
+	    if(ymin_initial>posi_y[0]) ymin_initial=posi_y[0];
+	    if(ymax_initial<posi_y[0]) ymax_initial=posi_y[0];
+	    if(zmin_initial>posi_z[0]) zmin_initial=posi_z[0];
+	    if(zmax_initial<posi_z[0]) zmax_initial=posi_z[0];
+
+	    if(xmin_final>posi_x[nstep-1]) xmin_final=posi_x[nstep-1];
+	    if(xmax_final<posi_x[nstep-1]) xmax_final=posi_x[nstep-1];
+	    if(ymin_final>posi_y[nstep-1]) ymin_final=posi_y[nstep-1];
+	    if(ymax_final<posi_y[nstep-1]) ymax_final=posi_y[nstep-1];
+	    if(zmin_final>posi_z[nstep-1]) zmin_final=posi_z[nstep-1];
+	    if(zmax_final<posi_z[nstep-1]) zmax_final=posi_z[nstep-1];
+
+	}
 	
-	particle* pt= new particle(i+1,posi_x,posi_y,posi_z);
+	particle* pt= new particle(i+1,posi_x,posi_y,posi_z, tmp_v);
 	ParticleVec.push_back(pt);
     }
+
+std::cout << "initial configuration: " << std::endl;
+std::cout << "xmin_initial: " << xmin_initial << ",  xmax_initial: " << xmax_initial << std::endl;
+std::cout << "ymin_initial: " << ymin_initial << ",  ymax_initial: " << ymax_initial << std::endl;
+std::cout << "zmin_initial: " << zmin_initial << ",  zmax_initial: " << zmax_initial << std::endl;
+
+std::cout << "\n final configuration: " << std::endl;
+std::cout << "xmin_final: " << xmin_final << ",  xmax_final: " << xmax_final << std::endl;
+std::cout << "ymin_final: " << ymin_final << ",  ymax_final: " << ymax_final << std::endl;
+std::cout << "zmin_final: " << zmin_final << ",  zmax_final: " << zmax_final << std::endl << std::endl;
+
+
     ifs.close();
 } // end readSample
 

@@ -6,7 +6,7 @@
 
 class particle{
   public:
-    particle(int n, REAL* posi_x, REAL* posi_y, REAL* posi_z);
+    particle(int n, REAL* posi_x, REAL* posi_y, REAL* posi_z, REAL tmp_v);
     
     int  getID() const {return ID;}
 

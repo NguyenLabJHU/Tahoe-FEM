@@ -3,7 +3,7 @@
 
 
 
-particle::particle(int n, REAL* posi_x, REAL* posi_y, REAL* posi_z){
+particle::particle(int n, REAL* posi_x, REAL* posi_y, REAL* posi_z, REAL tmp_v){
     ID = n;
     position_x = posi_x;
     position_y = posi_y;
@@ -13,6 +13,8 @@ particle::particle(int n, REAL* posi_x, REAL* posi_y, REAL* posi_z){
     curr_position.sety(position_y[0]);
     curr_position.setz(position_z[0]);
     prev_position = curr_position;
+
+    volume = tmp_v;
 
 
 } // end particle

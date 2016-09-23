@@ -16,24 +16,25 @@
 
 int main(){
 
-    REAL xmin, xmax, ymin, ymax, zmin, zmax;
-    xmin = 2495.56;  xmax = 13400.5;	// the coordinates of the computational domain
-    ymin = 2273.52;  ymax = 13749.2;
-    zmin = -20844.1;  zmax = -276.193;
-    REAL RVE_xmin, RVE_xmax, RVE_ymin, RVE_ymax, RVE_zmin, RVE_zmax;	// the coordinates of each RVE
-    REAL RVE_inter = 1453.4;	// the space interval of two neighbor RVE
-    RVE_xmin = 7054; RVE_xmax = 8508;
-    RVE_ymin = ymin; RVE_ymax = ymin;
-    RVE_zmin = zmin; RVE_zmax = zmin;
+   REAL xmin, xmax, ymin, ymax, zmin, zmax;
+    xmin = 1732.8;  xmax = 13867.02;	// the coordinates of the computational domain
+    ymin = 1894.1;  ymax =13746.81 ;
+    zmin = -20720.4;  zmax = -2621.5;
+   REAL RVE_xmin, RVE_xmax, RVE_ymin, RVE_ymax, RVE_zmin, RVE_zmax;	// the coordinates of each RVE
+   REAL RVE_size = 6000;	// the size of the RVE
+   REAL RVE_inter = 0.2*RVE_size;	// the space interval of two neighbor RVE
+   RVE_xmin = 4456; RVE_xmax = 11140;
+   RVE_ymin = 4456; RVE_ymax = 11140;
+    RVE_zmin = -20141; RVE_zmax = -15596;
 
 
     char stepsstr[6];
     char stepsfp[50];
     // loop over all RVEs in the computational domain
-    while(RVE_ymin<ymax){
-	RVE_ymax = RVE_ymax+RVE_inter;
-	while(RVE_zmin<zmax){
-	    RVE_zmax = RVE_zmax+RVE_inter;
+    while(RVE_ymin <= ymax-RVE_size){
+	RVE_ymax = RVE_ymax+RVE_size;
+	while(RVE_zmin <= zmax-RVE_size){
+	    RVE_zmax = RVE_zmax+RVE_size;
 
 	    // construct the name of output file for each RVE
 	    sprintf(stepsstr, "%05d", int(RVE_xmin)); 
@@ -45,7 +46,7 @@ int main(){
 	    sprintf(stepsstr, "%05d", int(RVE_zmax)); strcat(stepsfp, "_"); strcat(stepsfp, stepsstr);
 
 	    assembly sample;
-   	    sample.calculateGranularStrain(8, 24720, "F35_400.txt", stepsfp, RVE_xmin, RVE_xmax, RVE_ymin, RVE_ymax, RVE_zmin, RVE_zmax);	// F35_400.txt is the input file
+   	    sample.calculateGranularStrain(8, 24735, "F35_15.txt", stepsfp, RVE_xmin, RVE_xmax, RVE_ymin, RVE_ymax, RVE_zmin, RVE_zmax);	// F35_400.txt is the input file
 
 std::cout << "RVE_xmin: " << RVE_xmin << "  RVE_xmax: " << RVE_xmax << std::endl;
 std::cout << "RVE_ymin: " << RVE_ymin << "  RVE_ymax: " << RVE_ymax << std::endl;
