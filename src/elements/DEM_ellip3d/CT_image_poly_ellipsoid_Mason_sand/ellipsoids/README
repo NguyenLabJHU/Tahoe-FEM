@@ -4,3 +4,6 @@ principal lengths, and so on.
 tranfer to "grain_ellipsoids.txt", then run "conv_ellipsoid.cpp" to convert the "grain_ellipsoids.txt" to
 the input file for ellip3d, i.e. "ellipsoids_input.txt".
 (3) Step 3: run "plot.cpp" to process the input file "ellipsoids_input.txt" from Step 2.
+
+The constructed ellipsoids are overlaped with each other, since the sand grains are contacted with each other.
+These constructed ellipsoids can be used to run gravity deposition to generate the sample of equivalent ellipsoids.
