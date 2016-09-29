@@ -54,9 +54,9 @@ namespace dem {
     l2 = -c2*s3-c1*s2*c3; m2 = -s2*s3+c1*c2*c3; n2 = s1*c3;
     l3 = s1*s2;           m3 = -s1*c2;          n3 = c1;
 
-    currDirecA = Vec(acos(l1), acos(m1), acos(n1));
-    currDirecB = Vec(acos(l2), acos(m2), acos(n2));
-    currDirecC = Vec(acos(l3), acos(m3), acos(n3));
+    currDirecA = Vec(0.000000000000e+00, 1.570796326794e+00, 1.570796326794e+00);
+    currDirecB = Vec(1.570796326794e+00, 0.000000000000e+00, 1.570796326794e+00);
+    currDirecC = Vec(1.570796326794e+00, 1.570796326794e+00, 0.000000000000e+00);
     //currDirecC = vacos(normalize(vcos(currDirecA) * vcos(currDirecB)));
 
     prevPos = currPos;
@@ -69,7 +69,7 @@ namespace dem {
     moment = prevMoment = 0;
     constForce = constMoment = 0;
     density = dem::Parameter::getSingleton().parameter["specificG"] * 1.0e+3;
-    volume = 4/3.0*Pi*a*b*c;
+    volume = 4.0/3.0*Pi*a*b*c;
     mass = density*volume;
     momentJ = Vec(mass/5*(b*b+c*c), mass/5*(a*a+c*c), mass/5*(a*a+b*b));
     contactNum = 0;
@@ -107,7 +107,7 @@ namespace dem {
     grad.setPtclRatioCA(ran(&idum));
 #endif
   
-    b = a * grad.getPtclRatioBA();
+    b = 1;
     c = a * grad.getPtclRatioCA();
   
     init();
@@ -130,7 +130,7 @@ namespace dem {
     constForce = constMoment = 0;
     contactNum = 0;
     density = dem::Parameter::getSingleton().parameter["specificG"] * 1.0e3;
-    volume = 4/3.0*Pi*a*b*c;
+    volume = 4.0/3.0*Pi*a*b*c;
     mass = density*volume;
     momentJ = Vec(mass/5*(b*b + c*c), mass/5*(a*a + c*c), mass/5*(a*a + b*b));
     inContact = false;
@@ -466,6 +466,10 @@ namespace dem {
       REAL atf = forceDamp*2; 
       REAL atm = momentDamp*2; 
     
+// do not allow move in y direction, only rotate along y axis
+force.setY(0);
+
+
       // force: translational kinetics equations are in global frame
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       currPos = prevPos + currVeloc * timeStep;
@@ -482,6 +486,9 @@ namespace dem {
       // convert local angular velocities to those in global frame in order to rotate a particle in global space
       currOmga = localToGlobal(currLocalOmga);
     
+currOmga.setX(0);
+currOmga.setZ(0);
+
       currDirecA = vacos(normalize(rotateVec(vcos(prevDirecA),currOmga * timeStep)));
       currDirecB = vacos(normalize(rotateVec(vcos(prevDirecB),currOmga * timeStep)));
       currDirecC = vacos(normalize(rotateVec(vcos(prevDirecC),currOmga * timeStep)));
@@ -909,5 +916,30 @@ namespace dem {
     vec.push_back(static_cast<REAL> (k));
     fluidGrid.push_back(vec);
   }
+
+  void Particle::setDemParticleInSPHParticle(){
+    for(std::vector<sph::SPHParticle*>::iterator it=SPHGhostParticleVec.begin(); it!=SPHGhostParticleVec.end(); it++){
+	(*it)->setDemParticle(this);	// this is the self pointer
+    }
+  }
+
+  void Particle::setNULLDemParticleInSPHParticle(){
+    for(std::vector<sph::SPHParticle*>::iterator it=SPHGhostParticleVec.begin(); it!=SPHGhostParticleVec.end(); it++){
+	(*it)->setNULLDemParticle();	// this is the self pointer
+    }
+  }
+
+    void Particle::updateSPHGhostParticle(){
+
+	dem::Vec sph_local, sph_curr;
+	for(std::vector<sph::SPHParticle*>::iterator pt=SPHGhostParticleVec.begin(); pt!=SPHGhostParticleVec.end(); pt++){
+	    sph_local = (*pt)->getLocalPosition();	
+	    sph_curr = localToGlobal(sph_local)+currPos;
+	    sph_curr.setY(0);
+	    (*pt)->setCurrPosition(sph_curr);
+	    (*pt)->setCurrVelocity(currVeloc+currOmga%(sph_curr-currPos));
+	    (*pt)->updateParticleDensity();
+	}
+    }
 
 } // namespace dem ends

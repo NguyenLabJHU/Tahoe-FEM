@@ -514,6 +514,79 @@ namespace dem {
       parameter["P0"] = 1.013e5;
       break;
 
+
+    case 1003: // drainage problem
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 9; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      parameter["soundSpeed"] = sqrt(200*parameter["gravAccel"]*parameter["gravScale"]*parameter["waterHeight"]);
+      parameter["P0"] = parameter["soundSpeed"]*parameter["soundSpeed"]*parameter["SPHInitialDensity"]/parameter["gamma"]*0.1;
+//      parameter["P0"] = 1.013e5;
+      break;
+
+    case 1004: // drainage middle layers
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 12; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      parameter["soundSpeed"] = sqrt(200*parameter["gravAccel"]*parameter["gravScale"]*(parameter["waterZmax"]-parameter["waterZmin"]) );
+      parameter["P0"] = parameter["soundSpeed"]*parameter["soundSpeed"]*parameter["SPHInitialDensity"]/parameter["gamma"]*0.1;
+//      parameter["P0"] = 1.013e5;
+      break;
+
+    case 1005: // drainage problem with less DEM particles, then store allParticleVec in all CPUs
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 9; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      parameter["soundSpeed"] = sqrt(200*parameter["gravAccel"]*parameter["gravScale"]*parameter["waterHeight"]);
+      parameter["P0"] = parameter["soundSpeed"]*parameter["soundSpeed"]*parameter["SPHInitialDensity"]/parameter["gamma"]*0.1;
+      parameter["P0"] = 1.013e5;
+      break;
+
+    case 1006: // drainage middle layers
+      for (std::size_t i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (std::size_t i = 0; i < 12; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+      parameter["soundSpeed"] = sqrt(200*parameter["gravAccel"]*parameter["gravScale"]*(parameter["waterZmax"]-parameter["waterZmin"]) );
+      parameter["P0"] = parameter["soundSpeed"]*parameter["soundSpeed"]*parameter["SPHInitialDensity"]/parameter["gamma"]*0.1;
+//      parameter["P0"] = 1.013e5;
+      break;
+
     }
     ifs.close();
 

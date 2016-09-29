@@ -8,6 +8,7 @@
 #include "Rectangle.h"
 #include "Cylinder.h"
 #include "Boundary.h"
+#include "SPHParticle.h"
 #include <cstddef>
 #include <map>
 #include <vector>
@@ -56,6 +57,9 @@ namespace dem {
     std::size_t  contactNum;
     bool inContact;  // in contact with other particle or boundary
     std::vector< std::vector<REAL> > fluidGrid;
+
+  public:
+    std::vector<sph::SPHParticle*> SPHGhostParticleVec;
 
   public:
     Particle();
@@ -161,6 +165,11 @@ namespace dem {
     void clearFluidGrid();
     void recordFluidGrid(std::size_t i, std::size_t j, std::size_t k);
     std::vector< std::vector<REAL> > & getFluidGrid() { return fluidGrid; }
+
+    // sph 
+    void setDemParticleInSPHParticle();
+    void setNULLDemParticleInSPHParticle();
+    void updateSPHGhostParticle();
     
   private:
     void init();    
@@ -197,6 +206,7 @@ namespace dem {
       ar & contactNum;
       ar & inContact;
       ar & fluidGrid;
+      ar & SPHGhostParticleVec;
     }  
     
   };

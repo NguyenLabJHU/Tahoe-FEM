@@ -6,7 +6,7 @@ namespace sph {
 
     SPHParticle::SPHParticle()
 	: mass(0), density(0), volume(0), pressure(0), mu(0), densityDot(0),
-	  initial_X(0), curr_x(0), velocity(0), velocityDot(0), local_X(0), type(0), demParticle(NULL) {}
+	  initial_X(0), curr_x(0), velocity(0), velocityDot(0), local_X(0), type(0) {}
 
     SPHParticle::SPHParticle(REAL m, REAL rho, REAL x, REAL y, REAL z, int t){
 	mass = m;
@@ -33,7 +33,7 @@ namespace sph {
 	
     } // end SPHParticle()
 
-    SPHParticle::SPHParticle(REAL m, REAL rho, REAL x, REAL y, REAL z, dem::Vec local, dem::Particle* p, int t){
+    SPHParticle::SPHParticle(REAL m, REAL rho, REAL x, REAL y, REAL z, dem::Vec local, int t){
 	mass = m;
     	density = rho;
     	volume = mass/density;
@@ -54,7 +54,7 @@ namespace sph {
 	    exit(-1);
 	}
 	type = 2;
-	demParticle = p;
+	demParticle = NULL;
 	
     } // end SPHParticle()
 	
@@ -86,9 +86,6 @@ namespace sph {
 
     void SPHParticle::updateParticleDensity(){	// here the forward Euler time integration is used
 
-//if(fabs(densityDot)>100){
-//    densityDot = 0.1*densityDot;
-//}
 	density = density+densityDot*(dem::Parameter::getSingleton().parameter["timeStep"]);
 
     } // end updateParticle()

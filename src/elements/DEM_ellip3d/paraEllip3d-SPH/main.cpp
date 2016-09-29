@@ -150,6 +150,18 @@ int main(int argc, char* argv[]) {
   case 1002:// dam bursting problem in 3D
     assemb.burstingDam3D();
     break;
+  case 1003:// drainage problem
+    assemb.drainageProblem();
+    break;
+  case 1004:// drainage middle layers
+    assemb.drainageMiddleLayers();
+    break;
+  case 1005:// drainage problem with less DEM particles, then store allParticle in all CPUs
+    assemb.drainageProblemCopyDEM();
+    break;
+  case 1006:// drainage middle layers
+    assemb.drainageMiddleLayersCopyDEM();
+    break;
   }
   
   if (boostWorld.rank() == 0) {

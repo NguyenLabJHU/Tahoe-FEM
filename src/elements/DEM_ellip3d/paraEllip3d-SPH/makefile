@@ -10,7 +10,7 @@ PLATFORM = spirit
 #PLATFORM = excalibur
 
 ###2. compiler combinations (c++ and mpi)
-COMPILERS = gcc-openmpi
+#COMPILERS = gcc-openmpi
 #COMPILERS = intel-intel
 COMPILERS = intel-sgi
 #COMPILERS = intel-cray

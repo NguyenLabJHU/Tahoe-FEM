@@ -63,6 +63,7 @@ namespace dem {
     REAL factor_kernel, factor_kernel_gradient;
     REAL Wqmin;	// the parameters used to remove tensile instability in "State-of-the-art of classical SPH for free-surface flows"
     REAL p1, p2;// for the Lennard-Jones boundary forces 
+    REAL sphCellSize;	// the cell size of sph domain, sphCellSize = kernelSize in burstingDam3D, while sphCellSize = gradation.getMaxRadius()*2
     int numCell;	// number of SPH cells in each cpu
     int Nx;
     int Ny;
@@ -108,8 +109,8 @@ namespace dem {
     std::vector<Particle *> recvParticleVec;  // received particles per process
     std::vector<Particle *> mergeParticleVec; // merged particles per process
     //  for sph
-    std::vector<sph::SPHParticle*> allSPHParticleVec;	// this contains all sph particles, i.e. free, ghost, boundary for all cpus
-    std::vector<sph::SPHParticle*> SPHParticleVec;	// this contains all sph particles for each cpu 
+    std::vector<sph::SPHParticle*> allSPHParticleVec;	// this contains all sph particles except ghost particles, i.e. free and boundary for all cpus
+    std::vector<sph::SPHParticle*> SPHParticleVec;	// this contains all sph particles except ghost particles for each cpu 
     std::vector<sph::SPHParticle*> rsphParticleX1, rsphParticleX2; // r stands for received
     std::vector<sph::SPHParticle*> rsphParticleY1, rsphParticleY2; 
     std::vector<sph::SPHParticle*> rsphParticleZ1, rsphParticleZ2; 
@@ -118,9 +119,9 @@ namespace dem {
     std::vector<sph::SPHParticle*> rsphParticleY1Z1, rsphParticleY1Z2, rsphParticleY2Z1, rsphParticleY2Z2; 
     std::vector<sph::SPHParticle*> rsphParticleX1Y1Z1, rsphParticleX1Y1Z2, rsphParticleX1Y2Z1, rsphParticleX1Y2Z2; 
     std::vector<sph::SPHParticle*> rsphParticleX2Y1Z1, rsphParticleX2Y1Z2, rsphParticleX2Y2Z1, rsphParticleX2Y2Z2; 
-    std::vector<sph::SPHParticle*> recvSPHParticleVec;	// received sph particles per process     
-    std::vector<sph::SPHParticle*> mergeSPHParticleVec;	// merged sph particles per process  
-    std::vector< std::vector<sph::SPHParticle*> >  SPHParticleCellVec;	// a vector to store the cell of SPH partiles, each cell contains SPH particles within this cell
+    std::vector<sph::SPHParticle*> recvSPHParticleVec;	// received sph particles (free and boundary) per process     
+    std::vector<sph::SPHParticle*> mergeSPHParticleVec;	// merged sph particles (free and boundary) per process  
+    std::vector< std::vector<sph::SPHParticle*> >  SPHParticleCellVec;	// a vector to store the cell of SPH partiles (free, ghost and boundary), each cell contains SPH particles within this cell
 
     // stream
     std::ofstream progressInf;
@@ -136,11 +137,21 @@ namespace dem {
     
     ~Assembly() {
       // release memory pointed to by pointers in the container
-      for(std::vector<Particle *>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+      for(std::vector<Particle *>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it){
+	for(std::vector<sph::SPHParticle*>::iterator st=(*it)->SPHGhostParticleVec.begin(); st!=(*it)->SPHGhostParticleVec.end(); ++st){
+	    delete (*st);	// this is important to free the memories of sph ghost particles
+	}
+	(*it)->SPHGhostParticleVec.clear();
 	delete (*it);
+      }
 
-      for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it){
+	for(std::vector<sph::SPHParticle*>::iterator st=(*it)->SPHGhostParticleVec.begin(); st!=(*it)->SPHGhostParticleVec.end(); ++st){
+	    delete (*st);	// this is important to free the memories of sph ghost particles
+	}
+	(*it)->SPHGhostParticleVec.clear();
 	delete (*it);
+      }
 
       for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
 	delete (*it);
@@ -183,6 +194,8 @@ namespace dem {
 			  const char *genParticle);
     void generateSPHParticle2D();	// July 15, 2015
     void generateSPHParticle3D();
+    void generateSPHParticleNoBottom3D();	// not generate bottom boundary sph particles
+    void generateSPHParticleMiddleLayers3D();	// not generate bottom boundary sph particles
     void buildBoundary(std::size_t boundaryNum,
 		       const char *boundaryFile);
     void trimOnly();
@@ -196,6 +209,11 @@ namespace dem {
     void coupleWithGas();    
     void burstingDam2D();
     void burstingDam3D();
+    void drainageProblem();
+    void drainageProblemCopyDEM();
+    void drainageMiddleLayers();	// fixed some layers of DEM particles in the middle of the container,
+					// and drop water above these particles, while full six boundaries for SPH
+    void drainageMiddleLayersCopyDEM();
 
     void isotropic();
     void odometer();
@@ -208,9 +226,11 @@ namespace dem {
     void setCavity(Rectangle cav) { cavity = cav; }
 
     void readParticle(const char *str);
+    void readParticleMiddleLayers(const char *str);
     void readBoundary(const char *str);
     void scatterParticle();
     void scatterDEMSPHParticle();	// two points (1) not deal with ghost well; (2) grid for dem and sph should be the same, July 15, 2015
+    void scatterDEMSPHParticleCopyDEM();
     void commuParticle();
     void commuSPHParticle();
     void calcNeighborRanks();
@@ -235,6 +255,7 @@ namespace dem {
     dem::Vec gradientKernelFunction(const dem::Vec& a, const dem::Vec& b);	// to calculate delta_aWab, where a is the position of the first particle
     void initialSPHVelocity2D();
     void initialSPHVelocity3D();
+    void initialSPHVelocityCopyDEM3D();
     void initialSPHLeapFrogVelocity();
     void updateSPHLeapFrogVelocity();
     void updateSPHLeapFrogPositionDensity();

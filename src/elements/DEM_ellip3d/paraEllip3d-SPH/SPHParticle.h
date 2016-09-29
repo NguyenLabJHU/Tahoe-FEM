@@ -10,11 +10,10 @@
 #include "Vec.h"
 #include "realtypes.h"
 #include "Parameter.h"
-#include "Particle.h"
 
-//namespace dem{
-//class Particle;
-//}
+namespace dem{
+class Particle;
+}
 
 
 namespace sph{
@@ -25,7 +24,7 @@ public:
     // Default Constructor
     SPHParticle();
     SPHParticle(REAL mass, REAL density, REAL x, REAL y, REAL z, int t);
-    SPHParticle(REAL mass, REAL density, REAL x, REAL y, REAL z, dem::Vec local, dem::Particle* p, int t);
+    SPHParticle(REAL mass, REAL density, REAL x, REAL y, REAL z, dem::Vec local, int t);
 
     ~SPHParticle() {};
 
@@ -43,6 +42,8 @@ public:
     void setCurrPositionInitial() {curr_x = initial_X;}
     void setCurrVelocity(dem::Vec a) {velocity = a;}
     void setType(int a) {type=a;}
+    void setDemParticle(dem::Particle* p) {demParticle = p;}
+    void setNULLDemParticle() {demParticle = NULL;}
     void addVelocityDot(const dem::Vec& a) {velocityDot = velocityDot+a;}
     void addVelocityCorrection(const dem::Vec& a) {velocityCorrection = velocityCorrection+a;}
     void addDensityDot(REAL a) {densityDot = densityDot+a;}
@@ -99,7 +100,9 @@ private:
 
     // variable for linked list searching
     int type;	// particle type: 1, free particle; 2, ghost particle; 3, boundary particle
-    dem::Particle* demParticle;	// if is ghost particle, then pointer to its dem particle
+    dem::Particle* demParticle;	// if is ghost particle, then pointer to its dem particle, we don't have this in paraDEM-SPH
+				// there is two tricks in the implementation of MPI: (1) before send sph particles, demParticle = NULL; 
+				//   after receive, assign demParticle. (2) When delete dem particles, should also free the memory of SPHGhostParticleVec
 
     friend class boost::serialization::access;
     template<class Archive>
