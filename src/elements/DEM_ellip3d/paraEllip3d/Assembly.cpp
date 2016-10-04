@@ -39,7 +39,7 @@
 #include <sys/time.h>
 #include <omp.h>
 
-#define BIGON
+//#define BIGON
 //#define DEM_PROFILE
 //#define CFD_PROFILE
 #define MODULE_TIME
