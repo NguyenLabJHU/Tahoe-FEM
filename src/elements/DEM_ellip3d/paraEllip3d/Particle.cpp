@@ -93,11 +93,15 @@ namespace dem {
   Particle::Particle(std::size_t n, std::size_t tp, Vec center, Gradation &grad, REAL yng, REAL poi)
     :id(n), type(tp), young(yng), poisson(poi), currPos(center)  {
     // generate particle size in terms of gradation distribution
-    REAL sievenum = grad.getSieveNum();
-    REAL randnum = ran(&idum);
-    for (std::size_t k = 0; k < sievenum; ++k) {
-      if ( randnum <= grad.getPercent()[sievenum-1-k]) {
-	a = grad.getSize()[sievenum-1-k]; // use a for sieving (where a >= b >= c) 
+    REAL sieveNum = grad.getSieveNum();
+    REAL randNum = ran(&idum);
+    for (std::size_t k = 0; k < sieveNum; ++k) {
+      if ( randNum <= grad.getPercent()[sieveNum - 1 - k]) {
+	// select randomly from sizes that are smaller than grad.getSize()[sieveNum - 1 - k]
+	int min = sieveNum - 1 - k;
+	int max = sieveNum - 1;
+	int randSieveNum = rand() % (max - min + 1) + min;
+	a = grad.getSize()[randSieveNum]; // use radius a for sieving (where a >= b >= c) 
 	break;
       }
     }
