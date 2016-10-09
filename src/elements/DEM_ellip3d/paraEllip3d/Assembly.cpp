@@ -1353,14 +1353,12 @@ namespace dem {
     std::size_t particleNum = 0;
     REAL diameter = gradation.getPtclMaxRadius()*2.0;
 
-    REAL offset   = 0;
-    REAL edge     = diameter;
+    REAL offset = 0;
+    REAL edge   = diameter;
     if (gradation.getSize().size() == 1 &&
 	gradation.getPtclRatioBA() == 1.0 && 
-	gradation.getPtclRatioCA() == 1.0) {
-      edge   = diameter*2.0;
-      offset = diameter*0.25;
-    }
+	gradation.getPtclRatioCA() == 1.0)
+      offset = diameter*0.05;
   
     REAL x1 = allContainer.getMinCorner().getX() + edge;
     REAL y1 = allContainer.getMinCorner().getY() + edge;
@@ -1388,8 +1386,8 @@ namespace dem {
     }
     else if (particleLayers == 2) { // multiple layers of free particles
       for (z = z1; z - z2 < EPS; z += diameter) {
-	for (x = x1 + offset; x - x2 < EPS; x += diameter)
-	  for (y = y1 + offset; y - y2 < EPS; y += diameter) {
+	for (x = x1 + offset; x - offset - x2 < EPS; x += diameter)
+	  for (y = y1 + offset; y - offset - y2 < EPS; y += diameter) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
 	    particleNum++;
