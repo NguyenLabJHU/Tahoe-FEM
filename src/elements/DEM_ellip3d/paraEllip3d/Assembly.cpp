@@ -1353,12 +1353,8 @@ namespace dem {
     std::size_t particleNum = 0;
     REAL diameter = gradation.getPtclMaxRadius()*2.0;
 
-    REAL offset = 0;
+    REAL offset = diameter*0.25; // +- makes 0.5
     REAL edge   = diameter;
-    if (gradation.getSize().size() == 1 &&
-	gradation.getPtclRatioBA() == 1.0 && 
-	gradation.getPtclRatioCA() == 1.0)
-      offset = diameter*0.05;
   
     REAL x1 = allContainer.getMinCorner().getX() + edge;
     REAL y1 = allContainer.getMinCorner().getY() + edge;
