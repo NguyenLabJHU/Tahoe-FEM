@@ -3871,7 +3871,7 @@ namespace dem {
     
 #ifdef DEM_PROFILE
       gettimeofday(&time_p2,NULL);
-      debugInf << std::setw(OWID) << "internalForce=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::endl; 
+      debugInf << std::setw(OWID) << "internalForce=" << std::setw(OWID) << timediffsec(time_p1, time_p2); 
 #endif   
     }
 
@@ -3889,8 +3889,17 @@ namespace dem {
 
 
   void Assembly::updateParticle() {
+#ifdef DEM_PROFILE
+      gettimeofday(&time_p1,NULL); 
+#endif 
+
     for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       (*it)->update();
+
+#ifdef DEM_PROFILE
+      gettimeofday(&time_p2,NULL);
+      debugInf << std::setw(OWID) << "updatePtcl=" << std::setw(OWID) << timediffsec(time_p1, time_p2) << std::endl; 
+#endif 
   }
 
 
