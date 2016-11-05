@@ -1,9 +1,10 @@
-/* $Id: NLConvDiffusionElementT.h,v 1.1 2016-04-28 15:36:33 tdnguye Exp $ */
+/* $Id: NLConvDiffusionElementT.h,v 1.2 2016-11-05 15:46:19 tdnguye Exp $ */
 #ifndef _NL_DIFFUSE_CONV_T_H_
 #define _NL_DIFFUSE_CONV_T_H_
 
 /* base class */
 #include "DiffusionElementT.h"
+//#include "FiniteStrainAxiT.h"
 
 namespace Tahoe {
 
@@ -40,6 +41,13 @@ public:
 	/*@}*/
 
 protected:
+    // added by RXiao
+    virtual bool Axisymmetric(void) const { return true; };
+    
+    /** allocate and initialize local arrays */
+    virtual void SetLocalArrays(void);
+    // form shape functions and derivatives
+    virtual void SetGlobalShape(void);
 
 	/** construct the effective mass matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
@@ -58,6 +66,8 @@ protected:
 	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
+    
+////    virtual void SetLocalArrays(void);
 
 private:
 
@@ -77,6 +87,8 @@ protected:
 	/** field values over the element. The interpolated values are only computed
 	 * an integration point at a time and stored. */
 	dArrayT fField_list;
+    
+ ////   LocalArrayT fLocLastDisp;
 
 	/** \name mixed boundary condition parameters 
 	 * Nonlinear, mixed boundary conditions of the form
@@ -85,15 +97,37 @@ protected:
 	   \f]
 	 */
 	/*@{*/
+     LocalArrayT* fLocDisplacement;      /**< (optional) nodal temperatures */
+ 	LocalArrayT* fLocDisplacement_last; /**< (optional) last nodal temperatures */
 	/** list of nodes on each face */
 	iArray2DT fBCFaces;
 	iArray2DT fBCEqnos;
 	
-	double feps;
-	double falpha;
+	dArrayT feps;
+	dArrayT falpha;
+    dArrayT fschedulenum;
+    
+    /** returns true if the material requires the deformation gradient */
+ //   bool Needs_F(int material_number) const;
+    
+    /** returns true if the material requires the deformation gradient
+     * from the end of the last time increment */
+ //   bool Needs_F_last(int material_number) const;
 	/*@}*/
 private:
     const ScheduleT* fSchedule;/**< schedule for mixed boundary conditions*/
+    
+    /** \name radius to integration points computed during FiniteStrainAxiT::SetGlobalShape */
+    /*@{*/
+    /** current coords with local ordering */
+    LocalArrayT fLocCurrCoords;
+    /** integration point radius in undeformed configuration */
+    dArrayT fRadius_X;
+    
+    /** integration point radius in current configuration */
+    dArrayT fRadius_x;
+    /*@}*/
+
 
 
 };

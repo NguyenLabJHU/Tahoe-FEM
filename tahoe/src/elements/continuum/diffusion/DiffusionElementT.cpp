@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.27 2011-12-01 21:11:36 bcyansfn Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.28 2016-11-05 15:46:19 tdnguye Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -34,6 +34,8 @@ const int kDiffusionNDOF = 1;
 DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
 	ContinuumElementT(support),
 	fLocVel(LocalArrayT::kVel),
+    fLocDisplacement(NULL),
+    fLocDisplacement_last(NULL),
 	fDiffusionMatSupport(NULL)
 {
 	SetName("diffusion");
@@ -43,6 +45,8 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
 DiffusionElementT::~DiffusionElementT(void)
 {
 	delete fDiffusionMatSupport;
+	delete fLocDisplacement;
+	delete fLocDisplacement_last;
 }
 
 /* compute nodal force */
@@ -137,6 +141,20 @@ void DiffusionElementT::SetLocalArrays(void)
 	/* nodal velocities */
 	if (fIntegrator->Order() > 0)
 		Field().RegisterLocal(fLocVel);
+    
+    /* look for a displacement field*/
+    const FieldT* displacement = ElementSupport().Field("displacement");
+	if (displacement) {
+        
+		/* construct */
+		fLocDisplacement = new LocalArrayT(LocalArrayT::kDisp, NumElementNodes(), displacement->NumDOF());
+		fLocDisplacement_last = new LocalArrayT(LocalArrayT::kLastDisp, NumElementNodes(), displacement->NumDOF());
+        
+		/* register */
+		displacement->RegisterLocal(*fLocDisplacement);
+		displacement->RegisterLocal(*fLocDisplacement_last);
+	}
+
 }
 
 /* construct output labels array */
@@ -171,6 +189,7 @@ void DiffusionElementT::SetShape(void)
 	if (!fShapes ) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 }
+
 
 /* construct the effective mass matrix */
 void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
