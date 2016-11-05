@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.17 2004-07-22 08:13:22 paklein Exp $ */
+/* $Id: C1FunctionT.h,v 1.18 2016-11-05 15:41:58 tdnguye Exp $ */
 /* created: paklein (12/04/1996) */
 #ifndef _C1_FUNCTION_T_H_
 #define _C1_FUNCTION_T_H_
@@ -80,6 +80,10 @@ public:
 	/*@{*/
 	virtual double DomainMin(void) const;
 	virtual double DomainMax(void) const;
+	
+//	/** returns derivatives of Dfunction with respect to the parameters**/
+//	virtual void ParameterDerivatives (double x, dArrayT& data) const;
+	
 	/*@}*/
 };
 

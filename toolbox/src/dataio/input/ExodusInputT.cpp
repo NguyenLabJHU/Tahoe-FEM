@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.19 2004-05-07 22:34:12 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.20 2016-11-05 15:42:07 tdnguye Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -278,7 +278,7 @@ void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
   for (int n=0; n < values.MinorDim(); n++)
     {
       fData.ReadNodalVariable (step+1, n+1, temp);
-      values.SetColumn (n, temp);
+      values.SetColumn(n, temp);
     }
 }
 
