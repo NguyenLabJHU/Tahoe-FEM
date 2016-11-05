@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.cpp,v 1.8 2005-01-29 18:32:02 paklein Exp $ */
+/* $Id: RootedLevelT.cpp,v 1.9 2016-11-05 15:42:11 tdnguye Exp $ */
 /* created: paklein (08/05/1996) */
 
 #include "RootedLevelT.h"
@@ -33,9 +33,10 @@ RootedLevelT::~RootedLevelT(void)
 void RootedLevelT::MakeRootedLevel(const GraphT& graph, int rootnode)
 {
 	const char caller[] = "RootedLevelT::MakeRootedLevel";
-
+//	cout << "\nrootnode: "<<rootnode;
 //TEMP - only allocate if size has changed
 	fNumNodes = graph.NumNodes();
+//	cout << "\nnumnodes: "<<fNumNodes;
 	if (rootnode < 0 || rootnode >= fNumNodes)
 		ExceptionT::GeneralFail(caller, "incorrect root node number %d", rootnode);
 

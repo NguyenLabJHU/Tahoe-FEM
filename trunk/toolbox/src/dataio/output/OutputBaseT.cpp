@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.24 2005-07-29 02:16:13 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.25 2016-11-05 15:42:09 tdnguye Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -73,8 +73,10 @@ void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* no
 	
 	/* id list check */
 	if (fNodeID && fNodeID->Length() != fCoordinates->MajorDim())
+	{
 		ExceptionT::SizeMismatch("OutputBaseT::SetCoordinates", 
 			"expecting %d not %d nodes ID's", fNodeID->Length(), fCoordinates->MajorDim());
+	}
 }
 
 /* SA: add definitions of special arrays for ParaDyn Format Output */
