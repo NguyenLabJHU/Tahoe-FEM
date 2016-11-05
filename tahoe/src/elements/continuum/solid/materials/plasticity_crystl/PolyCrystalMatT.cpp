@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.21 2016-09-13 03:32:13 tdnguye Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.22 2016-11-05 15:45:16 tdnguye Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -204,6 +204,11 @@ void PolyCrystalMatT::SetSlipSystems()
     case SlipGeometry::kPE:
         cout << "\n PolyCrystalMatT::SetSlipSystems: PE slip system not validated";
         fSlipGeometry = new PEGeometry();
+     break;
+            
+    case SlipGeometry::kPEa:
+            cout << "\n PolyCrystalMatT::SetSlipSystems: PE_a slip system not validated";
+            fSlipGeometry = new PEGeometryA();
     break;
 
     default:
