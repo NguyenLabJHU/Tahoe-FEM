@@ -18,7 +18,7 @@ class SlipGeometry
 {
  public:
   // enum variable to select crystal structure
-  enum CrystalType { kFCC=1, kBCC=2, kHCP=3, kFCC24=4,kPE = 5};
+  enum CrystalType { kFCC=1, kBCC=2, kHCP=3, kFCC24=4,kPE = 5,kPEa=6};
 
   // constructor
   SlipGeometry(int numslip);
@@ -153,6 +153,23 @@ class PEGeometry: public SlipGeometry
     void SetSlipVectors();
 };
 
-} // namespace Tahoe 
+    class PEGeometryA: public SlipGeometry
+    {
+    public:
+        // constructor
+        PEGeometryA();
+        
+        // destructor
+        ~PEGeometryA();
+        
+        // print crystal structure name
+        virtual void PrintName(ostream& out) const;
+        
+    private:
+        // build Polyethylene slip system vectors from Miller indices
+        void SetSlipVectors();
+    };
+
+} // namespace Tahoe
 #endif /* _SLIP_GEOMETRY_H_ */
 

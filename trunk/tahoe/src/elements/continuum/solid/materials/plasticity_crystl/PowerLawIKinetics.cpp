@@ -58,7 +58,16 @@ double PowerLawIKinetics::Phi(double tau, int is)
   if ( !(fabs(tau) == 0.0) ) CheckArgumentRange(tmp, sign);
 
   double qnt = Power( fabs(tmp), (1./fMatProp[0]-1.) );
-  return  fMatProp[1]*(tmp)*qnt;
+/*    cout << "\ni: "<<is;
+    cout << "\ntau: "<<tau;
+    cout << "\ntauIso: "<<tauIso;
+    cout << "\npower: "<< qnt;
+    cout << "\ndgammadt: "<<fMatProp[1]*(tmp)*qnt;
+    cout << "\nmatprop0: "<<fMatProp[0];
+    cout << "\nfmatprop1: "<<fMatProp[1];
+ */
+    return  fMatProp[1]*(tmp)*qnt;
+    
 }
 
 double PowerLawIKinetics::DPhiDTau(double tau, int is)

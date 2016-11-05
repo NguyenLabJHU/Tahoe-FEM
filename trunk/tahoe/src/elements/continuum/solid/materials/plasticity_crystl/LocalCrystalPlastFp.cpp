@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.24 2016-09-13 03:32:13 tdnguye Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.25 2016-11-05 15:45:16 tdnguye Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -308,12 +308,12 @@ void LocalCrystalPlastFp::FormRHS(const dArrayT& fparray, dArrayT& rhs)
   }
 //    cout << "\nfMatx1: "<< fMatx1;
     
-    if (CurrElementNumber()==0&&CurrIP()==0 && 0)
+    if (CurrElementNumber()==0&&CurrIP()==0 &&0 )
     {
-        cout << "\n rhs fFp: "<<fFp;
+//        cout << "\n rhs fFp: "<<fFp;
 //        cout << "\nfFpi: "<<fFp;
-//        cout << "\nfTau: "<<fTau;
-//        cout << "\nfDGamma: "<< fDGamma;
+        cout << "\nfTau: "<<fTau;
+        cout << "\nfDGamma: "<< fDGamma;
     }
 
     
@@ -1127,6 +1127,15 @@ void LocalCrystalPlastFp::ResolveShearStress()
   fCeBar.ToMatrix(fMatxCe);
   fSBar.ToMatrix(fMatxSb);
   fMatx1.MultAB(fMatxCe, fMatxSb); 
+    if(CurrElementNumber()==0 && CurrIP()==0 && 0)
+    {
+        //        cout << "\nfcBar_ijkl: "<<fcBar_ijkl;
+        
+        cout << "\n fCebar: "<<fCeBar;
+        cout << "\n fSbar: "<<fSBar;
+        cout << "\n fMatx1: "<<fMatx1;
+        //        cout << "\nfTau: "<<fTau;
+    }
   for (int i = 0; i < fNumSlip; i++)
   {
      fTau[i] = dArrayT::Dot(fMatx1, fZ[i]);
@@ -1138,15 +1147,6 @@ void LocalCrystalPlastFp::ResolveShearStress()
       }
 
   }
-    if(CurrElementNumber()==0 && CurrIP()==0 && 0)
-    {
-        cout << "\nfcBar_ijkl: "<<fcBar_ijkl;
-
-        cout << "\n fEbar: "<<fEeBar;
-        cout << "\n fSbar: "<<fSBar;
-        cout << "\n fMatx1: "<<fMatx1;
-        cout << "\nfTau: "<<fTau;
-    }
 
 }
 
