@@ -1,4 +1,4 @@
-/* $Id: NLConvDiffusionElementT.cpp,v 1.1 2016-04-28 15:36:33 tdnguye Exp $ */
+/* $Id: NLConvDiffusionElementT.cpp,v 1.2 2016-11-05 15:46:19 tdnguye Exp $ */
 #include "NLConvDiffusionElementT.h"
 
 #include <iostream>
@@ -19,21 +19,28 @@
 #include "ScheduleT.h"
 
 using namespace Tahoe;
-
+const int kRadialDirection = 0; /* the x direction is radial */
+/*TDN: Why didn't you multiply integration by 2Pi?*/
+const double Pi2 = 2.0*acos(-1.0);
 /* constructor */
 NLConvDiffusionElementT::NLConvDiffusionElementT(const ElementSupportT& support):
 	DiffusionElementT(support),
     fSchedule(NULL),
-	feps(0.0), 
+    fLocCurrCoords(LocalArrayT::kCurrCoords),
+    fLocDisplacement(NULL),
+   fLocDisplacement_last(NULL),
+	feps(0.0),
 	falpha(0.0)
 {
-	SetName("nonlinear_diffusion_general_convection");
+	//cout <<" \n  NLConvDiffusionElementT::NLConvDiffusionElementT: "<<endl;
+    SetName("nonlinear_diffusion_general_convection");
 }
 
 /* collecting element group equation numbers */
 void NLConvDiffusionElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-	/* inherited */
+	//cout <<" \n  NLConvDiffusionElementT::Equations "<<endl;
+    /* inherited */
 	DiffusionElementT::Equations(eq_1, eq_2);
 	
 	/* collect equation numbers for nonlinear boundary conditions */
@@ -44,17 +51,19 @@ void NLConvDiffusionElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1, Auto
 /* information about subordinate parameter lists */
 void NLConvDiffusionElementT::DefineSubs(SubListT& sub_list) const
 {
-	/* inherited */
+	//cout <<" \n  NLConvDiffusionElementT::DefineSubs: "<<endl;
+    /* inherited */
 	DiffusionElementT::DefineSubs(sub_list);
 
 	/* mixed boundary condition */
-	sub_list.AddSub("convection_bc", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("convection_bc", ParameterListT::Any);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* NLConvDiffusionElementT::NewSub(const StringT& name) const
 {
-	if (name == "convection_bc") {
+	//cout <<" \n  NLConvDiffusionElementT::NewSub: "<<endl;
+    if (name == "convection_bc") {
 		ParameterContainerT* convection_bc = new ParameterContainerT(name);
 		convection_bc->SetDescription("outward flux: h = epsilon*(T - T_wall)^alpha");
 		convection_bc->SetSubSource(this);
@@ -64,8 +73,14 @@ ParameterInterfaceT* NLConvDiffusionElementT::NewSub(const StringT& name) const
 		convection_bc->AddParameter(ParameterT::Integer, "schedule");
 	
 		/* flux parameters */
-		convection_bc->AddParameter(  feps, "epsilon");
-		convection_bc->AddParameter(falpha, "alpha");
+        ParameterT eps(ParameterT::Double, "epsilon");
+        eps.AddLimit(0.0, LimitT::Lower);
+		convection_bc->AddParameter(eps);
+        
+        ParameterT alpha(ParameterT::Double, "alpha");
+        alpha.AddLimit(0.0, LimitT::Lower);
+		convection_bc->AddParameter(alpha);
+        
 		return convection_bc;
 	}
 	else /* inherited */
@@ -75,9 +90,15 @@ ParameterInterfaceT* NLConvDiffusionElementT::NewSub(const StringT& name) const
 /* accept parameter list */
 void NLConvDiffusionElementT::TakeParameterList(const ParameterListT& list)
 {
-	/* inherited */
+	//cout <<" \n  NLConvDiffusionElementT::TakeParameterList: "<<endl;
+    /* inherited */
 	DiffusionElementT::TakeParameterList(list);
-
+    /* dimensions */
+    int nip = NumIP();
+    
+    /* integration point radii over the current element */
+    fRadius_X.Dimension(nip);
+    fRadius_x.Dimension(nip);
 	/* dimension work space */
 	fField_list.Dimension(NumIP());
 
@@ -88,13 +109,22 @@ void NLConvDiffusionElementT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
+//R Xiao added SetLocalArrays
+void NLConvDiffusionElementT::SetLocalArrays(void)
+{
+    /* inherited */
+    DiffusionElementT::SetLocalArrays();
+    fLocCurrCoords.Dimension(NumElementNodes(), NumSD());
+    ElementSupport().RegisterCoordinates(fLocCurrCoords);
+    
+}
 
 /* construct the effective mass matrix */
 void NLConvDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 	/* inherited - skip DiffusionElementT implementation */
 	ContinuumElementT::LHSDriver(sys_type);
-
+    
 	/* set components and weights */
 	double constC = 0.0;
 	double constK = 0.0;
@@ -110,6 +140,8 @@ void NLConvDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 	/* loop over elements */
 	dArrayT Na;
+    /*R Xiao added */
+  // bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 	{
@@ -136,7 +168,10 @@ void NLConvDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
-				double scale = constC*(*Det++)*(*Weight++)*fCurrMaterial->Capacity();
+               /* R Xiao added */
+                int ip = fShapes->CurrIP();
+                double r = fRadius_x[ip];
+                double scale = constC*(*Det++)*(*Weight++)*fCurrMaterial->Capacity()*r*Pi2;
 			
 				/* shape function array */
 				Na.Alias(nen, fShapes->IPShapeU());
@@ -157,9 +192,9 @@ void NLConvDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 /* form the residual force vector */
 void NLConvDiffusionElementT::RHSDriver(void)
 {
-	/* inherited - skip DiffusionElementT implementation */
-	ContinuumElementT::RHSDriver();
-
+ //  cout <<" \n  I reached NLConvDiffusionElementT::RHSDriver: "<<endl;
+    ContinuumElementT::RHSDriver();
+   
 	/* set components and weights */
 	double constCv = 0.0;
 	double constKd = 0.0;
@@ -174,14 +209,13 @@ void NLConvDiffusionElementT::RHSDriver(void)
 	dArray2DT ip_source;
 	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
 	const dArray2DT* block_source = Field().Source(block_data->ID());
-
 	/* body forces */
 	int formBody = 0;
 	if ((fBodySchedule && fBody.Magnitude() > kSmall) || block_source) {	
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
-
+//   cout <<" \n  I reached NLConvDiffusionElementT::RHSDriver2: "<<endl;
 	int nen = NumElementNodes();
 	double dt = ElementSupport().TimeStep();
 	double by_dt = (fabs(dt) > kSmall) ? 1.0/dt : 0.0; /* for dt -> 0 */
@@ -201,10 +235,8 @@ void NLConvDiffusionElementT::RHSDriver(void)
 		
 		/* initialize */
 		fRHS = 0.0;
-
 		/* global shape function values */
 		SetGlobalShape();
-
 		/* conduction term */
 		if (formKd) 
 		{
@@ -225,7 +257,10 @@ void NLConvDiffusionElementT::RHSDriver(void)
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{					
-				/* capacity */
+                /* R Xiao added */
+                int ip = fShapes->CurrIP();
+                double r = fRadius_x[ip];
+                /* capacity */
 				double pc = fCurrMaterial->Capacity();
 
 				/* interpolate nodal values to ip */
@@ -238,7 +273,7 @@ void NLConvDiffusionElementT::RHSDriver(void)
 				double*	res = fRHS.Pointer();
 				const double* Na = fShapes->IPShapeU();
 				
-				double temp = -constCv*(*Weight++)*(*Det++)*pc;
+				double temp = -constCv*(*Weight++)*(*Det++)*pc*r*Pi2;
 				for (int lnd = 0; lnd < nen; lnd++)
 					*res++ += temp*(*Na++)*fDOFvec[0];
 			}
@@ -255,7 +290,8 @@ void NLConvDiffusionElementT::RHSDriver(void)
 /* calculate the internal force contribution ("-k*d") */
 void NLConvDiffusionElementT::FormKd(double constK)
 {
-	/* integration parameters */
+//	cout <<" \n  NLConvDiffusionElementT::FormKd: "<<endl;
+    /* integration parameters */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	
@@ -265,7 +301,10 @@ void NLConvDiffusionElementT::FormKd(double constK)
 	fShapes->TopIP();
 	while (fShapes->NextIP())
 	{
-		/* set field gradient */
+        /* R Xiao added */
+        int ip = fShapes->CurrIP();
+        double r = fRadius_x[ip];
+        /* set field gradient */
 		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
 		IP_ComputeGradient(fLocDisp, grad);
 		
@@ -280,14 +319,15 @@ void NLConvDiffusionElementT::FormKd(double constK)
 		fB.MultTx(fCurrMaterial->q_i(), fNEEvec);
 
 		/* accumulate */
-		fRHS.AddScaled(-constK*(*Weight++)*(*Det++), fNEEvec);
+		fRHS.AddScaled(-constK*(*Weight++)*(*Det++)*r*Pi2, fNEEvec);
 	}	
 }
 
 /* form the element stiffness matrix */
 void NLConvDiffusionElementT::FormStiffness(double constK)
 {
-	/* must be nonsymmetric */
+//	cout <<" \n  NLConvDiffusionElementT::FormStiffness: "<<endl;
+    /* must be nonsymmetric */
 	if (fLHS.Format() != ElementMatrixT::kNonSymmetric)
 		ExceptionT::GeneralFail("NLConvDiffusionElementT::FormStiffness",
 			"LHS matrix must be nonsymmetric");
@@ -311,7 +351,10 @@ void NLConvDiffusionElementT::FormStiffness(double constK)
 	dArrayT dfield(1);
 	while (fShapes->NextIP())
 	{
-		double scale = constK*(*Det++)*(*Weight++);
+        /*R Xiao added*/
+        int ip = fShapes->CurrIP();
+        double r = fRadius_x[ip];
+        double scale = constK*(*Det++)*(*Weight++)*r*Pi2;
 
 		/* set field gradient */
 		grad.Set(1, nsd, fGradient_list[CurrIP()].Pointer());
@@ -353,7 +396,8 @@ void NLConvDiffusionElementT::FormStiffness(double constK)
 /* construct a new material support and return a pointer */
 MaterialSupportT* NLConvDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	/* allocate */
+	//cout <<" \n  NLConvDiffusionElementT::NewMaterialSupport: "<<endl;
+    /* allocate */
 	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
@@ -362,11 +406,26 @@ MaterialSupportT* NLConvDiffusionElementT::NewMaterialSupport(MaterialSupportT* 
 	/* set DiffusionMatSupportT fields */
 	DiffusionMatSupportT* ps = TB_DYNAMIC_CAST(DiffusionMatSupportT*, p);
 	if (ps) {
+     /////   ps->SetLocalArray(fLocLastDisp);
 		ps->SetField(&fField_list);
 	}
 
 	return p;
 }
+
+/*void NLConvDiffusionElementT::SetLocalArrays(void)
+{
+    /* inherited */
+ //   ContinuumElementT::SetLocalArrays();
+    
+    /* allocate */
+//    int nen = NumElementNodes();
+//    fLocLastDisp.Dimension(nen, NumDOF());
+    
+    /* register */
+//    Field().RegisterLocal(fLocLastDisp);
+//}
+
 
 /***********************************************************************
  * Private
@@ -374,65 +433,100 @@ MaterialSupportT* NLConvDiffusionElementT::NewMaterialSupport(MaterialSupportT* 
 
 void NLConvDiffusionElementT::TakeTractionBC(const ParameterListT& list)
 {
-	const char caller[] = "NLConvDiffusionElementT::TakeTractionBC";
+//	cout <<" \n  NLConvDiffusionElementT::TakeTractionBC: "<<endl;
+    const char caller[] = "NLConvDiffusionElementT::TakeTractionBC";
 
 	/* quick exit */
-	const ParameterListT* convection_bc = list.List("convection_bc");
-	if (!convection_bc)
+    int num_conv_bc = list.NumLists("convection_bc");
+//    cout << "\nnum_conv_bc: "<<num_conv_bc<<endl;
+	if (num_conv_bc == 0)
 		return;
+/*count the total number of faces*/
+    int tot_num_faces = 0;
+    int num_face_nodes;
+    for (int j = 0; j<num_conv_bc; j++)
+    {
+        const ParameterListT& convection_bc = list.GetList("convection_bc",j);
+        const ParameterListT& ss_ID_list = convection_bc.GetList("side_set_ID_list");
+        int num_sides = ss_ID_list.NumLists("String");
+        if (num_sides > 0)
+        {
+            /* model manager */
+            ModelManagerT& model = ElementSupport().ModelManager();
+            
+            /* total number of faces */
+            int num_faces = 0;
+            ArrayT<StringT> side_ID(num_sides);
+            for (int i = 0; i < side_ID.Length(); i++)
+            {
+                side_ID[i] = ss_ID_list.GetList("String", i).GetParameter("value");
+                num_faces += model.SideSetLength(side_ID[i]);
+            }
+            tot_num_faces += num_faces;
+            /* element topology */
+            iArrayT nodes_on_faces(fShapes->NumFacets());
+            fShapes->NumNodesOnFacets(nodes_on_faces);
+            int min, max;
+            nodes_on_faces.MinMax(min, max);
+            if (min != max) ExceptionT::GeneralFail(caller, "all faces must have same shape");
+            if (j==0) num_face_nodes = min;
+            if (min != num_face_nodes) ExceptionT::GeneralFail(caller, "all surfaces must have same facet shape");
+        }
+    }
+    feps.Dimension(tot_num_faces);
+    falpha.Dimension(tot_num_faces);
+    fschedulenum.Dimension(tot_num_faces);
+    fBCFaces.Dimension(tot_num_faces, num_face_nodes);
 
-	/* extract BC parameters */
-	feps   = convection_bc->GetParameter("epsilon");
-	falpha = convection_bc->GetParameter("alpha");
-	
-	const ParameterListT& ss_ID_list = convection_bc->GetList("side_set_ID_list");
-    int schedule_num = convection_bc->GetParameter("schedule");
-    fSchedule = ElementSupport().Schedule(--schedule_num);
+    /*read in parameters for each convection surface bc*/
+    int face_num = 0;
+    for (int j = 0; j<num_conv_bc; j++)
+    {
+        const ParameterListT& convection_bc = list.GetList("convection_bc",j);
+        const ParameterListT& ss_ID_list = convection_bc.GetList("side_set_ID_list");
+        /* extract BC parameters */
+        double eps   = convection_bc.GetParameter("epsilon");
+        double alpha = convection_bc.GetParameter("alpha");
+        double schedule_num = convection_bc.GetParameter("schedule");
+        
+        int num_sides = ss_ID_list.NumLists("String");
+        if (num_sides > 0)
+        {
+            /* model manager */
+            ModelManagerT& model = ElementSupport().ModelManager();
 
-	int num_sides = ss_ID_list.NumLists("String");
-	if (num_sides > 0)
-	{
-		/* model manager */
-		ModelManagerT& model = ElementSupport().ModelManager();
-
-		/* total number of faces */
-		int num_faces = 0;
-		ArrayT<StringT> side_ID(num_sides);
-		for (int i = 0; i < side_ID.Length(); i++) {
-			side_ID[i] = ss_ID_list.GetList("String", i).GetParameter("value");
-			num_faces += model.SideSetLength(side_ID[i]);
-		}
-
-		/* element topology */
-		iArrayT nodes_on_faces(fShapes->NumFacets());
-		fShapes->NumNodesOnFacets(nodes_on_faces);
-		int min, max;
-		nodes_on_faces.MinMax(min, max);
-		if (min != max) ExceptionT::GeneralFail(caller, "all faces must have same shape");
+            /* collect nodes on faces */
+            ArrayT<StringT> side_ID(num_sides);
+            for (int i = 0; i < side_ID.Length(); i++)
+            {
+                side_ID[i] = ss_ID_list.GetList("String", i).GetParameter("value");
+                int num_sides = model.SideSetLength(side_ID[i]);
+                for (int k = 0; k<num_sides; k++)
+                {
+                    int index = face_num+k;
+                    feps[index] = eps;
+                    falpha[index] = alpha;
+                    fschedulenum[index] = schedule_num;
+                }
+                iArray2DT faces(num_sides, fBCFaces.MinorDim(), fBCFaces(face_num));
 		
-		/* collect nodes on faces */
-		int face_num = 0;
-		fBCFaces.Dimension(num_faces, nodes_on_faces[0]);
-		for (int i = 0; i < side_ID.Length(); i++)
-		{
-			int num_sides = model.SideSetLength(side_ID[i]);
-			iArray2DT faces(num_sides, fBCFaces.MinorDim(), fBCFaces(face_num));
+                /* read side set */
+                ArrayT<GeometryT::CodeT> facet_geom;
+                iArrayT facet_nodes;
+                model.SideSet(side_ID[i], facet_geom, facet_nodes, faces);
 		
-			/* read side set */
-			ArrayT<GeometryT::CodeT> facet_geom;
-			iArrayT facet_nodes;
-			model.SideSet(side_ID[i], facet_geom, facet_nodes, faces);		
-		
-			/* next set */
-			face_num += num_sides;
-		}		
-	}
+                /* next set */
+                face_num += num_sides;
+            }
+        }
+    }
 }
 
 /* compute contribution to RHS from mixed BC's */
 void NLConvDiffusionElementT::TractionBC_RHS(void)
 {
-	/* quick exit */
+//	cout <<" \n  NLConvDiffusionElementT::TractionBC_RHS: "<<endl;
+    /* quick exit */
 	if (fBCFaces.MajorDim() == 0) return;
 
 	/* dimensions */
@@ -443,6 +537,8 @@ void NLConvDiffusionElementT::TractionBC_RHS(void)
 	/* force vector */
 	dArrayT rhs(nfn*ndof);
 		
+/*TDN: Rui, I don't understand what you're doing here.  I think that you're getting the inital coordinates and then trying to get the displacements.  But the tag kDisp here does not refer to the dispalcement, rather the temperature.  The Field() here refers to the temperature field*/
+    
 	/* local coordinates */
 	LocalArrayT coords(LocalArrayT::kInitCoords, nfn, nsd);
 	ElementSupport().RegisterCoordinates(coords);
@@ -450,13 +546,25 @@ void NLConvDiffusionElementT::TractionBC_RHS(void)
 	/* nodal field values */
 	LocalArrayT field(LocalArrayT::kDisp, nfn, ndof);
 	Field().RegisterLocal(field);
-
+    
+    /*local nodal displacements */
+/*
+    LocalArrayT locdisp(LocalArrayT::kDisp, nfn, nsd);
+    Field().RegisterLocal(locdisp);
+*/
+    /*TDN: Replacing your code above*/
+    const FieldT* displacement = ElementSupport().Field("displacement");
+    LocalArrayT locdisp(LocalArrayT::kDisp, nfn, nsd);
+    if (displacement)
+        displacement->RegisterLocal(locdisp);
+    
 	/* boundary shape functions - using face 0 */
 	const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(0);
 	int nip = surf_shape.NumIP();
 	const dArray2DT& Na_all = surf_shape.Na();
 	dArray2DT ip_field(nip, ndof);
-
+      dArrayT ip_coords(2);
+      dArrayT ip_displ(2);
 	/* Jacobian of the surface mapping */
 	dMatrixT jacobian(nsd, nsd-1);
 
@@ -468,11 +576,22 @@ void NLConvDiffusionElementT::TractionBC_RHS(void)
 		/* face info */
 		fBCFaces.RowAlias(i, nodes);
 		fBCEqnos.RowAlias(i, eqnos);
-			
+
+        int schedule_num = fschedulenum[i];
+        fSchedule = ElementSupport().Schedule(--schedule_num);
+        
+        double eps = feps[i];
+        double alpha = falpha[i];
+        
 		/* local values */
 		coords.SetLocal(nodes);
 		field.SetLocal(nodes);
-		
+//        cout << "\nfield: "<<field;
+
+        if(displacement)
+            locdisp.SetLocal(nodes);
+        else locdisp=0.0;
+//        cout << "\nlocdisp: "<<locdisp;
 		/* all ip field values: (nip x ndof) */
 		surf_shape.Interpolate(field, ip_field);
 
@@ -484,13 +603,16 @@ void NLConvDiffusionElementT::TractionBC_RHS(void)
 			/* coordinate mapping */
 			surf_shape.DomainJacobian(coords, j, jacobian);
 			double detj = surf_shape.SurfaceJacobian(jacobian);
-	
+            /* R Xiao added */
+            surf_shape.Interpolate(coords, ip_coords,j);
+            surf_shape.Interpolate(locdisp, ip_displ,j);
+            double r = ip_coords[kRadialDirection]+ip_displ[kRadialDirection];
 			/* ip weight */
-			double jw = detj*w[j];
+			double jw = detj*w[j]*r*Pi2;
 					
 			/* flux */
-			double qn = -feps*pow(ip_field[j] - fSchedule->Value(), falpha);
-			
+			double qn = -eps*pow(ip_field[j] - fSchedule->Value(), alpha);
+//            cout <<"\nval: "<<fSchedule->Value()<< "\tqn: "<<qn;
 			/* shape functions */
 			Na_all.RowAlias(j, Na);
 
@@ -506,7 +628,7 @@ void NLConvDiffusionElementT::TractionBC_RHS(void)
 /* compute contribution to LHS from BC's */
 void NLConvDiffusionElementT::TractionBC_LHS(void)
 {
-	/* quick exit */
+    /* quick exit */
 	if (fBCFaces.MajorDim() == 0) return;
 
 	/* dimensions */
@@ -520,16 +642,28 @@ void NLConvDiffusionElementT::TractionBC_LHS(void)
 	/* local coordinates */
 	LocalArrayT coords(LocalArrayT::kInitCoords, nfn, nsd);
 	ElementSupport().RegisterCoordinates(coords);
-		
+    /*local nodal displacements */
+/*    LocalArrayT locdisp(LocalArrayT::kDisp, nfn, nsd);
+    Field().RegisterLocal(locdisp);
+*/
 	/* nodal field values */
 	LocalArrayT field(LocalArrayT::kDisp, nfn, ndof);
 	Field().RegisterLocal(field);
+
+    /*TDN: Replacing your code above*/
+    const FieldT* displacement = ElementSupport().Field("displacement");
+    LocalArrayT locdisp(LocalArrayT::kDisp, nfn, nsd);
+    if (displacement)
+        displacement->RegisterLocal(locdisp);
+
 
 	/* boundary shape functions - using face 0 */
 	const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(0);
 	int nip = surf_shape.NumIP();
 	const dArray2DT& Na_all = surf_shape.Na();
 	dArray2DT ip_field(nip, ndof);
+     dArrayT ip_coords(2);
+    dArrayT ip_displ(2);
 
 	/* Jacobian of the surface mapping */
 	dMatrixT jacobian(nsd, nsd-1);
@@ -543,10 +677,18 @@ void NLConvDiffusionElementT::TractionBC_LHS(void)
 		fBCFaces.RowAlias(i, nodes);
 		fBCEqnos.RowAlias(i, eqnos);
 			
+        int schedule_num = fschedulenum[i];
+        fSchedule = ElementSupport().Schedule(--schedule_num);
+        
+        double eps = feps[i];
+        double alpha = falpha[i];
+
 		/* local values */
 		coords.SetLocal(nodes);
 		field.SetLocal(nodes);
-		
+        if(displacement)
+            locdisp.SetLocal(nodes);
+        else locdisp=0.0;
 		/* all ip field values: (nip x ndof) */
 		surf_shape.Interpolate(field, ip_field);
 
@@ -558,12 +700,15 @@ void NLConvDiffusionElementT::TractionBC_LHS(void)
 			/* coordinate mapping */
 			surf_shape.DomainJacobian(coords, j, jacobian);
 			double detj = surf_shape.SurfaceJacobian(jacobian);
-	
+            /* R Xiao added */
+            surf_shape.Interpolate(coords, ip_coords,j);
+            surf_shape.Interpolate(locdisp, ip_displ,j);
+            double r = ip_coords[0]+ip_displ[0];
 			/* ip weight */
-			double jw = detj*w[j];
+			double jw = detj*w[j]*r*Pi2;
 					
 			/* d_flux */
-			double d_qn = feps*falpha*pow(ip_field[j] - fSchedule->Value(), falpha-1);
+			double d_qn = eps*alpha*pow(ip_field[j] - fSchedule->Value(), alpha-1.);
 			
 			/* shape functions */
 			Na_all.RowAlias(j, Na);
@@ -576,3 +721,84 @@ void NLConvDiffusionElementT::TractionBC_LHS(void)
 		ElementSupport().AssembleLHS(Group(), lhs, eqnos);
 	}
 }
+
+/* form shape functions and derivatives */
+void NLConvDiffusionElementT::SetGlobalShape()
+{
+//    cout << "\n NLConvDiffusionElementT::SetGlobalShape"<<endl;
+    ContinuumElementT::SetGlobalShape();
+    /* what needs to get computed */
+    
+    /* get current element coordinates and temperature */
+    SetLocalX(fLocCurrCoords);
+    SetLocalU(fLocDisp);
+    
+    const LocalArrayT& Temp = *fLocDisplacement;
+
+    /* get nodal temperatures if available */
+	if (fLocDisplacement)SetLocalU(*fLocDisplacement);
+	if (fLocDisplacement_last) SetLocalU(*fLocDisplacement_last);
+
+    
+ ////   SetLocalU(fLocLastDisp);
+    int nen = fLocCurrCoords.NumberOfNodes();
+    /* loop over integration points */
+    for (int i = 0; i < NumIP(); i++)
+    {
+        /* compute radii */
+        const double* NaX = fShapes->IPShapeX(i);
+//        cout << "\n Loc Init: "<<fLocInitCoords<<endl;
+//        cout << "\nr: "<<kRadialDirection<<endl;
+        
+        const double* X_r = fLocInitCoords(kRadialDirection);
+        
+        double R=0.0;
+        double u=0.0;
+        double u_last =0.0;
+        /*TDN: Add this so it will run if there are no displacements*/
+        if (fLocDisplacement)
+        {
+            const double* NaU = fShapes->IPShapeU(i);
+            int nun = Temp.NumberOfNodes();
+            const double* u_r = Temp(kRadialDirection);
+//            cout << "n: Xf: "<<*X_r<<endl;
+     //   const double* u_r_last = (needs_F_last) ? fLocLastDisp(kRadialDirection) : u_r; /* fLocLastDisp not used */
+ ////       const double* u_r_last=fLocLastDisp(kRadialDirection);
+            if (nen == nun)
+            {
+                for (int a = 0; a < nen; a++) {
+                    R += (*NaX)*(*X_r++);
+                    u += (*NaU)*(*u_r++);
+                    /////       u_last += (*NaU)*(*u_r_last++);
+                    NaX++;
+                    NaU++;
+                }
+            }
+            else /* separate loops for field and geometry */
+            {
+                for (int a = 0; a < nen; a++) {
+                    R += (*NaX)*(*X_r++);
+                    NaX++;
+                }
+                for (int a = 0; a < nun; a++) {
+                    u += (*NaU)*(*u_r++);
+         ////       u_last += (*NaU)*(*u_r_last++);
+                    NaU++;
+                }
+            }
+        }
+        else
+        {
+            for (int a = 0; a < nen; a++) {
+                R += (*NaX)*(*X_r++);
+                NaX++;
+            }
+        }
+        double r = R + u;
+//          cout <<" \n R =  "<<R<<endl;
+//        cout <<" \n u =  "<<u<<endl;
+        fRadius_X[i] = R;
+        fRadius_x[i] = r;
+    }
+}
+

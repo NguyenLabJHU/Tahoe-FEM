@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.13 2006-10-24 00:24:25 tdnguye Exp $ */
+/* $Id: DiffusionElementT.h,v 1.14 2016-11-05 15:46:19 tdnguye Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -121,7 +121,11 @@ protected:
 
 	/** "temperature rate" with local ordering */
 	LocalArrayT fLocVel;
-	
+
+	/** "displacement field" for thermomechanical coupling*/
+    LocalArrayT* fLocDisplacement;      /**< (optional) nodal temperatures */
+	LocalArrayT* fLocDisplacement_last; /**< (optional) last nodal temperatures */
+
 	/** \name work space */
 	/*@{*/
 	dMatrixT fD; /**< constitutive matrix          */
