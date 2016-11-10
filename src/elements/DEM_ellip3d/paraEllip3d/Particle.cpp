@@ -95,7 +95,6 @@ namespace dem {
     // generate particle size in terms of gradation distribution
     REAL sieveNum = grad.getSieveNum();
     REAL randNum = ran(&idum);
-    /*
     for (std::size_t k = 0; k < sieveNum; ++k) {
       if ( randNum <= grad.getPercent()[sieveNum - 1 - k]) {
 	// select randomly from sizes that are smaller than grad.getSize()[sieveNum - 1 - k]
@@ -103,17 +102,6 @@ namespace dem {
 	int max = sieveNum - 1;
 	int randSieveNum = rand() % (max - min + 1) + min;
 	a = grad.getSize()[randSieveNum]; // use radius a for sieving (where a >= b >= c) 
-	break;
-      }
-    }*/
-
-    std::vector<REAL> eachPercent(sieveNum); // percentage for each size
-    for (std::size_t k = 0; k < sieveNum - 1; ++k)
-      eachPercent[k] = grad.getPercent()[k] - grad.getPercent()[k+1];
-    eachPercent[sieveNum - 1] = grad.getPercent()[sieveNum - 1];
-    for (std::size_t k = 0; k < sieveNum; ++k) {
-      if ( randNum <= eachPercent[sieveNum - 1 - k]) {
-	a = grad.getSize()[sieveNum - 1 - k]; // use radius a for sieving (where a >= b >= c) 
 	break;
       }
     }
