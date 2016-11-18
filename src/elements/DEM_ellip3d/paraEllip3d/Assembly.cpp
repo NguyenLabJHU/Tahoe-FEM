@@ -1440,6 +1440,13 @@ namespace dem {
     }
   
     printParticle(trmParticle);
+
+    // print density, void ratio, etc 
+    REAL distX, distY, distZ;
+    getStartDimension(distX, distY, distZ);
+    openCompressProg(progressInf, "trim_stats");
+    gatherBdryContact();
+    printCompressProg(progressInf, distX, distY, distZ);
   }
 
 
