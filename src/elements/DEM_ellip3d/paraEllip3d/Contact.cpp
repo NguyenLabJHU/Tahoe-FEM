@@ -218,15 +218,15 @@ namespace dem {
       REAL m2 = getP2()->getMass();
       REAL kn = pow(6*vfabs(normalForce)*R0*pow(E0,2),1.0/3.0);
       REAL dampCritical = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
-      Vec cntDampingForce = contactDamp * dampCritical * ((veloc1-veloc2) * normalDirc)*normalDirc;
+      normalDampForce = contactDamp * dampCritical * ((veloc1-veloc2) * normalDirc)*normalDirc;
       vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
       impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) * normalDirc);
 
       // apply normal damping force
-      p1->addForce(-cntDampingForce);
-      p2->addForce(cntDampingForce);
-      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) % (-cntDampingForce) );
-      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % cntDampingForce );
+      p1->addForce(-normalDampForce);
+      p2->addForce(normalDampForce);
+      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) % (-normalDampForce) );
+      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % normalDampForce );
       
       if (contactFric != 0) {
 	// obtain tangential force

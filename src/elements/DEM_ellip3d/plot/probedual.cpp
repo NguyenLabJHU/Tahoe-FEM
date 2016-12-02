@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
   double E0;
   double normal_force;
   double tangt_force;
+  double normal_all;
   double contact_x;
   double contact_y;
   double contact_z;
@@ -82,6 +83,7 @@ int main(int argc, char *argv[])
       << std::setw(OWID) << "E0"
       << std::setw(OWID) << "normal_force"
       << std::setw(OWID) << "tangt_force"
+      << std::setw(OWID) << "normal_all_z"
       << std::setw(OWID) << "contact_x"
       << std::setw(OWID) << "contact_y"
       << std::setw(OWID) << "contact_z"
@@ -124,6 +126,7 @@ int main(int argc, char *argv[])
 	 >> E0
 	 >> normal_force
 	 >> tangt_force
+	 >> normal_all
 	 >> contact_x
 	 >> contact_y
 	 >> contact_z
@@ -154,6 +157,7 @@ int main(int argc, char *argv[])
 	  << std::setw(OWID) << E0           
 	  << std::setw(OWID) << normal_force 
 	  << std::setw(OWID) << tangt_force  
+	  << std::setw(OWID) << normal_all 
 	  << std::setw(OWID) << contact_x    
 	  << std::setw(OWID) << contact_y    
 	  << std::setw(OWID) << contact_z    

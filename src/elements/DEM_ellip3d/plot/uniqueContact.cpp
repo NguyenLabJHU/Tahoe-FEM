@@ -21,7 +21,7 @@ public:
 	  double cr,
 	  double r0,
 	  double e0,
-	  double nf, double tf,
+	  double nf, double tf, double na,
 	  double cx, double cy, double cz,
 	  double nx, double ny, double nz,
 	  double tx, double ty, double tz,
@@ -34,7 +34,7 @@ public:
      tangt_disp(td), 
      contact_radius(cr), 
      R0(r0), E0(e0), 
-     normal_force(nf), tangt_force(tf), 
+     normal_force(nf), tangt_force(tf), normal_all(na),
      contact_x(cx), contact_y(cy), contact_z(cz), 
      normal_x(nx), normal_y(ny), normal_z(nz), 
      tangt_x(tx), tangt_y(ty), tangt_z(tz), 
@@ -67,6 +67,7 @@ public:
   double E0;
   double normal_force;
   double tangt_force;
+  double normal_all;
   double contact_x;
   double contact_y;
   double contact_z;
@@ -127,6 +128,7 @@ int main(int argc, char *argv[])
     double E0;
     double normal_force;
     double tangt_force;
+    double normal_all;
     double contact_x;
     double contact_y;
     double contact_z;
@@ -160,6 +162,7 @@ int main(int argc, char *argv[])
 	 >> E0
 	 >> normal_force
 	 >> tangt_force
+	 >> normal_all
 	 >> contact_x
 	 >> contact_y
 	 >> contact_z
@@ -174,7 +177,7 @@ int main(int argc, char *argv[])
 
       allContact.insert(Contact(ptcl_1,ptcl_2,point1_x,point1_y,point1_z,point2_x,point2_y,point2_z,
 				radius_1,radius_2,penetration,tangt_disp,contact_radius,R0,E0,
-				normal_force,tangt_force,
+				normal_force,tangt_force,normal_all,
 				contact_x,contact_y,contact_z,
 				normal_x,normal_y,normal_z,
 				tangt_x,tangt_y,tangt_z,vibra_t_step,impact_t_step));
@@ -206,6 +209,7 @@ int main(int argc, char *argv[])
 	<< std::setw(OWID) << "E0"
 	<< std::setw(OWID) << "normal_force"
 	<< std::setw(OWID) << "tangt_force"
+	<< std::setw(OWID) << "normal_all_z"
 	<< std::setw(OWID) << "contact_x"
 	<< std::setw(OWID) << "contact_y"
 	<< std::setw(OWID) << "contact_z"
@@ -238,6 +242,7 @@ int main(int argc, char *argv[])
 	  << std::setw(OWID) << it->E0           
 	  << std::setw(OWID) << it->normal_force 
 	  << std::setw(OWID) << it->tangt_force  
+	  << std::setw(OWID) << it->normal_all 
 	  << std::setw(OWID) << it->contact_x    
 	  << std::setw(OWID) << it->contact_y    
 	  << std::setw(OWID) << it->contact_z    

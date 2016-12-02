@@ -87,6 +87,7 @@ namespace dem {
     void checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec);
     Vec  normalForceVec() const {return normalForce;}
     Vec  tgtForceVec() const {return tgtForce;}
+    Vec  normalDampForceVec() const {return normalDampForce;}
     bool isRedundant(const Contact &other) const;
     bool operator==(const Contact &other) const;
     
@@ -106,6 +107,7 @@ namespace dem {
     bool tgtLoading;     // tangential loading or unloading
     Vec  normalForce;    // pointing from particle 2 to paticle 1
     Vec  tgtForce;       // TgtrDirc points along tangential forces exerted on particle 1
+    Vec  normalDampForce;// pointing from particle 1 to particle 2
     Vec  tgtDisp;        // tangential relative displacment total vector
     Vec  tgtDispStart;   // displacement start value for each loading-unloading loop
     bool tgtSlide;       // tangential silde or not
@@ -144,6 +146,7 @@ namespace dem {
       ar & tgtLoading;
       ar & normalForce;
       ar & tgtForce;
+      ar & normalDampForce;
       ar & tgtDisp;
       ar & tgtDispStart;
       ar & tgtSlide;

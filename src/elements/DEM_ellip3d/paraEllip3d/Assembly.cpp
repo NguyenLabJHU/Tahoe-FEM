@@ -4041,6 +4041,7 @@ namespace dem {
 	  << std::setw(OWID) << it->getE0()
 	  << std::setw(OWID) << it->getNormalForce()
 	  << std::setw(OWID) << it->getTgtForce()
+	  << std::setw(OWID) << -it->normalForceVec().getZ() + it->normalDampForceVec().getZ()
 	  << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
 	  << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
 	  << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
@@ -4054,7 +4055,7 @@ namespace dem {
 	  << std::setw(OWID) << it->getImpactTimeStep()
 	  << std::endl;
 
-    int length = (OWID*28 + 1) *contactVec.size();
+    int length = (OWID*29 + 1) *contactVec.size();
     // write a file at a location specified by a shared file pointer (blocking, collective)
     // note MPI_File_write_shared is non-collective
     MPI_File_write_ordered(contactFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
@@ -4090,6 +4091,7 @@ namespace dem {
 	<< std::setw(OWID) << "E0"
 	<< std::setw(OWID) << "normal_force"
 	<< std::setw(OWID) << "tangt_force"
+	<< std::setw(OWID) << "normal_all_z"
 	<< std::setw(OWID) << "contact_x"
 	<< std::setw(OWID) << "contact_y"
 	<< std::setw(OWID) << "contact_z"
@@ -4122,6 +4124,7 @@ namespace dem {
 	  << std::setw(OWID) << it->getE0()
 	  << std::setw(OWID) << it->getNormalForce()
 	  << std::setw(OWID) << it->getTgtForce()
+	  << std::setw(OWID) << -it->normalForceVec().getZ() + it->normalDampForceVec().getZ()
 	  << std::setw(OWID) << ( it->getPoint1().getX() + it->getPoint2().getX() )/2
 	  << std::setw(OWID) << ( it->getPoint1().getY() + it->getPoint2().getY() )/2
 	  << std::setw(OWID) << ( it->getPoint1().getZ() + it->getPoint2().getZ() )/2
