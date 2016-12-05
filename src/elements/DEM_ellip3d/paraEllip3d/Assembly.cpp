@@ -96,7 +96,15 @@ namespace dem {
     std::stringstream ss;
     ss << std::setw(width) << std::setfill('0') << std::right << num;
     obj += ss.str();
-    return strcpy( cstr, obj.c_str() );
+    return strcpy( cstr, obj.c_str() );  
+  }
+
+
+  REAL ref(const REAL in) {
+    if (in < 0)
+      return in;
+    else 
+      return 0;
   }
 
 
@@ -1382,12 +1390,39 @@ namespace dem {
     }
     else if (particleLayers == 2) { // multiple layers of free particles
       for (z = z1; z - z2 < EPS; z += diameter) {
-	for (x = x1 + offset; x - offset - x2 < EPS; x += diameter)
-	  for (y = y1 + offset; y - offset - y2 < EPS; y += diameter) {
+	// + + 
+	for (x = x0 + diameter/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diameter) {
+	  for (y = y0 + diameter/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diameter) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
 	    particleNum++;
 	  }	
+	}
+	// - +
+	for (x = x0 - diameter/2 - fabs(offset) - offset; x - x1 > EPS; x -= diameter) {
+	  for (y = y0 + diameter/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diameter) {
+	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	    allParticleVec.push_back(newptcl);
+	    particleNum++;
+	  }	
+	}
+	// + - 
+	for (x = x0 + diameter/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diameter) {
+	  for (y = y0 - diameter/2 - fabs(offset) - offset; y - y1 > EPS; y -= diameter) {
+	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	    allParticleVec.push_back(newptcl);
+	    particleNum++;
+	  }	
+	}
+	// - -
+	for (x = x0 - diameter/2 - fabs(offset) - offset; x - x1 > EPS; x -= diameter) {
+	  for (y = y0 - diameter/2 - fabs(offset) - offset; y - y1 > EPS; y -= diameter) {
+	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	    allParticleVec.push_back(newptcl);
+	    particleNum++;
+	  }	
+	}
+
 	offset *= -1;
       }
     } 
@@ -1402,6 +1437,13 @@ namespace dem {
       trim(true,
 	   dem::Parameter::getSingleton().datafile["particleFile"].c_str(),
 	   "trim_particle_end");
+
+      // print density, void ratio, etc 
+      REAL distX, distY, distZ;
+      getStartDimension(distX, distY, distZ);
+      openCompressProg(progressInf, "trim_stats");
+      gatherBdryContact();
+      printCompressProg(progressInf, distX, distY, distZ);
     }
   }
 
@@ -1440,13 +1482,6 @@ namespace dem {
     }
   
     printParticle(trmParticle);
-
-    // print density, void ratio, etc 
-    REAL distX, distY, distZ;
-    getStartDimension(distX, distY, distZ);
-    openCompressProg(progressInf, "trim_stats");
-    gatherBdryContact();
-    printCompressProg(progressInf, distX, distY, distZ);
   }
 
 
