@@ -42,6 +42,7 @@
 //#define BIGON
 //#define DEM_PROFILE
 //#define CFD_PROFILE
+//#define XYSYMMETRIC
 #define MODULE_TIME
 
 static time_t timeStamp; // for file timestamping
@@ -1390,6 +1391,7 @@ namespace dem {
     }
     else if (particleLayers == 2) { // multiple layers of free particles
       for (z = z1; z - z2 < EPS; z += diameter) {
+#ifdef XYSYMMETRIC
 	// + + 
 	for (x = x0 + diameter/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diameter) {
 	  for (y = y0 + diameter/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diameter) {
@@ -1422,7 +1424,16 @@ namespace dem {
 	    particleNum++;
 	  }	
 	}
-
+#else
+	// from - to + direction
+	for (x = x1 + offset; x - offset - x2 < EPS; x += diameter) {
+	  for (y = y1 + offset; y - offset - y2 < EPS; y += diameter) {
+	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	    allParticleVec.push_back(newptcl);
+	    particleNum++;
+	  }
+	}
+#endif
 	offset *= -1;
       }
     } 
