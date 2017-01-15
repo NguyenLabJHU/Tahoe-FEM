@@ -455,6 +455,8 @@ namespace dem {
 
   // central difference integration method
   void Particle::update() {
+    REAL inContact = 0;
+    if (isInContact()) inContact = 1;
 
     REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
     REAL momentDamp = dem::Parameter::getSingleton().parameter["momentDamp"];
@@ -467,8 +469,8 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = forceDamp*2; 
-      REAL atm = momentDamp*2; 
+      REAL atf = inContact*forceDamp*timeStep; 
+      REAL atm = inContact*momentDamp*timeStep; 
     
       // force: translational kinetics equations are in global frame
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
@@ -495,8 +497,8 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = forceDamp*2; 
-      REAL atm = momentDamp*2; 
+      REAL atf = inContact*forceDamp*timeStep; 
+      REAL atm = inContact*momentDamp*timeStep; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       if (iteration < START)
 	currPos = prevPos + currVeloc * timeStep;
@@ -524,14 +526,14 @@ namespace dem {
       currPos = prevPos + currVeloc * timeStep;
     }
     else if (getType() == 4) { // special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only 
-      REAL atf = forceDamp*2; 
+      REAL atf = inContact*forceDamp*timeStep; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       currVeloc.setX(0);	
       currVeloc.setY(0);
       currPos = prevPos + currVeloc * timeStep;
     }
     else if (getType() == 6) { // translation only, no rotation
-      REAL atf = forceDamp*2; 
+      REAL atf = inContact*forceDamp*timeStep; 
       currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
       currPos = prevPos + currVeloc * timeStep;
     }
