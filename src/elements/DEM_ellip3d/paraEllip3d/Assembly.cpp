@@ -28,6 +28,7 @@
 
 #include "Assembly.h"
 #include "const.h"
+#include "ran.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -1426,9 +1427,21 @@ namespace dem {
 	}
 #else
 	// from - to + direction
+	/*
 	for (x = x1 + offset; x - offset - x2 < EPS; x += diameter) {
 	  for (y = y1 + offset; y - offset - y2 < EPS; y += diameter) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	    allParticleVec.push_back(newptcl);
+	    particleNum++;
+	  }
+	}
+	*/
+
+	for (x = x1; x - x2 < EPS; x += diameter) {
+	  for (y = y1; y - y2 < EPS; y += diameter) {
+	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	    offset = newptcl->getC() / 100.0 * ran(&idum);
+	    newptcl->setCurrPos(Vec(x + offset, y + offset, z + offset));
 	    allParticleVec.push_back(newptcl);
 	    particleNum++;
 	  }
