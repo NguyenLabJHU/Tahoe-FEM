@@ -31,6 +31,7 @@ namespace dem {
     void setPtclRatioCA(REAL ca) {ratioCA = ca;}
 
     REAL getPtclMaxRadius() const {return size[0];}
+    REAL getPtclMeanRadius() const {return size[sieveNum/2];}
     REAL getPtclMinRadius() const {return size[sieveNum-1] * ratioCA;}
 
   private:

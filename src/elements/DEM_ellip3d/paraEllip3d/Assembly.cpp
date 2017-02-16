@@ -40,11 +40,16 @@
 #include <sys/time.h>
 #include <omp.h>
 
-//#define BIGON
 //#define DEM_PROFILE
 //#define CFD_PROFILE
-//#define XYSYMMETRIC
 #define MODULE_TIME
+
+//#define BIGON
+//#define XYSYMMETRIC
+//#define WIDE_SIZES
+#ifdef WIDE_SIZES
+#define ZGAP 1
+#endif
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
@@ -1391,6 +1396,9 @@ namespace dem {
 	}
     }
     else if (particleLayers == 2) { // multiple layers of free particles
+
+#ifndef WIDE_SIZES
+      // Small variety of particle sizes
       for (z = z1; z - z2 < EPS; z += diameter) {
 #ifdef XYSYMMETRIC
 	// + + 
@@ -1425,9 +1433,11 @@ namespace dem {
 	    particleNum++;
 	  }	
 	}
+// else of #ifdef XYSYMMETRIC
 #else
 	// from - to + direction
 	/*
+	// particle center aligned, for non-spheres
 	for (x = x1 + offset; x - offset - x2 < EPS; x += diameter) {
 	  for (y = y1 + offset; y - offset - y2 < EPS; y += diameter) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
@@ -1437,6 +1447,7 @@ namespace dem {
 	}
 	*/
 
+	// particle center perburbated slightly, for spheres
 	for (x = x1; x - x2 < EPS; x += diameter) {
 	  for (y = y1; y - y2 < EPS; y += diameter) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
@@ -1446,10 +1457,145 @@ namespace dem {
 	    particleNum++;
 	  }
 	}
+// end of #ifdef XYSYMMETRIC
 #endif
 	offset *= -1;
+      } // end of z
+// else of #ifndef WIDE_SIZES
+#else
+      // Large variety of particle sizes, such as 10 or 100 times
+      // define the grids based on the minimum particle
+      REAL diaMax = gradation.getPtclMaxRadius()*2.0;
+      REAL diaMin = gradation.getPtclMinRadius()*2.0;
+      int  gridNx = floor(allContainer.getDimx()/diaMin);
+      REAL gridDim= allContainer.getDimx()/gridNx; // gridDim == diaMin if divisible
+      int  gridNy = floor(allContainer.getDimy()/gridDim);
+      int  gridNz = floor((dem::Parameter::getSingleton().parameter["floatMaxZ"] - allContainer.getMinCorner().getZ())/gridDim);
+      int  wallGap= 1; // diaMax / gridDim;
+      int  zGap   = ZGAP; // generate particles with void in z direction, default 1
+
+      //debugInf << "wallGap, nx, ny, nz dim=" << wallGap << " " << gridNx << " " << gridNy << " " << gridNz << " " << gridDim << std::endl;
+      // mask the grids as not occupied
+      std::valarray< std::valarray< std::valarray <int> > > gridMask;
+      gridMask.resize(gridNx);
+      for (int i = 0; i < gridMask.size(); ++i) {
+	gridMask[i].resize(gridNy);
+	for (int j = 0; j < gridMask[i].size(); ++j)
+	  gridMask[i][j].resize(gridNz);
       }
-    } 
+      for (int i = 0; i < gridNx; ++i)
+	for (int j = 0; j < gridNy; ++j)
+	  for (int k = 0; k < gridNz; ++k)
+	    gridMask[i][j][k] = 0;
+
+      int iCount = wallGap;
+      int jCount = wallGap;
+      int kCount = wallGap;
+      REAL xCorner, yCorner, zCorner;
+      bool yOutOfTail = false;
+      int iRecord, jRecord, kRecord;
+      while (iCount < gridNx - wallGap && jCount < gridNy - wallGap && kCount < gridNz) {
+	// generate a particle without x, y, z coordinates
+	newptcl = new Particle(particleNum+1, 0, Vec(0,0,0), gradation, young, poisson);
+	int nGrid = ceil(newptcl->getA()*2.0 / gridDim);
+
+	// locate the particle
+	bool maskOverlapped;
+      label2: ;
+	int iInc = 0, jInc = 0, kInc = 0;
+	do {
+	  maskOverlapped = false;
+
+	  // if the particle volume reaches outside the tail in x direction, move it to the x head.
+	  if (iCount + nGrid - 1 + iInc > gridNx - 1 - wallGap) {
+	    //debugInf <<"ptcl="<<particleNum<< " nGrid="<<nGrid<< " i j kCount=" << iCount << " " << jCount << " " << kCount << " iInc=" <<iInc <<" xRange ("<< iCount + iInc << ","<< gridNx -1 - wallGap << "), (" << iCount + nGrid - 1 + iInc << " ," << gridNx -1 - wallGap << ")"<<std::endl;
+	    iCount = wallGap;
+	    ++jCount;
+	    if (jCount >= gridNy - wallGap) {
+	      jCount = wallGap;
+	      kCount += zGap;
+	    }
+	    iInc = 0;
+	    goto label2;  // relocate
+	  }
+
+	  // if the particle volume reaches outside the tail in y direction, move it to an upper level.
+	  if (jCount + nGrid - 1 + jInc > gridNy - 1 - wallGap) {
+	    yOutOfTail = true;
+	    iRecord = iCount;
+	    jRecord = jCount;
+	    kRecord = kCount;
+
+	    jCount = wallGap;
+	    kCount += zGap;
+	    jInc = 0;
+	    //debugInf<<"change ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
+	    goto label2;  // relocate
+	  }
+
+	  // if the particle volume reaches outside the tail in z direction, do not add this particle, because it leads to infinite loops.
+	  if (kCount + nGrid - 1 + kInc > gridNz - 1) {
+	    //debugInf<<"cancel ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
+	    goto label3;  // relocate
+	  }
+
+	  // if the particle volume overlaps with mask
+	  for (int ix = std::min(iCount + iInc, gridNx - 1 - wallGap); ix <= std::min(iCount + nGrid - 1 + iInc, gridNx - 1 - wallGap); ++ix) {
+	    for (int iy = std::min(jCount + jInc, gridNy - 1 - wallGap); iy <= std::min(jCount + nGrid - 1 + jInc, gridNy - 1 - wallGap); ++iy) {
+	      for (int iz = std::min(kCount + kInc, gridNz - 1 - wallGap); iz <= std::min(kCount + nGrid - 1 + kInc, gridNz -1 - wallGap); ++iz) {
+		if (gridMask[ix][iy][iz] == 1) {
+		  maskOverlapped = true;
+		  ++iInc;
+		  //debugInf << " iInc="<<iInc;
+		  goto label1;
+		}
+	      }
+	    }
+	  }
+	label1: ;	
+	} while (maskOverlapped);
+
+	xCorner = allContainer.getMinCorner().getX() + iCount*gridDim;
+	yCorner = allContainer.getMinCorner().getY() + jCount*gridDim;
+	zCorner = allContainer.getMinCorner().getZ() + kCount*gridDim;
+	newptcl->setCurrPos(Vec(xCorner + 0.5*nGrid*gridDim + iInc*gridDim, yCorner + 0.5*nGrid*gridDim + jInc*gridDim, zCorner + 0.5*nGrid*gridDim + kInc*gridDim ));
+	//newptcl->getCurrPos().print(debugInf);debugInf << std::endl;
+	allParticleVec.push_back(newptcl);
+	particleNum++;
+	//debugInf << " after overlap, particles= " << particleNum << " nGrid=" << nGrid <<" kInc=" << kInc << " i j k=" << iCount << " " << jCount << " " << kCount;
+
+      label3: ;
+	// mask grids occupied by the particle
+	for (int ix = std::min(iCount + iInc, gridNx -1 - wallGap); ix <= std::min(iCount + nGrid - 1 + iInc, gridNx - 1 - wallGap); ++ix)
+	  for (int iy = std::min(jCount + jInc, gridNy -1 - wallGap); iy <= std::min(jCount + nGrid - 1 + jInc, gridNy - 1 - wallGap); ++iy)
+	    for (int iz = std::min(kCount + kInc, gridNz -1 - wallGap); iz <= std::min(kCount + nGrid - 1 + kInc, gridNz -1 - wallGap); ++iz)
+	      gridMask[ix][iy][iz] = 1;
+
+	// continue generating particles along and in the order of x, y, z direction.
+	if (iInc == 0) // ? otherwise: the particle is moved away, and maintaining iCount increases the chances of accommodating more particles.
+	  iCount += nGrid;
+
+	if (yOutOfTail) {
+	  //debugInf<<"restor ptcl="<<particleNum-1<< " nGrid="<<nGrid<< " before ("<<iCount<<" "<<jCount<<" "<<kCount<<") after ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<")"<<std::endl;
+	  iCount = iRecord;
+	  jCount = jRecord;
+	  kCount = kRecord;
+	  yOutOfTail = false;
+	}
+
+	if (iCount >= gridNx - wallGap) {
+	  iCount = wallGap;
+	  ++jCount;
+	}
+	if (jCount >= gridNy - wallGap) {
+	  jCount = wallGap;
+	  kCount += zGap;
+	}
+
+      } // end of while (iCount < gridNx && jCount < gridNy && kCount < gridNz)
+// end of #ifndef WIDE_SIZES
+#endif
+    } // end of particleLayers 
 
     printParticle(genParticle); 
   }
@@ -1983,7 +2129,11 @@ namespace dem {
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();   
     //debugInf << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
+#ifndef WIDE_SIZES
     REAL cellSize = gradation.getPtclMaxRadius() * 2;
+#else
+    REAL cellSize = gradation.getPtclMeanRadius() * 2;
+#endif
     // 6 surfaces
     if (rankX1 >= 0) { // surface x1
       Rectangle containerX1(v1.getX(), v1.getY(), v1.getZ(), 
