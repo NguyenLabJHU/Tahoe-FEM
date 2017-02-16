@@ -1567,6 +1567,7 @@ namespace dem {
 
 
   void Assembly::removeParticleOutRectangle() {
+    // use updated container
     Vec  v1 = container.getMinCorner();
     Vec  v2 = container.getMaxCorner();
     REAL x1 = v1.getX();
@@ -2468,12 +2469,24 @@ namespace dem {
 
   void Assembly::migrateParticle() 
   {
-    Vec vspan = grid.getMaxCorner() - grid.getMinCorner();
+    // now use updated grids to determine the new container of each process
+    Vec    v1 = grid.getMinCorner();
+    Vec    v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
     REAL segX = vspan.getX() / mpiProcX;
     REAL segY = vspan.getY() / mpiProcY;
     REAL segZ = vspan.getZ() / mpiProcZ;
-    Vec v1 = container.getMinCorner(); // v1, v2 in terms of process
-    Vec v2 = container.getMaxCorner();  
+
+    // new container
+    container = Rectangle(v1.getX() + vspan.getX() / mpiProcX * mpiCoords[0],
+			  v1.getY() + vspan.getY() / mpiProcY * mpiCoords[1],
+			  v1.getZ() + vspan.getZ() / mpiProcZ * mpiCoords[2],
+			  v1.getX() + vspan.getX() / mpiProcX * (mpiCoords[0] + 1),
+			  v1.getY() + vspan.getY() / mpiProcY * (mpiCoords[1] + 1),
+			  v1.getZ() + vspan.getZ() / mpiProcZ * (mpiCoords[2] + 1));
+
+    v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
+    v2 = container.getMaxCorner();  
 
     // if a neighbor exists, transfer particles crossing the boundary in between.
     std::vector<Particle*> particleX1, particleX2;
