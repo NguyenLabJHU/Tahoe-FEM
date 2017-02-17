@@ -1,4 +1,4 @@
-#include "Fluid.h"
+#include "Gas.h"
 #include "const.h"
 #include <cmath>
 #include <algorithm>
@@ -13,9 +13,9 @@ namespace dem {
     return strcpy( cstr, obj.c_str() );
   }
 
-  const REAL Fluid::Rs;
+  const REAL Gas::Rs;
 
-  void Fluid::initParameter(Rectangle &container, Gradation &gradation) {
+  void Gas::initParameter(Rectangle &container, Gradation &gradation) {
 
     ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
     Cd   = dem::Parameter::getSingleton().parameter["Cd"];
@@ -376,19 +376,19 @@ namespace dem {
     }
   }
 
-  void Fluid::coordToIndex(REAL x, REAL y, REAL z, std::size_t &i, std::size_t &j, std::size_t &k) {
+  void Gas::coordToIndex(REAL x, REAL y, REAL z, std::size_t &i, std::size_t &j, std::size_t &k) {
     i = static_cast<std::size_t> ( (x - (x1F - gridDx/2)) / gridDx );
     j = static_cast<std::size_t> ( (y - (y1F - gridDy/2)) / gridDy );
     k = static_cast<std::size_t> ( (z - (z1F - gridDz/2)) / gridDz );
   }
 
-  void Fluid::coordToIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k) {
+  void Gas::coordToIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k) {
     i = static_cast<std::size_t> ( (v.getX() - (x1F - gridDx/2)) / gridDx );
     j = static_cast<std::size_t> ( (v.getY() - (y1F - gridDy/2)) / gridDy );
     k = static_cast<std::size_t> ( (v.getZ() - (z1F - gridDz/2)) / gridDz );
   }
 
-  void Fluid::initialize() {
+  void Gas::initialize() {
     negPrsDen = false;
     RankineHugoniot();
     initialCondition(); 
@@ -404,7 +404,7 @@ namespace dem {
 	     << std::setw(OWID) << "(|uZ|+a)Max" */;
   }
 
-  void Fluid::runOneStep(std::vector<Particle *> &ptcls) {
+  void Gas::runOneStep(std::vector<Particle *> &ptcls) {
     if (RK == 1) {
       inteStep1(ptcls);
     }
@@ -423,7 +423,7 @@ namespace dem {
     }
   }
 
-  void Fluid::inteStep1(std::vector<Particle *> &ptcls) { 
+  void Gas::inteStep1(std::vector<Particle *> &ptcls) { 
     initGhostPoints();
     soundSpeed();
     calcTimeStep();
@@ -444,7 +444,7 @@ namespace dem {
     UtoW();
   }
   
-  void Fluid::RK2InteStep2(std::vector<Particle *> &ptcls) { 
+  void Gas::RK2InteStep2(std::vector<Particle *> &ptcls) { 
     initGhostPoints();
     soundSpeed();
     enthalpy();
@@ -466,7 +466,7 @@ namespace dem {
     UtoW();
   }
 
-  void Fluid::RK3InteStep2(std::vector<Particle *> &ptcls) { 
+  void Gas::RK3InteStep2(std::vector<Particle *> &ptcls) { 
     initGhostPoints();
     soundSpeed();
     enthalpy();
@@ -488,7 +488,7 @@ namespace dem {
     UtoW();
   }
 
-  void Fluid::RK3InteStep3(std::vector<Particle *> &ptcls) { 
+  void Gas::RK3InteStep3(std::vector<Particle *> &ptcls) { 
     initGhostPoints();
     soundSpeed();
     enthalpy();
@@ -510,7 +510,7 @@ namespace dem {
     UtoW();
   }
 
-  void Fluid::rotateIJK(std::vector<Particle *> &ptcls) {
+  void Gas::rotateIJK(std::vector<Particle *> &ptcls) {
     std::size_t id[3][3] = {{0,1,2},{1,0,2},{2,1,0}};
 
     // for x, y, z sweeps: 
@@ -628,7 +628,7 @@ namespace dem {
 
   }
 
-  void Fluid::penalize(std::vector<Particle *> &ptcls) {
+  void Gas::penalize(std::vector<Particle *> &ptcls) {
     // this implementation has higher efficiency than that of checking every fluid cell.
     // for cells that are occupied by particle volumes
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
@@ -678,7 +678,7 @@ namespace dem {
     }
   }
   
-  void Fluid::initGhostPoints() {
+  void Gas::initGhostPoints() {
     // non-reflecting BCs
     for (std::size_t j = 1; j < gridNy - 1; ++j)
       for (std::size_t k = 1; k < gridNz - 1; ++k)
@@ -740,7 +740,7 @@ namespace dem {
     }  
   }
   
-  void Fluid::calcTimeStep() {
+  void Gas::calcTimeStep() {
     std::valarray<REAL> gridX(gridNx * gridNy * gridNz);
     std::valarray<REAL> gridY(gridNx * gridNy * gridNz);
     std::valarray<REAL> gridZ(gridNx * gridNy * gridNz);
@@ -784,7 +784,7 @@ namespace dem {
 	     << std::setw(OWID) << gridZ.max() */;	    
   }
 
-  void Fluid::soundSpeed() {
+  void Gas::soundSpeed() {
     std::size_t i, j, k;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
@@ -795,7 +795,7 @@ namespace dem {
   }
 
   // total specific enthalphy, NOT static specific enthalpy
-  void Fluid::enthalpy() {
+  void Gas::enthalpy() {
     std::size_t i, j, k;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
@@ -805,7 +805,7 @@ namespace dem {
 	  arrayH[i][j][k] = (arrayU[i][j][k][varEng] + arrayU[i][j][k][varPrs]) / arrayU[i][j][k][varDen];
   }
 
-  void Fluid::initialCondition() {
+  void Gas::initialCondition() {
     if (leftType == 1 || leftType == 2) { // normal shock w/ and w/o Rankine-Hugoniot conditions
       for (std::size_t i = 0; i < gridNx; ++i)
 	for (std::size_t j = 0; j < gridNy; ++j)
@@ -895,7 +895,7 @@ namespace dem {
     WtoU();
   }
 
-  void Fluid::RankineHugoniot() { // Rankine-Hugoniot conditions
+  void Gas::RankineHugoniot() { // Rankine-Hugoniot conditions
     if (leftType == 1) {
       shockSpeed = MachShock*sqrt(gama*pR/rhoR);
       rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gama) ) / ( rhoR*pow(shockSpeed-uR,2)*(gama-1) + 2*pR*gama);
@@ -911,7 +911,7 @@ namespace dem {
     debugInf << std::setw(OWID) << "MachL" << std::setw(OWID) << MachL << std::endl << std::endl;
   }
 
-  void Fluid::flux(std::size_t iDim, std::vector<Particle *> &ptcls) {
+  void Gas::flux(std::size_t iDim, std::vector<Particle *> &ptcls) {
     for (std::size_t i = 0; i < gridNx; ++i)
       for (std::size_t j = 0; j < gridNy; ++j)
 	for (std::size_t k = 0; k < gridNz; ++k) {
@@ -954,12 +954,12 @@ namespace dem {
     }
   }
 
-  void Fluid::LaxFrieScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Gas::LaxFrieScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     for (std::size_t ie = 0; ie < nInteg; ++ie)
       arrayGodFlux[it][jt][kt][ie][iDim] = (FL[ie]+FR[ie])/2 + (UL[ie]-UR[ie])/2*gridDz/timeStep; // Equ.(5.77) of Toro
   }
 
-  void Fluid::LaxWendScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) { 
+  void Gas::LaxWendScheme(REAL UL[], REAL UR[], REAL FL[], REAL FR[], std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) { 
     // Equ.(5.79) of Toro
     REAL r  = (UL[0]+UR[0])/2 + (FL[0]-FR[0])/2*timeStep/gridDz;
     REAL ru = (UL[1]+UR[1])/2 + (FL[1]-FR[1])/2*timeStep/gridDz;
@@ -974,7 +974,7 @@ namespace dem {
     arrayGodFlux[it][jt][kt][varEng][iDim]    = ru/r*(E + p);
   }
 
-  void Fluid::exactSolver(REAL UL[], REAL UR[], REAL relaCoord, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Gas::exactSolver(REAL UL[], REAL UR[], REAL relaCoord, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     REAL pStar, uStar;
     findPrsVel(UL, UR, pStar, uStar);
 
@@ -991,7 +991,7 @@ namespace dem {
     arrayGodFlux[it][jt][kt][varEng][iDim] = u*(p*gama/(gama-1)+0.5*d*(u*u+v*v+w*w)); // u*(E+p)
   }
 
-  void Fluid::RoeSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Gas::RoeSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     // it, jt, kt defined at cell faces
     REAL avgRho =  sqrt(UL[varDen]*UR[varDen]);
     REAL avgH   = (sqrt(UL[varDen])*HL + sqrt(UR[varDen])*HR)/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
@@ -1128,7 +1128,7 @@ namespace dem {
     }
   }
 
-  void Fluid::HlleSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Gas::HlleSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     REAL avgH   = (sqrt(UL[varDen])*HL + sqrt(UR[varDen])*HR)/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
     REAL avgU   = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
     REAL avgV   = (sqrt(UL[varDen])*UL[varVel[1]] + sqrt(UR[varDen])*UR[varVel[1]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
@@ -1182,7 +1182,7 @@ namespace dem {
     */
   }
 
-  void Fluid::HllcSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
+  void Gas::HllcSolver(REAL UL[], REAL UR[], REAL FL[], REAL FR[], REAL HL, REAL HR, std::size_t iDim, std::size_t it, std::size_t jt, std::size_t kt) {
     REAL avgU = (sqrt(UL[varDen])*UL[varVel[0]] + sqrt(UR[varDen])*UR[varVel[0]])/(sqrt(UL[varDen]) + sqrt(UR[varDen]));
     REAL aL = sqrt(gama*UL[varPrs]/UL[varDen]);
     REAL aR = sqrt(gama*UR[varPrs]/UR[varDen]);
@@ -1268,7 +1268,7 @@ namespace dem {
     }
   }
 
-  void Fluid::UtoW() { // converting conserved variables into primitive
+  void Gas::UtoW() { // converting conserved variables into primitive
     negPrsDen = false;
     
     for (std::size_t i = 0; i < gridNx && !negPrsDen; ++i)  // stop if negPrsDen
@@ -1295,7 +1295,7 @@ namespace dem {
 	}
   }
 
-  void Fluid::WtoU() { // converting primitive variables into conserved
+  void Gas::WtoU() { // converting primitive variables into conserved
     for (std::size_t i = 0; i < gridNx; ++i)
       for (std::size_t j = 0; j < gridNy; ++j)
 	for (std::size_t k = 0; k < gridNz; ++k) {
@@ -1310,7 +1310,7 @@ namespace dem {
   }
 
   /*
-  void Fluid::getPtclInfo(std::vector<Particle *> &ptcls) {
+  void Gas::getPtclInfo(std::vector<Particle *> &ptcls) {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
@@ -1334,7 +1334,7 @@ namespace dem {
   }
   */
 
-  void Fluid::getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation) {
+  void Gas::getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation) {
     // two particles could have overlapping fluid grids in the following algorithm using maxGrid in 
     // all 3 directions, so do not clear masks inside the loops, instead, clear masks here.
     for (std::size_t i = 0; i < gridNx; ++i)
@@ -1368,9 +1368,9 @@ namespace dem {
     }
   }
 
-  void Fluid::calcPtclForce(std::vector<Particle *> &ptcls) {
-    // must clear forces each loop, otherwise Fluid::plot prints wrong values;
-    // but Fluid::penalize works OK since it uses masks.
+  void Gas::calcPtclForce(std::vector<Particle *> &ptcls) {
+    // must clear forces each loop, otherwise Gas::plot prints wrong values;
+    // but Gas::penalize works OK since it uses masks.
     for (std::size_t i = 0; i < gridNx ; ++i)
       for (std::size_t j = 0; j < gridNy; ++j)
 	for (std::size_t k = 0; k < gridNz; ++k)
@@ -1400,9 +1400,9 @@ namespace dem {
 	REAL coordY = arrayGridCoord[i][j][k][1];
 	REAL coordZ = arrayGridCoord[i][j][k][2];
 
-	REAL uxFluid = arrayU[i][j][k][varVel[0]];
-	REAL uyFluid = arrayU[i][j][k][varVel[1]];
-	REAL uzFluid = arrayU[i][j][k][varVel[2]];
+	REAL uxGas = arrayU[i][j][k][varVel[0]];
+	REAL uyGas = arrayU[i][j][k][varVel[1]];
+	REAL uzGas = arrayU[i][j][k][varVel[2]];
 
 	Vec dist = Vec(coordX, coordY, coordZ) - (*it)->getCurrPos();
 	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
@@ -1410,11 +1410,11 @@ namespace dem {
 	REAL ux = (*it)->getCurrVeloc().getX() + omgar.getX(); 
 	REAL uy = (*it)->getCurrVeloc().getY() + omgar.getY(); 
 	REAL uz = (*it)->getCurrVeloc().getZ() + omgar.getZ();
-	avgVelGap += vfabs(Vec(uxFluid-ux, uyFluid-uy, uzFluid-uz));
+	avgVelGap += vfabs(Vec(uxGas-ux, uyGas-uy, uzGas-uz));
 
 	// principal axis decomposition
-	// Vec globalDelta = Vec(fabs(uxFluid - ux)*(uxFluid - ux), fabs(uyFluid - uy)*(uyFluid - uy), fabs(uzFluid - uz)*(uzFluid - uz));
-	Vec velocityGap = Vec(uxFluid - ux, uyFluid - uy, uzFluid - uz);
+	// Vec globalDelta = Vec(fabs(uxGas - ux)*(uxGas - ux), fabs(uyGas - uy)*(uyGas - uy), fabs(uzGas - uz)*(uzGas - uz));
+	Vec velocityGap = Vec(uxGas - ux, uyGas - uy, uzGas - uz);
 	Vec globalDelta = vfabs(velocityGap) * velocityGap;
 
 	Vec localDelta = (*it)->globalToLocal(globalDelta);
@@ -1464,7 +1464,7 @@ namespace dem {
 	  char cstr[50];
 	  std::fstream pfs;
 	  pfs.open (dem::combineStr(cstr, "particle_", printPtcls[iPrn], 7), std::fstream::out | std::fstream::app);
-	  if(!pfs) { debugInf << "stream error: Fluid::calcPtclForce" << std::endl; exit(-1); }
+	  if(!pfs) { debugInf << "stream error: Gas::calcPtclForce" << std::endl; exit(-1); }
 	  pfs.setf(std::ios::scientific, std::ios::floatfield);
 	  if (iteration == 1) {
 	    pfs << std::setw(OWID) << "iteration"
@@ -1549,23 +1549,23 @@ namespace dem {
     } // end of particle loop  
   }
 
-  void Fluid::checkMomentum(std::vector<Particle *> &ptcls) {
+  void Gas::checkMomentum(std::vector<Particle *> &ptcls) {
     // A: mass and momentum of the flow field outside of the particles plus momentum of the particles as a function of time
     // B: momentum of the entire flow including inside of the particles plus momentum of the particles.
-    Vec momAFluid=0, momBFluid=0, momPtcl=0, momA=0, momB=0;
+    Vec momAGas=0, momBGas=0, momPtcl=0, momA=0, momB=0;
     for (std::size_t i = 0; i < gridNx ; ++i)
       for (std::size_t j = 0; j < gridNy; ++j)
 	for (std::size_t k = 0; k < gridNz; ++k) {
-	  momAFluid += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]) * (1-arrayU[i][j][k][varMsk]); 
-	  momBFluid += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]);
+	  momAGas += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]) * (1-arrayU[i][j][k][varMsk]); 
+	  momBGas += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]);
 	}
-    momAFluid *= gridDx*gridDy*gridDz;
-    momBFluid *= gridDx*gridDy*gridDz;
+    momAGas *= gridDx*gridDy*gridDz;
+    momBGas *= gridDx*gridDy*gridDz;
 
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       momPtcl += (*it)->getCurrVeloc() * (*it)->getMass();
-    momA = momAFluid + momPtcl;
-    momB = momBFluid + momPtcl;
+    momA = momAGas + momPtcl;
+    momB = momBGas + momPtcl;
 
     char cstr[50];
     std::fstream pfs;
@@ -1574,8 +1574,8 @@ namespace dem {
     pfs.setf(std::ios::scientific, std::ios::floatfield);
     if (iteration == 1) {
       pfs << std::setw(OWID) << "iteration"
-	  << std::setw(OWID) << "momAFluidZ"
-	  << std::setw(OWID) << "momBFluidZ"
+	  << std::setw(OWID) << "momAGasZ"
+	  << std::setw(OWID) << "momBGasZ"
 	  << std::setw(OWID) << "momPtclZ"
 	  << std::setw(OWID) << "momAZ"
 	  << std::setw(OWID) << "momBZ"
@@ -1584,8 +1584,8 @@ namespace dem {
     }
 
     pfs << std::setw(OWID) << iteration
-	<< std::setw(OWID) << momAFluid.getZ()
-	<< std::setw(OWID) << momBFluid.getZ()
+	<< std::setw(OWID) << momAGas.getZ()
+	<< std::setw(OWID) << momBGas.getZ()
 	<< std::setw(OWID) << momPtcl.getZ()
 	<< std::setw(OWID) << momA.getZ()
 	<< std::setw(OWID) << momB.getZ()
@@ -1595,9 +1595,9 @@ namespace dem {
     pfs.close();
   }
 
-  void Fluid::plot(const char *str) const {
+  void Gas::plot(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { debugInf << "stream error: Fluid::plot" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: Gas::plot" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     
@@ -1660,7 +1660,7 @@ namespace dem {
     ofs.close();
   }
 
-  void Fluid::findPrsVel(REAL UL[], REAL UR[], REAL &p, REAL &u) {
+  void Gas::findPrsVel(REAL UL[], REAL UR[], REAL &p, REAL &u) {
     REAL dl = UL[varDen];
     REAL dr = UR[varDen];
     REAL ul = UL[varVel[0]];
@@ -1697,7 +1697,7 @@ namespace dem {
     u = 0.5*(ul + ur + fr - fl);
   }
 
-  void Fluid::guessPressure(REAL UL[], REAL UR[], REAL &pInit) {
+  void Gas::guessPressure(REAL UL[], REAL UR[], REAL &pInit) {
     // provide a guessed value for pressure pInit in the Star Region. The choice is made
     // according to adaptive Riemann solver using the PVRS, TRRS and TSRS approximate
     // Riemann solvers. See Sect. 9.5 of Toro
@@ -1740,7 +1740,7 @@ namespace dem {
     }
   }
 
-  void Fluid::evalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck) {
+  void Gas::evalF(REAL &f, REAL &fd, REAL &p, REAL &dk, REAL &pk, REAL &ck) {
     // evaluate pressure functions fl and fr in exact Riemann solver and their first derivatives
     if (p <= pk) { // rarefaction wave
       f = 2.0/(gama-1.0)*ck*(pow(p/pk, (gama-1.0)/(2.0*gama)) - 1.0);
@@ -1753,7 +1753,7 @@ namespace dem {
     }
   }
 
-  void Fluid::sampling(REAL UL[], REAL UR[], const REAL pStar, const REAL uStar, const REAL s, REAL &d, REAL &u, REAL &p) {
+  void Gas::sampling(REAL UL[], REAL UR[], const REAL pStar, const REAL uStar, const REAL s, REAL &d, REAL &u, REAL &p) {
     // sample the solution throughout the wave pattern. Pressure pStar and velocity uStar in the star region are known. 
     // Sampling is performed in terms of the 'speed' s = x/t. Sampled values are d, u, p
 

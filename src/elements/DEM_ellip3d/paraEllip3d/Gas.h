@@ -1,5 +1,5 @@
-#ifndef FLUID_H
-#define FLUID_H
+#ifndef GAS_H
+#define GAS_H
 
 #include "Parameter.h"
 #include "realtypes.h"
@@ -13,7 +13,7 @@
 
 namespace dem {
   
-  class Fluid {
+  class Gas {
     typedef std::valarray< std::valarray< std::valarray <REAL> > > Array3D;
     typedef std::valarray< std::valarray< std::valarray <std::valarray<REAL> > > > Array4D;
     typedef std::valarray< std::valarray< std::valarray <std::valarray< std::valarray<REAL>  > > > > Array5D;
@@ -131,7 +131,7 @@ namespace dem {
     std::vector<std::size_t> printPtcls;
 
   public:
-    Fluid() {}
+    Gas() {}
     
     void initParameter(Rectangle &container, Gradation &gradation);
     void initialize();
