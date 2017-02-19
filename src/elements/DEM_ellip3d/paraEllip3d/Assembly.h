@@ -12,7 +12,7 @@
 #include "Rectangle.h"
 #include "Cylinder.h"
 #include "Spring.h"
-#include "Fluid.h"
+#include "Gas.h"
 #include <cstddef>
 #include <map>
 #include <vector>
@@ -50,8 +50,8 @@ namespace dem {
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
     std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
    
-    // fluid property
-    Fluid fluid;
+    // gas property
+    Gas gas;
 
     // average data
     REAL avgNormal;        // only meaningful to root process

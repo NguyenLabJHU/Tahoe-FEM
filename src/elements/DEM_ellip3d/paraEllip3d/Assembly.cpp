@@ -39,14 +39,13 @@
 #include <utility>
 #include <sys/time.h>
 #include <omp.h>
-
+#define MODULE_TIME
 //#define DEM_PROFILE
 //#define CFD_PROFILE
-#define MODULE_TIME
 
 //#define BIGON
 //#define XYSYMMETRIC
-//#define WIDE_SIZES
+#define WIDE_SIZES
 #ifdef WIDE_SIZES
 #define ZGAP 1
 #endif
@@ -1229,8 +1228,8 @@ namespace dem {
       openDepositProg(progressInf, "couple_progress");
     }
     scatterParticle();
-    /*1*/ fluid.initParameter(allContainer, gradation);
-    /*2*/ fluid.initialize();
+    /*1*/ gas.initParameter(allContainer, gradation);
+    /*2*/ gas.initialize();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1253,7 +1252,7 @@ namespace dem {
       plotGrid(strcat(combineString(cstr0, "couple_gridplot_", iterSnap - 1, 3), ".dat"));
       printParticle(combineString(cstr0, "couple_particle_", iterSnap - 1, 3));
       printBdryContact(combineString(cstr0, "couple_bdrycntc_", iterSnap -1, 3));
-      /*3*/ fluid.plot(strcat(combineString(cstr0, "couple_fluidplot_", iterSnap -1, 3), ".dat")); 
+      /*3*/ gas.plot(strcat(combineString(cstr0, "couple_fluidplot_", iterSnap -1, 3), ".dat")); 
     }
     /*
     if (mpiRank == 0)
@@ -1279,23 +1278,23 @@ namespace dem {
 #ifdef CFD_PROFILE
       gettimeofday(&time_2, NULL);
 #endif
-      /*4*/ fluid.getPtclInfo(particleVec, gradation); // not allParticleVec
+      /*4*/ gas.getPtclInfo(particleVec, gradation); // not allParticleVec
 #ifdef CFD_PROFILE
       gettimeofday(&time_3, NULL);
 #endif
-      /*5*/ fluid.runOneStep(particleVec);
+      /*5*/ gas.runOneStep(particleVec);
 #ifdef CFD_PROFILE
       gettimeofday(&time_4, NULL);
 #endif
-      /*6*/ fluid.calcPtclForce(particleVec); // not allParticleVec
+      /*6*/ gas.calcPtclForce(particleVec); // not allParticleVec
 #ifdef CFD_PROFILE
       gettimeofday(&time_5, NULL);
 #endif
-      /*7*/ fluid.penalize(particleVec);
+      /*7*/ gas.penalize(particleVec);
 #ifdef CFD_PROFILE
       gettimeofday(&time_6, NULL);
 #endif
-      //fluid.checkMomentum(particleVec);
+      //gas.checkMomentum(particleVec);
 
       internalForce();
       if (isBdryProcess()) boundaryForce();
@@ -1304,7 +1303,7 @@ namespace dem {
       updateGridMaxZ();
 
       timeCount += timeStep;
-      //timeAccrued += timeStep; // note fluid.runOneStep() might change timeStep and print timeAccrued
+      //timeAccrued += timeStep; // note gas.runOneStep() might change timeStep and print timeAccrued
       if (timeCount >= timeIncr/netSnap) { 
 	time1 = MPI_Wtime();
 	gatherParticle();
@@ -1318,7 +1317,7 @@ namespace dem {
 	  printParticle(combineString(cstr, "couple_particle_", iterSnap, 3));
 	  printBdryContact(combineString(cstr, "couple_bdrycntc_", iterSnap, 3));
 	  printDepositProg(progressInf);
-	  /*8*/ fluid.plot(strcat(combineString(cstr, "couple_fluidplot_", iterSnap, 3), ".dat"));
+	  /*8*/ gas.plot(strcat(combineString(cstr, "couple_fluidplot_", iterSnap, 3), ".dat"));
 	}
 	printContact(combineString(cstr, "couple_contact_", iterSnap, 3));
       
