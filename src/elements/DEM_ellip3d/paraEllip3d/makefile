@@ -75,7 +75,6 @@ ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), gcc-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
  endif
-
 endif
 
 ifeq ($(PLATFORM), janus)
@@ -131,15 +130,15 @@ ifeq ($(COMPILERS), gcc-cray)
 endif
 
 ifeq ($(COMPILERS), intel-intel)
- OPENMP = -openmp -mt_mpi
+ OPENMP = -qopenmp -mt_mpi
 endif
 
 ifeq ($(COMPILERS), intel-sgi)
- OPENMP = -openmp -mt_mpi
+ OPENMP = -qopenmp -mt_mpi
 endif
 
 ifeq ($(COMPILERS), intel-cray)
- OPENMP = -openmp
+ OPENMP = -qopenmp
 endif
 
 # optimize or debug
