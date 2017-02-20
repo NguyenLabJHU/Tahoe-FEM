@@ -3734,7 +3734,7 @@ namespace dem {
     y2 = allContainer.getMaxCorner().getY();
     z2 = allContainer.getMaxCorner().getZ();
 
-    ofs << "ZONE N=8, E=1, DATAPACKING=POINT, ZONETYPE=FEBRICK" << std::endl;
+    ofs	<< "ZONE T=\"bdry\" N=8, E=1, DATAPACKING=POINT, ZONETYPE=FEBRICK" << std::endl;
     ofs << std::setw(OWID) << x2 << std::setw(OWID) << y1 << std::setw(OWID) << z1 << std::endl;
     ofs << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z1 << std::endl;
     ofs << std::setw(OWID) << x1 << std::setw(OWID) << y2 << std::setw(OWID) << z1 << std::endl;
@@ -3759,7 +3759,7 @@ namespace dem {
     Vec v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
 
-    ofs << "ZONE N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
+    ofs	<< "ZONE T=\"grid\" N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
 	<< ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=POINT, ZONETYPE=FEBRICK" << std::endl;
 
     std::vector<Vec> coords((mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1));
