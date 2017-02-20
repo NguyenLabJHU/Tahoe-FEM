@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
 
     for(k = 0; k < TotalNum; ++k) {
       if (k==0)
-	ofs << "ZONE N=" << NODE << ", E=" << ELEM << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+	ofs << "ZONE T=\"ptcl\" N=" << NODE << ", E=" << ELEM << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
       else
-	ofs << "ZONE N=" << NODE << ", E=" << ELEM <<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, CONNECTIVITYSHAREZONE = 1" << endl;
+	ofs << "ZONE T=\"ptcl\" N=" << NODE << ", E=" << ELEM <<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, CONNECTIVITYSHAREZONE = 1" << endl;
 
 
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3

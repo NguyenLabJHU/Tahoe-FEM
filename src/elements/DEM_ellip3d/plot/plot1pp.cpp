@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
     ifs2>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
 	>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
 
-    ofs << "ZONE N="<<NODE*particles<<", E="<<ELEM*particles<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+    ofs << "ZONE T=\"ptcl\" N="<<NODE*particles<<", E="<<ELEM*particles<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
 	
     pn=0;
     while(pn < TotalNum) {

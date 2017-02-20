@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
 	ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
 	   >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
 
-	ofs << "ZONE N=" << NODE*TotalNum << ", E=" << ELEM*TotalNum << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+	ofs << "ZONE T=\"ptcl\" N=" << NODE*TotalNum << ", E=" << ELEM*TotalNum << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
 	for(k = 0; k < TotalNum; ++k)
 	{
 	    ifs >> ID >> type >> a_plus >> a_minus >> b_plus >> b_minus >> c_plus >> c_minus >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3 >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;

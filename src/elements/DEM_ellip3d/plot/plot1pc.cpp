@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 	     >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;
       } while (id!=pnumber);
 
-      ofs << "ZONE N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+      ofs << "ZONE T=\"ptcl\" N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
 	    
       ofs << setfill(' ') << setw(16) << cosl(l1)*(-a) + x0
 	  << setfill(' ') << setw(16) << cosl(m1)*(-a) + y0
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
       if(!ifs1)  { cout<<"ifs1 stream error!"<<endl; exit(-1);}  
       ifs1 >> TotalCntct;
       ifs1 >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;  
-      ofs << "ZONE N="<<NODE*particles<<", E="<<ELEM*particles<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+      ofs << "ZONE T=\"ptcl\" N="<<NODE*particles<<", E="<<ELEM*particles<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
 
       for (ic=0;ic<TotalCntct;++ic) {
 	ifs1>>ptcl_1>>ptcl_2>>point1_x>>point1_y>>point1_z>>point2_x>>point2_y>>point2_z

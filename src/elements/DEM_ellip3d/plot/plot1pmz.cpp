@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		 >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;
 	  } while (id!=ptcl_1);
 
-	  ofs << "ZONE N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+	  ofs << "ZONE T=\"ptcl\" N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
 
 	  ofs << setfill(' ') << setw(16) << cosl(l1)*(-a) + x0
 	      << setfill(' ') << setw(16) << cosl(m1)*(-a) + y0
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 		 >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;
 	  } while (id!=ptcl_2);
 
-	  ofs << "ZONE N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, CONNECTIVITYSHAREZONE = 1" << endl;
+	  ofs << "ZONE T=\"ptcl\" N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, CONNECTIVITYSHAREZONE = 1" << endl;
 
 	  ofs << setfill(' ') << setw(16) << cosl(l1)*(-a) + x0
 	      << setfill(' ') << setw(16) << cosl(m1)*(-a) + y0
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 		 >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;
 	  } while (id!=ptcl_2);
 
-	  ofs << "ZONE N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, CONNECTIVITYSHAREZONE = 1" << endl;
+	  ofs << "ZONE T=\"ptcl\" N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, CONNECTIVITYSHAREZONE = 1" << endl;
 		    
 	  ofs << setfill(' ') << setw(16) << cosl(l1)*(-a) + x0
 	      << setfill(' ') << setw(16) << cosl(m1)*(-a) + y0
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
 	     >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;
       } while (id!=pnumber);
 
-      ofs << "ZONE N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
+      ofs << "ZONE T=\"ptcl\" N="<<NODE<<", E="<<ELEM<<", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
 	    
       ofs << setfill(' ') << setw(16) << cosl(l1)*(-a) + x0
 	  << setfill(' ') << setw(16) << cosl(m1)*(-a) + y0
