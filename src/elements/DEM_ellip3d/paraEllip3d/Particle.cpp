@@ -4,6 +4,8 @@
 #include "root6.h"
 #include <iostream>
 
+//#define SLIP_DAMPING
+
 //#define MOMENT
 #ifdef MOMENT
 const std::size_t START = 10000;  // at which time step to apply moment? for moment rotation test only.
@@ -765,19 +767,22 @@ namespace dem {
       REAL fP  = dem::Parameter::getSingleton().parameter["boundaryFric"] * vfabs(normalForce);
       REAL ks  = 4 * G0 * contactRadius / (2 - poisson);
       tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
-    
-      Vec fricDampingForce = 0;
+
+#ifdef SLIP_DAMPING    
+      Vec slipDampingForce = 0;
+#endif
       if (vfabs(tgtForce) > fP) // slide case
 	tgtForce = fP * TgtDirc;
-      else { // adhered/slip case
-      
+#ifdef SLIP_DAMPING
+      else { // adhered/slip case     
 	// obtain tangential damping force
 	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2)/2 - currPos);  
 	Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
 	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
-	fricDampingForce = 1.0 * dampCritical * (-TgtVel);
+	slipDampingForce = 1.0 * dampCritical * (-TgtVel);
       }
-    
+#endif
+   
       /////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Mindlin's model (loading/unloading condition assumed)
       // This model is not recommended as it is impossible to strictly determine loading/unloading condition
@@ -822,16 +827,17 @@ namespace dem {
 	}
       }
     
-      if (vfabs(tgtForce) > fP) // slice case
+      if (vfabs(tgtForce) > fP) // slide case
 	tgtForce = fP * TgtDirc;
-      else { // adhered/slip case
-      
+#ifdef SLIP_DAMPING
+      else { // adhered/slip case     
 	// obtain tangential damping force
 	Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
 	Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
 	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
-	fricDampingForce = 1.0 * dampCritical * (-TgtVel);
+	slipDampingForce = 1.0 * dampCritical * (-TgtVel);
       }
+#endif
     
 #endif
       /////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -843,7 +849,7 @@ namespace dem {
 	<< " cntDampingForce= " << vfabs(cntDampingForce)
 	<< " kn=" << kn
 	<< " tgtForce=" << vfabs(tgtForce)
-	<< " fricDampingForce=" << vfabs(fricDampingForce)
+	<< " slipDampingForce=" << vfabs(slipDampingForce)
 	<< " ks=" << ks
 	<< std::endl;
       */
@@ -854,8 +860,10 @@ namespace dem {
       addMoment(((pt1 + pt2)/2 - currPos) % tgtForce); 
     
       // apply tangential damping force for adhered/slip case
-      addForce(fricDampingForce);
-    
+#ifdef SLIP_DAMPING
+      addForce(slipDampingForce);
+      addMoment(((pt1 + pt2)/2 - currPos) % slipDampingForce); 
+#endif    
       // update current tangential force and displacement, don't checkout.
       // checkout in rigidBF() ensures BdryTgtMap update after each particles
       // contacting this boundary is processed.
