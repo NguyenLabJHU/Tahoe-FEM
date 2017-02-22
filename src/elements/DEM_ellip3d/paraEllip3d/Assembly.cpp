@@ -1606,6 +1606,8 @@ namespace dem {
       trim(true,
 	   dem::Parameter::getSingleton().datafile["particleFile"].c_str(),
 	   "trim_particle_end");
+      plotGrid("trim_gridplot_end");
+      plotBoundary("trim_bdryplot_end");
 
       // print density, void ratio, etc 
       REAL distX, distY, distZ;
