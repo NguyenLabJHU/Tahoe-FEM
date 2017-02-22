@@ -729,11 +729,11 @@ namespace dem {
     Vec tgtForce = 0;
     if (dem::Parameter::getSingleton().parameter["boundaryFric"] != 0) {
       // checkin previous tangential force and displacement
-      Vec  prevTgtForce;
-      Vec  prevTgtDisp;
+      Vec  prevTgtForce   = 0;
+      Vec  prevTgtDisp    = 0;
       bool prevTgtLoading = true;
-      Vec  tgtDispStart;
-      REAL tgtPeak = 0;
+      Vec  tgtDispStart   = 0;
+      REAL tgtPeak        = 0;
     
       bool tgtLoading = true;
       std::vector<BoundaryTgt>::iterator it;
@@ -865,8 +865,8 @@ namespace dem {
       addMoment(((pt1 + pt2)/2 - currPos) % slipDampingForce); 
 #endif    
       // update current tangential force and displacement, don't checkout.
-      // checkout in rigidBF() ensures BdryTgtMap update after each particles
-      // contacting this boundary is processed.
+      // checkout in planeBoundary::boundaryForce() ensures BdryTgtMap update after each particle
+      // in contact with this boundary is processed.
       vtmp.push_back(BoundaryTgt(id, tgtForce, tgtDisp, tgtLoading, tgtDispStart, tgtPeak));
     
     }

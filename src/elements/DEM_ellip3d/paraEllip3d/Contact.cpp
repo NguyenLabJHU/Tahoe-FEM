@@ -118,6 +118,13 @@ namespace dem {
   
   
   void Contact::checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec) {
+    prevTgtForce   = 0;
+    prevTgtDisp    = 0;
+    prevTgtLoading = true;
+    tgtDispStart   = 0;
+    tgtPeak        = 0;
+    prevTgtSlide   = false;
+
     for(std::vector<ContactTgt>::iterator it = contactTgtVec.begin();it != contactTgtVec.end(); ++it) {
       if (it->ptcl1 == p1->getId() && it->ptcl2 == p2->getId()) {
 	prevTgtForce   = it->tgtForce;
