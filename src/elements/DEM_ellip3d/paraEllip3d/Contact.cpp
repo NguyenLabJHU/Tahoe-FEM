@@ -104,9 +104,8 @@ namespace dem {
     radius2 = p2->getRadius(point2);
     penetr = vfabs(point1-point2);
 
-    if (b1 && b2 
-	&& penetr/(2.0*fmax(radius1,radius2)) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]
-	&& nearbyint(penetr/dem::Parameter::getSingleton().parameter["measureOverlap"]) >= 1) { // a strict detection method
+    if (b1 && b2 && penetr/(2.0*fmax(radius1,radius2)) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]) { // a strict detection method
+	//&& nearbyint(penetr/dem::Parameter::getSingleton().parameter["measureOverlap"]) >= 1) 
         isInContact = true;
         return true;
     }
@@ -191,7 +190,7 @@ namespace dem {
 	penetr = allowedOverlap;
       }
 
-      penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
+      //penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
       contactRadius = sqrt(penetr*R0);
       normalDirc = normalize(point1-point2); // normalDirc points from particle 1 to particle 2
       normalForce = -sqrt(penetr*penetr*penetr)*sqrt(R0)*4*E0/3* normalDirc; // normalForce pointing to particle 1
