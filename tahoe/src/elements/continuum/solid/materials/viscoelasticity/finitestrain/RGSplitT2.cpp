@@ -1,4 +1,4 @@
-/* $Id: RGSplitT2.cpp,v 1.8 2011-12-01 21:11:38 bcyansfn Exp $ */
+/* $Id: RGSplitT2.cpp,v 1.9 2017-02-23 22:11:03 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT2.h"
@@ -24,8 +24,8 @@
 using namespace Tahoe;
 
 const double third = 1.0/3.0; 
-const int kNumOutputVar =1; 
-static const char* Labels[kNumOutputVar] = {"Dvisc"}; 
+const int kNumOutputVar =9;
+static const char* Labels[kNumOutputVar] = {"Dvisc", "tau","sigm","Cv11","Cv22","Cv33","Cv23","Cv13","Cv12"};
 
 /***********************************************************************
  * Public
@@ -472,6 +472,7 @@ if (fNumProcess > 0)
 	{
 		/*calc elastic stretch*/
 		fInverse.Inverse(fC_v[i]);
+        const dSymMatrixT& Cv=fC_v[i];
 		fbe.MultQBQT(fF3D, fInverse);
 		fSpectralDecompSpat.SpectralDecomp_Jacobi(fbe, false);	
 		fEigs_e = fSpectralDecompSpat.Eigenvalues(); 
@@ -483,13 +484,21 @@ if (fNumProcess > 0)
     
 		fPot[i+1]->DevStress(fEigs_dev, ftau_NEQ);
 		fStress3D = fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
-		double sm = fPot[i+1]->MeanStress(Je);
+		double sm = fPot[0]->MeanStress(Je);
 
 		double stress_mag = sqrt(ftau_NEQ[0]*ftau_NEQ[0] + ftau_NEQ[1]*ftau_NEQ[1] + ftau_NEQ[2]*ftau_NEQ[2]);
 		fietaS = 1.0/fVisc_s[i]->Function(stress_mag);
 		fietaB = 1.0/fVisc_b[i]->Function(sm);
 		
 		output[0] += 0.5*(0.5*fietaS*fStress3D.ScalarProduct()+fietaB*sm*sm);
+        output[1]= stress_mag;
+        output[2]=sm;
+        output[3]=Cv[0];
+        output[4]=Cv[1];
+        output[5]=Cv[2];
+        output[6]=Cv[3];
+        output[7]=Cv[4];
+        output[8]=Cv[5];
     }
 }
 
@@ -622,7 +631,7 @@ void RGSplitT2::Initialize(void)
 void RGSplitT2::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
 			     dArrayT& eigenstress, dSymMatrixT& eigenmodulus, const int type) 
 {		
-	const double ctol = 1.00e-14;
+	const double ctol = 1.00e-8;
 		
 	/*set references to principle stretches*/
      
@@ -743,10 +752,13 @@ void RGSplitT2::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch
 	    
 	    /*Check that the L2 norm of the residual is less than tolerance*/
 	    tol = sqrt(res0*res0 + res1*res1+res2*res2);
-	}while (tol>ctol && iteration < 10); 
-	if (iteration >= 10) 
-		ExceptionT::GeneralFail("RGSplitT2::ComputeEigs_e", 
+	}while (tol>ctol && iteration < 30);
+	if (iteration >= 30)
+    {
+        cout << "\ntol: "<<tol;
+		ExceptionT::GeneralFail("RGSplitT2::ComputeEigs_e",
 			"number of iteration exceeds maximum of 10");
+    }
 }
 
 /* information about subordinate parameter lists */
@@ -842,7 +854,7 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 	int num_neq =  list.NumLists("rg_neq_potential");
 	int num_shear_visc = list.NumLists("rg_shear_viscosity");
 	int num_bulk_visc = list.NumLists("rg_bulk_viscosity");
-	if (num_neq != num_shear_visc || num_neq != num_bulk_visc)
+	if (num_neq != num_shear_visc && num_neq != num_bulk_visc)
 		ExceptionT::GeneralFail("RGSplitT2::TakeParameterList", 
 			"number of matrix viscosity functions does not match number of matrix nonequilibrium potentials");
 	fNumProcess = list.NumLists("rg_shear_viscosity");
@@ -921,4 +933,6 @@ void RGSplitT2::TakeParameterList(const ParameterListT& list)
 	/*set dimension of workspaces*/
 	Initialize();
 }
+
+
 
