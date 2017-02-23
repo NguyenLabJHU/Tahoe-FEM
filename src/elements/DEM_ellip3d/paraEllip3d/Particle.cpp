@@ -4,8 +4,6 @@
 #include "root6.h"
 #include <iostream>
 
-//#define SLIP_DAMPING
-
 //#define MOMENT
 #ifdef MOMENT
 const std::size_t START = 10000;  // at which time step to apply moment? for moment rotation test only.
@@ -642,7 +640,7 @@ namespace dem {
   
     // if particle and plane intersect:
     ++contactNum;
-    inContact = true;
+    //inContact = true; // only mark interparticle contact to apply interparticle damping
     Vec rt[2];
     if (!intersectWithLine(pt1, dirc, rt)) // the line and ellipsoid surface does not intersect
       return;
@@ -687,11 +685,11 @@ namespace dem {
     }
   
     REAL measureOverlap = dem::Parameter::getSingleton().parameter["measureOverlap"];  
-    penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
+    //penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
     REAL contactRadius = sqrt(penetr*R0);
     Vec normalDirc = -dirc;
     // pow(penetr,1.5), a serious bug
-    Vec normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) * 4 * E0/3 * normalDirc;
+    Vec normalForce = sqrt(penetr*penetr*penetr)*sqrt(R0)*4*E0/3* normalDirc;
   
     /*
       debugInf << ' ' << iteration
@@ -768,12 +766,9 @@ namespace dem {
       REAL ks  = 4 * G0 * contactRadius / (2 - poisson);
       tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
 
-#ifdef SLIP_DAMPING    
       Vec slipDampingForce = 0;
-#endif
       if (vfabs(tgtForce) > fP) // slide case
 	tgtForce = fP * TgtDirc;
-#ifdef SLIP_DAMPING
       else { // adhered/slip case     
 	// obtain tangential damping force
 	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2)/2 - currPos);  
@@ -781,7 +776,6 @@ namespace dem {
 	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
 	slipDampingForce = 1.0 * dampCritical * (-TgtVel);
       }
-#endif
    
       /////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Mindlin's model (loading/unloading condition assumed)
@@ -829,16 +823,14 @@ namespace dem {
     
       if (vfabs(tgtForce) > fP) // slide case
 	tgtForce = fP * TgtDirc;
-#ifdef SLIP_DAMPING
-      else { // adhered/slip case     
+
 	// obtain tangential damping force
 	Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
 	Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
 	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
 	slipDampingForce = 1.0 * dampCritical * (-TgtVel);
       }
-#endif
-    
+
 #endif
       /////////////////////////////////////////////////////////////////////////////////////////////////////////	
     
@@ -860,10 +852,9 @@ namespace dem {
       addMoment(((pt1 + pt2)/2 - currPos) % tgtForce); 
     
       // apply tangential damping force for adhered/slip case
-#ifdef SLIP_DAMPING
       addForce(slipDampingForce);
       addMoment(((pt1 + pt2)/2 - currPos) % slipDampingForce); 
-#endif    
+
       // update current tangential force and displacement, don't checkout.
       // checkout in planeBoundary::boundaryForce() ensures BdryTgtMap update after each particle
       // in contact with this boundary is processed.
