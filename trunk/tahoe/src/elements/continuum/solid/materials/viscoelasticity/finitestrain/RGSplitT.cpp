@@ -1,4 +1,5 @@
-/* $Id: RGSplitT.cpp,v 1.13 2011-12-01 21:11:38 bcyansfn Exp $ */
+
+/* $Id: RGSplitT.cpp,v 1.14 2017-02-23 22:11:03 tdnguye Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplitT.h"

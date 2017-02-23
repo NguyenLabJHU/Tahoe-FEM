@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.h,v 1.4 2006-08-21 16:46:24 tdnguye Exp $ */
+/* $Id: RGViscoelasticityT.h,v 1.5 2017-02-23 22:11:04 tdnguye Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_VISCO_T_H_
 #define _RG_VISCO_T_H_
@@ -59,7 +59,6 @@ class RGViscoelasticityT: public FSSolidMatT
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
 	
  protected:
 	
