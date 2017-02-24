@@ -640,7 +640,7 @@ namespace dem {
   
     // if particle and plane intersect:
     ++contactNum;
-    //inContact = true; // only mark interparticle contact to apply interparticle damping
+    inContact = true;
     Vec rt[2];
     if (!intersectWithLine(pt1, dirc, rt)) // the line and ellipsoid surface does not intersect
       return;
