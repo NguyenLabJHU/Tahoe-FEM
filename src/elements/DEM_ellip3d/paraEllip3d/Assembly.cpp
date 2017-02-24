@@ -47,7 +47,9 @@
 //#define XYSYMMETRIC
 #define WIDE_SIZES
 #ifdef WIDE_SIZES
-#define ZGAP 1
+ #define ZGAP 1
+ #define SIDEGAP 1
+ #define BOTTOMGAP 1
 #endif
 
 static time_t timeStamp; // for file timestamping
@@ -1470,10 +1472,11 @@ namespace dem {
       REAL gridDim= allContainer.getDimx()/gridNx; // gridDim == diaMin if divisible
       int  gridNy = floor(allContainer.getDimy()/gridDim);
       int  gridNz = floor((dem::Parameter::getSingleton().parameter["floatMaxZ"] - allContainer.getMinCorner().getZ())/gridDim);
-      int  wallGap= 1; // diaMax / gridDim;
-      int  zGap   = ZGAP; // generate particles with void in z direction, default 1
+      int  sideGap= SIDEGAP; // diaMax/gridDim; default 1 grid
+      int  bottomGap = BOTTOMGAP; // default 1 grid
+      int  zGap   = ZGAP; // generate particles with void in z direction, default 1 grid
 
-      //debugInf << "wallGap, nx, ny, nz dim=" << wallGap << " " << gridNx << " " << gridNy << " " << gridNz << " " << gridDim << std::endl;
+      //debugInf << "bottomGap, sideGap, nx, ny, nz dim=" <<bottomGap << " " << sideGap << " " << gridNx << " " << gridNy << " " << gridNz << " " << gridDim << std::endl;
       // mask the grids as not occupied
       std::valarray< std::valarray< std::valarray <int> > > gridMask;
       gridMask.resize(gridNx);
@@ -1487,13 +1490,13 @@ namespace dem {
 	  for (int k = 0; k < gridNz; ++k)
 	    gridMask[i][j][k] = 0;
 
-      int iCount = wallGap;
-      int jCount = wallGap;
-      int kCount = wallGap;
+      int iCount = sideGap;
+      int jCount = sideGap;
+      int kCount = bottomGap;
       REAL xCorner, yCorner, zCorner;
       bool yOutOfTail = false;
       int iRecord, jRecord, kRecord;
-      while (iCount < gridNx - wallGap && jCount < gridNy - wallGap && kCount < gridNz) {
+      while (iCount < gridNx - sideGap && jCount < gridNy - sideGap && kCount < gridNz) {
 	// generate a particle without x, y, z coordinates
 	newptcl = new Particle(particleNum+1, 0, Vec(0,0,0), gradation, young, poisson);
 	int nGrid = ceil(newptcl->getA()*2.0 / gridDim);
@@ -1506,12 +1509,12 @@ namespace dem {
 	  maskOverlapped = false;
 
 	  // if the particle volume reaches outside the tail in x direction, move it to the x head.
-	  if (iCount + nGrid - 1 + iInc > gridNx - 1 - wallGap) {
-	    //debugInf <<"ptcl="<<particleNum<< " nGrid="<<nGrid<< " i j kCount=" << iCount << " " << jCount << " " << kCount << " iInc=" <<iInc <<" xRange ("<< iCount + iInc << ","<< gridNx -1 - wallGap << "), (" << iCount + nGrid - 1 + iInc << " ," << gridNx -1 - wallGap << ")"<<std::endl;
-	    iCount = wallGap;
+	  if (iCount + nGrid - 1 + iInc > gridNx - 1 - sideGap) {
+	    //debugInf <<"ptcl="<<particleNum<< " nGrid="<<nGrid<< " i j kCount=" << iCount << " " << jCount << " " << kCount << " iInc=" <<iInc <<" xRange ("<< iCount + iInc << ","<< gridNx -1 - sideGap << "), (" << iCount + nGrid - 1 + iInc << " ," << gridNx -1 - sideGap << ")"<<std::endl;
+	    iCount = sideGap;
 	    ++jCount;
-	    if (jCount >= gridNy - wallGap) {
-	      jCount = wallGap;
+	    if (jCount >= gridNy - sideGap) {
+	      jCount = sideGap;
 	      kCount += zGap;
 	    }
 	    iInc = 0;
@@ -1519,13 +1522,13 @@ namespace dem {
 	  }
 
 	  // if the particle volume reaches outside the tail in y direction, move it to an upper level.
-	  if (jCount + nGrid - 1 + jInc > gridNy - 1 - wallGap) {
+	  if (jCount + nGrid - 1 + jInc > gridNy - 1 - sideGap) {
 	    yOutOfTail = true;
 	    iRecord = iCount;
 	    jRecord = jCount;
 	    kRecord = kCount;
 
-	    jCount = wallGap;
+	    jCount = sideGap;
 	    kCount += zGap;
 	    jInc = 0;
 	    //debugInf<<"change ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
@@ -1538,10 +1541,10 @@ namespace dem {
 	    goto label3;  // relocate
 	  }
 
-	  // if the particle volume overlaps with mask
-	  for (int ix = std::min(iCount + iInc, gridNx - 1 - wallGap); ix <= std::min(iCount + nGrid - 1 + iInc, gridNx - 1 - wallGap); ++ix) {
-	    for (int iy = std::min(jCount + jInc, gridNy - 1 - wallGap); iy <= std::min(jCount + nGrid - 1 + jInc, gridNy - 1 - wallGap); ++iy) {
-	      for (int iz = std::min(kCount + kInc, gridNz - 1 - wallGap); iz <= std::min(kCount + nGrid - 1 + kInc, gridNz -1 - wallGap); ++iz) {
+	  // if the particle volume overlaps with any mask
+	  for (int ix = std::min(iCount + iInc, gridNx - 1 - sideGap); ix <= std::min(iCount + nGrid - 1 + iInc, gridNx - 1 - sideGap); ++ix) {
+	    for (int iy = std::min(jCount + jInc, gridNy - 1 - sideGap); iy <= std::min(jCount + nGrid - 1 + jInc, gridNy - 1 - sideGap); ++iy) {
+	      for (int iz = std::min(kCount + kInc, gridNz - 1); iz <= std::min(kCount + nGrid - 1 + kInc, gridNz -1); ++iz) {
 		if (gridMask[ix][iy][iz] == 1) {
 		  maskOverlapped = true;
 		  ++iInc;
@@ -1565,9 +1568,9 @@ namespace dem {
 
       label3: ;
 	// mask grids occupied by the particle
-	for (int ix = std::min(iCount + iInc, gridNx -1 - wallGap); ix <= std::min(iCount + nGrid - 1 + iInc, gridNx - 1 - wallGap); ++ix)
-	  for (int iy = std::min(jCount + jInc, gridNy -1 - wallGap); iy <= std::min(jCount + nGrid - 1 + jInc, gridNy - 1 - wallGap); ++iy)
-	    for (int iz = std::min(kCount + kInc, gridNz -1 - wallGap); iz <= std::min(kCount + nGrid - 1 + kInc, gridNz -1 - wallGap); ++iz)
+	for (int ix = std::min(iCount + iInc, gridNx -1 - sideGap); ix <= std::min(iCount + nGrid - 1 + iInc, gridNx - 1 - sideGap); ++ix)
+	  for (int iy = std::min(jCount + jInc, gridNy -1 - sideGap); iy <= std::min(jCount + nGrid - 1 + jInc, gridNy - 1 - sideGap); ++iy)
+	    for (int iz = std::min(kCount + kInc, gridNz -1); iz <= std::min(kCount + nGrid - 1 + kInc, gridNz -1); ++iz)
 	      gridMask[ix][iy][iz] = 1;
 
 	// continue generating particles along and in the order of x, y, z direction.
@@ -1582,12 +1585,12 @@ namespace dem {
 	  yOutOfTail = false;
 	}
 
-	if (iCount >= gridNx - wallGap) {
-	  iCount = wallGap;
+	if (iCount >= gridNx - sideGap) {
+	  iCount = sideGap;
 	  ++jCount;
 	}
-	if (jCount >= gridNy - wallGap) {
-	  jCount = wallGap;
+	if (jCount >= gridNy - sideGap) {
+	  jCount = sideGap;
 	  kCount += zGap;
 	}
 
@@ -2130,11 +2133,8 @@ namespace dem {
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();   
     //debugInf << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
-#ifndef WIDE_SIZES
     REAL cellSize = gradation.getPtclMaxRadius() * 2;
-#else
-    REAL cellSize = gradation.getPtclMeanRadius() * 2;
-#endif
+
     // 6 surfaces
     if (rankX1 >= 0) { // surface x1
       Rectangle containerX1(v1.getX(), v1.getY(), v1.getZ(), 
