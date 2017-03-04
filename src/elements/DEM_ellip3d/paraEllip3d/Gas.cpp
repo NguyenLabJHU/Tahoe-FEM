@@ -89,7 +89,7 @@ namespace dem {
 
     printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
 
-    REAL minR = gradation.getPtclMinRadius();
+    REAL minR = gradation.getPtclMinRadius(1);
     gridDz = (minR * 2) / ptclGrid;
     gridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
     gridDz = (z2F - z1F) / gridNz;

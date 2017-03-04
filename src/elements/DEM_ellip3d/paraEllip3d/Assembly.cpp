@@ -1363,22 +1363,21 @@ namespace dem {
   {
     REAL young = dem::Parameter::getSingleton().parameter["young"];
     REAL poisson = dem::Parameter::getSingleton().parameter["poisson"];
-
+    REAL diaMax = gradation.getPtclMaxRadius()*2.0;
+    REAL diaMin = gradation.getPtclMinRadius(0)*2.0;
+    std::size_t particleNum = 0;   
     REAL x,y,z;
-    Particle* newptcl;
-    std::size_t particleNum = 0;
-    REAL diameter = gradation.getPtclMaxRadius()*2.0;
+    Particle* newptcl = NULL;
 
-    REAL offset = diameter*0.25; // +- makes 0.5
-    REAL edge   = diameter;
+    REAL offset = diaMax*0.25; // +- makes 0.5
+    REAL edge   = diaMax;
   
     REAL x1 = allContainer.getMinCorner().getX() + edge;
     REAL y1 = allContainer.getMinCorner().getY() + edge;
-    REAL z1 = allContainer.getMinCorner().getZ() + diameter;
+    REAL z1 = allContainer.getMinCorner().getZ() + diaMax;
     REAL x2 = allContainer.getMaxCorner().getX() - edge;
     REAL y2 = allContainer.getMaxCorner().getY() - edge;
-    //REAL z2 = allContainer.getMaxCorner().getZ() - diameter;
-    REAL z2 = dem::Parameter::getSingleton().parameter["floatMaxZ"] - diameter;
+    REAL z2 = dem::Parameter::getSingleton().parameter["floatMaxZ"] - diaMax;
     REAL x0 = allContainer.getCenter().getX();
     REAL y0 = allContainer.getCenter().getY();
     REAL z0 = allContainer.getCenter().getZ();
@@ -1386,52 +1385,52 @@ namespace dem {
     if (particleLayers == 0) {      // just one free particle
       newptcl = new Particle(particleNum+1, 0, Vec(x0,y0,z0), gradation, young, poisson);
       allParticleVec.push_back(newptcl);
-      particleNum++;
+      ++particleNum;
     }
     else if (particleLayers == 1) { // a horizontal layer of free particles
-      for (x = x1; x - x2 < EPS; x += diameter)
-	for (y = y1; y - y2 < EPS; y += diameter) {
+      for (x = x1; x - x2 < EPS; x += diaMax)
+	for (y = y1; y - y2 < EPS; y += diaMax) {
 	  newptcl = new Particle(particleNum+1, 0, Vec(x,y,z0), gradation, young, poisson);
 	  allParticleVec.push_back(newptcl);
-	  particleNum++;
+	  ++particleNum;
 	}
     }
     else if (particleLayers == 2) { // multiple layers of free particles
 
 #ifndef WIDE_SIZES
-      // Small variety of particle sizes
-      for (z = z1; z - z2 < EPS; z += diameter) {
+      // small variety of particle sizes
+      for (z = z1; z - z2 < EPS; z += diaMax) {
 #ifdef XYSYMMETRIC
 	// + + 
-	for (x = x0 + diameter/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diameter) {
-	  for (y = y0 + diameter/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diameter) {
+	for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
+	  for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
-	    particleNum++;
+	    ++particleNum;
 	  }	
 	}
 	// - +
-	for (x = x0 - diameter/2 - fabs(offset) - offset; x - x1 > EPS; x -= diameter) {
-	  for (y = y0 + diameter/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diameter) {
+	for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
+	  for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
-	    particleNum++;
+	    ++particleNum;
 	  }	
 	}
 	// + - 
-	for (x = x0 + diameter/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diameter) {
-	  for (y = y0 - diameter/2 - fabs(offset) - offset; y - y1 > EPS; y -= diameter) {
+	for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
+	  for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
-	    particleNum++;
+	    ++particleNum;
 	  }	
 	}
 	// - -
-	for (x = x0 - diameter/2 - fabs(offset) - offset; x - x1 > EPS; x -= diameter) {
-	  for (y = y0 - diameter/2 - fabs(offset) - offset; y - y1 > EPS; y -= diameter) {
+	for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
+	  for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
-	    particleNum++;
+	    ++particleNum;
 	  }	
 	}
 // else of #ifdef XYSYMMETRIC
@@ -1439,23 +1438,23 @@ namespace dem {
 	// from - to + direction
 	/*
 	// particle center aligned, for non-spheres
-	for (x = x1 + offset; x - offset - x2 < EPS; x += diameter) {
-	  for (y = y1 + offset; y - offset - y2 < EPS; y += diameter) {
+	for (x = x1 + offset; x - offset - x2 < EPS; x += diaMax) {
+	  for (y = y1 + offset; y - offset - y2 < EPS; y += diaMax) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    allParticleVec.push_back(newptcl);
-	    particleNum++;
+	    ++particleNum;
 	  }
 	}
 	*/
 
 	// particle center perburbated slightly, for spheres
-	for (x = x1; x - x2 < EPS; x += diameter) {
-	  for (y = y1; y - y2 < EPS; y += diameter) {
+	for (x = x1; x - x2 < EPS; x += diaMax) {
+	  for (y = y1; y - y2 < EPS; y += diaMax) {
 	    newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
 	    offset = newptcl->getC() / 100.0 * ran(&idum);
 	    newptcl->setCurrPos(Vec(x + offset, y + offset, z + offset));
 	    allParticleVec.push_back(newptcl);
-	    particleNum++;
+	    ++particleNum;
 	  }
 	}
 // end of #ifdef XYSYMMETRIC
@@ -1464,10 +1463,8 @@ namespace dem {
       } // end of z
 // else of #ifndef WIDE_SIZES
 #else
-      // Large variety of particle sizes, such as 10 or 100 times
+      // large variety of particle sizes, such as 10 or 100 times
       // define the grids based on the minimum particle
-      REAL diaMax = gradation.getPtclMaxRadius()*2.0;
-      REAL diaMin = gradation.getPtclMinRadius()*2.0;
       int  gridNx = floor(allContainer.getDimx()/diaMin);
       REAL gridDim= allContainer.getDimx()/gridNx; // gridDim == diaMin if divisible
       int  gridNy = floor(allContainer.getDimy()/gridDim);
@@ -1510,7 +1507,7 @@ namespace dem {
 
 	  // if the particle volume reaches outside the tail in x direction, move it to the x head.
 	  if (iCount + nGrid - 1 + iInc > gridNx - 1 - sideGap) {
-	    //debugInf <<"ptcl="<<particleNum<< " nGrid="<<nGrid<< " i j kCount=" << iCount << " " << jCount << " " << kCount << " iInc=" <<iInc <<" xRange ("<< iCount + iInc << ","<< gridNx -1 - sideGap << "), (" << iCount + nGrid - 1 + iInc << " ," << gridNx -1 - sideGap << ")"<<std::endl;
+	    //debugInf <<" ptcl="<<particleNum<< " nGrid="<<nGrid<< " i j kCount=" << iCount << " " << jCount << " " << kCount << " iInc=" <<iInc <<" xRange ("<< iCount + iInc << ","<< gridNx -1 - sideGap << "), (" << iCount + nGrid - 1 + iInc << " ," << gridNx -1 - sideGap << ")"<<std::endl;
 	    iCount = sideGap;
 	    ++jCount;
 	    if (jCount >= gridNy - sideGap) {
@@ -1531,13 +1528,13 @@ namespace dem {
 	    jCount = sideGap;
 	    kCount += zGap;
 	    jInc = 0;
-	    //debugInf<<"change ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
+	    //debugInf<<" change ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
 	    goto label2;  // relocate
 	  }
 
 	  // if the particle volume reaches outside the tail in z direction, do not add this particle, because it leads to infinite loops.
 	  if (kCount + nGrid - 1 + kInc > gridNz - 1) {
-	    //debugInf<<"cancel ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
+	    //debugInf<<" cancel ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
 	    goto label3;  // relocate
 	  }
 
@@ -1563,7 +1560,7 @@ namespace dem {
 	newptcl->setCurrPos(Vec(xCorner + 0.5*nGrid*gridDim + iInc*gridDim, yCorner + 0.5*nGrid*gridDim + jInc*gridDim, zCorner + 0.5*nGrid*gridDim + kInc*gridDim ));
 	//newptcl->getCurrPos().print(debugInf);debugInf << std::endl;
 	allParticleVec.push_back(newptcl);
-	particleNum++;
+	++particleNum;
 	//debugInf << " after overlap, particles= " << particleNum << " nGrid=" << nGrid <<" kInc=" << kInc << " i j k=" << iCount << " " << jCount << " " << kCount;
 
       label3: ;
@@ -1578,7 +1575,7 @@ namespace dem {
 	  iCount += nGrid;
 
 	if (yOutOfTail) {
-	  //debugInf<<"restor ptcl="<<particleNum-1<< " nGrid="<<nGrid<< " before ("<<iCount<<" "<<jCount<<" "<<kCount<<") after ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<")"<<std::endl;
+	  //debugInf<<" restor ptcl="<<particleNum-1<< " nGrid="<<nGrid<< " before ("<<iCount<<" "<<jCount<<" "<<kCount<<") after ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<")"<<std::endl;
 	  iCount = iRecord;
 	  jCount = jRecord;
 	  kCount = kRecord;
@@ -1665,7 +1662,7 @@ namespace dem {
 
     readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-    REAL minR = gradation.getPtclMinRadius();
+    REAL minR = gradation.getPtclMinRadius(0);
     
     REAL x0S = dem::Parameter::getSingleton().parameter["x0S"];
     REAL y0S = dem::Parameter::getSingleton().parameter["y0S"];
@@ -4814,7 +4811,7 @@ debugfile);         // output file, debug info
  for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 1, Vec(x,y,z), grad.ptclsize[0]*0.99, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
 
  // particle boundary 2
@@ -4823,7 +4820,7 @@ debugfile);         // output file, debug info
  for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 1, Vec(x,y,z), grad.ptclsize[0]*0.99, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
 
  // particle boundary 3
@@ -4832,7 +4829,7 @@ debugfile);         // output file, debug info
  for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 1, Vec(x,y,z), grad.ptclsize[0]*0.99, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
 
  // particle boundary 4
@@ -4841,7 +4838,7 @@ debugfile);         // output file, debug info
  for(z=-dimn/2; z<-dimn/2 + dimn*wall; z+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 1, Vec(x,y,z), grad.ptclsize[0]*0.99, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
 
  // particle boundary 6
@@ -4850,13 +4847,13 @@ debugfile);         // output file, debug info
  for( x=-dimn/2*grid/10; x<dimn/2*grid/10*est; x+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 1, Vec(x,y,z), grad.ptclsize[0]*0.99, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
 
  if (particleLayers == 0) {      // just one free particle
  newptcl = new Particle(particleNum+1, 0, Vec(dimn/2/40,dimn/2/20,dimn/2), grad, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
  else if (particleLayers == 1) { // a horizontal layer of free particles
  z=dimn/2;
@@ -4864,7 +4861,7 @@ debugfile);         // output file, debug info
  for (y=-dimn/2*(grid-1)/10; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), grad, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }
  }
  else if (particleLayers == 2) { // multiple layers of free particles
@@ -4873,7 +4870,7 @@ debugfile);         // output file, debug info
  for (y=-dimn/2*(grid-1)/10; y<dimn/2*(grid-1)/10*est; y+=dimn/2/5) {
  newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), grad, young, poisson);
  particleVec.push_back(newptcl);
- particleNum++;
+ ++particleNum;
  }	
  }
     
