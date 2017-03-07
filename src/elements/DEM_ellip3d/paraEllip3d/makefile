@@ -9,6 +9,7 @@ PLATFORM = soilblast
 #PLATFORM = lightning
 #PLATFORM = excalibur
 #PLATFORM = thunder
+#PLATFORM = topaz
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
@@ -74,6 +75,15 @@ ifeq ($(PLATFORM), thunder)
  endif
  ifeq ($(COMPILERS), gcc-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
+ endif
+endif
+
+ifeq ($(PLATFORM), topaz)
+ ifeq ($(COMPILERS), intel-sgi)
+  #BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.14_intel-15.0.3
+  #PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-15.0.3
+  BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.14_intel-16.0.0
+  PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-16.0.0
  endif
 endif
 
