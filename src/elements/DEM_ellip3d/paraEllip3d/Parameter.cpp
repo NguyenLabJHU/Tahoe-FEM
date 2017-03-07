@@ -119,7 +119,7 @@ namespace dem {
 	ssline >> percent >> size;
 	gradation.push_back(std::make_pair(percent, size));
       }
-      for (std::size_t i = 0; i < 3; ++i) {
+      for (std::size_t i = 0; i < 7; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
