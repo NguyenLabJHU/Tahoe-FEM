@@ -716,13 +716,13 @@ namespace dem {
   
     // obtain normal damping force
     Vec veloc2 = getCurrVeloc() + getCurrOmga() % ((pt1 + pt2)/2 - getCurrPos());
-    REAL kn = pow(6 * vfabs(normalForce) * R0 * pow(E0,2), 1.0/3.0);
+    REAL kn = pow(6 * vfabs(normalForce) * R0 * E0 * E0, 1.0/3.0);
     REAL dampCritical = 2 * sqrt(getMass() * kn); // critical damping
-    Vec cntDampingForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * ((-veloc2) * normalDirc) * normalDirc;
+    Vec normalDampForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * ((-veloc2) * normalDirc) * normalDirc;
   
     // apply normal damping force
-    addForce(cntDampingForce);
-    addMoment(((pt1 + pt2)/2 - currPos) % cntDampingForce);
+    addForce(normalDampForce);
+    addMoment(((pt1 + pt2)/2 - currPos) % normalDampForce);
   
     Vec tgtForce = 0;
     if (dem::Parameter::getSingleton().parameter["boundaryFric"] != 0) {
@@ -766,7 +766,7 @@ namespace dem {
       REAL ks  = 4 * G0 * contactRadius / (2 - poisson);
       tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
 
-      Vec slipDampingForce = 0;
+      Vec slipDampForce = 0;
       if (vfabs(tgtForce) > fP) // slide case
 	tgtForce = fP * TgtDirc;
       else { // adhered/slip case     
@@ -774,7 +774,7 @@ namespace dem {
 	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2)/2 - currPos);  
 	Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
 	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
-	slipDampingForce = 1.0 * dampCritical * (-TgtVel);
+	slipDampForce = 1.0 * dampCritical * (-TgtVel);
       }
    
       /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -823,12 +823,6 @@ namespace dem {
     
       if (vfabs(tgtForce) > fP) // slide case
 	tgtForce = fP * TgtDirc;
-
-	// obtain tangential damping force
-	Vec relaVel = currVeloc + currOmga * ((pt1 + pt2)/2 - currPos);  
-	Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
-	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
-	slipDampingForce = 1.0 * dampCritical * (-TgtVel);
       }
 
 #endif
@@ -838,10 +832,10 @@ namespace dem {
 	if (iteration % 100 == 0)  
 	debugInf << "Particle.cpp, iter=" << iteration
 	<< " normalForce=" << vfabs(normalForce)
-	<< " cntDampingForce= " << vfabs(cntDampingForce)
+	<< " normalDampForce= " << vfabs(normalDampForce)
 	<< " kn=" << kn
 	<< " tgtForce=" << vfabs(tgtForce)
-	<< " slipDampingForce=" << vfabs(slipDampingForce)
+	<< " slipDampForce=" << vfabs(slipDampForce)
 	<< " ks=" << ks
 	<< std::endl;
       */
@@ -852,8 +846,8 @@ namespace dem {
       addMoment(((pt1 + pt2)/2 - currPos) % tgtForce); 
     
       // apply tangential damping force for adhered/slip case
-      addForce(slipDampingForce);
-      addMoment(((pt1 + pt2)/2 - currPos) % slipDampingForce); 
+      addForce(slipDampForce);
+      addMoment(((pt1 + pt2)/2 - currPos) % slipDampForce); 
 
       // update current tangential force and displacement, don't checkout.
       // checkout in planeBoundary::boundaryForce() ensures BdryTgtMap update after each particle

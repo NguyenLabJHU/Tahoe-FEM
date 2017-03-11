@@ -222,7 +222,7 @@ namespace dem {
       Vec veloc2 = p2->getCurrVeloc() + p2->getCurrOmga() % (cp-p2->getCurrPos());
       REAL m1 = getP1()->getMass();
       REAL m2 = getP2()->getMass();
-      REAL kn = pow(6*vfabs(normalForce)*R0*pow(E0,2),1.0/3.0);
+      REAL kn = pow(6 * vfabs(normalForce) * R0 * E0 * E0, 1.0/3.0);
       REAL dampCritical = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
       normalDampForce = contactDamp * dampCritical * ((veloc1-veloc2) * normalDirc)*normalDirc;
       vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
