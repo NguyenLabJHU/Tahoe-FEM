@@ -96,22 +96,21 @@ namespace dem {
     p1->getGlobalCoef(coef1); // v[0] is the point on p2, v[1] is the point on p1
     p2->getGlobalCoef(coef2);    
     Vec v[2];
-    bool b1 = root6(coef1,coef2,v[0]);
-    bool b2 = root6(coef2,coef1,v[1]);
+    bool b1 = root6(coef1, coef2, v[0]);
+    bool b2 = root6(coef2, coef1, v[1]);
     point1 = v[1];
     point2 = v[0];
     radius1 = p1->getRadius(point1);
     radius2 = p2->getRadius(point2);
-    penetr = vfabs(point1-point2);
+    penetr = vfabs(point1 - point2);
 
-    if (b1 && b2 && penetr/(2.0*fmax(radius1,radius2)) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]) { // a strict detection method
-	//&& nearbyint(penetr/dem::Parameter::getSingleton().parameter["measureOverlap"]) >= 1) 
-        isInContact = true;
-        return true;
+    if (b1 && b2) {
+      isInContact = true;
+      return true;
     }
     else {
-        isInContact = false;
-	return false;
+      isInContact = false;
+      return false;
     }
   }
   
@@ -159,7 +158,6 @@ namespace dem {
       REAL young = dem::Parameter::getSingleton().parameter["young"];
       REAL poisson = dem::Parameter::getSingleton().parameter["poisson"];
       REAL maxRelaOverlap = dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
-      REAL measureOverlap = dem::Parameter::getSingleton().parameter["measureOverlap"];
       REAL contactCohesion = dem::Parameter::getSingleton().parameter["contactCohesion"];
       REAL contactDamp = dem::Parameter::getSingleton().parameter["contactDamp"];
       REAL contactFric = dem::Parameter::getSingleton().parameter["contactFric"];
@@ -170,9 +168,9 @@ namespace dem {
       p1->setInContact(true);
       p2->setInContact(true);
       
-      R0 = radius1*radius2/(radius1+radius2);
-      E0 = 0.5*young/(1-poisson*poisson);
-      REAL allowedOverlap = 2.0 * fmin(radius1,radius2) * maxRelaOverlap;
+      R0 = radius1 * radius2 / (radius1 + radius2);
+      E0 = 0.5 * young / (1 - poisson * poisson);
+      REAL allowedOverlap = 2.0 * fmin(radius1, radius2) * maxRelaOverlap;
       if (penetr > allowedOverlap) {
 #ifndef NDEBUG
 	std::stringstream inf;
@@ -190,22 +188,21 @@ namespace dem {
 	penetr = allowedOverlap;
       }
 
-      //penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
-      contactRadius = sqrt(penetr*R0);
-      normalDirc = normalize(point1-point2); // normalDirc points from particle 1 to particle 2
-      normalForce = -sqrt(penetr*penetr*penetr)*sqrt(R0)*4*E0/3* normalDirc; // normalForce pointing to particle 1
+      contactRadius = sqrt(penetr * R0);
+      normalDirc = normalize(point1 - point2); // normalDirc points from particle 1 to particle 2 (point2 to point1)
+      normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) * 4 * E0 / 3 * (-normalDirc); // normalForce pointing to particle 1
       // pow(penetr, 1.5)
       
       // apply cohesion force
-      cohesionForce = Pi * (penetr*R0) * contactCohesion * normalDirc;
+      cohesionForce = Pi * (penetr * R0) * contactCohesion * normalDirc;
       p1->addForce(cohesionForce);
       p2->addForce(-cohesionForce);
       
       // apply normal force
       p1->addForce(normalForce);
       p2->addForce(-normalForce);
-      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) % normalForce );
-      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % (-normalForce) );	
+      p1->addMoment( ( (point1 + point2) / 2 - p1->getCurrPos() ) % normalForce );
+      p2->addMoment( ( (point1 + point2) / 2 - p2->getCurrPos() ) % (-normalForce) );	
       
       /*
       debugInf << "Contact.h: iter=" << iteration
@@ -217,44 +214,54 @@ namespace dem {
       */
       
       // obtain normal damping force
-      Vec cp = (point1+point2)/2;        
+      Vec cp = (point1 + point2) / 2;        
       Vec veloc1 = p1->getCurrVeloc() + p1->getCurrOmga() % (cp-p1->getCurrPos());
       Vec veloc2 = p2->getCurrVeloc() + p2->getCurrOmga() % (cp-p2->getCurrPos());
       REAL m1 = getP1()->getMass();
       REAL m2 = getP2()->getMass();
       REAL kn = pow(6 * vfabs(normalForce) * R0 * E0 * E0, 1.0/3.0);
-      REAL dampCritical = 2*sqrt(m1*m2/(m1+m2)*kn); // critical damping
-      normalDampForce = contactDamp * dampCritical * ((veloc1-veloc2) * normalDirc)*normalDirc;
-      vibraTimeStep = 2.0*sqrt( m1*m2 / (m1+m2) /kn );
-      impactTimeStep = allowedOverlap / fabs((veloc1-veloc2) * normalDirc);
+      REAL dampCritical = 2.0 * sqrt( m1 * m2 / (m1 + m2) * kn); // critical damping
+      normalDampForce = contactDamp * dampCritical * ((veloc1 - veloc2) * normalDirc) * normalDirc;
+      vibraTimeStep = 2.0 * sqrt( m1 * m2 / (m1 + m2) / kn );
+      impactTimeStep = allowedOverlap / fabs((veloc1 - veloc2) * normalDirc);
 
       // apply normal damping force
       p1->addForce(-normalDampForce);
       p2->addForce(normalDampForce);
-      p1->addMoment( ( (point1+point2)/2-p1->getCurrPos() ) % (-normalDampForce) );
-      p2->addMoment( ( (point1+point2)/2-p2->getCurrPos() ) % normalDampForce );
+      p1->addMoment( ( (point1+point2) / 2 - p1->getCurrPos() ) % (-normalDampForce) );
+      p2->addMoment( ( (point1+point2) / 2 - p2->getCurrPos() ) % normalDampForce );
       
       if (contactFric != 0) {
 	// obtain tangential force
-	G0 = young/2/(1+poisson);              // RelaDispInc points along point1's displacement relative to point2
-	Vec RelaDispInc = (veloc1-veloc2) * timeStep;
-	Vec tgtDispInc = RelaDispInc - (RelaDispInc * normalDirc)*normalDirc;
+	G0 = 0.5 * young / (1 + poisson);   // relaDispInc points along point1's displacement relative to point2
+	Vec relaDispInc = (veloc1 - veloc2) * timeStep;
+	Vec tgtDispInc = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
 	tgtDisp = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkinPrevTgt()
 	if (vfabs(tgtDisp) == 0)
 	  tgtDirc = 0;
 	else
-	  tgtDirc = normalize(-tgtDisp); // tgtDirc points along Tgtential forces exerted on particle 1
+	  tgtDirc = normalize(-tgtDisp); // tgtDirc points along tgtential forces exerted on particle 1
 	
 	REAL fP = 0;
 	REAL ks = 0;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// linear friction model
-	fP = contactFric*vfabs(normalForce);
-	ks = 4*G0*contactRadius/(2-poisson);
-	tgtForce = prevTgtForce + ks*(-tgtDispInc); // prevTgtForce read by CheckinPreTgt()
-	if (vfabs(tgtForce) > fP)
-	  tgtForce = fP*tgtDirc;
+	fP = contactFric * vfabs(normalForce);
+	ks = 4 * G0 * contactRadius / (2-poisson);
+	tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by CheckinPreTgt()
+
+	Vec slipDampForce = 0;
+	if (vfabs(tgtForce) > fP) // slide case
+	  tgtForce = fP * tgtDirc;
+	else { // adhered/slip case     
+	  // obtain tangential damping force
+	  Vec relaVel = veloc1 - veloc2;  
+	  Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
+	  REAL dampCritical = 2.0 * sqrt( m1 * m2 / (m1 + m2) * ks); // critical damping
+	  slipDampForce = contactDamp * dampCritical * (-tgtVel);
+	}
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -380,8 +387,14 @@ namespace dem {
 	// apply tangential force
 	p1->addForce(tgtForce);
 	p2->addForce(-tgtForce);
-	p1->addMoment( ((point1+point2)/2-p1->getCurrPos()) % tgtForce);
-	p2->addMoment(-((point1+point2)/2-p2->getCurrPos()) % tgtForce);
+	p1->addMoment( ((point1+point2) / 2 - p1->getCurrPos()) % tgtForce);
+	p2->addMoment(-((point1+point2) / 2 - p2->getCurrPos()) % tgtForce);
+
+	// apply tangential damping force for adhered/slip case
+	p1->addForce(slipDampForce);
+	p2->addForce(-slipDampForce);
+	p1->addMoment( ((point1+point2) / 2 - p1->getCurrPos()) % slipDampForce);
+	p2->addMoment(-((point1+point2) / 2 - p2->getCurrPos()) % slipDampForce);
       }
       
     }
