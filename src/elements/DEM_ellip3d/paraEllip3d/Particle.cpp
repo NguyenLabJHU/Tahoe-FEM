@@ -4,6 +4,8 @@
 #include "root6.h"
 #include <iostream>
 
+#define ROLL_ON_WALL
+
 //#define MOMENT
 #ifdef MOMENT
 const std::size_t START = 10000;  // at which time step to apply moment? for moment rotation test only.
@@ -163,16 +165,16 @@ namespace dem {
   // 1: rotational energy is 1/2(I1*w1^2+I2*w2^2+I3*w3^2), where each term is expressed in local frame.
   // 2. angular velocities in global frame needs to be converted to those in local frame.
   REAL Particle::getTransEnergy() const {
-    return mass*pow(vfabs(currVeloc),2)/2;
+    return mass*pow(vfabs(currVeloc),2) / 2;
   }
   
   
   REAL Particle::getRotatEnergy() const {
     Vec currLocalOmga = globalToLocal(currOmga);
   
-    return momentJ.getX()*pow(currLocalOmga.getX(),2)/2 
-      + momentJ.getY()*pow(currLocalOmga.getY(),2)/2
-      + momentJ.getZ()*pow(currLocalOmga.getZ(),2)/2;
+    return momentJ.getX()*pow(currLocalOmga.getX(),2) / 2 
+      + momentJ.getY()*pow(currLocalOmga.getY(),2) / 2
+      + momentJ.getZ()*pow(currLocalOmga.getZ(),2) / 2;
   }
   
   
@@ -567,7 +569,7 @@ namespace dem {
       // signed distance from particle center to plane
       REAL l_nm = (currPos.getX() * p + currPos.getY() * q + currPos.getZ() * r + s) / sqrt(p * p + q * q + r * r); 
       ptnp = currPos - l_nm * tnm;
-      if( (a - fabs(l_nm)) / (2.0*a) > dem::Parameter::getSingleton().parameter["minRelaOverlap"]) // intersect
+      if ( a - fabs(l_nm) > 0 )
 	return true;
       else  // no intersect
 	return false;
@@ -627,14 +629,14 @@ namespace dem {
 			      std::vector<BoundaryTgt> &vtmp) {
     // (p, q, r) are in the same direction as the outward normal vector,
     // hence it is not necessary to provide information about which side the particle is about the plane.
-    REAL p,q,r,s;
+    REAL p, q, r, s;
     Vec dirc = normalize(plane->getDirec());
     p = dirc.getX();
     q = dirc.getY();
     r = dirc.getZ();
     s = -dirc * plane->getPoint(); // plane equation: p(x-x0) + q(y-y0) + r(z-z0) = 0, that is, px + qy + rz + s = 0
 
-    Vec pt1;
+    Vec pt1; // pt1 on the plane
     if (!nearestPTOnPlane(p, q, r, s, pt1)) // the particle and the plane does not intersect
       return;
   
@@ -645,15 +647,15 @@ namespace dem {
     if (!intersectWithLine(pt1, dirc, rt)) // the line and ellipsoid surface does not intersect
       return;
   
-    Vec pt2;
+    Vec pt2; // pt2 on the particle surface
     ///* universal, allow for large overlap
-    if (p*rt[0].getX()+q*rt[0].getY()+r*rt[0].getZ()+s > 0)
+    if (p * rt[0].getX() + q * rt[0].getY() + r * rt[0].getZ() + s > 0)
       pt2 = rt[0];
     else
       pt2 = rt[1];
     //*/
     /* not universal, only allow for small overlap
-    if (vfabs(rt[0]-pt1) < vfabs(rt[1]-pt1) )
+    if (vfabs(rt[0] - pt1) < vfabs(rt[1] - pt1) )
       pt2 = rt[0];
     else
       pt2 = rt[1];
@@ -661,11 +663,8 @@ namespace dem {
   
     // obtain normal force
     REAL penetr = vfabs(pt1 - pt2);
-    if (penetr / (2.0*getRadius(pt2) ) <= dem::Parameter::getSingleton().parameter["minRelaOverlap"])
-      return;
-  
     REAL R0 = getRadius(pt2);
-    REAL E0 = young/(1-poisson*poisson); // rigid wall has infinite young's modulus
+    REAL E0 = young / (1 - poisson * poisson); // rigid wall has infinite young's modulus
     REAL allowedOverlap = 2.0 * R0 * dem::Parameter::getSingleton().parameter["maxRelaOverlap"];
     if (penetr > allowedOverlap) {
 #ifndef NDEBUG
@@ -684,12 +683,10 @@ namespace dem {
       penetr = allowedOverlap;
     }
   
-    REAL measureOverlap = dem::Parameter::getSingleton().parameter["measureOverlap"];  
-    //penetr = nearbyint (penetr/measureOverlap) * measureOverlap;
-    REAL contactRadius = sqrt(penetr*R0);
-    Vec normalDirc = -dirc;
+    REAL contactRadius = sqrt(penetr * R0);
+    Vec normalDirc = dirc;
     // pow(penetr,1.5), a serious bug
-    Vec normalForce = sqrt(penetr*penetr*penetr)*sqrt(R0)*4*E0/3* normalDirc;
+    Vec normalForce = sqrt(penetr * penetr * penetr) * sqrt(R0) *4 * E0 / 3 * (-normalDirc);
   
     /*
       debugInf << ' ' << iteration
@@ -712,17 +709,17 @@ namespace dem {
   
     // apply normal force
     addForce(normalForce);
-    addMoment(((pt1 + pt2)/2 - currPos) % normalForce);
+    addMoment(((pt1 + pt2) / 2 - currPos) % normalForce);
   
     // obtain normal damping force
-    Vec veloc2 = getCurrVeloc() + getCurrOmga() % ((pt1 + pt2)/2 - getCurrPos());
+    Vec veloc = getCurrVeloc() + getCurrOmga() % ((pt1 + pt2) / 2 - getCurrPos()) - plane->getVeloc();
     REAL kn = pow(6 * vfabs(normalForce) * R0 * E0 * E0, 1.0/3.0);
     REAL dampCritical = 2 * sqrt(getMass() * kn); // critical damping
-    Vec normalDampForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * ((-veloc2) * normalDirc) * normalDirc;
+    Vec normalDampForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * (veloc * normalDirc) * normalDirc;
   
     // apply normal damping force
-    addForce(normalDampForce);
-    addMoment(((pt1 + pt2)/2 - currPos) % normalDampForce);
+    addForce(-normalDampForce);
+    addMoment(((pt1 + pt2) / 2 - currPos) % (-normalDampForce));
   
     Vec tgtForce = 0;
     if (dem::Parameter::getSingleton().parameter["boundaryFric"] != 0) {
@@ -747,34 +744,42 @@ namespace dem {
       }
     
       // obtain tangtential force
-      REAL G0 = young/2/(1+poisson);
+      REAL G0 = 0.5* young / (1 + poisson);
       // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; 
       //      here global frame is used for better convenience.
-      Vec relaDispInc = (currVeloc + currOmga % ((pt1+pt2)/2 - currPos)) * timeStep;
+      Vec relaDispInc = (currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos)  - plane->getVeloc()) * timeStep;
       Vec tgtDispInc  = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
-      Vec tgtDisp     = prevTgtDisp + tgtDispInc; // prevTgtDisp read by checkin
-      Vec TgtDirc;
-    
+#ifdef ROLL_ON_WALL
+      Vec tgtDisp = tgtDispInc;
+#else
+      Vec tgtDisp = prevTgtDisp + tgtDispInc; // adhered/slip, prevTgtDisp read by checkin
+#endif
+      Vec tgtDirc;   
       if (vfabs(tgtDisp) == 0)
-	TgtDirc = 0;
+	tgtDirc = 0;
       else
-	TgtDirc = normalize(-tgtDisp); // TgtDirc points along tangential forces exerted on particle 1
+	tgtDirc = normalize(-tgtDisp); // tgtDirc points along tangential forces exerted on particle 1
     
       /////////////////////////////////////////////////////////////////////////////////////////////////////////
       // linear friction model
       REAL fP  = dem::Parameter::getSingleton().parameter["boundaryFric"] * vfabs(normalForce);
       REAL ks  = 4 * G0 * contactRadius / (2 - poisson);
+#ifdef ROLL_ON_WALL
+      tgtForce = ks * (-tgtDispInc);
+#else
       tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
+#endif
+      //relaDispInc.print(debugInf); debugInf << " " << vfabs(prevTgtForce) << " " << vfabs(tgtForce) << " " << fP << " " << vfabs(tgtDispInc) << " " << ks << std::endl;
 
       Vec slipDampForce = 0;
       if (vfabs(tgtForce) > fP) // slide case
-	tgtForce = fP * TgtDirc;
+	tgtForce = fP * tgtDirc;
       else { // adhered/slip case     
 	// obtain tangential damping force
-	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2)/2 - currPos);  
-	Vec TgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
-	REAL dampCritical = 2 * sqrt(getMass() * ks); // critical damping
-	slipDampForce = 1.0 * dampCritical * (-TgtVel);
+	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc();
+	Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
+	REAL dampCritical = 2.0 * sqrt(getMass() * ks); // critical damping
+	slipDampForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * (-tgtVel);
       }
    
       /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -795,12 +800,12 @@ namespace dem {
 	  val = 8 * G0 * contactRadius * vfabs(tgtDisp - tgtDispStart)/(3 * (2 - poisson) * fP);
       
 	if (val > 1.0)              
-	  tgtForce = fP * TgtDirc;
+	  tgtForce = fP * tgtDirc;
 	else {
 	  ks = 4 * G0 * contactRadius / (2 - poisson) * sqrt(1 - val);
 	  // incremental method
 	  tgtForce = prevTgtForce + ks * (-tgtDispInc); // tgtDispInc determines signs
-	  // total value method: tgtForce = fP*(1-pow(1-val, 1.5))*TgtDirc;
+	  // total value method: tgtForce = fP*(1-pow(1-val, 1.5))*tgtDirc;
 	}
       }
       else {                 // unloading
@@ -812,17 +817,17 @@ namespace dem {
 	  val = 8 * G0 * contactRadius * vfabs(tgtDisp - tgtDispStart)/(3 * (2 - poisson) * fP);
       
 	if (val > 1.0 || tgtPeak > fP)  
-	  tgtForce = fP * TgtDirc;
+	  tgtForce = fP * tgtDirc;
 	else {
-	  ks = 2 * sqrt(2) * G0 * contactRadius/(2 - poisson) * sqrt(1 + pow(1 - tgtPeak/fP, 2.0/3.0) + val);
+	  ks = 2 * sqrt(2) * G0 * contactRadius / (2 - poisson) * sqrt(1 + pow(1 - tgtPeak/fP, 2.0/3.0) + val);
 	  // incremental method
 	  tgtForce = prevTgtForce + ks*(-tgtDispInc); // tgtDispInc determines signs
-	  // total value method: tgtForce = (tgtPeak-2*fP*(1-sqrt(2)/4*pow(1+ pow(1-tgtPeak/fP,2.0/3.0) + val,1.5)))*TgtDirc;
+	  // total value method: tgtForce = (tgtPeak-2*fP*(1-sqrt(2)/4*pow(1+ pow(1-tgtPeak/fP,2.0/3.0) + val,1.5)))*tgtDirc;
 	}
       }
     
       if (vfabs(tgtForce) > fP) // slide case
-	tgtForce = fP * TgtDirc;
+	tgtForce = fP * tgtDirc;
       }
 
 #endif
@@ -843,15 +848,15 @@ namespace dem {
     
       // apply tangential force
       addForce(tgtForce);
-      addMoment(((pt1 + pt2)/2 - currPos) % tgtForce); 
+      addMoment(((pt1 + pt2) / 2 - currPos) % tgtForce); 
     
       // apply tangential damping force for adhered/slip case
       addForce(slipDampForce);
-      addMoment(((pt1 + pt2)/2 - currPos) % slipDampForce); 
+      addMoment(((pt1 + pt2) / 2 - currPos) % slipDampForce); 
 
       // update current tangential force and displacement, don't checkout.
-      // checkout in planeBoundary::boundaryForce() ensures BdryTgtMap update after each particle
-      // in contact with this boundary is processed.
+      // checkout in planeBoundary::boundaryForce() ensures that BdryTgtMap is updated after each 
+      // particle in contact with this boundary is processed.
       vtmp.push_back(BoundaryTgt(id, tgtForce, tgtDisp, tgtLoading, tgtDispStart, tgtPeak));
     
     }
@@ -884,15 +889,15 @@ namespace dem {
       pt2 = rt[1];
     // Vec pt2 = vfabs(rt[0]-cz)>vfabs(rt[1]-cz)?rt[0]:rt[1];
     REAL radius = getRadius(pt2);
-    REAL E0 = 0.5*young/(1 - poisson*poisson);
-    REAL R0 = (r*radius)/(r + radius);
+    REAL E0 = 0.5 * young / (1 - poisson * poisson);
+    REAL R0 = (r * radius) / (r + radius);
     REAL rou = vfabs(pt1 - pt2);
     Vec normalDirc = normalize(pt1 - pt2);
-    REAL nfc = sqrt(rou*rou*rou) * sqrt(R0) * 4 * E0/3; // pow(rou,1.5), a serious bug
+    REAL nfc = sqrt(rou*rou*rou) * sqrt(R0) * 4 * E0 / 3; // pow(rou,1.5), a serious bug
     Vec normalForce = nfc * normalDirc;
   
     addForce(normalForce);
-    addMoment(((pt1 + pt2)/2 - getCurrPos()) % normalForce);	    
+    addMoment(((pt1 + pt2) / 2 - getCurrPos()) % normalForce);	    
   
     return normalForce;
   }
