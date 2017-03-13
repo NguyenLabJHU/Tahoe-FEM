@@ -4,8 +4,6 @@
 #include "root6.h"
 #include <iostream>
 
-#define ROLL_ON_WALL
-
 //#define MOMENT
 #ifdef MOMENT
 const std::size_t START = 10000;  // at which time step to apply moment? for moment rotation test only.
@@ -733,7 +731,7 @@ namespace dem {
       bool tgtLoading = true;
       std::vector<BoundaryTgt>::iterator it;
       for (it = BdryTgtMap[plane->getId()].begin(); it != BdryTgtMap[plane->getId()].end(); ++it){
-	if (id == it->particleId) {
+	if (id == it->particleId && !it->tgtSlide && !it->tgtRoll) {
 	  prevTgtForce   = it->tgtForce;
 	  prevTgtDisp    = it->tgtDisp;
 	  prevTgtLoading = it->tgtLoading;
@@ -745,15 +743,16 @@ namespace dem {
     
       // obtain tangtential force
       REAL G0 = 0.5* young / (1 + poisson);
-      // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; 
-      //      here global frame is used for better convenience.
-      Vec relaDispInc = (currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos)  - plane->getVeloc()) * timeStep;
-      Vec tgtDispInc  = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
-#ifdef ROLL_ON_WALL
-      Vec tgtDisp = tgtDispInc;
-#else
+      // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; herein global frame is used for better convenience.
+      Vec relaDispInc = (currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc()) * timeStep;
+
+      bool tgtSlide = false;
+      bool tgtRoll  = false;
+      if (vfabs(relaDispInc) <= EPS) // rolling
+	tgtRoll = true;
+
+      Vec tgtDispInc = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
       Vec tgtDisp = prevTgtDisp + tgtDispInc; // adhered/slip, prevTgtDisp read by checkin
-#endif
       Vec tgtDirc;   
       if (vfabs(tgtDisp) == 0)
 	tgtDirc = 0;
@@ -764,18 +763,17 @@ namespace dem {
       // linear friction model
       REAL fP  = dem::Parameter::getSingleton().parameter["boundaryFric"] * vfabs(normalForce);
       REAL ks  = 4 * G0 * contactRadius / (2 - poisson);
-#ifdef ROLL_ON_WALL
-      tgtForce = ks * (-tgtDispInc);
-#else
       tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
-#endif
-      //relaDispInc.print(debugInf); debugInf << " " << vfabs(prevTgtForce) << " " << vfabs(tgtForce) << " " << fP << " " << vfabs(tgtDispInc) << " " << ks << std::endl;
+      //debugInf << ks << " " << vfabs(prevTgtDisp) << " " << vfabs(tgtDispInc) << " " << ks*vfabs(-tgtDispInc) << " " << vfabs(prevTgtForce) << " " << vfabs(tgtForce) << " " << fP << " " << vfabs(currOmga) << " " << tgtRoll << std::endl;
 
       Vec slipDampForce = 0;
-      if (vfabs(tgtForce) > fP) // slide case
+      if (vfabs(tgtForce) > fP) {// slide case
+	tgtSlide = true;
 	tgtForce = fP * tgtDirc;
+      }
       else { // adhered/slip case     
 	// obtain tangential damping force
+	tgtSlide = false;
 	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc();
 	Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
 	REAL dampCritical = 2.0 * sqrt(getMass() * ks); // critical damping
@@ -826,9 +824,11 @@ namespace dem {
 	}
       }
     
-      if (vfabs(tgtForce) > fP) // slide case
+      if (vfabs(tgtForce) > fP) {// slide case
+	tgtSlide = true;
 	tgtForce = fP * tgtDirc;
-      }
+      } else
+	tgtSlide = false;
 
 #endif
       /////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -857,8 +857,7 @@ namespace dem {
       // update current tangential force and displacement, don't checkout.
       // checkout in planeBoundary::boundaryForce() ensures that BdryTgtMap is updated after each 
       // particle in contact with this boundary is processed.
-      vtmp.push_back(BoundaryTgt(id, tgtForce, tgtDisp, tgtLoading, tgtDispStart, tgtPeak));
-    
+      vtmp.push_back(BoundaryTgt(id, tgtForce, tgtDisp, tgtLoading, tgtDispStart, tgtPeak, tgtSlide, tgtRoll));
     }
   
     plane->getContactInfo().push_back(BdryContact(this, pt1, -normalForce, -tgtForce, penetr));

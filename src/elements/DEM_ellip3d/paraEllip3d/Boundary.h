@@ -29,14 +29,16 @@ namespace dem {
     bool tgtLoading;
     Vec  tgtDispStart;
     REAL tgtPeak;
+    bool tgtSlide;
+    bool tgtRoll;
     
   public:
   BoundaryTgt()
-    :particleId(0), tgtForce(0), tgtDisp(0), tgtLoading(false), tgtDispStart(0), tgtPeak(0)
+    :particleId(0), tgtForce(0), tgtDisp(0), tgtLoading(false), tgtDispStart(0), tgtPeak(0), tgtSlide(false), tgtRoll(false)
       {}
     
-  BoundaryTgt(std::size_t _particleId, Vec _v1, Vec _v2, bool _b, Vec _v3, REAL _tp)
-    :particleId(_particleId), tgtForce(_v1), tgtDisp(_v2), tgtLoading(_b), tgtDispStart(_v3), tgtPeak(_tp)
+  BoundaryTgt(std::size_t _particleId, Vec _v1, Vec _v2, bool _b, Vec _v3, REAL _tp, bool _s, bool _r)
+    :particleId(_particleId), tgtForce(_v1), tgtDisp(_v2), tgtLoading(_b), tgtDispStart(_v3), tgtPeak(_tp), tgtSlide(_s), tgtRoll(_r)
     {}
     
   };
