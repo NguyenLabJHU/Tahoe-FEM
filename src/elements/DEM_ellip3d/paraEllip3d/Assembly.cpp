@@ -550,8 +550,7 @@ namespace dem {
       if (isBdryProcess()) boundaryForce();
 
       updateParticle();
-      if (iteration % (netStep / netSnap) == 0)
-	gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary
       updateBoundary(sigmaVar, "isotropic");
       updateGrid();
    
@@ -702,8 +701,7 @@ namespace dem {
       if (isBdryProcess()) boundaryForce();
 
       updateParticle();
-      if (iteration % (netStep / netSnap) == 0)
-	gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary
       updateBoundary(sigmaVar, "oedometer");
       updateGrid();
    
@@ -824,8 +822,7 @@ namespace dem {
       if (isBdryProcess()) boundaryForce();
 
       updateParticle();
-      if (iteration % (netStep / netSnap) == 0)
-	gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary
       updateBoundary(sigmaConf, "triaxial");
       updateGrid();
    
@@ -920,8 +917,7 @@ namespace dem {
       if (isBdryProcess()) boundaryForce();
 
       updateParticle();
-      if (iteration % (netStep / netSnap) == 0)
-	gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary
       updateBoundary(sigmaConf, "plnstrn");
       updateGrid();
    
@@ -1043,8 +1039,7 @@ namespace dem {
       if (isBdryProcess()) boundaryForce();
 
       updateParticle();
-      if (iteration % (netStep / netSnap) == 0)
-	gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary
 
       if (trueTriaxialType == 1)
 	updateBoundary(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY);
