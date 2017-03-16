@@ -748,9 +748,10 @@ namespace dem {
 
       bool tgtSlide = false;
       bool tgtRoll  = false;
-      if (vfabs(relaDispInc) <= EPS) // rolling
+      //if (vfabs(relaDispInc) <= EPS) // rolling
+      if (vfabs(relaDispInc) <= 1.0E-8) // rolling is justified by relaDispInc <= 10 Nanometer
 	tgtRoll = true;
-
+      
       Vec tgtDispInc = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
       Vec tgtDisp = prevTgtDisp + tgtDispInc; // adhered/slip, prevTgtDisp read by checkin
       Vec tgtDirc;   
