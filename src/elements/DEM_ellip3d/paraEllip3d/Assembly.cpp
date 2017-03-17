@@ -372,7 +372,10 @@ namespace dem {
       else if (gridUpdate == 1)
 	updateGridExplosion();
       else if (gridUpdate == 2)
+	updateGrid5();
+      else if (gridUpdate == 3)
 	updateGrid();
+
 #ifdef MODULE_TIME
       if (toCheckTime) time2 = MPI_Wtime(); gridT = time2 - time1;
 #endif
@@ -2437,6 +2440,13 @@ namespace dem {
     updateGridMaxZ();
   }
 
+  void Assembly::updateGrid5() {
+    updateGridMinX();
+    updateGridMaxX();
+    updateGridMinY();
+    updateGridMaxY();
+    updateGridMaxZ();
+  }
 
   void Assembly::updateGridExplosion() {
     updateGridMinXExplosion();

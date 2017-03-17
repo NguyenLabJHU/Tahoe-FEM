@@ -177,6 +177,7 @@ namespace dem {
     void gatherBdryContact();
 
     void updateGrid();
+    void updateGrid5();
     void updateGridMinX();
     void updateGridMaxX();
     void updateGridMinY();
