@@ -60,6 +60,11 @@ namespace dem {
   BdryContact(Particle *p, Vec pt, Vec nm, Vec tg, REAL pntr)
     :ptcl(p), point(pt), normal(nm), tangt(tg), penetr(pntr) 
     {}
+
+    /*
+    ~BdryContact() {
+      delete ptcl; // will not be called because of forward declaration of class Particle, potential memory leak.
+      }*/
     
   void print(std::ostream &os) {
     os << std::setw(OWID) << point.getX()
@@ -221,6 +226,8 @@ namespace dem {
       {}
 
     planeBoundary(std::size_t type, std::ifstream &ifs);
+
+    ~planeBoundary();
 
     Vec getDirec() const { return direc; }
     Vec getPoint() const { return point; }

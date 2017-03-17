@@ -74,6 +74,12 @@ namespace dem {
     }
   }
   
+  planeBoundary::~planeBoundary() {
+    for(std::vector<Particle *>::iterator it = possParticle.begin(); it != possParticle.end(); ++it)
+      delete (*it);
+  }
+
+
   void planeBoundary::print(std::ostream &os) {
     Boundary::print(os);
     os << std::setw(OWID) << direc.getX()

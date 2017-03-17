@@ -2951,8 +2951,7 @@ namespace dem {
       // allParticleVec is cleared before filling with new data
       releaseGatheredParticle();
 
-      // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration,
-      // otherwise it causes memory error.
+      // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration, otherwise it causes memory error.
       std::vector<Particle*> dupParticleVec(particleVec.size());
       for (std::size_t i = 0; i < dupParticleVec.size(); ++i)
 	dupParticleVec[i] = new Particle(*particleVec[i]);
@@ -2977,10 +2976,11 @@ namespace dem {
 
   void Assembly::releaseGatheredParticle() {
     // clear allParticleVec, avoid long time memory footprint.
-    for (std::vector<Particle*>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    // Releasing memory of a vector of pointers involves three steps:
+    for (std::vector<Particle *>::iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
-    std::vector<Particle*>().swap(allParticleVec); // actual memory release
+    std::vector<Particle *>().swap(allParticleVec);
   }
 
 
@@ -2991,10 +2991,13 @@ namespace dem {
     }
 
     if (mpiRank == 0) {
+      // Releasing memory of a vector of pointers involves three steps:
+      for (std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	delete (*it);
       mergeBoundaryVec.clear();
-      std::vector<Boundary*>().swap(mergeBoundaryVec); // actual memory release
-      mergeBoundaryVec = boundaryVec; 
+      std::vector<Boundary *>().swap(mergeBoundaryVec);
 
+      mergeBoundaryVec = boundaryVec; 
       std::vector<Boundary*> tmpBoundaryVec;   
       for (std::size_t it = 0; it < bdryProcess.size(); ++it) {
 	if (bdryProcess[it] != 0) {// not root process
