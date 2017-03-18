@@ -63,7 +63,7 @@ namespace dem {
 
     /*
     ~BdryContact() {
-      delete ptcl; // will not be called because of forward declaration of class Particle, potential memory leak.
+      delete ptcl; // will not be called because of forward declaration of class Particle.
       }*/
     
   void print(std::ostream &os) {
@@ -226,8 +226,6 @@ namespace dem {
       {}
 
     planeBoundary(std::size_t type, std::ifstream &ifs);
-
-    ~planeBoundary();
 
     Vec getDirec() const { return direc; }
     Vec getPoint() const { return point; }

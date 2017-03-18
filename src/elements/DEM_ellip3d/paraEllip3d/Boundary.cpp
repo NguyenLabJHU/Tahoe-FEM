@@ -53,8 +53,7 @@ namespace dem {
     if (contactNum != 0) 
       penetr /= contactNum;
   }
-  
-  
+
   void Boundary::clearContactInfo() {
     possParticle.clear();
     contactInfo.clear();
@@ -73,12 +72,6 @@ namespace dem {
       extraEdge.push_back(Plane(Vec(dx, dy, dz), Vec(px, py, pz)));
     }
   }
-  
-  planeBoundary::~planeBoundary() {
-    for(std::vector<Particle *>::iterator it = possParticle.begin(); it != possParticle.end(); ++it)
-      delete (*it);
-  }
-
 
   void planeBoundary::print(std::ostream &os) {
     Boundary::print(os);

@@ -2991,10 +2991,7 @@ namespace dem {
     }
 
     if (mpiRank == 0) {
-      // Releasing memory of a vector of pointers involves three steps:
-      for (std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
-	delete (*it);
-      mergeBoundaryVec.clear();
+      mergeBoundaryVec.clear(); // do not delete pointers as shared with boundaryVec
       std::vector<Boundary *>().swap(mergeBoundaryVec);
 
       mergeBoundaryVec = boundaryVec; 
