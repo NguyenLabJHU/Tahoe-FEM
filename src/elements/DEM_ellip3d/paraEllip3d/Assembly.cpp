@@ -3649,7 +3649,7 @@ namespace dem {
     ifs >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
     setContainer(Rectangle(x1, y1, z1, x2, y2, z2));
     // compute grid may or may not be the same as container, change in scatterParticle() if necessary.
-    if (gridUpdate == 0 || gridUpdate == 2)
+    if (gridUpdate != 1)
       setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
     else if (gridUpdate == 1) {
       Vec v1 = allContainer.getMinCorner();
