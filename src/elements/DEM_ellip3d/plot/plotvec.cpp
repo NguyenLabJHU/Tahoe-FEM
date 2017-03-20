@@ -1,3 +1,5 @@
+#include <vector>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -45,8 +47,10 @@ int main(int argc, char *argv[])
   int id, type, TotalNum;
   long double cx, cy, cz, rd, wd, lt, ht;
   long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, v1, v2, v3, w1, w2, w3, f1, f2, f3, mt1, mt2, mt3;
+  long double dx0, dy0, dz0;
   int n, k;
 
+  std::map<int, std::vector<long double> > centerInit; // map: the particle ID order varies in different files because of MPI gathering.
   for(n=first; n<=last; n+=incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
@@ -75,6 +79,9 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "x"
 	<< setw(OWID) << "y"
 	<< setw(OWID) << "z"
+	<< setw(OWID) << "delta_x"
+	<< setw(OWID) << "delta_y"
+	<< setw(OWID) << "delta_z"
 	<< setw(OWID) << "velocity_x"
 	<< setw(OWID) << "velocity_y"
 	<< setw(OWID) << "velocity_z"
@@ -93,10 +100,21 @@ int main(int argc, char *argv[])
     for(k = 0; k < TotalNum; ++k) {
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
 	  >>v1>>v2>>v3>>w1>>w2>>w3>>f1>>f2>>f3>>mt1>>mt2>>mt3;
+
+      if (n == first) {
+	std::vector<long double> triple(3);
+	triple[0] = x0;
+	triple[1] = y0;
+	triple[2] = z0;
+	centerInit[id] = triple;
+      }
 	    
       ofs << setw(OWID) << x0
 	  << setw(OWID) << y0
 	  << setw(OWID) << z0
+	  << setw(OWID) << x0 - centerInit[id][0]
+	  << setw(OWID) << y0 - centerInit[id][1]
+	  << setw(OWID) << z0 - centerInit[id][2]
 	  << setw(OWID) << v1
 	  << setw(OWID) << v2
 	  << setw(OWID) << v3
@@ -114,6 +132,7 @@ int main(int argc, char *argv[])
 	
     ifs.close();
     ofs.close();
+
   }
 
   return 0;
