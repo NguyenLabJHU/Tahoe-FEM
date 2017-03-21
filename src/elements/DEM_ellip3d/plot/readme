@@ -27,6 +27,9 @@ it plots one particle and its contacting neighbours as a snapshot, each particle
 plotvec: 
 it plots vectors such as force and velocity.
 
+plotchain:
+it plots normal and tangential force vectors at contacts.
+
 probe1p:
 it extracts a particle's information.
 
