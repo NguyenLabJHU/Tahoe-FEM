@@ -789,17 +789,16 @@ void particle::planeRBForce(plnrgd_bdry<particle>* plb,
 	    return;
 
 	vec pt2;
-	/*
 	if (p*rt[0].getx()+q*rt[0].gety()+r*rt[0].getz()+s > 0)
-		pt2=rt[0];
+	  pt2=rt[0];
 	else
-		pt2=rt[1];
-	*/
+	  pt2=rt[1];
+	/*
 	if (vfabs(rt[0]-pt1) < vfabs(rt[1]-pt1) )
 	    pt2 = rt[0];
 	else
 	    pt2 = rt[1];
-
+	*/
 	// obtain normal force
 	REAL penetration=vfabs(pt1-pt2);
 	if (penetration / (2.0*getRadius(pt2) ) <= MINOVERLAP)
