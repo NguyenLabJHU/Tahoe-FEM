@@ -19,11 +19,17 @@ COMPILERS = gcc-openmpi
 #COMPILERS = gcc-sgi
 #COMPILERS = gcc-cray
 
-###3. boost location
+###3. compile papi for performance testing?
+PAPI = no
+#PAPI = yes
+
+###4. boost location
 ifeq ($(PLATFORM), soilblast)
  BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
- PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
  #BOOST_ROOT = default
+ ifeq ($(PAPI), yes)
+  PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
+ endif
 endif
 
 ifeq ($(PLATFORM), spirit)
@@ -31,17 +37,13 @@ ifeq ($(PLATFORM), spirit)
   BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-openmpi-1.7.5-gcc-compilers-4.7.3
  endif
  ifeq ($(COMPILERS), intel-intel)
-  #BOOST_ROOT = /work4/projects/openmpi/boost-1.53.0-intelmpi-4.0.3.008
   BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-intelmpi-4.1.3.048-intel-compilers-13.0.1
  endif
  ifeq ($(COMPILERS), intel-sgi)
-  #BOOST_ROOT = /work4/projects/openmpi/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
-  #BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.11_intel-compilers-13.0.1
-  #PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.11_intel-compilers-13.0.1
-  #BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.0.3
-  #PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.0.3
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.14_intel-compilers-16.0.3
-  PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-16.0.3
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-16.0.3
+  endif
  endif
 endif
 
@@ -53,7 +55,6 @@ endif
 
 ifeq ($(PLATFORM), lightning)
  ifeq ($(COMPILERS), intel-cray)
-  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich6.3.1_PrgEnv-intel5.2.14
   BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
  endif
 endif
@@ -61,17 +62,27 @@ endif
 ifeq ($(PLATFORM), excalibur)
  ifeq ($(COMPILERS), intel-cray)
   BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.40
-  PAPI_ROOT = /usr/people/yanb/local/papi-5.4.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /usr/people/yanb/local/papi-5.4.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
+  endif
  endif
  ifeq ($(COMPILERS), gcc-cray)
   BOOST_ROOT = /usr/people/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-gnu5.2.40
+ endif
+ ifeq ($(COMPILERS), gcc-openmpi)
+  BOOST_ROOT = /usr/people/yanb/local/boost-1.63.0_openmpi-1.8.4_PrgEnv-gnu5.2.40
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /usr/people/yanb/local/papi-5.5.1_openmpi-1.8.4_PrgEnv-gnu5.2.40 
+  endif
  endif
 endif
 
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.3.187
-  PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.3.187
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.3.187
+  endif
  endif
  ifeq ($(COMPILERS), gcc-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
@@ -80,16 +91,15 @@ endif
 
 ifeq ($(PLATFORM), topaz)
  ifeq ($(COMPILERS), intel-sgi)
-  #BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.14_intel-15.0.3
-  #PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-15.0.3
   BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.14_intel-16.0.0
-  PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-16.0.0
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-16.0.0
+  endif
  endif
 endif
 
 ifeq ($(PLATFORM), janus)
  ifeq ($(COMPILERS), gcc-openmpi)
-  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.7.3_gcc-4.8.2_ib
   BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.8.2_gcc-4.9.1
  endif
  ifeq ($(COMPILERS), intel-intel)
@@ -177,22 +187,26 @@ ifeq ($(PLATFORM), soilblast)
    BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
    BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 
-   PAPI_INCLUDE=-I$(PAPI_ROOT)/include
-   PAPI_LIB_DIR=-L$(PAPI_ROOT)/lib
-   PAPI_LIBS=-lpapi
-   PAPI_RUN_LIB_DIR=-Wl,-rpath=$(PAPI_ROOT)/lib
+   ifeq ($(PAPI), yes)
+    PAPI_INCLUDE=-I$(PAPI_ROOT)/include
+    PAPI_LIB_DIR=-L$(PAPI_ROOT)/lib
+    PAPI_LIBS=-lpapi
+    PAPI_RUN_LIB_DIR=-Wl,-rpath=$(PAPI_ROOT)/lib
+   endif
   endif
 else
-# for spirit, janus, garnet
+# for janus, spirit, excalibur, topaz, etc
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
  BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 
- PAPI_INCLUDE=-I$(PAPI_ROOT)/include
- PAPI_LIB_DIR=-L$(PAPI_ROOT)/lib
- PAPI_LIBS=-lpapi
- PAPI_RUN_LIB_DIR=-Wl,-rpath=$(PAPI_ROOT)/lib
+ ifeq ($(PAPI), yes)
+  PAPI_INCLUDE=-I$(PAPI_ROOT)/include
+  PAPI_LIB_DIR=-L$(PAPI_ROOT)/lib
+  PAPI_LIBS=-lpapi
+  PAPI_RUN_LIB_DIR=-Wl,-rpath=$(PAPI_ROOT)/lib
+ endif
 endif
 
 INCLUDE=$(BOOST_INCLUDE) $(PAPI_INCLUDE)
