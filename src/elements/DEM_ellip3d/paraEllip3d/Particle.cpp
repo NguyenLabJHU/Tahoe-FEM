@@ -4,6 +4,7 @@
 #include "root6.h"
 #include <iostream>
 
+//#define WIDE_SIZES_PLUV
 //#define MOMENT
 #ifdef MOMENT
 const std::size_t START = 10000;  // at which time step to apply moment? for moment rotation test only.
@@ -744,14 +745,7 @@ namespace dem {
       // obtain tangtential force
       REAL G0 = 0.5* young / (1 + poisson);
       // Vr = Vb + w (crossdot) r, each item needs to be in either global or local frame; herein global frame is used for better convenience.
-      Vec relaDispInc = (currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc()) * timeStep;
-
-      bool tgtSlide = false;
-      bool tgtRoll  = false;
-      //if (vfabs(relaDispInc) <= EPS) // rolling
-      if (vfabs(relaDispInc) <= 1.0E-8) // rolling is justified by relaDispInc <= 10 Nanometer
-	tgtRoll = true;
-      
+      Vec relaDispInc = (currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc()) * timeStep;     
       Vec tgtDispInc = relaDispInc - (relaDispInc * normalDirc) * normalDirc;
       Vec tgtDisp = prevTgtDisp + tgtDispInc; // adhered/slip, prevTgtDisp read by checkin
       Vec tgtDirc;   
@@ -764,23 +758,35 @@ namespace dem {
       // linear friction model
       REAL fP  = dem::Parameter::getSingleton().parameter["boundaryFric"] * vfabs(normalForce);
       REAL ks  = 4 * G0 * contactRadius / (2 - poisson);
-      tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
-      //debugInf << ks << " " << vfabs(prevTgtDisp) << " " << vfabs(tgtDispInc) << " " << ks*vfabs(-tgtDispInc) << " " << vfabs(prevTgtForce) << " " << vfabs(tgtForce) << " " << fP << " " << vfabs(currOmga) << " " << tgtRoll << std::endl;
 
       Vec slipDampForce = 0;
-      if (vfabs(tgtForce) > fP) {// slide case
-	tgtSlide = true;
-	tgtForce = fP * tgtDirc;
+      bool tgtSlide = false;
+      bool tgtRoll  = false;
+#ifdef WIDE_SIZES_PLUV
+      if (vfabs(getCurrOmga()) > 10) { // rolling condition (not accurate): 1. in contact with the wall; 2. Omega > sth.
+	tgtRoll = true;
+	tgtForce = 0.01 * fP * tgtDirc; // assume rolling resistance C_rr = 0.001 * C_sliding
+      } else 
+#endif
+      { // adhered/slip or sliding
+	tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkin
+	
+	if (vfabs(tgtForce) > fP) { // slide case
+	  tgtSlide = true;
+	  tgtForce = fP * tgtDirc;
+	}
+	else { // adhered/slip case     
+	  // obtain tangential damping force
+	  tgtSlide = false;
+	  Vec relaVel = currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc();
+	  Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
+	  REAL dampCritical = 2.0 * sqrt(getMass() * ks); // critical damping
+	  slipDampForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * (-tgtVel);
+	}
       }
-      else { // adhered/slip case     
-	// obtain tangential damping force
-	tgtSlide = false;
-	Vec relaVel = currVeloc + currOmga % ((pt1 + pt2) / 2 - currPos) - plane->getVeloc();
-	Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
-	REAL dampCritical = 2.0 * sqrt(getMass() * ks); // critical damping
-	slipDampForce = dem::Parameter::getSingleton().parameter["contactDamp"] * dampCritical * (-tgtVel);
-      }
-   
+      //debugInf << iteration << " "; normalForce.print(debugInf); debugInf << " "; (-normalDampForce).print(debugInf); 
+      //debugInf << " " << ks << " " << vfabs(prevTgtDisp) << " " << vfabs(tgtDispInc) << " " << ks*vfabs(-tgtDispInc) << " " << vfabs(prevTgtForce) << " " << vfabs(tgtForce) << " " << fP << " " << vfabs(currOmga) << " " << vfabs(relaDispInc) << " " <<tgtRoll << std::endl;
+
       /////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Mindlin's model (loading/unloading condition assumed)
       // This model is not recommended as it is impossible to strictly determine loading/unloading condition

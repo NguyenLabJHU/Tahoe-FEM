@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iomanip>
 
+//#define WIDE_SIZES_PLUV
 //#define MINDLIN_ASSUMED
 //#define MINDLIN_KNOWN
 
@@ -249,17 +250,24 @@ namespace dem {
 	// linear friction model
 	fP = contactFric * vfabs(normalForce);
 	ks = 4 * G0 * contactRadius / (2-poisson);
-	tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by CheckinPreTgt()
+	tgtForce = prevTgtForce + ks * (-tgtDispInc); // prevTgtForce read by checkinPreTgt()
 
 	Vec slipDampForce = 0;
-	if (vfabs(tgtForce) > fP) // slide case
-	  tgtForce = fP * tgtDirc;
-	else { // adhered/slip case     
-	  // obtain tangential damping force
-	  Vec relaVel = veloc1 - veloc2;  
-	  Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
-	  REAL dampCritical = 2.0 * sqrt( m1 * m2 / (m1 + m2) * ks); // critical damping
-	  slipDampForce = contactDamp * dampCritical * (-tgtVel);
+#ifdef WIDE_SIZES_PLUV
+	if (vfabs(p1->getCurrOmga()) > 10 || vfabs(p2->getCurrOmga()) > 10 ) { // rolling condition (not accurate): 1. in contact with others; 2. Omega > sth.
+	  tgtForce = 0.01 * fP * tgtDirc; // assume rolling resistance C_rr = 0.001 * C_sliding
+	} else 
+#endif
+	{
+	  if (vfabs(tgtForce) > fP) // slide case
+	    tgtForce = fP * tgtDirc;
+	  else { // adhered/slip case     
+	    // obtain tangential damping force
+	    Vec relaVel = veloc1 - veloc2;  
+	    Vec tgtVel  = relaVel - (relaVel * normalDirc) * normalDirc;
+	    REAL dampCritical = 2.0 * sqrt( m1 * m2 / (m1 + m2) * ks); // critical damping
+	    slipDampForce = contactDamp * dampCritical * (-tgtVel);
+	  }
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
