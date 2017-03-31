@@ -1,82 +1,15 @@
 #include "Boundary.h"
 #include "Particle.h"
 // use both pointer to and variable of class Particle
-// separate interface and implemenation completely to get rid of dependence
 
 namespace dem {
-
-  BoundaryTgt::BoundaryTgt()
-    :particleId(0), tgtForce(0), tgtDisp(0), tgtLoading(false), tgtDispStart(0), tgtPeak(0), tgtSlide(false), tgtRoll(false)
-  {}
-    
-  BoundaryTgt::BoundaryTgt(std::size_t _particleId, Vec _v1, Vec _v2, bool _b, Vec _v3, REAL _tp, bool _s, bool _r)
-    :particleId(_particleId), tgtForce(_v1), tgtDisp(_v2), tgtLoading(_b), tgtDispStart(_v3), tgtPeak(_tp), tgtSlide(_s), tgtRoll(_r)
-  {}
   
-  BdryContact::BdryContact()
-    :ptcl(NULL), point(0), normal(0), tangt(0), penetr(0) 
-  {}
-    
-  BdryContact::BdryContact(Particle *p, Vec pt, Vec nm, Vec tg, REAL pntr)
-    :ptcl(p), point(pt), normal(nm), tangt(tg), penetr(pntr) 
-  {}
-
-  BdryContact::~BdryContact() {
-    //delete ptcl; // it causes double free or corruption.
-  }
-
-  void BdryContact::print(std::ostream &os) {
-    os << std::setw(OWID) << point.getX()
-       << std::setw(OWID) << point.getY()
-       << std::setw(OWID) << point.getZ()
-       << std::setw(OWID) << normal.getX()
-       << std::setw(OWID) << normal.getY()
-       << std::setw(OWID) << normal.getZ() 
-       << std::setw(OWID) << tangt.getX()
-       << std::setw(OWID) << tangt.getY()
-       << std::setw(OWID) << tangt.getZ() 
-       << std::setw(OWID) << penetr << std::endl;
-  }
-
-  Plane::Plane()
-    :direc(0), point(0) 
-  {}
-    
-  Plane::Plane(Vec dir, Vec pt)
-    :direc(dir), point(pt) 
-  {}
-    
-  void Plane::print(std::ostream &os) {
-    os << std::setw(OWID) << direc.getX()
-       << std::setw(OWID) << direc.getY()
-       << std::setw(OWID) << direc.getZ()
-       << std::setw(OWID) << point.getX()
-       << std::setw(OWID) << point.getY()
-       << std::setw(OWID) << point.getZ() << std::endl;
-  }
-
-  Vec Plane::getDirec() const { return direc; }
-  Vec Plane::getPoint() const { return point; }
-
-  Boundary::Boundary(std::size_t i, std::size_t tp, std::size_t en)
-    :id(i), type(tp), extraNum(en), contactNum(0), normal(0), tangt(0), penetr(0)  
-  {}
-
   Boundary::Boundary(std::size_t tp, std::ifstream &ifs) {
     type = tp;
     ifs >> extraNum;
     ifs >> id;
   }
   
-  std::size_t Boundary::getId() { return id; }
-  std::size_t Boundary::getType() { return type; }
-  std::vector<Particle *> & Boundary::getPossParticle() {return possParticle;}
-  std::vector<BdryContact> & Boundary::getContactInfo() {return contactInfo;}
-  std::size_t Boundary::getContactNum() const { return contactNum; }
-  Vec  Boundary::getNormalForce() const { return normal; }
-  Vec  Boundary::getTangtForce() const { return tangt; }
-  REAL Boundary::getAvgPenetr() const { return penetr; }
-
   void Boundary::print(std::ostream &os) {
     os << std::endl 
        << std::setw(OWID) << type
@@ -126,10 +59,6 @@ namespace dem {
     contactInfo.clear();
   }
 
-  planeBoundary::planeBoundary(std::size_t i, std::size_t tp, std::size_t en)
-    :Boundary(i, tp, en), direc(0), point(0), prevPoint(0), veloc(0), prevVeloc(0)
-  {}
-
   planeBoundary::planeBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;
@@ -143,19 +72,6 @@ namespace dem {
       extraEdge.push_back(Plane(Vec(dx, dy, dz), Vec(px, py, pz)));
     }
   }
-
-  Vec planeBoundary::getDirec() const { return direc; }
-  Vec planeBoundary::getPoint() const { return point; }
-  Vec planeBoundary::getVeloc() const { return veloc; }
-  Vec planeBoundary::getPrevPoint() const { return prevPoint; }
-  Vec planeBoundary::getPrevVeloc() const { return prevVeloc; }
-
-  void planeBoundary::setDirec(Vec dir) { direc = dir; }
-  void planeBoundary::setPoint(Vec pnt) { point = pnt; }
-  void planeBoundary::setVeloc(Vec vel) { veloc = vel; }
-
-  REAL planeBoundary::distanceToBdry(Vec pos) const { return (pos - point) * normalize(direc); }
-  REAL planeBoundary::distanceToBdry(Vec pos, Plane pn) const { return (pos - pn.getPoint()) * normalize(pn.getDirec()); }
 
   void planeBoundary::print(std::ostream &os) {
     Boundary::print(os);
@@ -544,39 +460,12 @@ namespace dem {
     prevVeloc = veloc;
   }
 
-  cylinderBoundary::cylinderBoundary()
-    :Boundary(), direc(0), point(0), prevPoint(0), veloc(0), prevVeloc(0), radius(0)
-  {}
-
   cylinderBoundary::cylinderBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;
     ifs >> dx >> dy >> dz >> px >> py >> pz >> radius;
     direc = Vec(dx, dy, dz);
     point = Vec(px, py, pz);
-  }
-
-  Vec cylinderBoundary::getDirec() const { return direc; }
-  Vec cylinderBoundary::getPoint() const { return point; }
-  Vec cylinderBoundary::getVeloc() const { return veloc; }
-  Vec cylinderBoundary::getPrevPoint() const { return prevPoint; }
-  Vec cylinderBoundary::getPrevVeloc() const { return prevVeloc; }
-  REAL cylinderBoundary::getRadius() const { return radius; }
-
-  void cylinderBoundary::setDirec(Vec dir) { direc = dir; }
-  void cylinderBoundary::setPoint(Vec pnt) { point = pnt; }
-  void cylinderBoundary::setVeloc(Vec vel) { veloc = vel; }
- 
-  void cylinderBoundary::print(std::ostream &os) {
-    Boundary::print(os);
-    os << std::setw(OWID) << direc.getX()
-       << std::setw(OWID) << direc.getY()
-       << std::setw(OWID) << direc.getZ()
-       << std::setw(OWID) << point.getX()
-       << std::setw(OWID) << point.getY()
-       << std::setw(OWID) << point.getZ()
-       << std::setw(OWID) << radius
-       << std::endl << std::endl;
   }
 
   void cylinderBoundary::findBdryContact(std::vector<Particle *> &ptcls) {
