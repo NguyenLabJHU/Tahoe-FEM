@@ -22,7 +22,7 @@ namespace dem {
   {}
 
   BdryContact::~BdryContact() {
-    delete ptcl; // it causes double free or corruption.
+    //delete ptcl; // it causes double free or corruption.
   }
 
   void BdryContact::print(std::ostream &os) {
