@@ -3,13 +3,10 @@
 #########################################################
 ###1. system platform
 PLATFORM = soilblast
-#PLATFORM = spirit
-#PLATFORM = garnet
-#PLATFORM = janus
-#PLATFORM = lightning
 #PLATFORM = excalibur
-#PLATFORM = thunder
 #PLATFORM = topaz
+#PLATFORM = thunder
+#PLATFORM = lightning
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
@@ -19,43 +16,21 @@ COMPILERS = gcc-openmpi
 #COMPILERS = gcc-sgi
 #COMPILERS = gcc-cray
 
-###3. compile papi for performance testing?
+###3. C++11 or not?
+C++11 =
+#C++11 = -std=c++11
+
+###4. compile papi for performance testing?
 PAPI = no
 #PAPI = yes
 
 ###4. boost location
 ifeq ($(PLATFORM), soilblast)
- BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
  #BOOST_ROOT = default
+ BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+ #BOOST_ROOT = /usr/local/boost-1.63.0-openmpi-1.10.6-gcc-4.9.4
  ifeq ($(PAPI), yes)
   PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
- endif
-endif
-
-ifeq ($(PLATFORM), spirit)
- ifeq ($(COMPILERS), gcc-openmpi)
-  BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-openmpi-1.7.5-gcc-compilers-4.7.3
- endif
- ifeq ($(COMPILERS), intel-intel)
-  BOOST_ROOT = /work4/projects/openmpi/boost-1.55.0-intelmpi-4.1.3.048-intel-compilers-13.0.1
- endif
- ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.14_intel-compilers-16.0.3
-  ifeq ($(PAPI), yes)
-   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-16.0.3
-  endif
- endif
-endif
-
-ifeq ($(PLATFORM), garnet)
- ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /u/yanb/local/boost-1.55.0_cray-mpich6.0.0_PrgEnv-intel4.2.34
- endif
-endif
-
-ifeq ($(PLATFORM), lightning)
- ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
  endif
 endif
 
@@ -77,6 +52,15 @@ ifeq ($(PLATFORM), excalibur)
  endif
 endif
 
+ifeq ($(PLATFORM), topaz)
+ ifeq ($(COMPILERS), intel-sgi)
+  BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.14_intel-16.0.0
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-16.0.0
+  endif
+ endif
+endif
+
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.3.187
@@ -89,21 +73,9 @@ ifeq ($(PLATFORM), thunder)
  endif
 endif
 
-ifeq ($(PLATFORM), topaz)
- ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.14_intel-16.0.0
-  ifeq ($(PAPI), yes)
-   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-16.0.0
-  endif
- endif
-endif
-
-ifeq ($(PLATFORM), janus)
- ifeq ($(COMPILERS), gcc-openmpi)
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_openmpi-1.8.2_gcc-4.9.1
- endif
- ifeq ($(COMPILERS), intel-intel)
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_impi-13.0.0_intel-13.0.0
+ifeq ($(PLATFORM), lightning)
+ ifeq ($(COMPILERS), intel-cray)
+  BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
  endif
 endif
 
@@ -162,12 +134,12 @@ ifeq ($(COMPILERS), intel-cray)
 endif
 
 # optimize or debug
-OPTIMIZE = -O3 -DNDEBUG
-#OPTIMIZE = -Wall -g
+OPTIMIZE = -O3 -DNDEBUG $(C++11)
+#OPTIMIZE = -Wall -g $(C++11)
 #gcc: full level of IEEE 754 compliance
-#OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans
+#OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans $(C++11)
 #intel: -fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
-#OPTIMIZE = -O3 -DNDEBUG -fp-model source
+#OPTIMIZE = -O3 -DNDEBUG -fp-model source $(C++11)
 
 # GCC quadmath, default off
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
@@ -195,7 +167,7 @@ ifeq ($(PLATFORM), soilblast)
    endif
   endif
 else
-# for janus, spirit, excalibur, topaz, etc
+# for excalibur, topaz, etc
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
  BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
