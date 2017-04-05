@@ -18,8 +18,8 @@ namespace dem {
     std::string str, str2;
     REAL val;
 
-    // 28 generic parameters
-    for (std::size_t i = 0; i < 28; ++i) {
+    // 25 generic parameters
+    for (std::size_t i = 0; i < 25; ++i) {
       while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
       ssline.clear(); ssline.str(line);
       ssline >> str >> val;
