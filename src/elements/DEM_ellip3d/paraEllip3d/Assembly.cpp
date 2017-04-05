@@ -1398,7 +1398,7 @@ namespace dem {
     else if (particleLayers == 2) { // multiple layers of free particles
       // small variety of particle sizes
       if (genMode == 0) { // from side to side
-	for (z = z1; z - z2 < EPS; z += diaMax*layerGap) {
+	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap+1)) {
 	  // from - to + direction; particle center perturbated slightly
 	  for (x = x1; x - x2 < EPS; x += diaMax) {
 	    for (y = y1; y - y2 < EPS; y += diaMax) {
@@ -1413,7 +1413,7 @@ namespace dem {
 	}
       } // end of genMode == 0
       else if (genMode == 1) { // xy-symmetric
-	for (z = z1; z - z2 < EPS; z += diaMax*layerGap) {
+	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap+1)) {
 	  // + + 
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
@@ -1495,7 +1495,7 @@ namespace dem {
 	      ++jCount;
 	      if (jCount >= gridNy - sideGap) {
 		jCount = sideGap;
-		kCount += layerGap;
+		kCount += (layerGap+1);
 	      }
 	      cueInc = 0;
 	      goto label2;  // relocate
@@ -1509,7 +1509,7 @@ namespace dem {
 	      kRecord = kCount;
 
 	      jCount = sideGap;
-	      kCount += layerGap;
+	      kCount += (layerGap+1);
 	      //debugInf<<" change ptcl="<<particleNum<< " nGrid="<<nGrid<< " before ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<") after ("<<iCount<<" "<<jCount<<" "<<kCount<<")"<<std::endl;
 	      goto label2;  // relocate
 	    }
@@ -1570,7 +1570,7 @@ namespace dem {
 	  }
 	  if (jCount >= gridNy - sideGap) {
 	    jCount = sideGap;
-	    kCount += layerGap;
+	    kCount += (layerGap+1);
 	  }
 	  
 	} // end of while (iCount < gridNx && jCount < gridNy && kCount < gridNz)
