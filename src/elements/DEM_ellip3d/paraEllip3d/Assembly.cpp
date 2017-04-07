@@ -167,8 +167,8 @@ namespace dem {
   void Assembly::calcMassPercent()  
   {
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());    
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
 
       // statistics of mass distribution
       Gradation massGrad = gradation;
@@ -281,8 +281,8 @@ namespace dem {
     pretime0=MPI_Wtime();
 #endif
     if (mpiRank == 0) {
-      readBoundary(inputBoundary, gridUpdate); 
       readParticle(inputParticle);
+      readBoundary(inputBoundary, gridUpdate); // need particle info and gridUpdate to determine initial compute grid
       openDepositProg(progressInf, "deposit_progress");
     }
 #ifdef MODULE_TIME
@@ -489,8 +489,8 @@ namespace dem {
   {
     std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "isotropic_progress");
       openCompressProg(balancedInf, "isotropic_balanced");
     }
@@ -642,8 +642,8 @@ namespace dem {
   {
     std::size_t oedometerType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["oedometerType"]);
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "oedometer_progress");
       openCompressProg(balancedInf, "oedometer_balanced");
     }
@@ -780,8 +780,8 @@ namespace dem {
   void Assembly::triaxial() 
   {
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "triaxial_progress");
     }
     scatterParticle();
@@ -875,8 +875,8 @@ namespace dem {
   void Assembly::planeStrain() 
   {
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "plnstrn_progress");
     }
     scatterParticle();
@@ -971,8 +971,8 @@ namespace dem {
   {
     std::size_t trueTriaxialType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["trueTriaxialType"]);
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "trueTriaxial_progress");
       openCompressProg(balancedInf, "trueTriaxial_balanced");
     }
@@ -1220,8 +1220,8 @@ namespace dem {
   void Assembly::coupleWithGas() 
   {
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openDepositProg(progressInf, "couple_progress");
     }
     scatterParticle();
@@ -1641,8 +1641,8 @@ namespace dem {
   {
    if (mpiRank == 0) {
 
-    readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     REAL minR = gradation.getPtclMinRadius(0);
     
     REAL x0S = dem::Parameter::getSingleton().parameter["x0S"];
@@ -1858,13 +1858,8 @@ namespace dem {
   void Assembly::scatterParticle() {
     // partition particles and send to each process
     if (mpiRank == 0) { // process 0
-      setGrid(Rectangle(grid.getMinCorner().getX(),
-			grid.getMinCorner().getY(),
-			grid.getMinCorner().getZ(),
-			grid.getMaxCorner().getX(),
-			grid.getMaxCorner().getY(),
-			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius() ));
-    
+
+      // grid initialized in readBoundary()
       Vec v1 = grid.getMinCorner();
       Vec v2 = grid.getMaxCorner();
       Vec vspan = v2 - v1;
@@ -3648,10 +3643,9 @@ namespace dem {
     REAL x1, y1, z1, x2, y2, z2;
     ifs >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
     setContainer(Rectangle(x1, y1, z1, x2, y2, z2));
-    // compute grid may or may not be the same as container, change in scatterParticle() if necessary.
-    if (gridUpdate != 1)
-      setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
-    else if (gridUpdate == 1) {
+
+    // initial and ongoing compute grids covering particles may or may not be the same as container.
+    if (gridUpdate == 1) { // explosion
       Vec v1 = allContainer.getMinCorner();
       Vec v2 = allContainer.getMaxCorner();
       Vec vspan = v2 - v1;
@@ -3661,7 +3655,29 @@ namespace dem {
 			v2.getX() + 0.5*vspan.getX(),
 			v2.getY() + 0.5*vspan.getY(),
 			v2.getZ() ));
+    } else if (gridUpdate == 0) { // side and bottom fixed on container; top varies.
+      setGrid(Rectangle(x1,
+			y1,
+			z1, 
+			x2,
+			y2,
+			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
+    } else if (gridUpdate == 2) { // bottom fixed on container; others vary.
+      setGrid(Rectangle(getPtclMinX(allParticleVec) - gradation.getPtclMaxRadius(),
+			getPtclMinY(allParticleVec) - gradation.getPtclMaxRadius(),
+			z1,
+			getPtclMaxX(allParticleVec) + gradation.getPtclMaxRadius(),
+			getPtclMaxY(allParticleVec) + gradation.getPtclMaxRadius(),
+			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
+    } else if (gridUpdate == 3) { // none fixed on container; all varies.
+      setGrid(Rectangle(getPtclMinX(allParticleVec) - gradation.getPtclMaxRadius(),
+			getPtclMinY(allParticleVec) - gradation.getPtclMaxRadius(),
+			getPtclMinZ(allParticleVec) - gradation.getPtclMaxRadius(),
+			getPtclMaxX(allParticleVec) + gradation.getPtclMaxRadius(),
+			getPtclMaxY(allParticleVec) + gradation.getPtclMaxRadius(),
+			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
     }
+    // setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
 
     boundaryVec.clear();
     Boundary *bptr;
