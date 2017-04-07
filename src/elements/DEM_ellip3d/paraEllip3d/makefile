@@ -9,9 +9,9 @@ PLATFORM = soilblast
 #PLATFORM = lightning
 
 ###2. compiler combinations (c++ and mpi)
-COMPILERS = intel-cray
+COMPILERS = gcc-openmpi
+#COMPILERS = intel-cray
 #COMPILERS = intel-sgi
-#COMPILERS = gcc-openmpi
 #COMPILERS = intel-intel
 #COMPILERS = gcc-sgi
 #COMPILERS = gcc-cray
