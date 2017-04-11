@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.h,v 1.8 2011-12-01 21:11:38 bcyansfn Exp $ */
+/* $Id: LocalCrystalPlastFp.h,v 1.9 2017-04-11 18:44:57 donghaichinese Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_H_
 
@@ -148,6 +148,8 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
   dSymMatrixT fCeBar;
   dSymMatrixT fEeBar;
   dSymMatrixT fSBar;
+    
+  dSymMatrixT fCpBar;
 
   // crystal consistent tangent operator (in Bbar)
   dMatrixT fcBar_ijkl;  

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.25 2016-11-05 15:45:16 tdnguye Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.26 2017-04-11 18:44:57 donghaichinese Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -291,7 +291,9 @@ void LocalCrystalPlastFp::FormRHS(const dArrayT& fparray, dArrayT& rhs)
 
   // slip shearing rate (note: used by slip hardening classes)
   for (int i = 0; i < fNumSlip; i++)
-     fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
+      fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
+  
+    
     if (CurrElementNumber()==0&&CurrIP()==0 &&0)
     {
         cout << "\n dGamma: "<<fDGamma;
@@ -518,13 +520,13 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 	{
 	  // recover local data
 	  LoadCrystalData(element, intpt, igrn);
-        int j = 8;
+        int j = 9;
 	  for (int i = 0; i< fNumSlip; i++)
 	  {
 	    absgamma += fabs(fGamma[i]);
 	    gamma += fGamma[i];
         j++;
-        output[j] += fGamma[i]/fNumGrain;
+        //output[j] += fGamma[i]/fNumGrain; // Incorrect, should be output9-17 shoud be dgamma not dgamma
 	  }
 	}
        absgamma/= fNumGrain;
@@ -532,13 +534,35 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
        output[1] = absgamma;
        output[2] = gamma;
     
-    fCeBar.MultATA(fFp);
-    output[3] = fCeBar[0];
-    output[4] = fCeBar[1];
-    output[5] = fCeBar[2];
-    output[6] = fCeBar[3];
-    output[8] = fCeBar[4];
-    output[9] = fCeBar[5];
+    
+    fCpBar.MultATA(fFp);
+    
+    output[3] = fCpBar[0];
+    output[4] = fCpBar[1];
+    output[5] = fCpBar[2];
+    output[6] = fCpBar[3];
+    output[7] = fCpBar[4];
+    output[8] = fCpBar[5];
+    
+    
+    fFpi.Inverse(fFp);
+    fCeBar.MultQTBQ(fFpi, fC);
+    ResolveShearStress();
+    
+    int kk=0;
+    
+    for (int i = 0; i < fNumSlip; i++)
+    {
+        fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);  // compute the output values of fdgamma added by Hai
+        
+        kk=9+i;
+        
+        output[kk] = fDGamma[i];  
+        
+    }
+    
+
+    
       // compute texture of aggregate, if requested
   int step = fFSMatSupport->StepNumber();
   int nsteps = fFSMatSupport->NumberOfSteps();
@@ -596,6 +620,8 @@ void LocalCrystalPlastFp::TakeParameterList(const ParameterListT& list)
   fCeBar   .Dimension(kNSD);
   fEeBar   .Dimension(kNSD);
   fSBar    .Dimension(kNSD);
+    
+  fCpBar   .Dimension(kNSD);
 
   // crystal consistent tangent in Bbar configuration
   fcBar_ijkl .Dimension(dSymMatrixT::NumValues(kNSD));
@@ -961,7 +987,12 @@ void LocalCrystalPlastFp::SolveForHardening()
   fCeBar.MultQTBQ(fFpi, fC);
   ResolveShearStress();
   for (int i = 0; i < fNumSlip; i++)
+  {
      fDGamma[i] = fdt * fKinetics->Phi(fTau[i], i);
+    
+    
+  }
+
 
   // implicit solution for hardening variables
   //fHardening->ImplicitSolveHard();
@@ -1009,6 +1040,9 @@ void LocalCrystalPlastFp::CrystalS_ij()
   // Cauchy Stress
   fs_ij.MultQBQT(fFe, fSBar);
   fs_ij /= fFe.Det();
+    
+   // cout<<"Cauchy stress: "<<fs_ij[0]<<"  "<<fs_ij[1]<<"  "<<fs_ij[2]<<"  "<<fs_ij[3]<<"  "<<fs_ij[4]<<"  "<<fs_ij[5]<<endl;
+        
 }
 
 void LocalCrystalPlastFp::CrystalC_ijkl()
