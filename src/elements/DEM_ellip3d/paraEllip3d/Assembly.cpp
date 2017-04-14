@@ -1398,13 +1398,15 @@ namespace dem {
     else if (particleLayers == 2) { // multiple layers of free particles
       // small variety of particle sizes
       if (genMode == 0) { // from side to side
-	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap+1)) {
-	  // from - to + direction; particle center perturbated slightly
-	  for (x = x1; x - x2 < EPS; x += diaMax) {
-	    for (y = y1; y - y2 < EPS; y += diaMax) {
+	REAL relaPerturb = 1.0E-3; // relative perturbation
+	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap + 1)) {
+	  // from - to + direction
+	  // particle centers perturbated slightly but need to avoid initial overlap
+	  for (x = x1; x - x2 < EPS; x += diaMax * (relaPerturb + 1)) {
+	    for (y = y1; y - y2 < EPS; y += diaMax * (relaPerturb + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
-	      offset = newptcl->getC() / 10.0 * ran(&idum);
-	      newptcl->setCurrPos(Vec(x + offset, y + offset, z + offset));
+	      offset = newptcl->getA() * (0.5 * relaPerturb) * ran(&idum); // ensure no initial overlap 
+	      newptcl->setCurrPos(Vec(x + offset, y + offset, z)); // z should not offset
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }
@@ -1413,7 +1415,7 @@ namespace dem {
 	}
       } // end of genMode == 0
       else if (genMode == 1) { // xy-symmetric
-	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap+1)) {
+	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap + 1)) {
 	  // + + 
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
