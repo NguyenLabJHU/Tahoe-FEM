@@ -1363,15 +1363,15 @@ namespace dem {
 
     REAL young   = dem::Parameter::getSingleton().parameter["young"];
     REAL poisson = dem::Parameter::getSingleton().parameter["poisson"];
-    REAL diaMax  = gradation.getPtclMaxRadius()*2.0;
-    REAL diaMin  = gradation.getPtclMinRadius(0)*2.0;
+    REAL diaMax  = gradation.getPtclMaxRadius() * 2.0;
+    REAL diaMin  = gradation.getPtclMinRadius(0) * 2.0;
     std::size_t particleNum = 0;   
     REAL x,y,z;
-    Particle* newptcl = NULL;
+    Particle *newptcl = NULL;
 
-    REAL offset = diaMax*0.25; // +- makes 0.5
-    REAL edge   = diaMax*sideGap;
-  
+    REAL edge   = diaMax * sideGap;
+    REAL offset = diaMax * 0.25; // +- makes 0.5
+
     REAL x1 = allContainer.getMinCorner().getX() + edge;
     REAL y1 = allContainer.getMinCorner().getY() + edge;
     REAL z1 = allContainer.getMinCorner().getZ() + diaMax*bottomGap;
@@ -1398,14 +1398,12 @@ namespace dem {
     else if (particleLayers == 2) { // multiple layers of free particles
       // small variety of particle sizes
       if (genMode == 0) { // from side to side
-	REAL relaPerturb = 1.0E-3; // relative perturbation
-	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap + 1)) {
+	REAL diaRelax = 5.0E-3;
+	for (z = z1; z - z2 < EPS; z += diaMax * (layerGap + 1)) {
 	  // from - to + direction
-	  // particle centers perturbated slightly but need to avoid initial overlap
-	  for (x = x1; x - x2 < EPS; x += diaMax * (relaPerturb + 1)) {
-	    for (y = y1; y - y2 < EPS; y += diaMax * (relaPerturb + 1)) {
+	  for (x = x1; x - x2 < EPS; x += diaMax * (diaRelax + 1)) {
+	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
-	      offset = newptcl->getA() * (0.5 * relaPerturb) * ran(&idum); // ensure no initial overlap 
 	      newptcl->setCurrPos(Vec(x + offset, y + offset, z)); // z should not offset
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
@@ -1415,7 +1413,7 @@ namespace dem {
 	}
       } // end of genMode == 0
       else if (genMode == 1) { // xy-symmetric
-	for (z = z1; z - z2 < EPS; z += diaMax*(layerGap + 1)) {
+	for (z = z1; z - z2 < EPS; z += diaMax * (layerGap + 1)) {
 	  // + + 
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
