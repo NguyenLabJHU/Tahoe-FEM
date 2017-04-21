@@ -3,10 +3,10 @@
 #########################################################
 ###1. system platform
 PLATFORM = soilblast
-#PLATFORM = excalibur
 #PLATFORM = topaz
-#PLATFORM = thunder
+#PLATFORM = excalibur
 #PLATFORM = lightning
+#PLATFORM = thunder
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
@@ -75,7 +75,8 @@ endif
 
 ifeq ($(PLATFORM), lightning)
  ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
+  #BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
+  BOOST_ROOT = /home/yanb/local/boost-1.57.0_cray-mpich7.2.6_PrgEnv-intel5.2.82
  endif
 endif
 
