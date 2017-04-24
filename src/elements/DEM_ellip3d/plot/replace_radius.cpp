@@ -16,22 +16,25 @@ int main(int argc, char *argv[])
     std::cout << std::endl 
 	      << "-- Replace particle radius --" << std::endl
 	      << "Usage:" << std::endl
-	      << "replace_radius  particle_file  radius_b  radius_c" << std::endl
+	      << "replace_radius  particle_file  ratio  radius_b_multiplier  radius_c_multiplier" << std::endl
+	      << "replace_radius  particle_file  value  radius_b_new_value  radius_c_new_value" << std::endl
 	      << "Example:" << std::endl
-	      << "replace_radius  deposit_particle_end  2.1E-3  1.6E-3" << std::endl << std::endl;
+	      << "replace_radius  deposit_particle_end  ratio  1.0  0.9" << std::endl
+	      << "replace_radius  deposit_particle_end  value  2.0E-3  1.8E-3" << std::endl << std::endl;
+
     return -1;
   }	
 
-  double new_b = atof(argv[2]);
-  double new_c = atof(argv[3]);
-
+  std::string mode = argv[2];
+  double read_b = atof(argv[3]);
+  double read_c = atof(argv[4]);
   std::ifstream ifs;
   std::ofstream ofs;
   char filein[50];
   char fileout[50];
 
   int totalNum, id, type;
-  double a, b, c, x, y, z, l1, l2, l3, m1, m2, m3, n1, n2, n3;
+  double a, b, c, x, y, z, l1, l2, l3, m1, m2, m3, n1, n2, n3, new_b, new_c;
   double vx, vy, vz, omx, omy, omz, fx, fy, fz, mx, my, mz;
 
   strcpy(filein, argv[1]);
@@ -59,6 +62,10 @@ int main(int argc, char *argv[])
   for(int ptcl = 0; ptcl < totalNum; ++ptcl) {
     ifs >> id >> type >> a >> b >> c >> x >> y >> z >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
 	>> vx >> vy >> vz >> omx >> omy >> omz >> fx >> fy >> fz >> mx >> my >> mz;
+    if (mode.compare("ratio") == 0) {
+      new_b = b * read_b;
+      new_c = c * read_c;
+    }
     ofs << std::setw(OWID) << id << std::setw(OWID) << type << std::setw(OWID) 
 	<< std::setw(OWID) << a  << std::setw(OWID) << new_b << std::setw(OWID) << new_c 
 	<< std::setw(OWID) << x  << std::setw(OWID) << y  << std::setw(OWID) << z 
