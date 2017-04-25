@@ -35,7 +35,7 @@ namespace dem {
   
 
   void Particle::init () {
-    // generate orientation of axle a/b/c using Euler angles
+    // generate orientation of axis a/b/c using Euler angles
 
     REAL angle1, angle2, angle3; // angle1=[0,Pi], angle2=[0,2*Pi), angle3=[0,2*Pi]
     angle1 = ran(&idum)*Pi;
@@ -337,7 +337,7 @@ namespace dem {
       return a;
   
     REAL per = 1.0e-4; // define when a point is close to equator
-    REAL ra = a;       // semi-axles of ellipsoid
+    REAL ra = a;       // semi-axes of ellipsoid
     REAL rb = b;
     REAL rc = c;
   
@@ -540,7 +540,7 @@ namespace dem {
     }
   
     // Below is needed for all cases
-    // ensure three axles perpendicular to each other, and being unit vector
+    // ensure three axes perpendicular to each other, and being unit vector
     if(currDirecA == 0)
       currDirecA = vacos(normalize(vcos(currDirecB) % vcos(currDirecC)));
     if(currDirecB == 0)

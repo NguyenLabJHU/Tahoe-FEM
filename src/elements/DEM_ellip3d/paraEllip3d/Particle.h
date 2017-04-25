@@ -30,12 +30,12 @@ namespace dem {
     //  10 - ghost particle
     std::size_t  id;
     std::size_t  type;            
-    REAL a, b, c;    // three semi-axle length, must satisfy a >= b >= c
+    REAL a, b, c;    // three semi-axis length, must satisfy a >= b >= c
     REAL young;      // note: a(currDirecA), b(currDirecB), c(currDirecC) corresponds to x, y, z in local frame, respectively
     REAL poisson;
     Vec  currPos;    // particle center
     Vec  prevPos;
-    Vec  currDirecA, currDirecB, currDirecC; // direction of the three axles, in radian
+    Vec  currDirecA, currDirecB, currDirecC; // direction of the three axes, in radian
     Vec  prevDirecA, prevDirecB, prevDirecC;
     Vec  currVeloc;  // the velocity of the mass center
     Vec  prevVeloc;
