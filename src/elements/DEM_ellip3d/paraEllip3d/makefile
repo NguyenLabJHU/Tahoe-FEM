@@ -7,6 +7,7 @@ PLATFORM = soilblast
 #PLATFORM = excalibur
 #PLATFORM = lightning
 #PLATFORM = thunder
+#PLATFORM = garnet
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
@@ -77,6 +78,12 @@ ifeq ($(PLATFORM), lightning)
  ifeq ($(COMPILERS), intel-cray)
   #BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_cray-mpich7.2.6_PrgEnv-intel5.2.82
+ endif
+endif
+
+ifeq ($(PLATFORM), garnet)
+ ifeq ($(COMPILERS), intel-cray)
+  BOOST_ROOT = /u/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.82
  endif
 endif
 
