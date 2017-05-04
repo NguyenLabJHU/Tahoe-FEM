@@ -64,9 +64,9 @@ endif
 
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_intel-compilers-15.3.187
+  BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.14_intel-compilers-15.3.187
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.12_intel-compilers-15.3.187
+   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-15.3.187
   endif
  endif
  ifeq ($(COMPILERS), gcc-sgi)
