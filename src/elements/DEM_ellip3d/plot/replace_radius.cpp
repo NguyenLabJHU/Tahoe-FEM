@@ -65,6 +65,9 @@ int main(int argc, char *argv[])
     if (mode.compare("ratio") == 0) {
       new_b = b * read_b;
       new_c = c * read_c;
+    } else if(mode.compare("value") == 0) {
+      new_b = read_b;
+      new_c = read_c;
     }
     ofs << std::setw(OWID) << id << std::setw(OWID) << type << std::setw(OWID) 
 	<< std::setw(OWID) << a  << std::setw(OWID) << new_b << std::setw(OWID) << new_c 
