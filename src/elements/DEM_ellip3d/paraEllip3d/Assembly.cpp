@@ -2106,18 +2106,19 @@ namespace dem {
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();   
     //debugInf << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
-    REAL cellSize = gradation.getPtclMaxRadius() * 2;
+    //REAL borderWidth = gradation.getPtclMaxRadius() * 2;
+    REAL borderWidth = gradation.getPtclMeanRadius() * 2;
 
     // 6 surfaces
     if (rankX1 >= 0) { // surface x1
       Rectangle containerX1(v1.getX(), v1.getY(), v1.getZ(), 
-			    v1.getX() + cellSize, v2.getY(), v2.getZ());
+			    v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1, particleVec, particleX1);
       reqX1[0] = boostWorld.isend(rankX1, mpiTag,  particleX1);
       reqX1[1] = boostWorld.irecv(rankX1, mpiTag, rParticleX1);
     }
     if (rankX2 >= 0) { // surface x2
-      Rectangle containerX2(v2.getX() - cellSize, v1.getY(), v1.getZ(),
+      Rectangle containerX2(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
 			    v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2, particleVec, particleX2);
       reqX2[0] = boostWorld.isend(rankX2, mpiTag,  particleX2);
@@ -2125,13 +2126,13 @@ namespace dem {
     }
     if (rankY1 >= 0) {  // surface y1
       Rectangle containerY1(v1.getX(), v1.getY(), v1.getZ(), 
-			    v2.getX(), v1.getY() + cellSize, v2.getZ());
+			    v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerY1, particleVec, particleY1);
       reqY1[0] = boostWorld.isend(rankY1, mpiTag,  particleY1);
       reqY1[1] = boostWorld.irecv(rankY1, mpiTag, rParticleY1);
     }
     if (rankY2 >= 0) {  // surface y2
-      Rectangle containerY2(v1.getX(), v2.getY() - cellSize, v1.getZ(),
+      Rectangle containerY2(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
 			    v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerY2, particleVec, particleY2);
       reqY2[0] = boostWorld.isend(rankY2, mpiTag,  particleY2);
@@ -2139,13 +2140,13 @@ namespace dem {
     }
     if (rankZ1 >= 0) {  // surface z1
       Rectangle containerZ1(v1.getX(), v1.getY(), v1.getZ(),
-			    v2.getX(), v2.getY(), v1.getZ() + cellSize);
+			    v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerZ1, particleVec, particleZ1);
       reqZ1[0] = boostWorld.isend(rankZ1, mpiTag,  particleZ1);
       reqZ1[1] = boostWorld.irecv(rankZ1, mpiTag, rParticleZ1);
     }
     if (rankZ2 >= 0) {  // surface z2
-      Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
+      Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
 			    v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerZ2, particleVec, particleZ2);
       reqZ2[0] = boostWorld.isend(rankZ2, mpiTag,  particleZ2);
@@ -2154,55 +2155,55 @@ namespace dem {
     // 12 edges
     if (rankX1Y1 >= 0) { // edge x1y1
       Rectangle containerX1Y1(v1.getX(), v1.getY(), v1.getZ(),
-			      v1.getX() + cellSize, v1.getY() + cellSize, v2.getZ());
+			      v1.getX() + borderWidth, v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX1Y1, particleVec, particleX1Y1);
       reqX1Y1[0] = boostWorld.isend(rankX1Y1, mpiTag,  particleX1Y1);
       reqX1Y1[1] = boostWorld.irecv(rankX1Y1, mpiTag, rParticleX1Y1);
     }
     if (rankX1Y2 >= 0) { // edge x1y2
-      Rectangle containerX1Y2(v1.getX(), v2.getY() - cellSize, v1.getZ(),
-			      v1.getX() + cellSize, v2.getY(), v2.getZ());
+      Rectangle containerX1Y2(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
+			      v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1Y2, particleVec, particleX1Y2);
       reqX1Y2[0] = boostWorld.isend(rankX1Y2, mpiTag,  particleX1Y2);
       reqX1Y2[1] = boostWorld.irecv(rankX1Y2, mpiTag, rParticleX1Y2);
     }
     if (rankX1Z1 >= 0) { // edge x1z1
       Rectangle containerX1Z1(v1.getX(), v1.getY(), v1.getZ(),
-			      v1.getX() + cellSize, v2.getY(), v1.getZ() + cellSize);
+			      v1.getX() + borderWidth, v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX1Z1, particleVec, particleX1Z1);
       reqX1Z1[0] = boostWorld.isend(rankX1Z1, mpiTag,  particleX1Z1);
       reqX1Z1[1] = boostWorld.irecv(rankX1Z1, mpiTag, rParticleX1Z1);
     }
     if (rankX1Z2 >= 0) { // edge x1z2
-      Rectangle containerX1Z2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
-			      v1.getX() + cellSize, v2.getY(), v2.getZ());
+      Rectangle containerX1Z2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
+			      v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1Z2, particleVec, particleX1Z2);
       reqX1Z2[0] = boostWorld.isend(rankX1Z2, mpiTag,  particleX1Z2);
       reqX1Z2[1] = boostWorld.irecv(rankX1Z2, mpiTag, rParticleX1Z2);
     }
     if (rankX2Y1 >= 0) { // edge x2y1
-      Rectangle containerX2Y1(v2.getX() - cellSize, v1.getY(), v1.getZ(),
-			      v2.getX(), v1.getY() + cellSize, v2.getZ());
+      Rectangle containerX2Y1(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
+			      v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX2Y1, particleVec, particleX2Y1);
       reqX2Y1[0] = boostWorld.isend(rankX2Y1, mpiTag,  particleX2Y1);
       reqX2Y1[1] = boostWorld.irecv(rankX2Y1, mpiTag, rParticleX2Y1);
     }
     if (rankX2Y2 >= 0) { // edge x2y2
-      Rectangle containerX2Y2(v2.getX() - cellSize, v2.getY() - cellSize, v1.getZ(),
+      Rectangle containerX2Y2(v2.getX() - borderWidth, v2.getY() - borderWidth, v1.getZ(),
 			      v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2Y2, particleVec, particleX2Y2);
       reqX2Y2[0] = boostWorld.isend(rankX2Y2, mpiTag,  particleX2Y2);
       reqX2Y2[1] = boostWorld.irecv(rankX2Y2, mpiTag, rParticleX2Y2);
     }
     if (rankX2Z1 >= 0) { // edge x2z1
-      Rectangle containerX2Z1(v2.getX() - cellSize, v1.getY(), v1.getZ(),
-			      v2.getX(), v2.getY(), v1.getZ() + cellSize);
+      Rectangle containerX2Z1(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
+			      v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX2Z1, particleVec, particleX2Z1);
       reqX2Z1[0] = boostWorld.isend(rankX2Z1, mpiTag,  particleX2Z1);
       reqX2Z1[1] = boostWorld.irecv(rankX2Z1, mpiTag, rParticleX2Z1);
     }
     if (rankX2Z2 >= 0) { // edge x2z2
-      Rectangle containerX2Z2(v2.getX() - cellSize, v1.getY(), v2.getZ() - cellSize,
+      Rectangle containerX2Z2(v2.getX() - borderWidth, v1.getY(), v2.getZ() - borderWidth,
 			      v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2Z2, particleVec, particleX2Z2);
       reqX2Z2[0] = boostWorld.isend(rankX2Z2, mpiTag,  particleX2Z2);
@@ -2210,27 +2211,27 @@ namespace dem {
     }
     if (rankY1Z1 >= 0) { // edge y1z1
       Rectangle containerY1Z1(v1.getX(), v1.getY(), v1.getZ(),
-			      v2.getX(), v1.getY() + cellSize, v1.getZ() + cellSize);
+			      v2.getX(), v1.getY() + borderWidth, v1.getZ() + borderWidth);
       findParticleInRectangle(containerY1Z1, particleVec, particleY1Z1);
       reqY1Z1[0] = boostWorld.isend(rankY1Z1, mpiTag,  particleY1Z1);
       reqY1Z1[1] = boostWorld.irecv(rankY1Z1, mpiTag, rParticleY1Z1);
     }
     if (rankY1Z2 >= 0) { // edge y1z2
-      Rectangle containerY1Z2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
-			      v2.getX(), v1.getY() + cellSize, v2.getZ());
+      Rectangle containerY1Z2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
+			      v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerY1Z2, particleVec, particleY1Z2);
       reqY1Z2[0] = boostWorld.isend(rankY1Z2, mpiTag,  particleY1Z2);
       reqY1Z2[1] = boostWorld.irecv(rankY1Z2, mpiTag, rParticleY1Z2);
     }
     if (rankY2Z1 >= 0) { // edge y2z1
-      Rectangle containerY2Z1(v1.getX(), v2.getY() - cellSize, v1.getZ(),
-			      v2.getX(), v2.getY(), v1.getZ() + cellSize);
+      Rectangle containerY2Z1(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
+			      v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerY2Z1, particleVec, particleY2Z1);
       reqY2Z1[0] = boostWorld.isend(rankY2Z1, mpiTag,  particleY2Z1);
       reqY2Z1[1] = boostWorld.irecv(rankY2Z1, mpiTag, rParticleY2Z1);
     }
     if (rankY2Z2 >= 0) { // edge y2z2
-      Rectangle containerY2Z2(v1.getX(), v2.getY() - cellSize, v2.getZ() - cellSize,
+      Rectangle containerY2Z2(v1.getX(), v2.getY() - borderWidth, v2.getZ() - borderWidth,
 			      v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerY2Z2, particleVec, particleY2Z2);
       reqY2Z2[0] = boostWorld.isend(rankY2Z2, mpiTag,  particleY2Z2);
@@ -2239,55 +2240,55 @@ namespace dem {
     // 8 vertices
     if (rankX1Y1Z1 >= 0) { // edge x1y1z1
       Rectangle containerX1Y1Z1(v1.getX(), v1.getY(), v1.getZ(),
-				v1.getX() + cellSize, v1.getY() + cellSize, v1.getZ() + cellSize);
+				v1.getX() + borderWidth, v1.getY() + borderWidth, v1.getZ() + borderWidth);
       findParticleInRectangle(containerX1Y1Z1, particleVec, particleX1Y1Z1);
       reqX1Y1Z1[0] = boostWorld.isend(rankX1Y1Z1, mpiTag,  particleX1Y1Z1);
       reqX1Y1Z1[1] = boostWorld.irecv(rankX1Y1Z1, mpiTag, rParticleX1Y1Z1);
     }
     if (rankX1Y1Z2 >= 0) { // edge x1y1z2
-      Rectangle containerX1Y1Z2(v1.getX(), v1.getY(), v2.getZ() - cellSize,
-				v1.getX() + cellSize, v1.getY() + cellSize, v2.getZ());
+      Rectangle containerX1Y1Z2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
+				v1.getX() + borderWidth, v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX1Y1Z2, particleVec, particleX1Y1Z2);
       reqX1Y1Z2[0] = boostWorld.isend(rankX1Y1Z2, mpiTag,  particleX1Y1Z2);
       reqX1Y1Z2[1] = boostWorld.irecv(rankX1Y1Z2, mpiTag, rParticleX1Y1Z2);
     }
     if (rankX1Y2Z1 >= 0) { // edge x1y2z1
-      Rectangle containerX1Y2Z1(v1.getX(), v2.getY() - cellSize, v1.getZ(),
-				v1.getX() + cellSize, v2.getY(), v1.getZ() + cellSize);
+      Rectangle containerX1Y2Z1(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
+				v1.getX() + borderWidth, v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX1Y2Z1, particleVec, particleX1Y2Z1);
       reqX1Y2Z1[0] = boostWorld.isend(rankX1Y2Z1, mpiTag,  particleX1Y2Z1);
       reqX1Y2Z1[1] = boostWorld.irecv(rankX1Y2Z1, mpiTag, rParticleX1Y2Z1);
     }
     if (rankX1Y2Z2 >= 0) { // edge x1y2z2
-      Rectangle containerX1Y2Z2(v1.getX(), v2.getY() - cellSize, v2.getZ() - cellSize,
-				v1.getX() + cellSize, v2.getY() + cellSize, v2.getZ());
+      Rectangle containerX1Y2Z2(v1.getX(), v2.getY() - borderWidth, v2.getZ() - borderWidth,
+				v1.getX() + borderWidth, v2.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX1Y2Z2, particleVec, particleX1Y2Z2);
       reqX1Y2Z2[0] = boostWorld.isend(rankX1Y2Z2, mpiTag,  particleX1Y2Z2);
       reqX1Y2Z2[1] = boostWorld.irecv(rankX1Y2Z2, mpiTag, rParticleX1Y2Z2);
     }
     if (rankX2Y1Z1 >= 0) { // edge x2y1z1
-      Rectangle containerX2Y1Z1(v2.getX() - cellSize, v1.getY(), v1.getZ(),
-				v2.getX(), v1.getY() + cellSize, v1.getZ() + cellSize);
+      Rectangle containerX2Y1Z1(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
+				v2.getX(), v1.getY() + borderWidth, v1.getZ() + borderWidth);
       findParticleInRectangle(containerX2Y1Z1, particleVec, particleX2Y1Z1);
       reqX2Y1Z1[0] = boostWorld.isend(rankX2Y1Z1, mpiTag,  particleX2Y1Z1);
       reqX2Y1Z1[1] = boostWorld.irecv(rankX2Y1Z1, mpiTag, rParticleX2Y1Z1);
     }
     if (rankX2Y1Z2 >= 0) { // edge x2y1z2
-      Rectangle containerX2Y1Z2(v2.getX() - cellSize, v1.getY(), v2.getZ() - cellSize,
-				v2.getX(), v1.getY() + cellSize, v2.getZ());
+      Rectangle containerX2Y1Z2(v2.getX() - borderWidth, v1.getY(), v2.getZ() - borderWidth,
+				v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX2Y1Z2, particleVec, particleX2Y1Z2);
       reqX2Y1Z2[0] = boostWorld.isend(rankX2Y1Z2, mpiTag,  particleX2Y1Z2);
       reqX2Y1Z2[1] = boostWorld.irecv(rankX2Y1Z2, mpiTag, rParticleX2Y1Z2);
     }
     if (rankX2Y2Z1 >= 0) { // edge x2y2z1
-      Rectangle containerX2Y2Z1(v2.getX() - cellSize, v2.getY() - cellSize, v1.getZ(),
-				v2.getX(), v2.getY(), v1.getZ() + cellSize);
+      Rectangle containerX2Y2Z1(v2.getX() - borderWidth, v2.getY() - borderWidth, v1.getZ(),
+				v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX2Y2Z1, particleVec, particleX2Y2Z1);
       reqX2Y2Z1[0] = boostWorld.isend(rankX2Y2Z1, mpiTag,  particleX2Y2Z1);
       reqX2Y2Z1[1] = boostWorld.irecv(rankX2Y2Z1, mpiTag, rParticleX2Y2Z1);
     }
     if (rankX2Y2Z2 >= 0) { // edge x2y2z2
-      Rectangle containerX2Y2Z2(v2.getX() - cellSize, v2.getY() - cellSize, v2.getZ() - cellSize,
+      Rectangle containerX2Y2Z2(v2.getX() - borderWidth, v2.getY() - borderWidth, v2.getZ() - borderWidth,
 				v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2Y2Z2, particleVec, particleX2Y2Z2);
       reqX2Y2Z2[0] = boostWorld.isend(rankX2Y2Z2, mpiTag,  particleX2Y2Z2);
