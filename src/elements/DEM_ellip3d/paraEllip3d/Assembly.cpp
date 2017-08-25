@@ -1450,6 +1450,12 @@ namespace dem {
 	}
       } // end of genMode == 1
       else if (genMode == 2) { // large variety of particle sizes, such as 10 or 100 times
+
+	// Choices:
+	// (a) Move particles at y tail: it cuts particles even in y+ direction but results in more smaller particles at y+. Better for a small number of particles.
+	// (b) Do not move particles at y tail: it cannot cut particle even in y+ direction, and requires larger side gap. Better for a large number of particles.
+	bool moveYTail = false;
+
 	// define the grids based on the minimum particle
 	int  gridNx = floor(allContainer.getDimx()/diaMin);
 	REAL gridDim= allContainer.getDimx()/gridNx; // gridDim == diaMin if divisible
@@ -1502,7 +1508,7 @@ namespace dem {
 	    }
 
 	    // if the particle volume reaches outside the tail in y direction, move it to an upper level.
-	    if (jCount + nGrid - 1 > gridNy - 1 - sideGap) {
+	    if (moveYTail && jCount + nGrid - 1 > gridNy - 1 - sideGap) {
 	      yOutOfTail = true;
 	      iRecord = iCount;
 	      jRecord = jCount;
@@ -1556,7 +1562,7 @@ namespace dem {
 	  if (cueInc == 0) // ? otherwise: the particle is moved away, and maintaining iCount increases the chances of accommodating more particles.
 	    iCount += nGrid;
 
-	  if (yOutOfTail) {
+	  if (moveYTail && yOutOfTail) {
 	    //debugInf<<" restor ptcl="<<particleNum-1<< " nGrid="<<nGrid<< " before ("<<iCount<<" "<<jCount<<" "<<kCount<<") after ("<<iRecord<<" "<<jRecord<<" "<<kRecord<<")"<<std::endl;
 	    iCount = iRecord;
 	    jCount = jRecord;
