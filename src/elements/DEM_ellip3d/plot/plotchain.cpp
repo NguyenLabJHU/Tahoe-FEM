@@ -114,6 +114,9 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "total_x"
 	<< setw(OWID) << "total_y"
 	<< setw(OWID) << "total_z"
+	<< setw(OWID) << "normal"
+	<< setw(OWID) << "shear"
+	<< setw(OWID) << "total"
 	<< setw(OWID) << "penetration"
 	<< endl;
 
@@ -135,6 +138,11 @@ int main(int argc, char *argv[])
 	  << setw(OWID) << normal_x + tangt_x
 	  << setw(OWID) << normal_y + tangt_y
 	  << setw(OWID) << normal_z + tangt_z
+
+	  << setw(OWID) << sqrt(normal_x*normal_x + normal_y*normal_y + normal_z*normal_z)
+	  << setw(OWID) << sqrt(tangt_x*tangt_x   + tangt_y*tangt_y   + tangt_z*tangt_z)
+	  << setw(OWID) << sqrt( (normal_x+tangt_x)*(normal_x+tangt_x) + (normal_y+tangt_y)*(normal_y+tangt_y) + (normal_z+tangt_z)*(normal_z+tangt_z) )
+
 	  << setw(OWID) << penetration
 	  << endl;   
     }
