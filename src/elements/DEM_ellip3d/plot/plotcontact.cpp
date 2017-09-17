@@ -17,12 +17,12 @@ int main(int argc, char *argv[])
 {
   if(argc < 2) {
     cout << endl 
-	 << "-- Plot force chain --"<<endl
+	 << "-- Plot contact force --"<<endl
 	 << "Usage:" << endl
-	 << "1) process a single file:  plotchain contact_file" << endl
-	 << "   --example: plotchain triaxial_contact_008" << endl
-	 << "2) process multiple files: plotchain contact_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
-	 << "   --example: plotchain triaxial_contact  1  100  5" << endl << endl;
+	 << "1) process a single file:  plotcontact contact_file" << endl
+	 << "   --example: plotcontact triaxial_contact_008" << endl
+	 << "2) process multiple files: plotcontact contact_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
+	 << "   --example: plotcontact triaxial_contact  1  100  5" << endl << endl;
     return -1;
   }	
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     }
       
     strcpy(fileout, filein);
-    strcat(fileout, "_chain.dat");
+    strcat(fileout, ".dat");
     cout << "generating file " << fileout << " ......" <<endl;
 
     ifs.open(filein);
