@@ -85,7 +85,8 @@ int main(int argc, char *argv[])
 {
   if(argc < 4) {
     std::cout << std::endl 
-	      << "-- remove redundance (unique) in particle contact info --" << std::endl
+	      << "-- make unique (remove redundance in) interparticle contact info --" << std::endl
+	      << "-- note the original files are to be replaced --" << std::endl
 	      << "  Usage:  uniqueContact  file_prefix  start_snap  end_snap" << std::endl
 	      << "Example:  uniqueContact  dep_contact  80  100" << std::endl << std::endl;
     return -1;
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
     char str[50], argsuf[50];
     strcpy(argsuf, argv[1]); strcat(argsuf, "_");
     combineString(str, argsuf, snapLoop, 3);
-    //std::cerr << str << std::endl;
+    std::cout << "processing and replacing " << str << " ......" << std::endl;
 
     std::ifstream ifs(str);//, std::ifstream::binary);
     if(!ifs) { std::cout << "ifstream error." << std::endl; exit(-1); }
