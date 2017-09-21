@@ -1589,7 +1589,6 @@ namespace dem {
 
   void Assembly::trimOnly() {
     if (mpiRank == 0) {
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       trim(true,
 	   dem::Parameter::getSingleton().datafile["particleFile"].c_str(),
 	   "trim_particle_end");
@@ -1611,6 +1610,7 @@ namespace dem {
 		      const char *trmParticle)
   {
     if (toRebuild) readParticle(inputParticle);
+    readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     trimHistoryNum = allParticleVec.size();
 
     Vec  v1 = allContainer.getMinCorner();
