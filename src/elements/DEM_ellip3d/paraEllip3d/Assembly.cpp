@@ -3025,6 +3025,7 @@ namespace dem {
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
   
+    ofs << std::setw(OWID) << mergeBoundaryVec.size() << std::endl << std::endl;
     for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       (*it)->printContactInfo(ofs);
     }
