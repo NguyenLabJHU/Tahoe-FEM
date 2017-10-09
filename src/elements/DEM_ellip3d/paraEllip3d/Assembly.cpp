@@ -1605,12 +1605,13 @@ namespace dem {
   }
 
 
-  void Assembly::trim(bool toRebuild,
+  void Assembly::trim(bool toRebuildBoundary,
 		      const char *inputParticle,
 		      const char *trmParticle)
   {
-    if (toRebuild) readParticle(inputParticle);
-    readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+    readParticle(inputParticle);
+    if (toRebuildBoundary)
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
     trimHistoryNum = allParticleVec.size();
 
     Vec  v1 = allContainer.getMinCorner();
