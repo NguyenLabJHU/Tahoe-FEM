@@ -35,6 +35,7 @@ namespace dem {
     Vec  operator%(Vec p) const;   // cross product of this vector and p
     REAL operator*(Vec p) const;   // dot product of this vector and p
     Vec  operator*(REAL d) const;
+    Vec  operator/(REAL d) const;
     void print(std::ostream &ofs) const;
     
   private:
@@ -54,8 +55,7 @@ namespace dem {
   
   // non-member functions
   Vec  operator*(REAL d, Vec v);
-  Vec  operator/(Vec v, REAL d);
-  Vec  operator-(Vec v);
+  Vec  operator-(Vec v); // -v
   REAL vfabs(Vec v);
   Vec  vcos(Vec v);
   Vec  vacos(Vec v);
