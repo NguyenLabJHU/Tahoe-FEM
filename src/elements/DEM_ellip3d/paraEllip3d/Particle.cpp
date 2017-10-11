@@ -20,6 +20,7 @@ namespace dem {
     :id(0), type(0), a(0), b(0), c(0),
      young(0), poisson(0),
      currPos(0), prevPos(0),
+     initPos(0), snapPos(0),
      currDirecA(0), currDirecB(0), currDirecC(0),
      prevDirecA(0), prevDirecB(0), prevDirecC(0),
      currVeloc(0), prevVeloc(0),
@@ -61,6 +62,8 @@ namespace dem {
     //currDirecC = vacos(normalize(vcos(currDirecA) * vcos(currDirecB)));
 
     prevPos = currPos;
+    initPos = currPos;
+    snapPos = currPos; 
     prevDirecA = currDirecA;
     prevDirecB = currDirecB;
     prevDirecC = currDirecC;

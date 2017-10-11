@@ -35,6 +35,8 @@ namespace dem {
     REAL poisson;
     Vec  currPos;    // particle center
     Vec  prevPos;
+    Vec  initPos;    // initial position in a simulation
+    Vec  snapPos;    // snapshot position in a simulation
     Vec  currDirecA, currDirecB, currDirecC; // direction of the three axes, in radian
     Vec  prevDirecA, prevDirecB, prevDirecC;
     Vec  currVeloc;  // the velocity of the mass center
@@ -76,6 +78,11 @@ namespace dem {
     REAL getDensity() const {return density;}
     Vec  getCurrPos() const {return currPos;}
     Vec  getPrevPos() const {return prevPos;}
+
+    Vec  getInitPos() const {return initPos;}
+    Vec  getSnapPos() const {return snapPos;}
+    void setSnapPos() {snapPos = currPos;}
+
     Vec  getCurrDirecA() const {return currDirecA;}
     Vec  getCurrDirecB() const {return currDirecB;}
     Vec  getCurrDirecC() const {return currDirecC;}
@@ -176,6 +183,8 @@ namespace dem {
       ar & poisson;
       ar & currPos;
       ar & prevPos;
+      ar & initPos;
+      ar & snapPos;
       ar & currDirecA & currDirecB & currDirecC;
       ar & prevDirecA & prevDirecB & prevDirecC;
       ar & currVeloc;
