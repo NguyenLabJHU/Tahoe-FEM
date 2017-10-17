@@ -7,6 +7,9 @@
 #include <cstdlib>
 #include <cmath>
 
+// BLOCK format may result in smaller file size, however it is limited on line length.
+//#define BLOCK 1
+
 const long double PI = 3.1415927;
 const std::size_t OWID  = 15;
 const std::size_t OPREC = 6;
@@ -215,16 +218,80 @@ int main(int argc, char *argv[])
     ifs >> totalParticle;
     ifs >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str 
 	>> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str;
-    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << std::endl;
 
+    long int id;
+    int type;
+    long double cx, cy, cz, rd, wd, lt, ht;
+    long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, tmp;
+    long double x, y, z, xp, yp, zp, tt, theta; // x, y, z are local coodinates, xp, yp, zp are global
+    ofs	<< "VARIABLES= x y z" << std::endl;
+
+#ifdef BLOCK
+    // DATAPACKING=BLOCK
+    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=BLOCK, ZONETYPE=FEQUADRILATERAL" << std::endl;
+    std::vector<std::vector<long double> > coords;
     for (int numParticle = 0; numParticle < totalParticle; ++numParticle) {
+      ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
+	  >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp;
 
-      long int id;
-      int type;
-      long double cx, cy, cz, rd, wd, lt, ht;
-      long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, tmp;
-      long double x, y, z, xp, yp, zp, tt, theta; // x, y, z are local coodinates, xp, yp, zp are global
+      std::vector<long double> point;
+      point.clear();
+      point.push_back(cosl(l1)*(-a) + x0);
+      point.push_back(cosl(m1)*(-a) + y0);
+      point.push_back(cosl(n1)*(-a) + z0);
+      coords.push_back(point);
 
+      // C++ requires multiple definitions in for loop must be the same type;
+      // if they are moved into the loop, it and jt conflict with theta type, leading to errors.
+      // so it and jt must be kept out of the loop.
+      int it, jt; 
+      for (it = 0, x = -a+0.2*a/3; it < 11; ++it) {
+	tt = sqrtl(1 - powl(x/a, 2));
+	for (jt = 0, theta = 0; jt < 12; ++jt, theta += PI/6) {
+	  y = b * tt * sinl(theta);
+	  z = c * tt * cosl(theta);
+		    
+	  xp  = cosl(l1)*x + cosl(l2)*y + cosl(l3)*z + x0;
+	  yp  = cosl(m1)*x + cosl(m2)*y + cosl(m3)*z + y0;
+	  zp  = cosl(n1)*x + cosl(n2)*y + cosl(n3)*z + z0;
+
+	  point.clear();
+	  point.push_back(xp);
+	  point.push_back(yp);
+	  point.push_back(zp);
+	  coords.push_back(point);
+
+	}
+	if (it == 0 || it == 9) // two ends
+	  x += 0.2*a/3*2;
+	else
+	  x += 0.2*a;
+      }
+
+      point.clear();
+      point.push_back(cosl(l1)*a + x0);
+      point.push_back(cosl(m1)*a + y0);
+      point.push_back(cosl(n1)*a + z0);
+      coords.push_back(point);
+    }
+
+    // print coordinates in BLOCK format after collecting all particles
+    for (int nt = 0; nt < coords.size(); ++ nt)
+      ofs << coords[nt][0] << " ";
+    ofs << std::endl;
+
+    for (int nt = 0; nt < coords.size(); ++ nt)
+      ofs << coords[nt][1] << " ";
+    ofs << std::endl;
+
+    for (int nt = 0; nt < coords.size(); ++ nt)
+      ofs << coords[nt][2] << " ";
+    ofs << std::endl;
+
+#else
+    // DATAPACKING=POINT
+    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << std::endl;
+    for (int numParticle = 0; numParticle < totalParticle; ++numParticle) {
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
 	  >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp;
 	    
@@ -263,13 +330,14 @@ int main(int argc, char *argv[])
 	  << std::setw(OWID) << cosl(n1)*a + z0
 	  << std::endl;
     }
+#endif
 	
     for (int kt = 0; kt < totalParticle; ++kt) {
       for (int it = 0; it < ELEM; ++it)
-	ofs << std::setw(OWID)<< CONNECT[it][0] + NODE*kt
-	    << std::setw(OWID)<< CONNECT[it][1] + NODE*kt
-	    << std::setw(OWID)<< CONNECT[it][2] + NODE*kt
-	    << std::setw(OWID)<< CONNECT[it][3] + NODE*kt << std::endl;
+	ofs << CONNECT[it][0] + NODE*kt << " "
+	    << CONNECT[it][1] + NODE*kt << " "
+	    << CONNECT[it][2] + NODE*kt << " "
+	    << CONNECT[it][3] + NODE*kt << std::endl;
     }
 	
     ifs.close();
