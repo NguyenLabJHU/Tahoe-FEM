@@ -1,3 +1,4 @@
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -6,9 +7,10 @@
 #include <cstdlib>
 #include <cmath>
 
-using namespace std;
-
 const long double PI = 3.1415927;
+const std::size_t OWID  = 15;
+const std::size_t OPREC = 6;
+
 const int NODE  = 134;
 const int ELEM  = 144;
 const int CONNECT[ELEM][4] = {
@@ -157,16 +159,16 @@ const int CONNECT[ELEM][4] = {
   {133	,	132	,	134	,	134     },
   {122	,	133	,	134	,	134     }  };
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[]) 
 {
   if(argc < 2) {
-    cout << endl 
-	 << "-- Plot All Particles --" << endl
-	 << "Usage:" << endl
-	 << "1) process a single file:  plot particle_file" << endl
-	 << "   --example: plot iso_particle_008" << endl
-	 << "2) process multiple files: plot particle_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
-	 << "   --example: plot iso_particle  0  100  5" << endl << endl;
+    std::cout << std::endl 
+	      << "-- Plot All Particles --" << std::endl
+	      << "Usage:" << std::endl
+	      << "1) process a single file:  plot particle_file" << std::endl
+	      << "   --example: plot iso_particle_008" << std::endl
+	      << "2) process multiple files: plot particle_file_prefix  first_suffix  last_suffix  suffix_increment" << std::endl
+	      << "   --example: plot iso_particle  0  100  5" << std::endl << std::endl;
     return -1;
   }	
 
@@ -182,23 +184,17 @@ int main(int argc, char *argv[])
     incre = atoi(argv[4]);
   }
 
-  ifstream ifs;
-  ofstream ofs;
+  std::ifstream ifs;
+  std::ofstream ofs;
   char filein[50];
   char fileout[50];
-  char num[4], s[20];
+  char num[4], str[20];
 
-  int id, type, TotalNum;
-  long double cx, cy, cz, rd, wd, lt, ht;
-  long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, tmp;
-  long double x, y, z, xp, yp, zp, t, theta; // x, y, z are local coodinates, xp, yp, zp are global.
-  int n, i, j, k;
-
-  for(n=first; n<=last; n+=incre) {
+  for (int snapshot = first; snapshot <= last; snapshot += incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
     else {
-      sprintf(num, "%03d", n);
+      sprintf(num, "%03d", snapshot);
       strcpy(filein, argv[1]);
       strcat(filein, "_");
       strcat(filein, num);
@@ -206,61 +202,74 @@ int main(int argc, char *argv[])
 
     strcpy(fileout, filein);
     strcat(fileout, ".dat");
-    cout << "generating file " << fileout << " ......" <<endl;
+    std::cout << "generating file " << fileout << " ......" <<std::endl;
 
     ifs.open(filein);
-    if(!ifs)  { cout<<"stream error!"<<endl; exit(-1);}
+    if(!ifs)  { std::cout<<"stream error!"<<std::endl; exit(-1);}
     ofs.open(fileout);
-    if(!ofs) { cout<<"stream error!"<<endl; exit(-1);}
-    ofs.setf(ios::scientific, ios::floatfield);
+    if(!ofs) { std::cout<<"stream error!"<<std::endl; exit(-1);}
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
+    ofs.precision(OPREC);
 
-    ifs >> TotalNum;
-    ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
-       >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
+    long int totalParticle;
+    ifs >> totalParticle;
+    ifs >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str 
+	>> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str >> str;
+    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << std::endl;
 
-    ofs << "ZONE T=\"ptcl\" N=" << NODE*TotalNum << ", E=" << ELEM*TotalNum << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << endl;
-    for(k = 0; k < TotalNum; ++k) {
+    for (int numParticle = 0; numParticle < totalParticle; ++numParticle) {
+
+      long int id;
+      int type;
+      long double cx, cy, cz, rd, wd, lt, ht;
+      long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, tmp;
+      long double x, y, z, xp, yp, zp, tt, theta; // x, y, z are local coodinates, xp, yp, zp are global
+
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
-	  >>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp>>tmp;
+	  >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp;
 	    
-      ofs << setfill(' ') << setw(16) << cosl(l1)*(-a) + x0
-	  << setfill(' ') << setw(16) << cosl(m1)*(-a) + y0
-	  << setfill(' ') << setw(16) << cosl(n1)*(-a) + z0
-	  << endl;
+      ofs << std::setw(OWID) << cosl(l1)*(-a) + x0
+	  << std::setw(OWID) << cosl(m1)*(-a) + y0
+	  << std::setw(OWID) << cosl(n1)*(-a) + z0
+	  << std::endl;
 	    
-      for(i=0, x = -a+0.2*a/3; i < 11; ++i) {
-	t = sqrtl(1 - powl(x/a, 2));
-	for(j=0, theta = 0; j < 12; ++j, theta += PI/6) {
-	  y = b*t*sinl(theta);
-	  z = c*t*cosl(theta);
+      // C++ requires multiple definitions in for loop must be the same type;
+      // if they are moved into the loop, it and jt conflict with theta type, leading to errors.
+      // so it and jt must be kept out of the loop.
+      int it, jt; 
+      for (it = 0, x = -a+0.2*a/3; it < 11; ++it) {
+	tt = sqrtl(1 - powl(x/a, 2));
+	for (jt = 0, theta = 0; jt < 12; ++jt, theta += PI/6) {
+	  y = b * tt * sinl(theta);
+	  z = c * tt * cosl(theta);
 		    
 	  xp  = cosl(l1)*x + cosl(l2)*y + cosl(l3)*z + x0;
 	  yp  = cosl(m1)*x + cosl(m2)*y + cosl(m3)*z + y0;
 	  zp  = cosl(n1)*x + cosl(n2)*y + cosl(n3)*z + z0;
 		    
-	  ofs << setfill(' ') << setw(16) << xp
-	      << setfill(' ') << setw(16) << yp
-	      << setfill(' ') << setw(16) << zp
-	      << endl;
+	  ofs << std::setw(OWID) << xp
+	      << std::setw(OWID) << yp
+	      << std::setw(OWID) << zp
+	      << std::endl;
 	}
-	if (i==0 || i==9)
+	if (it == 0 || it == 9) // two ends
 	  x += 0.2*a/3*2;
 	else
 	  x += 0.2*a;
       }
 	    
-      ofs << setfill(' ') << setw(16) << cosl(l1)*a + x0
-	  << setfill(' ') << setw(16) << cosl(m1)*a + y0
-	  << setfill(' ') << setw(16) << cosl(n1)*a + z0
-	  << endl;
+      ofs << std::setw(OWID) << cosl(l1)*a + x0
+	  << std::setw(OWID) << cosl(m1)*a + y0
+	  << std::setw(OWID) << cosl(n1)*a + z0
+	  << std::endl;
     }
 	
-    for(k = 0; k < TotalNum; ++k) {
-      for(i = 0; i < ELEM; ++i)
-	ofs << setw(10)<< CONNECT[i][0] + NODE*k
-	    << setw(10)<< CONNECT[i][1] + NODE*k
-	    << setw(10)<< CONNECT[i][2] + NODE*k
-	    << setw(10)<< CONNECT[i][3] + NODE*k << endl;
+    for (int kt = 0; kt < totalParticle; ++kt) {
+      for (int it = 0; it < ELEM; ++it)
+	ofs << std::setw(OWID)<< CONNECT[it][0] + NODE*kt
+	    << std::setw(OWID)<< CONNECT[it][1] + NODE*kt
+	    << std::setw(OWID)<< CONNECT[it][2] + NODE*kt
+	    << std::setw(OWID)<< CONNECT[it][3] + NODE*kt << std::endl;
     }
 	
     ifs.close();
