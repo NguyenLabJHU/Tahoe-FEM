@@ -208,7 +208,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(MPICXX) -o $@ $(CXXFLAGS) $(OBJECTS) $(INCLUDE) $(LIB_DIR) $(LIBS) $(RUN_LIB_DIR)
 
 %.o: %.cpp
-	$(MPICXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDE) $(LIB_DIR) $(LIBS)
+	$(MPICXX) -c $< -o $@ $(CXXFLAGS) $(INCLUDE)
 
 sinclude $(SOURCES:.cpp=.d)
 
