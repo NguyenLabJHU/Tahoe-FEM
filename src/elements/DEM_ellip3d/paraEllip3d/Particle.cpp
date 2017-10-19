@@ -127,7 +127,7 @@ namespace dem {
     a = dim.getX();
     b = dim.getY();
     c = dim.getZ();
-    currPos = prevPos = position;
+    initPos = currPos = prevPos = position;
     currDirecA = prevDirecA = dirca;
     currDirecB = prevDirecB = dircb;
     currDirecC = prevDirecC = dircc;
