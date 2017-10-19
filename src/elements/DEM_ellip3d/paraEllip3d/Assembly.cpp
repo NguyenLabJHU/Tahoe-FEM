@@ -554,8 +554,6 @@ namespace dem {
 
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
-      updateBoundary(sigmaVar, "isotropic");
-      updateGrid();
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -574,6 +572,9 @@ namespace dem {
 	printContact(combineString(cstr, "isotropic_contact_", iterSnap, 3));      
 	++iterSnap;
       }
+
+      updateBoundary(sigmaVar, "isotropic"); // must call after printBdryContact
+      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -705,8 +706,6 @@ namespace dem {
 
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
-      updateBoundary(sigmaVar, "oedometer");
-      updateGrid();
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -725,6 +724,9 @@ namespace dem {
 	printContact(combineString(cstr, "oedometer_contact_", iterSnap, 3));      
 	++iterSnap;
       }
+
+      updateBoundary(sigmaVar, "oedometer"); // must call after printBdryContact
+      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -826,8 +828,6 @@ namespace dem {
 
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
-      updateBoundary(sigmaConf, "triaxial");
-      updateGrid();
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -846,6 +846,9 @@ namespace dem {
 	printContact(combineString(cstr, "triaxial_contact_", iterSnap, 3));      
 	++iterSnap;
       }
+
+      updateBoundary(sigmaConf, "triaxial"); // must call after printBdryContact
+      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -921,8 +924,6 @@ namespace dem {
 
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
-      updateBoundary(sigmaConf, "plnstrn");
-      updateGrid();
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -941,6 +942,9 @@ namespace dem {
 	printContact(combineString(cstr, "plnstrn_contact_", iterSnap, 3));      
 	++iterSnap;
       }
+
+      updateBoundary(sigmaConf, "plnstrn"); // must call after printBdryContact
+      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -1043,22 +1047,6 @@ namespace dem {
 
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
-
-      if (trueTriaxialType == 1)
-	updateBoundary(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY);
-      else if (trueTriaxialType == 2) {
-	REAL sigmaX, sigmaY, sigmaZ;
-	if (changeDirc == 0) {
-	  sigmaX = sigmaVar;     sigmaY = sigmaInit[1]; sigmaZ = sigmaInit[2];
-	} else if (changeDirc == 1) {
-	  sigmaX = sigmaInit[0]; sigmaY = sigmaVar;     sigmaZ = sigmaInit[2];
-	} else if (changeDirc == 2) {
-	  sigmaX = sigmaInit[0]; sigmaY = sigmaInit[1]; sigmaZ = sigmaVar;
-	}
-	updateBoundary(sigmaZ, "trueTriaxial", sigmaX, sigmaY);
-      }
-
-      updateGrid();
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -1077,6 +1065,21 @@ namespace dem {
 	printContact(combineString(cstr, "trueTriaxial_contact_", iterSnap, 3));      
 	++iterSnap;
       }
+
+      if (trueTriaxialType == 1)
+	updateBoundary(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY); // must call after printBdryContact
+      else if (trueTriaxialType == 2) {
+	REAL sigmaX, sigmaY, sigmaZ;
+	if (changeDirc == 0) {
+	  sigmaX = sigmaVar;     sigmaY = sigmaInit[1]; sigmaZ = sigmaInit[2];
+	} else if (changeDirc == 1) {
+	  sigmaX = sigmaInit[0]; sigmaY = sigmaVar;     sigmaZ = sigmaInit[2];
+	} else if (changeDirc == 2) {
+	  sigmaX = sigmaInit[0]; sigmaY = sigmaInit[1]; sigmaZ = sigmaVar;
+	}
+	updateBoundary(sigmaZ, "trueTriaxial", sigmaX, sigmaY); // must call after printBdryContact
+      }
+      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
