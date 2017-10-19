@@ -189,6 +189,7 @@ namespace dem {
     virtual void updateStatForce();
     void clearStatForce();
     void clearContactInfo();
+    void clearPossParticle();
 
     virtual void updateIsotropic(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateOedometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}

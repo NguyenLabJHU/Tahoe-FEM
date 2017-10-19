@@ -59,6 +59,10 @@ namespace dem {
     contactInfo.clear();
   }
 
+  void Boundary::clearPossParticle() {
+    possParticle.clear();
+  }
+
   planeBoundary::planeBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;

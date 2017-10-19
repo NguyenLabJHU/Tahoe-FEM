@@ -2989,6 +2989,11 @@ namespace dem {
 
   void Assembly::gatherBdryContact() {
     if (isBdryProcess()) {
+      // it is good to clear possibly contacting particles, otherwise it causes more MPI transmission.
+      // however, the contactInfo of a boundary should not be cleared.
+      for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+	(*it)->clearPossParticle();      
+
       if (mpiRank != 0)
 	boostWorld.send(0, mpiTag, boundaryVec);
     }
