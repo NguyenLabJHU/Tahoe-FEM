@@ -159,12 +159,12 @@ CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH)
 ifeq ($(PLATFORM), soilblast)
   ifeq ($(BOOST_ROOT), default)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
-   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
+   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_chrono -lboost_system
    BOOST_RUN_LIB_DIR=-Wl,-rpath=/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
   else
    BOOST_INCLUDE=-I$(BOOST_ROOT)/include
    BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
-   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
+   BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_chrono -lboost_system
    BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 
    ifeq ($(PAPI), yes)
@@ -178,7 +178,7 @@ else
 # for excalibur, topaz, etc
  BOOST_INCLUDE=-I$(BOOST_ROOT)/include
  BOOST_LIB_DIR=-L$(BOOST_ROOT)/lib
- BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_system -lboost_chrono
+ BOOST_LIBS=-lboost_mpi -lboost_serialization -lboost_timer -lboost_chrono -lboost_system
  BOOST_RUN_LIB_DIR=-Wl,-rpath=$(BOOST_ROOT)/lib
 
  ifeq ($(PAPI), yes)
