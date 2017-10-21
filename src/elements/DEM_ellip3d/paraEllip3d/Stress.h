@@ -33,6 +33,8 @@ namespace dem {
     REAL velocityGradient[9]; // unsymmetric
     REAL rateOfDeform[6];     // symmetric
     REAL spin[3];             // skew-symmetric
+
+    REAL norm[9];             // norm of above tensors, except for rotation
     
     friend class boost::serialization::access;
     template<class Archive>
@@ -48,6 +50,7 @@ namespace dem {
       ar & velocityGradient;
       ar & rateOfDeform;
       ar & spin;
+      ar & norm;
     }
     
   };

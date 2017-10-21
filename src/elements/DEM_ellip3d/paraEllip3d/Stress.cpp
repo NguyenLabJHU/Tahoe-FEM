@@ -31,6 +31,7 @@ namespace dem {
       TruesStressRate[i] = 0;
       deformGradient[i] = 0;
       rotation[i] = 0;
+      norm[i] = 0;
     }
 
   } 
@@ -71,6 +72,11 @@ namespace dem {
 	<< std::setw(OWID) << rateOfDeform[3]<< std::setw(OWID) << rateOfDeform[4]<< std::setw(OWID) << rateOfDeform[5]
 
 	<< std::setw(OWID) << spin[0]<< std::setw(OWID) << spin[1]<< std::setw(OWID) << spin[2]
+
+	<< std::setw(OWID) << norm[0]<< std::setw(OWID) << norm[1]<< std::setw(OWID) << norm[2]
+	<< std::setw(OWID) << norm[3]<< std::setw(OWID) << norm[4]<< std::setw(OWID) << norm[5]
+	<< std::setw(OWID) << norm[6]<< std::setw(OWID) << norm[7]<< std::setw(OWID) << norm[8]
+
 	<< std::endl;
   }
 

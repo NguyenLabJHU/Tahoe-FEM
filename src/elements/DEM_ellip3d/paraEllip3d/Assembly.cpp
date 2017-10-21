@@ -3169,17 +3169,21 @@ namespace dem {
       Eigen::Matrix3d md = granularStrain[4];
       OldroStressRate = granularStressRate - ml * granularStress - granularStress * ml.transpose();
       TruesStressRate = OldroStressRate + granularStress * md.trace();
-    }
 
-    /*
-    std::cout << "iteration="<< iteration << " process=" << mpiRank 
-	      << " /////////////////////////////////////////" << std::endl
-	      << "prevStress=" << std::endl << prevGranularStress << std::endl << std::endl
-	      << "stress=" << std::endl << granularStress << std::endl << std::endl
-	      << "stressRate=" << std::endl << granularStressRate << std::endl << std::endl
-	      << "OldroStressRate=" << std::endl << OldroStressRate << std::endl << std::endl
-	      << "TruesStressrate=" << std::endl << TruesStressRate << std::endl << std::endl;
-    */
+      /*
+      Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
+      //Eigen::IOFormat fmt(6, 0, ", ", ";\n", "", "", "[", "]");
+      std::cout << "iteration="<< iteration << " process=" << mpiRank 
+		<< " /////////////////////////////////////////" << std::endl
+		<< "prevStress= ..." << std::endl << prevGranularStress.format(fmt) << std::endl << std::endl
+		<< "stress= ..." << std::endl << granularStress.format(fmt) << std::endl << std::endl
+		<< "stressRate= ..." << std::endl << granularStressRate.format(fmt) << std::endl << std::endl
+		<< "velocityGradient= ..." << std::endl << ml.format(fmt) << std::endl << std::endl
+		<< "rateOfDeform= ..." << std::endl << md.format(fmt) << std::endl << std::endl
+		<< "OldroStressRate= ..." << std::endl << OldroStressRate.format(fmt) << std::endl << std::endl
+		<< "TruesStressRate= ..." << std::endl << TruesStressRate.format(fmt) << std::endl << std::endl;
+      */
+    }
 
     convertGranularStressForPrint();
     printStressVec.clear();
@@ -3252,17 +3256,19 @@ namespace dem {
     prevSnapMatrixF = intgraF; 
 
     ///*
+    //Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
+    Eigen::IOFormat fmt(6, 0, ", ", ";\n", "", "", "[", "]");
     std::cout << "iteration=" << iteration << " process=" << mpiRank 
 	      << " /////////////////////////////////////////" << std::endl
-	      << "intgraF=" << std::endl << intgraF << std::endl << std::endl
-	      << "matrixF=" << std::endl << matrixF << std::endl << std::endl
-	      << "matrixFdot=" << std::endl << matrixFdot << std::endl << std::endl
-	      << "matrixE=" << std::endl << matrixE << std::endl << std::endl
-	      << "matrixR=" << std::endl << matrixR << std::endl << std::endl
-	      << "matrixU=" << std::endl << matrixU << std::endl << std::endl
-	      << "matrix_l=" << std::endl << matrix_l << std::endl << std::endl
-	      << "matrix_d=" << std::endl << matrix_d << std::endl << std::endl
-	      << "matrix_w=" << std::endl << matrix_w << std::endl << std::endl
+	      << "intgraF= ..." << std::endl << intgraF.format(fmt) << std::endl << std::endl
+	      << "matrixF= ..." << std::endl << matrixF.format(fmt) << std::endl << std::endl
+	      << "matrixFdot= ..." << std::endl << matrixFdot.format(fmt) << std::endl << std::endl
+	      << "matrixE= ..." << std::endl << matrixE.format(fmt) << std::endl << std::endl
+	      << "matrixR= ..." << std::endl << matrixR.format(fmt) << std::endl << std::endl
+	      << "matrixU= ..." << std::endl << matrixU.format(fmt) << std::endl << std::endl
+	      << "matrix_l= ..." << std::endl << matrix_l.format(fmt) << std::endl << std::endl
+	      << "matrix_d= ..." << std::endl << matrix_d.format(fmt) << std::endl << std::endl
+	      << "matrix_w= ..." << std::endl << matrix_w.format(fmt) << std::endl << std::endl
       ;
     //*/
     
@@ -3435,13 +3441,24 @@ namespace dem {
 	<< " " << "w_xy"
 	<< " " << "w_xz"
 	<< " " << "w_yz"
+
+	<< " " << "norm_sigma"
+	<< " " << "norm_sigmaDot"
+	<< " " << "norm_Oldro"
+	<< " " << "norm_Trues"
+	<< " " << "norm_F"
+	<< " " << "norm_U"
+	<< " " << "norm_l"
+	<< " " << "norm_d"
+	<< " " << "norm_w"
+
 	<< std::endl;
 
     ofs	<< "ZONE T=\"stress\" N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
 	<< ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=BLOCK, \
 VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,\
 31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,\
-61,62,63,64,65,66,67,68,69,70,71,72,73,74,75]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
+61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
 
     long int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
@@ -3538,6 +3555,13 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (int j = 0; j < numCompo; ++j) {
       for (int i = 0; i < printStressVec.size(); ++i)
 	ofs << std::setw(OWID) << printStressVec[i].spin[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 9; // for norm of 9 tensors
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].norm[j];
       ofs << std::endl;
     }
 
@@ -3658,6 +3682,17 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "w_xy"
 	<< std::setw(OWID) << "w_xz"
 	<< std::setw(OWID) << "w_yz"
+
+	<< std::setw(OWID) << "norm_sigma"
+	<< std::setw(OWID) << "norm_sigmaDot"
+	<< std::setw(OWID) << "norm_Oldro"
+	<< std::setw(OWID) << "norm_Trues"
+	<< std::setw(OWID) << "norm_F"
+	<< std::setw(OWID) << "norm_U"
+	<< std::setw(OWID) << "norm_l"
+	<< std::setw(OWID) << "norm_d"
+	<< std::setw(OWID) << "norm_w"
+
 	<< std::endl;
 
     ofs << "ZONE I=" << mpiProcX
@@ -3772,6 +3807,19 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       printStress.spin[0] = granularStrain[i](0,1);
       printStress.spin[1] = granularStrain[i](0,2);
       printStress.spin[2] = granularStrain[i](1,2);
+    }
+
+    printStress.norm[0] = granularStress.norm();
+    printStress.norm[1] = granularStressRate.norm();
+    printStress.norm[2] = OldroStressRate.norm();
+    printStress.norm[3] = TruesStressRate.norm();
+
+    if (granularStrain.size() == 6) { // otherwise it could be empty
+      printStress.norm[4] = granularStrain[0].norm();
+      printStress.norm[5] = granularStrain[2].norm();
+      printStress.norm[6] = granularStrain[3].norm();
+      printStress.norm[7] = granularStrain[4].norm();
+      printStress.norm[8] = granularStrain[5].norm();
     }
 
   }
