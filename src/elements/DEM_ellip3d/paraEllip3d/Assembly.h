@@ -2,6 +2,12 @@
 #define ASSEMBLY_H
 
 #include "realtypes.h"
+
+#ifdef STRESS_STRAIN
+#include "Stress.h"
+#include "Cell.h"
+#endif
+
 #include "Parameter.h"
 #include "Vec.h"
 #include "Gradation.h"
@@ -16,9 +22,14 @@
 #include <cstddef>
 #include <map>
 #include <vector>
+#include <iostream>
 #include <fstream>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
+
+#ifdef STRESS_STRAIN
+#include <Eigen/Dense>
+#endif
 
 namespace dem {
   
@@ -42,14 +53,14 @@ namespace dem {
     Rectangle allContainer;// whole container, broadcast among processes for once
     Rectangle container;   // container per process
     Rectangle cavity;      // cavity inside container
-    Rectangle grid;        // adaptive compute grid, broadcast among processes for once, updated per process
-    
-    // boundaries property
+    Rectangle grid;        // adaptive compute grid, broadcast among processes for once, updated by all processes
+
+    // boundary property
     std::vector<Boundary *> boundaryVec;       // rigid boundaries, broadcast among processes upon changed.
     std::vector<Boundary *> mergeBoundaryVec;  // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
-    std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info
-   
+    std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info  
+
     // gas property
     Gas gas;
 
@@ -68,6 +79,20 @@ namespace dem {
     // time step
     REAL vibraTimeStep;    // meaningful to all processes
     REAL impactTimeStep;   // meaningful to all processes
+    
+#ifdef STRESS_STRAIN
+    // continuum property
+    Eigen::Matrix3d prevGranularStress; // granular stress at previous time step, per process
+    Eigen::Matrix3d granularStress;     // granular stress, per process
+    Eigen::Matrix3d granularStressRate; // granular stress rate, per process
+    Eigen::Matrix3d OldroStressRate;    // Oldroyd stress rate, per process
+    Eigen::Matrix3d TruesStressRate;    // Truesdell stress rate, per process
+    Eigen::Matrix3d prevSnapMatrixF;    // deformation gradient at previous snapshot, per process
+    std::vector<Eigen::Matrix3d> granularStrain; // granular strains, per process
+    Stress printStress;                 // only for printing, per process
+    std::vector<Stress> printStressVec; // only meaningful to root process
+    std::vector<Cell> cellVec;          // cells (tetrahedra) per process
+#endif
 
     // MPI data
     boost::mpi::communicator boostWorld;
@@ -100,8 +125,16 @@ namespace dem {
     Assembly()
       :trimHistoryNum(0), allContactNum(0), avgNormal(0), avgShear(0), avgPenetr(0),
       transEnergy(0), rotatEnergy(0), kinetEnergy(0), graviEnergy(0), mechaEnergy(0), 
-      vibraTimeStep(0), impactTimeStep(0)
-      {}
+      vibraTimeStep(0), impactTimeStep(0) {
+#ifdef STRESS_STRAIN
+      prevGranularStress.setZero();  
+      granularStress.setZero();  
+      granularStressRate.setZero();  
+      OldroStressRate.setZero();  
+      TruesStressRate.setZero();  
+      prevSnapMatrixF.setIdentity();
+#endif
+    }
     
     ~Assembly() {
       // release memory pointed to by pointers in the container
@@ -175,6 +208,20 @@ namespace dem {
     void removeParticleOutRectangle();
     void gatherParticle();
     void gatherBdryContact();
+
+#ifdef STRESS_STRAIN
+    // continuum functions
+    void gatherGranularStress(REAL timeStep, REAL timeIncr);
+    void updateGranularCell();
+    void snapParticlePos();
+    REAL getGranularCellVolume();
+    void calcPrevGranularStress();
+    void calcGranularStress(Eigen::Matrix3d &);
+    void calcGranularStrain(REAL timeIncr);
+    void convertGranularStressForPrint();
+    void printGranularStressOrdered(const char *str) const;
+    void printGranularStressFEM(const char *str) const;
+#endif
 
     void updateGrid();
     void updateGrid5();

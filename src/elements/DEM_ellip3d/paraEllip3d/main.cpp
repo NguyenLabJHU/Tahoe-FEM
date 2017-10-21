@@ -29,6 +29,9 @@ BOOST_CLASS_EXPORT_GUID(dem::planeBoundary, "planeBoundary")
 BOOST_IS_MPI_DATATYPE(dem::Vec)
 BOOST_IS_MPI_DATATYPE(dem::Particle)
 BOOST_IS_MPI_DATATYPE(dem::Contact)
+#ifdef STRESS_STRAIN
+BOOST_IS_MPI_DATATYPE(dem::Stress)
+#endif
 
 int main(int argc, char* argv[]) {
 

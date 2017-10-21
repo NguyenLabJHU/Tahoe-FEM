@@ -26,6 +26,19 @@
 //    where x1 < x2, y1 < y2, z1 < z2. We also use surface 1, 2, 3, 4, 5, 6 accordingly.
 //
 
+#ifdef STRESS_STRAIN
+// The Qhull path of header files may cause "No such file or directory" error by "g++ -MM", but it does not actually affect compiling or linking.
+// It may affect compile file dependency, it that case do "make clean" before "make"
+#include "libqhullcpp/RboxPoints.h"
+#include "libqhullcpp/QhullError.h"
+#include "libqhullcpp/QhullQh.h"
+#include "libqhullcpp/QhullFacet.h"
+#include "libqhullcpp/QhullFacetList.h"
+#include "libqhullcpp/QhullLinkedList.h"
+#include "libqhullcpp/QhullVertex.h"
+#include "libqhullcpp/Qhull.h"
+#endif
+
 #include "Assembly.h"
 #include "const.h"
 #include "ran.h"
@@ -39,6 +52,7 @@
 #include <utility>
 #include <sys/time.h>
 #include <omp.h>
+
 #define MODULE_TIME
 //#define DEM_PROFILE
 //#define CFD_PROFILE
@@ -106,7 +120,6 @@ namespace dem {
     else 
       return 0;
   }
-
 
   // input:   number percentage smaller from data file
   // output:  mass percentage smaller to disk file debugInf
@@ -363,6 +376,16 @@ namespace dem {
 
       dragForce();
 
+#ifdef STRESS_STRAIN
+      if (timeCount + timeStep*2 >= timeIncr/netSnap && timeCount + timeStep <= timeIncr/netSnap )
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if (timeCount + timeStep >= timeIncr/netSnap) {
+	gatherGranularStress(timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
       updateParticle();
 #ifdef MODULE_TIME
       if (toCheckTime) time1 = MPI_Wtime();
@@ -401,6 +424,10 @@ namespace dem {
 	  printParticle(combineString(cstr, "deposit_particle_", iterSnap, 3));
 	  printBdryContact(combineString(cstr, "deposit_bdrycntc_", iterSnap, 3));
 	  printDepositProg(progressInf);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM(strcat(combineString(cstr, "deposit_stress_plot_", iterSnap, 3), ".dat"));
+	  printGranularStressOrdered(strcat(combineString(cstr, "deposit_stress_data_", iterSnap, 3), ".dat"));
+#endif
 	}
 	printContact(combineString(cstr, "deposit_contact_", iterSnap, 3));
       
@@ -552,6 +579,16 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
    
@@ -568,6 +605,10 @@ namespace dem {
 	  printBdryContact(combineString(cstr, "isotropic_bdrycntc_", iterSnap, 3));
 	  printBoundary(combineString(cstr, "isotropic_boundary_", iterSnap, 3));
 	  printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM(strcat(combineString(cstr, "isotropic_stress_plot_", iterSnap, 3), ".dat"));
+	  printGranularStressOrdered(strcat(combineString(cstr, "isotropic_stress_data_", iterSnap, 3), ".dat"));
+#endif
 	}
 	printContact(combineString(cstr, "isotropic_contact_", iterSnap, 3));      
 	++iterSnap;
@@ -704,6 +745,16 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
    
@@ -720,6 +771,10 @@ namespace dem {
 	  printBdryContact(combineString(cstr, "oedometer_bdrycntc_", iterSnap, 3));
 	  printBoundary(combineString(cstr, "oedometer_boundary_", iterSnap, 3));
 	  printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM(strcat(combineString(cstr, "oedometer_stress_plot_", iterSnap, 3), ".dat"));
+	  printGranularStressOrdered(strcat(combineString(cstr, "oedometer_stress_data_", iterSnap, 3), ".dat"));
+#endif
 	}
 	printContact(combineString(cstr, "oedometer_contact_", iterSnap, 3));      
 	++iterSnap;
@@ -826,6 +881,16 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
    
@@ -842,6 +907,10 @@ namespace dem {
 	  printBdryContact(combineString(cstr, "triaxial_bdrycntc_", iterSnap, 3));
 	  printBoundary(combineString(cstr, "triaxial_boundary_", iterSnap, 3));
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM(strcat(combineString(cstr, "triaxial_stress_plot_", iterSnap, 3), ".dat"));
+	  printGranularStressOrdered(strcat(combineString(cstr, "triaxial_stress_data_", iterSnap, 3), ".dat"));
+#endif
 	}
 	printContact(combineString(cstr, "triaxial_contact_", iterSnap, 3));      
 	++iterSnap;
@@ -922,6 +991,16 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
    
@@ -938,6 +1017,10 @@ namespace dem {
 	  printBdryContact(combineString(cstr, "plnstrn_bdrycntc_", iterSnap, 3));
 	  printBoundary(combineString(cstr, "plnstrn_boundary_", iterSnap, 3));
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM(strcat(combineString(cstr, "plnstrn_stress_plot_", iterSnap, 3), ".dat"));
+	  printGranularStressOrdered(strcat(combineString(cstr, "plnstrn_stress_data_", iterSnap, 3), ".dat"));
+#endif
 	}
 	printContact(combineString(cstr, "plnstrn_contact_", iterSnap, 3));      
 	++iterSnap;
@@ -1045,6 +1128,16 @@ namespace dem {
       internalForce();
       if (isBdryProcess()) boundaryForce();
 
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
       updateParticle();
       gatherBdryContact(); // must call before updateBoundary
    
@@ -1061,6 +1154,10 @@ namespace dem {
 	  printBdryContact(combineString(cstr, "trueTriaxial_bdrycntc_", iterSnap, 3));
 	  printBoundary(combineString(cstr, "trueTriaxial_boundary_", iterSnap, 3));
 	  printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM(strcat(combineString(cstr, "trueTriaxial_stress_plot_", iterSnap, 3), ".dat"));
+	  printGranularStressOrdered(strcat(combineString(cstr, "trueTriaxial_stress_data_", iterSnap, 3), ".dat"));
+#endif
 	}
 	printContact(combineString(cstr, "trueTriaxial_contact_", iterSnap, 3));      
 	++iterSnap;
@@ -3043,6 +3140,686 @@ namespace dem {
   }
 
 
+#ifdef STRESS_STRAIN
+  void Assembly::calcPrevGranularStress() {
+    prevGranularStress.setZero();
+    if (particleVec.size() >= 125) {
+      updateGranularCell();
+      calcGranularStress(prevGranularStress);
+    }
+  }
+
+
+  void Assembly::gatherGranularStress(REAL timeStep, REAL timeIncr) {
+    // no matter how many particles exist in the compute grid, these variables need to be cleared.
+    cellVec.clear();
+    granularStress.setZero();
+    granularStressRate.setZero();
+    OldroStressRate.setZero();  
+    TruesStressRate.setZero(); 
+    granularStrain.clear();
+
+    if (particleVec.size() >= 125) {
+      updateGranularCell();
+      calcGranularStress(granularStress);
+      calcGranularStrain(timeIncr);
+      granularStressRate = (granularStress - prevGranularStress) / timeStep;
+      // objective stress rate (must use l and d)
+      Eigen::Matrix3d ml = granularStrain[3]; // this is a dangerous usage, must ensure existance.
+      Eigen::Matrix3d md = granularStrain[4];
+      OldroStressRate = granularStressRate - ml * granularStress - granularStress * ml.transpose();
+      TruesStressRate = OldroStressRate + granularStress * md.trace();
+    }
+
+    /*
+    std::cout << "iteration="<< iteration << " process=" << mpiRank 
+	      << " /////////////////////////////////////////" << std::endl
+	      << "prevStress=" << std::endl << prevGranularStress << std::endl << std::endl
+	      << "stress=" << std::endl << granularStress << std::endl << std::endl
+	      << "stressRate=" << std::endl << granularStressRate << std::endl << std::endl
+	      << "OldroStressRate=" << std::endl << OldroStressRate << std::endl << std::endl
+	      << "TruesStressrate=" << std::endl << TruesStressRate << std::endl << std::endl;
+    */
+
+    convertGranularStressForPrint();
+    printStressVec.clear();
+    gather(boostWorld, printStress, printStressVec, 0); // Boost MPI
+  }
+
+
+  void Assembly::calcGranularStrain(REAL timeIncr) {
+    /*
+    Eigen::Matrix3d  matrixF;   // deformation gradient
+    Eigen::Matrix3d  matrixFdot;// rate of deformation gradient
+    Eigen::Matrix3d  matrixR;   // rotation matrix in polar decomposition
+    Eigen::Matrix3d  matrixU;   // stretch matrix in polar decomposition
+    Eigen::Matrix3d  matrixE;   // Lagrangian-Green strain
+    Eigen::Matrix3d  matrix_l;  // velocity gradient
+    Eigen::Matrix3d  matrix_d;  // rate of deformation
+    Eigen::Matrix3d  matrix_w;  // spin
+
+    Eigen::Matrix3d  intgraF;   // snapshot-integrated F using Fdot = l F
+    */
+
+    Eigen::Matrix3d avg;
+    REAL actualVolume;
+
+    // averaging for matrixF, only accounting for initially "continuous" tetrahedra
+    avg.setZero();
+    actualVolume = 0;
+    for (int i = 0; i < cellVec.size(); ++i) {
+      if (cellVec[i].getMatrixF() != Eigen::Matrix3d::Zero(3,3)) {
+	avg += cellVec[i].getMatrixF() * cellVec[i].getVolume();
+	actualVolume += cellVec[i].getVolume();
+      }
+    }
+    avg /= actualVolume;
+    Eigen::Matrix3d matrixF = avg;
+
+    // averaging for matrixFdot, only accounting for initially "continuous" tetrahedra
+    avg.setZero();
+    actualVolume = 0;
+    for (int i = 0; i < cellVec.size(); ++i) {
+      if (cellVec[i].getMatrixFdot() != Eigen::Matrix3d::Zero(3,3)) {
+	avg += cellVec[i].getMatrixFdot() * cellVec[i].getVolume();
+	actualVolume += cellVec[i].getVolume();
+      }
+    }
+    avg /= actualVolume;
+    Eigen::Matrix3d matrixFdot = avg;
+
+    // averaging for matrix_l, not associated with initial state of any tetrahedra
+    avg.setZero();
+    for (int i = 0; i < cellVec.size(); ++i) {
+      avg += cellVec[i].getMatrix_l() * cellVec[i].getVolume();
+    }
+    avg /= getGranularCellVolume();
+    Eigen::Matrix3d matrix_l = avg;
+
+    Eigen::Matrix3d matrixE = 0.5 * (matrixF.transpose() * matrixF - Eigen::Matrix3d::Identity(3,3));
+
+    // polar decompostion of matrixF
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(matrixF.transpose() * matrixF);
+    Eigen::Matrix3d matrixU = es.operatorSqrt();           // stretch tensor
+    Eigen::Matrix3d matrixR = matrixF * matrixU.inverse(); // rotation tensor
+
+    // symmetric and skew-symmetric decomposition of matrix_l
+    Eigen::Matrix3d matrix_d = 0.5 * (matrix_l + matrix_l.transpose());
+    Eigen::Matrix3d matrix_w = 0.5 * (matrix_l - matrix_l.transpose());
+
+    // time integration for deformation gradient
+    Eigen::Matrix3d intgraF = (timeIncr * matrix_l + Eigen::Matrix3d::Identity(3,3)) * prevSnapMatrixF;
+    prevSnapMatrixF = intgraF; 
+
+    ///*
+    std::cout << "iteration=" << iteration << " process=" << mpiRank 
+	      << " /////////////////////////////////////////" << std::endl
+	      << "intgraF=" << std::endl << intgraF << std::endl << std::endl
+	      << "matrixF=" << std::endl << matrixF << std::endl << std::endl
+	      << "matrixFdot=" << std::endl << matrixFdot << std::endl << std::endl
+	      << "matrixE=" << std::endl << matrixE << std::endl << std::endl
+	      << "matrixR=" << std::endl << matrixR << std::endl << std::endl
+	      << "matrixU=" << std::endl << matrixU << std::endl << std::endl
+	      << "matrix_l=" << std::endl << matrix_l << std::endl << std::endl
+	      << "matrix_d=" << std::endl << matrix_d << std::endl << std::endl
+	      << "matrix_w=" << std::endl << matrix_w << std::endl << std::endl
+      ;
+    //*/
+    
+    // for printing purpose
+    granularStrain.clear();
+    granularStrain.push_back(matrixF);
+    granularStrain.push_back(matrixR);
+    granularStrain.push_back(matrixU);
+    granularStrain.push_back(matrix_l);    
+    granularStrain.push_back(matrix_d);
+    granularStrain.push_back(matrix_w);
+  }
+
+
+  void Assembly::updateGranularCell() {
+    /* testing rbox 10 D3
+    std::stringstream ptclCoordStream("3 10 \
+-0.0222149361131852 -0.366434993563625 0.3270621312102882 \
+-0.06676722137887703 -0.1566931052661437 0.4589771055234383 \
+0.02820502736438535 0.04189077954915421 0.05832764185809314 \
+0.3126723396709863 0.08400649026409401 -0.1029227018383543 \
+0.1781470954214661 0.1182274414396169 0.04860343742054274 \
+-0.1220315663349177 0.01546165115708642 -0.1360330368727753 \
+-0.3072535691850387 -0.01073880122111998 -0.4870359524963758 \
+0.3867462923626847 0.04492879989084675 0.118335500935405 \
+-0.1352406177997967 0.01093378431250691 -0.2358910583293913 \
+0.3789805913148268 -0.4732086509216658 -0.2177962499836425");
+    */
+
+    std::stringstream ptclCoordStream;
+    ptclCoordStream << 3 << " " << particleVec.size() << " ";
+    for (int i = 0; i < particleVec.size(); ++i)
+      ptclCoordStream << particleVec[i]->getCurrPos().getX() << " "
+		      << particleVec[i]->getCurrPos().getY() << " "
+		      << particleVec[i]->getCurrPos().getZ() << " ";
+    //std::cout << "ptcl coordinate: " << std::endl << ptclCoordStream.str() << std::endl;    
+
+    orgQhull::RboxPoints rbox;
+    rbox.appendPoints(ptclCoordStream); 
+
+    orgQhull::Qhull qhull;
+    qhull.runQhull(rbox, "d Qt i"); // "d Qt Qz Qs i"
+
+    std::stringstream cellConnectStream;
+    qhull.setOutputStream(&cellConnectStream);
+    qhull.outputQhull();
+    //std::cout << "cell connectivity: " << std::endl << cellConnectStream.str() << std::endl;
+
+    int totalNum;
+    cellConnectStream >> totalNum;
+    cellVec.clear();
+    int m, n, i, j;
+    for(int it = 0; it < totalNum; ++it){
+      cellConnectStream >> m >> n >> i >> j;
+      ++m;
+      ++n;
+      ++i;
+      ++j;
+      // Qhull IDs start from 0; FEM IDs start from 1; particleVec[it-1]: must -1 to obtain the corresponding coordinates. 
+      Cell tmpCell(m, n, i, j, particleVec[m-1], particleVec[n-1], particleVec[i-1], particleVec[j-1]);
+      if (fabs(tmpCell.getVolume()) > EPS)
+	cellVec.push_back(tmpCell);
+    }
+    
+    for (int i = 0; i < cellVec.size(); ++i)
+      cellVec[i].setNodeOrderCalcMatrix();
+  }
+
+
+  // only snapshot particle positions for strain measurement
+  void Assembly::snapParticlePos() {
+    for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      (*it)->setSnapPos();
+  }
+
+
+  void Assembly::printGranularStressFEM(const char *str) const {
+    std::ofstream ofs(str);
+    if(!ofs) { debugInf << "stream error: printGranularStressFEM" << std::endl; exit(-1); }
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
+    ofs.precision(OPREC);
+
+    Vec v1 = grid.getMinCorner();
+    Vec v2 = grid.getMaxCorner();
+    Vec vspan = v2 - v1;
+
+    ofs	<< "VARIABLES=" << std::endl
+	<< " " << "x"
+	<< " " << "y"
+	<< " " << "z"
+
+	<< " " << "sigma_xx"
+	<< " " << "sigma_yy"
+	<< " " << "sigma_zz"
+	<< " " << "sigma_xy"
+	<< " " << "sigma_xz"
+	<< " " << "sigma_yz"
+
+	<< " " << "sigmaDot_xx"
+	<< " " << "sigmaDot_yy"
+	<< " " << "sigmaDot_zz"
+	<< " " << "sigmaDot_xy"
+	<< " " << "sigmaDot_xz"
+	<< " " << "sigmaDot_yz"
+
+	<< " " << "Oldro_xx"
+	<< " " << "Oldro_xy"
+	<< " " << "Oldro_xz"
+	<< " " << "Oldro_yx"
+	<< " " << "Oldro_yy"
+	<< " " << "Oldro_yz"
+	<< " " << "Oldro_zx"
+	<< " " << "Oldro_zy"
+	<< " " << "Oldro_zz"
+
+	<< " " << "Trues_xx"
+	<< " " << "Trues_xy"
+	<< " " << "Trues_xz"
+	<< " " << "Trues_yx"
+	<< " " << "Trues_yy"
+	<< " " << "Trues_yz"
+	<< " " << "Trues_zx"
+	<< " " << "Trues_zy"
+	<< " " << "Trues_zz"
+
+	<< " " << "F_xX"
+	<< " " << "F_xY"
+	<< " " << "F_xZ"
+	<< " " << "F_yX"
+	<< " " << "F_yY"
+	<< " " << "F_yZ"
+	<< " " << "F_zX"
+	<< " " << "F_zY"
+	<< " " << "F_zZ"
+
+	<< " " << "R_xX"
+	<< " " << "R_xY"
+	<< " " << "R_xZ"
+	<< " " << "R_yX"
+	<< " " << "R_yY"
+	<< " " << "R_yZ"
+	<< " " << "R_zX"
+	<< " " << "R_zY"
+	<< " " << "R_zZ"
+
+	<< " " << "U_xX"
+	<< " " << "U_yY"
+	<< " " << "U_zZ"
+	<< " " << "U_xY"
+	<< " " << "U_xZ"
+	<< " " << "U_yZ"
+
+	<< " " << "l_xx"
+	<< " " << "l_xy"
+	<< " " << "l_xz"
+	<< " " << "l_yx"
+	<< " " << "l_yy"
+	<< " " << "l_yz"
+	<< " " << "l_zx"
+	<< " " << "l_zy"
+	<< " " << "l_zz"
+
+	<< " " << "d_xx"
+	<< " " << "d_yy"
+	<< " " << "d_zz"
+	<< " " << "d_xy"
+	<< " " << "d_xz"
+	<< " " << "d_yz"
+
+	<< " " << "w_xy"
+	<< " " << "w_xz"
+	<< " " << "w_yz"
+	<< std::endl;
+
+    ofs	<< "ZONE T=\"stress\" N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
+	<< ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=BLOCK, \
+VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,\
+31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,\
+61,62,63,64,65,66,67,68,69,70,71,72,73,74,75]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
+
+    long int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
+    std::vector<Vec> spaceCoords(totalCoord);
+    std::size_t index = 0;
+    for (std::size_t i = 0; i < mpiProcX + 1; ++i)
+      for (std::size_t j = 0; j < mpiProcY + 1; ++j)
+	for (std::size_t k = 0; k < mpiProcZ + 1; ++k)
+	  spaceCoords[index++] = Vec(v1.getX() + vspan.getX() / mpiProcX * i,
+				     v1.getY() + vspan.getY() / mpiProcY * j,
+				     v1.getZ() + vspan.getZ() / mpiProcZ * k);
+
+    // Tecplot: 
+    // BLOCK format must be used for cell-centered data.
+    // For nodal variables, provide the values for each variable in nodal order. 
+    // Similarly, for cell-centered values,provide the variable values in cell order.
+    for (std::size_t i = 0; i < spaceCoords.size(); ++i)
+      ofs << std::setw(OWID) << spaceCoords[i].getX();
+    ofs << std::endl;
+
+    for (std::size_t i = 0; i < spaceCoords.size(); ++i)
+      ofs << std::setw(OWID) << spaceCoords[i].getY();
+    ofs << std::endl;
+
+    for (std::size_t i = 0; i < spaceCoords.size(); ++i)
+      ofs << std::setw(OWID) << spaceCoords[i].getZ();
+    ofs << std::endl;
+
+    // The order of MPI gather agrees with (int iRank = 0; iRank < mpiSize; ++iRank) below.
+    // In setCommunicator(), int reorder = 0; // mpiRank not reordered
+    int numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stress[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stressRate[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].OldroStressRate[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].TruesStressRate[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].deformGradient[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].rotation[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stretch[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].velocityGradient[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].rateOfDeform[j];
+      ofs << std::endl;
+    }
+
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].spin[j];
+      ofs << std::endl;
+    }
+
+    // The order agrees with MPI gather order.
+    // In setCommunicator(), int reorder = 0; // mpiRank not reordered
+    for (int iRank = 0; iRank < mpiSize; ++iRank) {
+      int coords[3];
+      MPI_Cart_coords(cartComm, iRank, 3, coords);
+
+      int id4 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
+      int id1 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
+      int id3 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
+      int id2 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
+
+      int id8 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
+      int id5 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
+      int id7 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
+      int id6 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
+
+      ofs << std::setw(8) << id1 << std::setw(8) << id2 << std::setw(8) << id3 << std::setw(8) << id4 
+	  << std::setw(8) << id5 << std::setw(8) << id6 << std::setw(8) << id7 << std::setw(8) << id8 << std::endl;
+    }
+
+    ofs.close();
+  }
+
+
+  void Assembly::printGranularStressOrdered(const char *str) const {
+    std::ofstream ofs(str);
+    if(!ofs) { debugInf << "stream error: printGranularStressOrdered" << std::endl; exit(-1); }
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
+    ofs.precision(OPREC);
+    //ofs << std::setw(OWID) << printStressVec.size() << std::endl;
+
+    ofs	<< std::setw(OWID) << "VARIABLES=" << std::endl
+	<< std::setw(OWID) << "x"
+	<< std::setw(OWID) << "y"
+	<< std::setw(OWID) << "z"
+
+	<< std::setw(OWID) << "sigma_xx"
+	<< std::setw(OWID) << "sigma_yy"
+	<< std::setw(OWID) << "sigma_zz"
+	<< std::setw(OWID) << "sigma_xy"
+	<< std::setw(OWID) << "sigma_xz"
+	<< std::setw(OWID) << "sigma_yz"
+
+	<< std::setw(OWID) << "sigmaDot_xx"
+	<< std::setw(OWID) << "sigmaDot_yy"
+	<< std::setw(OWID) << "sigmaDot_zz"
+	<< std::setw(OWID) << "sigmaDot_xy"
+	<< std::setw(OWID) << "sigmaDot_xz"
+	<< std::setw(OWID) << "sigmaDot_yz"
+
+	<< std::setw(OWID) << "Oldro_xx"
+	<< std::setw(OWID) << "Oldro_xy"
+	<< std::setw(OWID) << "Oldro_xz"
+	<< std::setw(OWID) << "Oldro_yx"
+	<< std::setw(OWID) << "Oldro_yy"
+	<< std::setw(OWID) << "Oldro_yz"
+	<< std::setw(OWID) << "Oldro_zx"
+	<< std::setw(OWID) << "Oldro_zy"
+	<< std::setw(OWID) << "Oldro_zz"
+
+	<< std::setw(OWID) << "Trues_xx"
+	<< std::setw(OWID) << "Trues_xy"
+	<< std::setw(OWID) << "Trues_xz"
+	<< std::setw(OWID) << "Trues_yx"
+	<< std::setw(OWID) << "Trues_yy"
+	<< std::setw(OWID) << "Trues_yz"
+	<< std::setw(OWID) << "Trues_zx"
+	<< std::setw(OWID) << "Trues_zy"
+	<< std::setw(OWID) << "Trues_zz"
+
+	<< std::setw(OWID) << "F_xX"
+	<< std::setw(OWID) << "F_xY"
+	<< std::setw(OWID) << "F_xZ"
+	<< std::setw(OWID) << "F_yX"
+	<< std::setw(OWID) << "F_yY"
+	<< std::setw(OWID) << "F_yZ"
+	<< std::setw(OWID) << "F_zX"
+	<< std::setw(OWID) << "F_zY"
+	<< std::setw(OWID) << "F_zZ"
+
+	<< std::setw(OWID) << "R_xX"
+	<< std::setw(OWID) << "R_xY"
+	<< std::setw(OWID) << "R_xZ"
+	<< std::setw(OWID) << "R_yX"
+	<< std::setw(OWID) << "R_yY"
+	<< std::setw(OWID) << "R_yZ"
+	<< std::setw(OWID) << "R_zX"
+	<< std::setw(OWID) << "R_zY"
+	<< std::setw(OWID) << "R_zZ"
+
+	<< std::setw(OWID) << "U_xX"
+	<< std::setw(OWID) << "U_yY"
+	<< std::setw(OWID) << "U_zZ"
+	<< std::setw(OWID) << "U_xY"
+	<< std::setw(OWID) << "U_xZ"
+	<< std::setw(OWID) << "U_yZ"
+
+	<< std::setw(OWID) << "l_xx"
+	<< std::setw(OWID) << "l_xy"
+	<< std::setw(OWID) << "l_xz"
+	<< std::setw(OWID) << "l_yx"
+	<< std::setw(OWID) << "l_yy"
+	<< std::setw(OWID) << "l_yz"
+	<< std::setw(OWID) << "l_zx"
+	<< std::setw(OWID) << "l_zy"
+	<< std::setw(OWID) << "l_zz"
+
+	<< std::setw(OWID) << "d_xx"
+	<< std::setw(OWID) << "d_yy"
+	<< std::setw(OWID) << "d_zz"
+	<< std::setw(OWID) << "d_xy"
+	<< std::setw(OWID) << "d_xz"
+	<< std::setw(OWID) << "d_yz"
+
+	<< std::setw(OWID) << "w_xy"
+	<< std::setw(OWID) << "w_xz"
+	<< std::setw(OWID) << "w_yz"
+	<< std::endl;
+
+    ofs << "ZONE I=" << mpiProcX
+	<< ", J=" << mpiProcY
+	<< ", K=" << mpiProcZ
+	<< ", DATAPACKING=POINT"
+	<< std::endl;
+
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      printStressVec[i].print(ofs);
+    }
+
+    ofs.close();
+  }
+
+
+  void Assembly::convertGranularStressForPrint() {
+    printStress.setZero();
+
+    // container: last update in commuParticle(); next update in migrateParticle() 
+    printStress.coord[0]  = container.getCenter().getX();
+    printStress.coord[1]  = container.getCenter().getY();
+    printStress.coord[2]  = container.getCenter().getZ();
+
+    printStress.stress[0] = granularStress(0,0);
+    printStress.stress[1] = granularStress(1,1);
+    printStress.stress[2] = granularStress(2,2);
+    printStress.stress[3] = (granularStress(0,1) + granularStress(1,0)) / 2;
+    printStress.stress[4] = (granularStress(0,2) + granularStress(2,0)) / 2;
+    printStress.stress[5] = (granularStress(1,2) + granularStress(2,1)) / 2;
+
+    printStress.stressRate[0] = granularStressRate(0,0);
+    printStress.stressRate[1] = granularStressRate(1,1);
+    printStress.stressRate[2] = granularStressRate(2,2);
+    printStress.stressRate[3] = (granularStressRate(0,1) + granularStressRate(1,0)) / 2;
+    printStress.stressRate[4] = (granularStressRate(0,2) + granularStressRate(2,0)) / 2;
+    printStress.stressRate[5] = (granularStressRate(1,2) + granularStressRate(2,1)) / 2;
+
+    printStress.OldroStressRate[0] = OldroStressRate(0,0);
+    printStress.OldroStressRate[1] = OldroStressRate(0,1);
+    printStress.OldroStressRate[2] = OldroStressRate(0,2);
+    printStress.OldroStressRate[3] = OldroStressRate(1,0);
+    printStress.OldroStressRate[4] = OldroStressRate(1,1);
+    printStress.OldroStressRate[5] = OldroStressRate(1,2);
+    printStress.OldroStressRate[6] = OldroStressRate(2,0);
+    printStress.OldroStressRate[7] = OldroStressRate(2,1);
+    printStress.OldroStressRate[8] = OldroStressRate(2,2);
+
+    printStress.TruesStressRate[0] = TruesStressRate(0,0);
+    printStress.TruesStressRate[1] = TruesStressRate(0,1);
+    printStress.TruesStressRate[2] = TruesStressRate(0,2);
+    printStress.TruesStressRate[3] = TruesStressRate(1,0);
+    printStress.TruesStressRate[4] = TruesStressRate(1,1);
+    printStress.TruesStressRate[5] = TruesStressRate(1,2);
+    printStress.TruesStressRate[6] = TruesStressRate(2,0);
+    printStress.TruesStressRate[7] = TruesStressRate(2,1);
+    printStress.TruesStressRate[8] = TruesStressRate(2,2);
+
+    //std::cout << "granularStrain.size()=" << granularStrain.size() << std::endl;
+    if (granularStrain.size() == 6) { // otherwise it could be empty
+
+      int i = 0;
+      printStress.deformGradient[0] = granularStrain[i](0,0);
+      printStress.deformGradient[1] = granularStrain[i](0,1);
+      printStress.deformGradient[2] = granularStrain[i](0,2);
+      printStress.deformGradient[3] = granularStrain[i](1,0);
+      printStress.deformGradient[4] = granularStrain[i](1,1);
+      printStress.deformGradient[5] = granularStrain[i](1,2);
+      printStress.deformGradient[6] = granularStrain[i](2,0);
+      printStress.deformGradient[7] = granularStrain[i](2,1);
+      printStress.deformGradient[8] = granularStrain[i](2,2);
+
+      ++i;
+      printStress.rotation[0] = granularStrain[i](0,0);
+      printStress.rotation[1] = granularStrain[i](0,1);
+      printStress.rotation[2] = granularStrain[i](0,2);
+      printStress.rotation[3] = granularStrain[i](1,0);
+      printStress.rotation[4] = granularStrain[i](1,1);
+      printStress.rotation[5] = granularStrain[i](1,2);
+      printStress.rotation[6] = granularStrain[i](2,0);
+      printStress.rotation[7] = granularStrain[i](2,1);
+      printStress.rotation[8] = granularStrain[i](2,2);
+
+      ++i;
+      printStress.stretch[0] = granularStrain[i](0,0);
+      printStress.stretch[1] = granularStrain[i](1,1);
+      printStress.stretch[2] = granularStrain[i](2,2);
+      printStress.stretch[3] = granularStrain[i](0,1);
+      printStress.stretch[4] = granularStrain[i](0,2);
+      printStress.stretch[5] = granularStrain[i](1,2);
+
+      ++i;
+      printStress.velocityGradient[0] = granularStrain[i](0,0);
+      printStress.velocityGradient[1] = granularStrain[i](0,1);
+      printStress.velocityGradient[2] = granularStrain[i](0,2);
+      printStress.velocityGradient[3] = granularStrain[i](1,0);
+      printStress.velocityGradient[4] = granularStrain[i](1,1);
+      printStress.velocityGradient[5] = granularStrain[i](1,2);
+      printStress.velocityGradient[6] = granularStrain[i](2,0);
+      printStress.velocityGradient[7] = granularStrain[i](2,1);
+      printStress.velocityGradient[8] = granularStrain[i](2,2);
+
+      ++i;
+      printStress.rateOfDeform[0] = granularStrain[i](0,0);
+      printStress.rateOfDeform[1] = granularStrain[i](1,1);
+      printStress.rateOfDeform[2] = granularStrain[i](2,2);
+      printStress.rateOfDeform[3] = granularStrain[i](0,1);
+      printStress.rateOfDeform[4] = granularStrain[i](0,2);
+      printStress.rateOfDeform[5] = granularStrain[i](1,2);
+
+      ++i;
+      printStress.spin[0] = granularStrain[i](0,1);
+      printStress.spin[1] = granularStrain[i](0,2);
+      printStress.spin[2] = granularStrain[i](1,2);
+    }
+
+  }
+
+
+  REAL Assembly::getGranularCellVolume() {
+    REAL volume = 0;
+    for (int i = 0; i < cellVec.size(); ++i)
+      volume += cellVec[i].getVolume();
+    //std::cout << "volume = " << volume << std::endl;
+    return volume;
+  }
+
+
+  void Assembly::calcGranularStress(Eigen::Matrix3d &stress) { // sigma(i,j) = 1/V sum(li Fj)
+    stress.setZero();
+
+    Eigen::Vector3d lc, p1Center, p2Center;	
+    Eigen::RowVector3d Fc;
+    lc.setZero();
+    Fc.setZero();
+    p1Center.setZero();
+    p2Center.setZero();
+
+    for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
+      p1Center(0) = it->getP1()->getCurrPos().getX();
+      p1Center(1) = it->getP1()->getCurrPos().getY();
+      p1Center(2) = it->getP1()->getCurrPos().getZ();
+
+      p2Center(0) = it->getP2()->getCurrPos().getX();
+      p2Center(1) = it->getP2()->getCurrPos().getY();
+      p2Center(2) = it->getP2()->getCurrPos().getZ();
+
+      lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
+      Fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
+      Fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
+      Fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
+
+      //std::cout << "lc=" << lc.transpose() << " Fc=" << Fc << std::endl; 
+      stress += lc * Fc;
+    }
+
+    //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
+    stress /= getGranularCellVolume();
+  }
+#endif
+// end of #ifdef STRESS_STRAIN
+
   void Assembly::gatherEnergy() {
     calcTransEnergy();
     calcRotatEnergy();
@@ -3816,6 +4593,7 @@ namespace dem {
 
     ofs.close();
   }
+
 
 #ifndef BIGON
   void Assembly::findContact() { // various implementations
