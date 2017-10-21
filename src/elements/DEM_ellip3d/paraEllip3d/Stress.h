@@ -23,6 +23,7 @@ namespace dem {
     REAL coord[3];
     REAL stress[6];           // symmetric
     REAL stressRate[6];       // symmetric
+
     REAL OldroStressRate[9];  // unsymmetric
     REAL TruesStressRate[9];  // unsymmetric
 
@@ -35,6 +36,13 @@ namespace dem {
     REAL spin[3];             // skew-symmetric
 
     REAL norm[9];             // norm of above tensors, except for rotation
+
+    REAL stressEigenValue[3];
+    REAL stressEigenVector[9];
+    REAL stressRateEigenValue[3];
+    REAL stressRateEigenVector[9];
+    REAL rateOfDeformEigenValue[3];
+    REAL rateOfDeformEigenVector[9];
     
     friend class boost::serialization::access;
     template<class Archive>
@@ -51,6 +59,12 @@ namespace dem {
       ar & rateOfDeform;
       ar & spin;
       ar & norm;
+      ar & stressEigenValue;
+      ar & stressEigenVector;
+      ar & stressRateEigenValue;
+      ar & stressRateEigenVector;
+      ar & rateOfDeformEigenValue;
+      ar & rateOfDeformEigenVector;
     }
     
   };

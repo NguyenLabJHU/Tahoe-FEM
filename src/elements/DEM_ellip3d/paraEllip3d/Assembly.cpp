@@ -3143,7 +3143,7 @@ namespace dem {
 #ifdef STRESS_STRAIN
   void Assembly::calcPrevGranularStress() {
     prevGranularStress.setZero();
-    if (particleVec.size() >= 125) {
+    if (particleVec.size() >= 10) {
       updateGranularCell();
       calcGranularStress(prevGranularStress);
     }
@@ -3159,7 +3159,7 @@ namespace dem {
     TruesStressRate.setZero(); 
     granularStrain.clear();
 
-    if (particleVec.size() >= 125) {
+    if (particleVec.size() >= 10) {
       updateGranularCell();
       calcGranularStress(granularStress);
       calcGranularStrain(timeIncr);
@@ -3452,13 +3452,54 @@ namespace dem {
 	<< " " << "norm_d"
 	<< " " << "norm_w"
 
+	<< " " << "sigma_1"
+	<< " " << "sigma_2"
+	<< " " << "sigma_3"
+	<< " " << "sigma_1_v1"
+	<< " " << "sigma_1_v2"
+	<< " " << "sigma_1_v3"
+	<< " " << "sigma_2_v1"
+	<< " " << "sigma_2_v2"
+	<< " " << "sigma_2_v3"
+	<< " " << "sigma_3_v1"
+	<< " " << "sigma_3_v2"
+	<< " " << "sigma_3_v3"
+
+	<< " " << "sigmaDot_1"
+	<< " " << "sigmaDot_2"
+	<< " " << "sigmaDot_3"
+	<< " " << "sigmaDot_1_v1"
+	<< " " << "sigmaDot_1_v2"
+	<< " " << "sigmaDot_1_v3"
+	<< " " << "sigmaDot_2_v1"
+	<< " " << "sigmaDot_2_v2"
+	<< " " << "sigmaDot_2_v3"
+	<< " " << "sigmaDot_3_v1"
+	<< " " << "sigmaDot_3_v2"
+	<< " " << "sigmaDot_3_v3"
+
+	<< " " << "d_1"
+	<< " " << "d_2"
+	<< " " << "d_3"
+	<< " " << "d_1_v1"
+	<< " " << "d_1_v2"
+	<< " " << "d_1_v3"
+	<< " " << "d_2_v1"
+	<< " " << "d_2_v2"
+	<< " " << "d_2_v3"
+	<< " " << "d_3_v1"
+	<< " " << "d_3_v2"
+	<< " " << "d_3_v3"
+
 	<< std::endl;
 
     ofs	<< "ZONE T=\"stress\" N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
 	<< ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=BLOCK, \
 VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,\
 31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,\
-61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
+61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
+91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
+116,117,118,119,120]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
 
     long int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
@@ -3562,6 +3603,48 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (int j = 0; j < numCompo; ++j) {
       for (int i = 0; i < printStressVec.size(); ++i)
 	ofs << std::setw(OWID) << printStressVec[i].norm[j];
+      ofs << std::endl;
+    }
+
+    // eigen of stress
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stressEigenValue[j];
+      ofs << std::endl;
+    }
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stressEigenVector[j];
+      ofs << std::endl;
+    }
+
+    // eigen of stressRate
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stressRateEigenValue[j];
+      ofs << std::endl;
+    }
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].stressRateEigenVector[j];
+      ofs << std::endl;
+    }
+
+    // eigen of rateOfDeform
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].rateOfDeformEigenValue[j];
+      ofs << std::endl;
+    }
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].rateOfDeformEigenVector[j];
       ofs << std::endl;
     }
 
@@ -3693,6 +3776,45 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "norm_d"
 	<< std::setw(OWID) << "norm_w"
 
+	<< std::setw(OWID) << "sigma_1"
+	<< std::setw(OWID) << "sigma_2"
+	<< std::setw(OWID) << "sigma_3"
+	<< std::setw(OWID) << "sigma_1_v1"
+	<< std::setw(OWID) << "sigma_1_v2"
+	<< std::setw(OWID) << "sigma_1_v3"
+	<< std::setw(OWID) << "sigma_2_v1"
+	<< std::setw(OWID) << "sigma_2_v2"
+	<< std::setw(OWID) << "sigma_2_v3"
+	<< std::setw(OWID) << "sigma_3_v1"
+	<< std::setw(OWID) << "sigma_3_v2"
+	<< std::setw(OWID) << "sigma_3_v3"
+
+	<< std::setw(OWID) << "sigmaDot_1"
+	<< std::setw(OWID) << "sigmaDot_2"
+	<< std::setw(OWID) << "sigmaDot_3"
+	<< std::setw(OWID) << "sigmaDot_1_v1"
+	<< std::setw(OWID) << "sigmaDot_1_v2"
+	<< std::setw(OWID) << "sigmaDot_1_v3"
+	<< std::setw(OWID) << "sigmaDot_2_v1"
+	<< std::setw(OWID) << "sigmaDot_2_v2"
+	<< std::setw(OWID) << "sigmaDot_2_v3"
+	<< std::setw(OWID) << "sigmaDot_3_v1"
+	<< std::setw(OWID) << "sigmaDot_3_v2"
+	<< std::setw(OWID) << "sigmaDot_3_v3"
+
+	<< std::setw(OWID) << "d_1"
+	<< std::setw(OWID) << "d_2"
+	<< std::setw(OWID) << "d_3"
+	<< std::setw(OWID) << "d_1_v1"
+	<< std::setw(OWID) << "d_1_v2"
+	<< std::setw(OWID) << "d_1_v3"
+	<< std::setw(OWID) << "d_2_v1"
+	<< std::setw(OWID) << "d_2_v2"
+	<< std::setw(OWID) << "d_2_v3"
+	<< std::setw(OWID) << "d_3_v1"
+	<< std::setw(OWID) << "d_3_v2"
+	<< std::setw(OWID) << "d_3_v3"
+
 	<< std::endl;
 
     ofs << "ZONE I=" << mpiProcX
@@ -3822,6 +3944,60 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       printStress.norm[8] = granularStrain[5].norm();
     }
 
+    Eigen::Vector3d value;
+    Eigen::Matrix3d vectors;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+
+    // Eigen: The eigenvalues are sorted in increasing order, and eigenvectors follow eigenvalues.
+    es.compute(granularStress);
+    value   = es.eigenvalues();
+    vectors = es.eigenvectors();
+    printStress.stressEigenValue[0] = value(0);
+    printStress.stressEigenValue[1] = value(1);
+    printStress.stressEigenValue[2] = value(2);
+    printStress.stressEigenVector[0]= vectors.col(0)(0);
+    printStress.stressEigenVector[1]= vectors.col(0)(1);
+    printStress.stressEigenVector[2]= vectors.col(0)(2);
+    printStress.stressEigenVector[3]= vectors.col(1)(0);
+    printStress.stressEigenVector[4]= vectors.col(1)(1);
+    printStress.stressEigenVector[5]= vectors.col(1)(2);
+    printStress.stressEigenVector[6]= vectors.col(2)(0);
+    printStress.stressEigenVector[7]= vectors.col(2)(1);
+    printStress.stressEigenVector[8]= vectors.col(2)(2);
+
+    es.compute(granularStressRate);
+    value   = es.eigenvalues();
+    vectors = es.eigenvectors();
+    printStress.stressRateEigenValue[0] = value(0);
+    printStress.stressRateEigenValue[1] = value(1);
+    printStress.stressRateEigenValue[2] = value(2);
+    printStress.stressRateEigenVector[0]= vectors.col(0)(0);
+    printStress.stressRateEigenVector[1]= vectors.col(0)(1);
+    printStress.stressRateEigenVector[2]= vectors.col(0)(2);
+    printStress.stressRateEigenVector[3]= vectors.col(1)(0);
+    printStress.stressRateEigenVector[4]= vectors.col(1)(1);
+    printStress.stressRateEigenVector[5]= vectors.col(1)(2);
+    printStress.stressRateEigenVector[6]= vectors.col(2)(0);
+    printStress.stressRateEigenVector[7]= vectors.col(2)(1);
+    printStress.stressRateEigenVector[8]= vectors.col(2)(2);
+
+    if (granularStrain.size() == 6) { // otherwise it could be empty
+      es.compute(granularStrain[4]);  // rateOfDeform
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.rateOfDeformEigenValue[0] = value(0);
+      printStress.rateOfDeformEigenValue[1] = value(1);
+      printStress.rateOfDeformEigenValue[2] = value(2);
+      printStress.rateOfDeformEigenVector[0]= vectors.col(0)(0);
+      printStress.rateOfDeformEigenVector[1]= vectors.col(0)(1);
+      printStress.rateOfDeformEigenVector[2]= vectors.col(0)(2);
+      printStress.rateOfDeformEigenVector[3]= vectors.col(1)(0);
+      printStress.rateOfDeformEigenVector[4]= vectors.col(1)(1);
+      printStress.rateOfDeformEigenVector[5]= vectors.col(1)(2);
+      printStress.rateOfDeformEigenVector[6]= vectors.col(2)(0);
+      printStress.rateOfDeformEigenVector[7]= vectors.col(2)(1);
+      printStress.rateOfDeformEigenVector[8]= vectors.col(2)(2);
+    }
   }
 
 

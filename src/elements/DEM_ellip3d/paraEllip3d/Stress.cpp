@@ -16,6 +16,9 @@ namespace dem {
     for (int i = 0; i < 3; ++i) {
       coord[i] = 0;
       spin[i] = 0;
+      stressEigenValue[i] = 0;
+      stressRateEigenValue[i] = 0;
+      rateOfDeformEigenValue[i] = 0;
     }
 
     for (int i = 0; i < 6; ++i) {
@@ -32,6 +35,9 @@ namespace dem {
       deformGradient[i] = 0;
       rotation[i] = 0;
       norm[i] = 0;
+      stressEigenVector[i] = 0;
+      stressRateEigenVector[i] = 0;
+      rateOfDeformEigenVector[i] = 0;
     }
 
   } 
@@ -76,6 +82,21 @@ namespace dem {
 	<< std::setw(OWID) << norm[0]<< std::setw(OWID) << norm[1]<< std::setw(OWID) << norm[2]
 	<< std::setw(OWID) << norm[3]<< std::setw(OWID) << norm[4]<< std::setw(OWID) << norm[5]
 	<< std::setw(OWID) << norm[6]<< std::setw(OWID) << norm[7]<< std::setw(OWID) << norm[8]
+
+	<< std::setw(OWID) << stressEigenValue[0]<< std::setw(OWID) << stressEigenValue[1]<< std::setw(OWID) << stressEigenValue[2]
+	<< std::setw(OWID) << stressEigenVector[0]<< std::setw(OWID) << stressEigenVector[1]<< std::setw(OWID) << stressEigenVector[2]
+	<< std::setw(OWID) << stressEigenVector[3]<< std::setw(OWID) << stressEigenVector[4]<< std::setw(OWID) << stressEigenVector[5]
+	<< std::setw(OWID) << stressEigenVector[6]<< std::setw(OWID) << stressEigenVector[7]<< std::setw(OWID) << stressEigenVector[8]
+
+	<< std::setw(OWID) << stressRateEigenValue[0]<< std::setw(OWID) << stressRateEigenValue[1]<< std::setw(OWID) << stressRateEigenValue[2]
+	<< std::setw(OWID) << stressRateEigenVector[0]<< std::setw(OWID) << stressRateEigenVector[1]<< std::setw(OWID) << stressRateEigenVector[2]
+	<< std::setw(OWID) << stressRateEigenVector[3]<< std::setw(OWID) << stressRateEigenVector[4]<< std::setw(OWID) << stressRateEigenVector[5]
+	<< std::setw(OWID) << stressRateEigenVector[6]<< std::setw(OWID) << stressRateEigenVector[7]<< std::setw(OWID) << stressRateEigenVector[8]
+
+	<< std::setw(OWID) << rateOfDeformEigenValue[0]<< std::setw(OWID) << rateOfDeformEigenValue[1]<< std::setw(OWID) << rateOfDeformEigenValue[2]
+	<< std::setw(OWID) << rateOfDeformEigenVector[0]<< std::setw(OWID) << rateOfDeformEigenVector[1]<< std::setw(OWID) << rateOfDeformEigenVector[2]
+	<< std::setw(OWID) << rateOfDeformEigenVector[3]<< std::setw(OWID) << rateOfDeformEigenVector[4]<< std::setw(OWID) << rateOfDeformEigenVector[5]
+	<< std::setw(OWID) << rateOfDeformEigenVector[6]<< std::setw(OWID) << rateOfDeformEigenVector[7]<< std::setw(OWID) << rateOfDeformEigenVector[8]
 
 	<< std::endl;
   }
