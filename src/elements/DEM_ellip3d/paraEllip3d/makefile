@@ -280,6 +280,7 @@ else
  ifeq ($(QHULL), yes)
   QHULL_INCLUDE=-I$(QHULL_ROOT)/src
   QHULL_LIB_DIR=-L$(QHULL_ROOT)/lib
+  ## it depends on the type of Boost libraries; or use -Bstatic -Bdynamic to control.
   QHULL_LIBS=-lqhullcpp -lqhullstatic_r
   #QHULL_LIBS=-lqhullcpp -lqhull_r
   #QHULL_RUN_LIB_DIR=-Wl,-rpath=$(QHULL_ROOT)/lib
