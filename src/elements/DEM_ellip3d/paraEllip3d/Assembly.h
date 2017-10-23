@@ -88,7 +88,7 @@ namespace dem {
     Eigen::Matrix3d OldroStressRate;    // Oldroyd stress rate, per process
     Eigen::Matrix3d TruesStressRate;    // Truesdell stress rate, per process
     Eigen::Matrix3d prevSnapMatrixF;    // deformation gradient at previous snapshot, per process
-    std::vector<Eigen::Matrix3d> granularStrain; // granular strains, per process
+    std::map<std::string, Eigen::Matrix3d> granularStrain; // granular strains, per process
     Stress printStress;                 // only for printing, per process
     std::vector<Stress> printStressVec; // only meaningful to root process
     std::vector<Cell> cellVec;          // cells (tetrahedra) per process
@@ -211,7 +211,7 @@ namespace dem {
 
 #ifdef STRESS_STRAIN
     // continuum functions
-    void gatherGranularStress(REAL timeStep, REAL timeIncr);
+    void gatherGranularStress(REAL timeStep, REAL timeIncr, const char *str);
     void updateGranularCell();
     void snapParticlePos();
     REAL getGranularCellVolume();
@@ -300,7 +300,7 @@ namespace dem {
     void plotGrid(const char *str) const;
     void plotCavity(const char *str) const;
     void checkMembrane(std::vector<REAL> &vx ) const;
-    void printContact(char *str) const;        // print contacts information
+    void printContact(const char *str) const;        // print contacts information
     void printBoundary(const char *str) const; // print rigid boundaries info
     void printCavityBoundary(const char *str) const; // print cavity boundaries
     void printCavityParticle(std::size_t total, const char *str) const;
