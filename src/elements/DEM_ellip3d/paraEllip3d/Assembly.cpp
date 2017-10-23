@@ -322,8 +322,8 @@ namespace dem {
     /**/REAL timeIncr  = timeStep * netStep;
     /**/REAL timeTotal = timeAccrued + timeStep * netStep;
     if (mpiRank == 0) {
-      plotBoundary((combineString("deposit_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("deposit_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("deposit_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("deposit_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("deposit_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("deposit_bdrycntc_", iterSnap -1, 3).c_str());
     }
@@ -415,14 +415,14 @@ namespace dem {
 #endif
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("deposit_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("deposit_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("deposit_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("deposit_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("deposit_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("deposit_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
 #ifdef STRESS_STRAIN
-	  printGranularStressFEM((combineString("deposit_stress_plot_", iterSnap, 3)+".dat").c_str());
-	  printGranularStressOrdered((combineString("deposit_stress_data_", iterSnap, 3)+".dat").c_str());
+	  printGranularStressFEM((combineString("deposit_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("deposit_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
 	printContact(combineString("deposit_contact_", iterSnap, 3).c_str());
@@ -552,8 +552,8 @@ namespace dem {
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
     if (mpiRank == 0) {
-      plotBoundary((combineString("isotropic_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("isotropic_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("isotropic_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("isotropic_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("isotropic_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("isotropic_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("isotropic_boundary_", iterSnap - 1, 3).c_str());
@@ -593,15 +593,15 @@ namespace dem {
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("isotropic_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("isotropic_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("isotropic_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("isotropic_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("isotropic_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("isotropic_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("isotropic_boundary_", iterSnap, 3).c_str());
 	  printCompressProg(progressInf, distX, distY, distZ);
 #ifdef STRESS_STRAIN
-	  printGranularStressFEM((combineString("isotropic_stress_plot_", iterSnap, 3)+".dat").c_str());
-	  printGranularStressOrdered((combineString("isotropic_stress_data_", iterSnap, 3)+".dat").c_str());
+	  printGranularStressFEM((combineString("isotropic_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("isotropic_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
 	printContact(combineString("isotropic_contact_", iterSnap, 3).c_str());      
@@ -716,8 +716,8 @@ namespace dem {
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
     if (mpiRank == 0) {
-      plotBoundary((combineString("oedometer_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("oedometer_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("oedometer_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("oedometer_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("oedometer_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("oedometer_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("oedometer_boundary_", iterSnap - 1, 3).c_str());
@@ -757,15 +757,15 @@ namespace dem {
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("oedometer_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("oedometer_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("oedometer_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("oedometer_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("oedometer_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("oedometer_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("oedometer_boundary_", iterSnap, 3).c_str());
 	  printCompressProg(progressInf, distX, distY, distZ);
 #ifdef STRESS_STRAIN
-	  printGranularStressFEM((combineString("oedometer_stress_plot_", iterSnap, 3)+".dat").c_str());
-	  printGranularStressOrdered((combineString("oedometer_stress_data_", iterSnap, 3)+".dat").c_str());
+	  printGranularStressFEM((combineString("oedometer_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("oedometer_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
 	printContact(combineString("oedometer_contact_", iterSnap, 3).c_str());      
@@ -849,8 +849,8 @@ namespace dem {
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
     if (mpiRank == 0) {
-      plotBoundary((combineString("triaxial_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("triaxial_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("triaxial_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("triaxial_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("triaxial_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("triaxial_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("triaxial_boundary_", iterSnap - 1, 3).c_str());
@@ -891,15 +891,15 @@ namespace dem {
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("triaxial_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("triaxial_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("triaxial_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("triaxial_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("triaxial_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("triaxial_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("triaxial_boundary_", iterSnap, 3).c_str());
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
 #ifdef STRESS_STRAIN
-	  printGranularStressFEM((combineString("triaxial_stress_plot_", iterSnap, 3)+".dat").c_str());
-	  printGranularStressOrdered((combineString("triaxial_stress_data_", iterSnap, 3)+".dat").c_str());
+	  printGranularStressFEM((combineString("triaxial_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("triaxial_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
 	printContact(combineString("triaxial_contact_", iterSnap, 3).c_str());      
@@ -957,8 +957,8 @@ namespace dem {
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
     if (mpiRank == 0) {
-      plotBoundary((combineString("plnstrn_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("plnstrn_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("plnstrn_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("plnstrn_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("plnstrn_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("plnstrn_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("plnstrn_boundary_", iterSnap - 1, 3).c_str());
@@ -999,15 +999,15 @@ namespace dem {
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("plnstrn_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("plnstrn_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("plnstrn_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("plnstrn_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("plnstrn_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("plnstrn_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("plnstrn_boundary_", iterSnap, 3).c_str());
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
 #ifdef STRESS_STRAIN
-	  printGranularStressFEM((combineString("plnstrn_stress_plot_", iterSnap, 3)+".dat").c_str());
-	  printGranularStressOrdered((combineString("plnstrn_stress_data_", iterSnap, 3)+".dat").c_str());
+	  printGranularStressFEM((combineString("plnstrn_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("plnstrn_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
 	printContact(combineString("plnstrn_contact_", iterSnap, 3).c_str());      
@@ -1093,8 +1093,8 @@ namespace dem {
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
     if (mpiRank == 0) {
-      plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("trueTriaxial_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("trueTriaxial_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("trueTriaxial_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("trueTriaxial_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("trueTriaxial_boundary_", iterSnap - 1, 3).c_str());
@@ -1134,15 +1134,15 @@ namespace dem {
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("trueTriaxial_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("trueTriaxial_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("trueTriaxial_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("trueTriaxial_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("trueTriaxial_boundary_", iterSnap, 3).c_str());
 	  printCompressProg(progressInf, distX, distY, distZ);
 #ifdef STRESS_STRAIN
-	  printGranularStressFEM((combineString("trueTriaxial_stress_plot_", iterSnap, 3)+".dat").c_str());
-	  printGranularStressOrdered((combineString("trueTriaxial_stress_data_", iterSnap, 3)+".dat").c_str());
+	  printGranularStressFEM((combineString("trueTriaxial_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("trueTriaxial_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
 	printContact(combineString("trueTriaxial_contact_", iterSnap, 3).c_str());      
@@ -1330,11 +1330,11 @@ namespace dem {
     REAL timeIncr  = timeStep * netStep;
     REAL timeTotal = timeAccrued + timeIncr;
     if (mpiRank == 0) {
-      plotBoundary((combineString("couple_bdryplot_", iterSnap - 1, 3)+".dat").c_str());
-      plotGrid((combineString("couple_gridplot_", iterSnap - 1, 3)+".dat").c_str());
+      plotBoundary((combineString("couple_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("couple_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
-      /*3*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3)+".dat").c_str()); 
+      /*3*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str()); 
     }
     /*
     if (mpiRank == 0)
@@ -1393,12 +1393,12 @@ namespace dem {
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpiRank == 0) {
-	  plotBoundary((combineString("couple_bdryplot_", iterSnap, 3)+".dat").c_str());
-	  plotGrid((combineString("couple_gridplot_", iterSnap, 3)+".dat").c_str());
+	  plotBoundary((combineString("couple_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("couple_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("couple_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
-	  /*8*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3)+".dat").c_str());
+	  /*8*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str());
 	}
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
       
@@ -3164,11 +3164,20 @@ namespace dem {
       inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpiRank 
 	  << std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpiCoords[0] << std::setw(OWID) << mpiCoords[1] << std::setw(OWID) << mpiCoords[2] << std::endl;
 
-      // OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
-      inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
+      // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
+
+      inf << std::setw(OWID) << std::left << "sigma=[ ..." << std::right << std::endl;
       for (int i = 0; i < 3; ++i) {
 	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["F"](i,j);
+	  inf << std::setw(OWID) << granularStress(i,j);
+	if (i < 2) inf << ";"; else inf << "]";
+	inf << std::endl;
+      }
+
+      inf << std::setw(OWID) << std::left << "sigmaDot=[ ..." << std::right << std::endl;
+      for (int i = 0; i < 3; ++i) {
+	for (int j = 0; j < 3; ++j)
+	  inf << std::setw(OWID) << granularStressRate(i,j);
 	if (i < 2) inf << ";"; else inf << "]";
 	inf << std::endl;
       }
@@ -3181,7 +3190,47 @@ namespace dem {
 	inf << std::endl;
       }
 
-      int length = 121 + 157 *2;
+      inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
+      for (int i = 0; i < 3; ++i) {
+	for (int j = 0; j < 3; ++j)
+	  inf << std::setw(OWID) << granularStrain["F"](i,j);
+	if (i < 2) inf << ";"; else inf << "]";
+	inf << std::endl;
+      }
+
+      inf << std::setw(OWID) << std::left << "R=[ ..." << std::right << std::endl;
+      for (int i = 0; i < 3; ++i) {
+	for (int j = 0; j < 3; ++j)
+	  inf << std::setw(OWID) << granularStrain["R"](i,j);
+	if (i < 2) inf << ";"; else inf << "]";
+	inf << std::endl;
+      }
+
+      inf << std::setw(OWID) << std::left << "U=[ ..." << std::right << std::endl;
+      for (int i = 0; i < 3; ++i) {
+	for (int j = 0; j < 3; ++j)
+	  inf << std::setw(OWID) << granularStrain["U"](i,j);
+	if (i < 2) inf << ";"; else inf << "]";
+	inf << std::endl;
+      }
+
+      inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
+      for (int i = 0; i < 3; ++i) {
+	for (int j = 0; j < 3; ++j)
+	  inf << std::setw(OWID) << granularStrain["l"](i,j);
+	if (i < 2) inf << ";"; else inf << "]";
+	inf << std::endl;
+      }
+
+      inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
+      for (int i = 0; i < 3; ++i) {
+	for (int j = 0; j < 3; ++j)
+	  inf << std::setw(OWID) << granularStrain["d"](i,j);
+	if (i < 2) inf << ";"; else inf << "]";
+	inf << std::endl;
+      }
+
+      int length = 121 + 157 * 8;
       MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
       MPI_File_close(&tensorFile);
 
@@ -3207,7 +3256,6 @@ namespace dem {
 		<< "TruesStressRate= ..." << std::endl << TruesStressRate.format(fmt) << std::endl << std::endl
 	;
       */
-
     }
 
     convertGranularStressForPrint();
