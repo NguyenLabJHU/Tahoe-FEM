@@ -3173,15 +3173,16 @@ namespace dem {
       /*
       Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
       //Eigen::IOFormat fmt(6, 0, ", ", ";\n", "", "", "[", "]");
-      std::cout << "iteration="<< iteration << " process=" << mpiRank 
-		<< " /////////////////////////////////////////" << std::endl
+      std::cout << "iteration=" << iteration << " process=" << mpiRank << " process(i,j,k)=(" << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << ")"
+		<< " //////////////////" << std::endl
 		<< "prevStress= ..." << std::endl << prevGranularStress.format(fmt) << std::endl << std::endl
 		<< "stress= ..." << std::endl << granularStress.format(fmt) << std::endl << std::endl
 		<< "stressRate= ..." << std::endl << granularStressRate.format(fmt) << std::endl << std::endl
 		<< "velocityGradient= ..." << std::endl << ml.format(fmt) << std::endl << std::endl
 		<< "rateOfDeform= ..." << std::endl << md.format(fmt) << std::endl << std::endl
 		<< "OldroStressRate= ..." << std::endl << OldroStressRate.format(fmt) << std::endl << std::endl
-		<< "TruesStressRate= ..." << std::endl << TruesStressRate.format(fmt) << std::endl << std::endl;
+		<< "TruesStressRate= ..." << std::endl << TruesStressRate.format(fmt) << std::endl << std::endl
+	;
       */
     }
 
@@ -3258,8 +3259,8 @@ namespace dem {
     ///*
     //Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
     Eigen::IOFormat fmt(6, 0, ", ", ";\n", "", "", "[", "]");
-    std::cout << "iteration=" << iteration << " process=" << mpiRank 
-	      << " /////////////////////////////////////////" << std::endl
+    std::cout << "iteration=" << iteration << " process=" << mpiRank << " process(i,j,k)=(" << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << ")"
+	      << " //////////////////" << std::endl
 	      << "intgraF= ..." << std::endl << intgraF.format(fmt) << std::endl << std::endl
 	      << "matrixF= ..." << std::endl << matrixF.format(fmt) << std::endl << std::endl
 	      << "matrixFdot= ..." << std::endl << matrixFdot.format(fmt) << std::endl << std::endl
@@ -4040,6 +4041,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
     stress /= getGranularCellVolume();
+    //stress /= container.getVolume();
   }
 #endif
 // end of #ifdef STRESS_STRAIN
