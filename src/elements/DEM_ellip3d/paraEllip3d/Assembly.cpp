@@ -3152,88 +3152,7 @@ namespace dem {
       OldroStressRate = granularStressRate - granularStrain["l"] * granularStress - granularStress * granularStrain["l"].transpose();
       TruesStressRate = OldroStressRate + granularStress * granularStrain["d"].trace();
 
-      // parallel IO
-      MPI_Status status;
-      MPI_File tensorFile;
-      MPI_File_open(mpiWorld, const_cast<char *> (str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &tensorFile);
-      if(boostWorld.rank() == 0 && !tensorFile) { debugInf << "stream error: gatherGranularStress" << std::endl; exit(-1);}
-      std::stringstream inf;
-      inf.setf(std::ios::scientific, std::ios::floatfield);
-
-      // OWID*8 + std::endl = 121
-      inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpiRank 
-	  << std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpiCoords[0] << std::setw(OWID) << mpiCoords[1] << std::setw(OWID) << mpiCoords[2] << std::endl;
-
-      // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
-
-      inf << std::setw(OWID) << std::left << "sigma=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStress(i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "sigmaDot=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStressRate(i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "intgraF=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["intgraF"](i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["F"](i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "R=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["R"](i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "U=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["U"](i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["l"](i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
-      for (int i = 0; i < 3; ++i) {
-	for (int j = 0; j < 3; ++j)
-	  inf << std::setw(OWID) << granularStrain["d"](i,j);
-	if (i < 2) inf << ";"; else inf << "]";
-	inf << std::endl;
-      }
-
-      int length = 121 + 157 * 8;
-      MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
-      MPI_File_close(&tensorFile);
-
+      convertGranularStressForPrint(); // inside the condition if (particleVec.size() >= 10), to ensure values exist before conversion.
       /*
       Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
       std::cout << "iteration=" << iteration << " process=" << mpiRank << " (" << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << ")" << std::endl
@@ -3258,9 +3177,90 @@ namespace dem {
       */
     }
 
-    convertGranularStressForPrint();
     printStressVec.clear();
     gather(boostWorld, printStress, printStressVec, 0); // Boost MPI
+
+    // parallel IO: must be outside of the condition if (particleVec.size() >= 10)
+    MPI_Status status;
+    MPI_File tensorFile;
+    MPI_File_open(mpiWorld, const_cast<char *> (str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &tensorFile);
+    if(boostWorld.rank() == 0 && !tensorFile) { debugInf << "stream error: gatherGranularStress" << std::endl; exit(-1);}
+    std::stringstream inf;
+    inf.setf(std::ios::scientific, std::ios::floatfield);
+
+    // OWID*8 + std::endl = 121
+    inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpiRank 
+	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpiCoords[0] << std::setw(OWID) << mpiCoords[1] << std::setw(OWID) << mpiCoords[2] << std::endl;
+
+    // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
+    inf << std::setw(OWID) << std::left << "sigma=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStress(i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "sigmaDot=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStressRate(i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "intgraF=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["intgraF"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["F"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "R=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["R"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "U=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["U"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["l"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["d"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    int length = 121 + 157 * 8;
+    MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
+    MPI_File_close(&tensorFile); // end of parallel IO
+
   }
 
 
@@ -4198,53 +4198,59 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
 
     // Eigen: The eigenvalues are sorted in increasing order, and eigenvectors follow eigenvalues.
-    es.compute(granularStress);
-    value   = es.eigenvalues();
-    vectors = es.eigenvectors();
-    printStress.stressEigenValue[0] = value(0);
-    printStress.stressEigenValue[1] = value(1);
-    printStress.stressEigenValue[2] = value(2);
-    printStress.stressEigenVector[0]= vectors.col(0)(0);
-    printStress.stressEigenVector[1]= vectors.col(0)(1);
-    printStress.stressEigenVector[2]= vectors.col(0)(2);
-    printStress.stressEigenVector[3]= vectors.col(1)(0);
-    printStress.stressEigenVector[4]= vectors.col(1)(1);
-    printStress.stressEigenVector[5]= vectors.col(1)(2);
-    printStress.stressEigenVector[6]= vectors.col(2)(0);
-    printStress.stressEigenVector[7]= vectors.col(2)(1);
-    printStress.stressEigenVector[8]= vectors.col(2)(2);
+    if (granularStress != Eigen::Matrix3d::Zero(3,3)) { // Zero is OK for eigendecomposition, but avoid.
+      es.compute(granularStress);
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.stressEigenValue[0] = value(0);
+      printStress.stressEigenValue[1] = value(1);
+      printStress.stressEigenValue[2] = value(2);
+      printStress.stressEigenVector[0]= vectors.col(0)(0);
+      printStress.stressEigenVector[1]= vectors.col(0)(1);
+      printStress.stressEigenVector[2]= vectors.col(0)(2);
+      printStress.stressEigenVector[3]= vectors.col(1)(0);
+      printStress.stressEigenVector[4]= vectors.col(1)(1);
+      printStress.stressEigenVector[5]= vectors.col(1)(2);
+      printStress.stressEigenVector[6]= vectors.col(2)(0);
+      printStress.stressEigenVector[7]= vectors.col(2)(1);
+      printStress.stressEigenVector[8]= vectors.col(2)(2);
+    }
 
-    es.compute(granularStressRate);
-    value   = es.eigenvalues();
-    vectors = es.eigenvectors();
-    printStress.stressRateEigenValue[0] = value(0);
-    printStress.stressRateEigenValue[1] = value(1);
-    printStress.stressRateEigenValue[2] = value(2);
-    printStress.stressRateEigenVector[0]= vectors.col(0)(0);
-    printStress.stressRateEigenVector[1]= vectors.col(0)(1);
-    printStress.stressRateEigenVector[2]= vectors.col(0)(2);
-    printStress.stressRateEigenVector[3]= vectors.col(1)(0);
-    printStress.stressRateEigenVector[4]= vectors.col(1)(1);
-    printStress.stressRateEigenVector[5]= vectors.col(1)(2);
-    printStress.stressRateEigenVector[6]= vectors.col(2)(0);
-    printStress.stressRateEigenVector[7]= vectors.col(2)(1);
-    printStress.stressRateEigenVector[8]= vectors.col(2)(2);
+    if (granularStressRate != Eigen::Matrix3d::Zero(3,3)) {
+      es.compute(granularStressRate);
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.stressRateEigenValue[0] = value(0);
+      printStress.stressRateEigenValue[1] = value(1);
+      printStress.stressRateEigenValue[2] = value(2);
+      printStress.stressRateEigenVector[0]= vectors.col(0)(0);
+      printStress.stressRateEigenVector[1]= vectors.col(0)(1);
+      printStress.stressRateEigenVector[2]= vectors.col(0)(2);
+      printStress.stressRateEigenVector[3]= vectors.col(1)(0);
+      printStress.stressRateEigenVector[4]= vectors.col(1)(1);
+      printStress.stressRateEigenVector[5]= vectors.col(1)(2);
+      printStress.stressRateEigenVector[6]= vectors.col(2)(0);
+      printStress.stressRateEigenVector[7]= vectors.col(2)(1);
+      printStress.stressRateEigenVector[8]= vectors.col(2)(2);
+    }
 
-    es.compute(granularStrain["d"]);// rateOfDeform
-    value   = es.eigenvalues();
-    vectors = es.eigenvectors();
-    printStress.rateOfDeformEigenValue[0] = value(0);
-    printStress.rateOfDeformEigenValue[1] = value(1);
-    printStress.rateOfDeformEigenValue[2] = value(2);
-    printStress.rateOfDeformEigenVector[0]= vectors.col(0)(0);
-    printStress.rateOfDeformEigenVector[1]= vectors.col(0)(1);
-    printStress.rateOfDeformEigenVector[2]= vectors.col(0)(2);
-    printStress.rateOfDeformEigenVector[3]= vectors.col(1)(0);
-    printStress.rateOfDeformEigenVector[4]= vectors.col(1)(1);
-    printStress.rateOfDeformEigenVector[5]= vectors.col(1)(2);
-    printStress.rateOfDeformEigenVector[6]= vectors.col(2)(0);
-    printStress.rateOfDeformEigenVector[7]= vectors.col(2)(1);
-    printStress.rateOfDeformEigenVector[8]= vectors.col(2)(2);
+    if (granularStrain["d"] != Eigen::Matrix3d::Zero(3,3)) {
+      es.compute(granularStrain["d"]);// rateOfDeform
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.rateOfDeformEigenValue[0] = value(0);
+      printStress.rateOfDeformEigenValue[1] = value(1);
+      printStress.rateOfDeformEigenValue[2] = value(2);
+      printStress.rateOfDeformEigenVector[0]= vectors.col(0)(0);
+      printStress.rateOfDeformEigenVector[1]= vectors.col(0)(1);
+      printStress.rateOfDeformEigenVector[2]= vectors.col(0)(2);
+      printStress.rateOfDeformEigenVector[3]= vectors.col(1)(0);
+      printStress.rateOfDeformEigenVector[4]= vectors.col(1)(1);
+      printStress.rateOfDeformEigenVector[5]= vectors.col(1)(2);
+      printStress.rateOfDeformEigenVector[6]= vectors.col(2)(0);
+      printStress.rateOfDeformEigenVector[7]= vectors.col(2)(1);
+      printStress.rateOfDeformEigenVector[8]= vectors.col(2)(2);
+    }
   }
 
 

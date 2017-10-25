@@ -29,6 +29,7 @@
 
 #ifdef STRESS_STRAIN
 #include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
 #endif
 
 namespace dem {
