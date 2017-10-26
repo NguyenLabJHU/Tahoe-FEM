@@ -3127,7 +3127,7 @@ namespace dem {
 #ifdef STRESS_STRAIN
   void Assembly::calcPrevGranularStress() {
     prevGranularStress.setZero();
-    if (particleVec.size() >= 10) {
+    if (particleVec.size() >= 10) { // contactVec.size()?
       updateGranularCell();
       calcGranularStress(prevGranularStress);
     }
@@ -3143,7 +3143,7 @@ namespace dem {
     TruesStressRate.setZero(); 
     granularStrain.clear();
 
-    if (particleVec.size() >= 10) {
+    if (particleVec.size() >= 10) { // contactVec.size()?
       updateGranularCell();
       calcGranularStress(granularStress);
       calcGranularStrain(timeIncr);
@@ -3290,7 +3290,7 @@ namespace dem {
 	actualVolume += cellVec[i].getVolume();
       }
     }
-    avg /= actualVolume;
+    if (actualVolume == 0) avg.setZero(); else avg /= actualVolume;
     Eigen::Matrix3d matrixF = avg;
 
     // averaging for matrixFdot, only accounting for initially "continuous" tetrahedra
@@ -3302,7 +3302,7 @@ namespace dem {
 	actualVolume += cellVec[i].getVolume();
       }
     }
-    avg /= actualVolume;
+    if (actualVolume == 0) avg.setZero(); else avg /= actualVolume;
     Eigen::Matrix3d matrixFdot = avg;
 
     // averaging for matrix_l, not associated with initial state of any tetrahedra
@@ -3310,15 +3310,20 @@ namespace dem {
     for (int i = 0; i < cellVec.size(); ++i) {
       avg += cellVec[i].getMatrix_l() * cellVec[i].getVolume();
     }
-    avg /= getGranularCellVolume();
+    if (getGranularCellVolume() == 0) avg.setZero(); else avg /= getGranularCellVolume();
     Eigen::Matrix3d matrix_l = avg;
 
     Eigen::Matrix3d matrixE = 0.5 * (matrixF.transpose() * matrixF - Eigen::Matrix3d::Identity(3,3));
 
     // polar decompostion of matrixF
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(matrixF.transpose() * matrixF);
-    Eigen::Matrix3d matrixU = es.operatorSqrt();           // stretch tensor
-    Eigen::Matrix3d matrixR = matrixF * matrixU.inverse(); // rotation tensor
+    Eigen::Matrix3d matrixR, matrixU;
+    matrixR.setZero();
+    matrixU.setZero();
+    if (matrixF != Eigen::Matrix3d::Zero(3,3)) {
+      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(matrixF.transpose() * matrixF);
+      matrixU = es.operatorSqrt();           // stretch tensor
+      matrixR = matrixF * matrixU.inverse(); // rotation tensor
+    }
 
     // symmetric and skew-symmetric decomposition of matrix_l
     Eigen::Matrix3d matrix_d = 0.5 * (matrix_l + matrix_l.transpose());
@@ -3369,7 +3374,7 @@ namespace dem {
     rbox.appendPoints(ptclCoordStream); 
 
     orgQhull::Qhull qhull;
-    qhull.runQhull(rbox, "d Qt i"); // "d Qt Qz Qs i"
+    qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; keep in mind qdelaunay == qhull d Qbb 
 
     std::stringstream cellConnectStream;
     qhull.setOutputStream(&cellConnectStream);
@@ -4292,8 +4297,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     }
 
     //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
-    stress /= getGranularCellVolume();
-    //stress /= container.getVolume();
+    if (getGranularCellVolume() == 0) 
+      stress.setZero();
+    else
+      stress /= getGranularCellVolume();
   }
 #endif
 // end of #ifdef STRESS_STRAIN

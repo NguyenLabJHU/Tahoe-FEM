@@ -147,6 +147,12 @@ namespace dem {
     matrixB(1,2) = c2;
     matrixB(2,2) = c3;
     matrixB(3,2) = c4;
+
+    // current tetrahedron could have coplanar/collinear vertices
+    if (getVolume() == 0)
+      matrixB.setZero();
+    else
+      matrixB /= (6.0 * getVolume());
   }
 
 
@@ -175,8 +181,7 @@ namespace dem {
     velocity(1,3) = v4(1);
     velocity(2,3) = v4(2);
 
-    matrix_l = velocity * matrixB; // both velocity and matrixB are current configuration
-    matrix_l *= 1.0/(6.0*getVolume());
+    matrix_l = velocity * matrixB; // both velocity and matrixB are current configurations
   }
 
 
@@ -193,14 +198,6 @@ namespace dem {
     pdy.setZero();
     pdz.setZero();
 
-    /*
-    std::cout<<"m="<<m<<"\n init=";ptclMap[m]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[m]->getCurrPos().print(std::cout);
-    std::cout<<"\nn="<<n<<"\n init=";ptclMap[n]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[n]->getCurrPos().print(std::cout);
-    std::cout<<"\ni="<<i<<"\n init=";ptclMap[i]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[i]->getCurrPos().print(std::cout);
-    std::cout<<"\nj="<<j<<"\n init=";ptclMap[j]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[j]->getCurrPos().print(std::cout);
-    std::cout<< std::endl;
-    */
-
     // for dX
     Vec JM = ptclMap[m]->getInitPos() - ptclMap[j]->getInitPos();
     Vec JN = ptclMap[n]->getInitPos() - ptclMap[j]->getInitPos();
@@ -210,17 +207,23 @@ namespace dem {
               JN.getX(), JN.getY(), JN.getZ(),
               JI.getX(), JI.getY(), JI.getZ();
 
-    if (fabs(getInitVolume()) > EPS) {
+    /*
+    if (fabs(dXdYdZ.determinant()) < EPS ) {
+      std::cout << "iteration=" << iteration << " /////////////////////////////////////////" << std::endl;
+      std::cout<<  "m="<<m<<"\n init=";ptclMap[m]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[m]->getCurrPos().print(std::cout);
+      std::cout<<"\nn="<<n<<"\n init=";ptclMap[n]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[n]->getCurrPos().print(std::cout);
+      std::cout<<"\ni="<<i<<"\n init=";ptclMap[i]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[i]->getCurrPos().print(std::cout);
+      std::cout<<"\nj="<<j<<"\n init=";ptclMap[j]->getInitPos().print(std::cout);std::cout<<"\n curr=";ptclMap[j]->getCurrPos().print(std::cout);
+      std::cout<<" volume="<<getVolume()<<" initVolume="<<getInitVolume()<<" det=" << dXdYdZ.determinant();
+      std::cout<< std::endl;
+    }
+    */
 
+    // initial tetrahedron could have coplanar/collinear vertices, making determinant close to zero.
+    // so this condition does not work well (V=1/6|det|) and generates "nan".
+    // this is actually the problem of Qhull and can be fixed by Qbb option of Qhull.
+    if (fabs(dXdYdZ.determinant()) > EPS) { 
       Eigen::Matrix3d inv =  dXdYdZ.inverse(); // more efficient than LU decomposition for very small matrix
-
-      /*
-      std::cout << "iteration=" << iteration 
-		<< " /////////////////////////////////////////" << std::endl
-		<< "initial volume="<< getInitVolume() << std::endl
-		<< "dXdYdZ=" << std::endl << dXdYdZ << std::endl << std::endl
-		<< "inv=" << std::endl << inv << std::endl << std::endl;
-      */
 
       // for dx
       Vec jm = ptclMap[m]->getCurrPos() - ptclMap[j]->getCurrPos();
@@ -254,6 +257,7 @@ namespace dem {
 
       matrixFdot << pdx.transpose(), pdy.transpose(), pdz.transpose();
     }
+
   }
 
   /*
