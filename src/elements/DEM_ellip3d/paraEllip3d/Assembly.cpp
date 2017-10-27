@@ -247,7 +247,7 @@ namespace dem {
       buildBoundary(6, "trim_boundary_ini");
       std::size_t endSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
       trim(false,
-	   combineString("deposit_particle_", endSnap, 3).c_str(),
+	   combineString("deposit_particle_", endSnap - 1, 3).c_str(),
 	   "trim_particle_ini");
     }
   }
@@ -268,7 +268,7 @@ namespace dem {
       buildBoundary(6, "trim_boundary_ini");
       std::size_t endSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
       trim(false,
-	   combineString("deposit_particle_", endSnap, 3).c_str(),
+	   combineString("deposit_particle_", endSnap - 1, 3).c_str(),
 	   "trim_particle_ini");
     }
     
