@@ -221,7 +221,7 @@ namespace dem {
 
     // initial tetrahedron could have coplanar/collinear vertices, making determinant close to zero.
     // so this condition does not work well (V=1/6|det|) and generates "nan".
-    // this is actually the problem of Qhull and can be fixed by Qbb option of Qhull.
+    // this is actually the problem of Qhull and can be fixed by Qbb/QbB option of Qhull.
     if (fabs(dXdYdZ.determinant()) > EPS) { 
       Eigen::Matrix3d inv =  dXdYdZ.inverse(); // more efficient than LU decomposition for very small matrix
 

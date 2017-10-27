@@ -3374,7 +3374,8 @@ namespace dem {
     rbox.appendPoints(ptclCoordStream); 
 
     orgQhull::Qhull qhull;
-    qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; keep in mind qdelaunay == qhull d Qbb 
+    //qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; keep in mind qdelaunay == qhull d Qbb 
+    qhull.runQhull(rbox, "d QbB Qt i"); // QbB != Qbb
 
     std::stringstream cellConnectStream;
     qhull.setOutputStream(&cellConnectStream);
