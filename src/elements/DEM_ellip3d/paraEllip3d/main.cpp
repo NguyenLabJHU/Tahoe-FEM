@@ -42,26 +42,26 @@ int main(int argc, char* argv[]) {
 
   if (boostWorld.rank() == 0) {
     if (argc != 2) {
-      std::cout << "please specify data file in the form: paraEllip3d input.txt" << std::endl;
-      return -1;  
+      std::cout << "Data file must be specified in the form: paraEllip3d input.txt" << std::endl << std::endl;
+      abort();
     }
-
-    dem::debugInf.open("debugInf");
-    if(!dem::debugInf) { std::cout << "stream error: main.cpp debugInf" << std::endl; exit(-1);}
-    dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
 
     dem::Parameter::getSingleton().readIn(argv[1]);
     dem::Parameter::getSingleton().writeOut();
     int mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
     int mpiProcY = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcY"]);
     int mpiProcZ = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcZ"]);
-    if (mpiProcX * mpiProcY * mpiProcZ != boostWorld.size() ) {
-      std::cout << "number of MPI processes does not match grids in data file!" << std::endl;
-      return -1;
+    if (mpiProcX * mpiProcY * mpiProcZ != boostWorld.size()) {
+      std::cout << "Number of MPI processes does not match grids in data file!" << std::endl << std::endl;
+      abort();
     }
-  }
-  broadcast(boostWorld, dem::Parameter::getSingleton(), 0); // broadcast from root process 0
 
+    dem::debugInf.open("debugInf");
+    if(!dem::debugInf) { std::cout << "stream error: main.cpp debugInf" << std::endl; exit(-1);}
+    dem::debugInf.setf(std::ios::scientific, std::ios::floatfield);
+  }
+
+  broadcast(boostWorld, dem::Parameter::getSingleton(), 0); // broadcast from root process 0
   dem::Assembly assemb;
   assemb.setCommunicator(boostWorld);
 
