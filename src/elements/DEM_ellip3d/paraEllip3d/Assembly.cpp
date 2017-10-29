@@ -1455,6 +1455,7 @@ namespace dem {
 
     REAL edge   = diaMax * sideGap;
     REAL offset = diaMax * 0.25; // +- makes 0.5
+    REAL perturb= 1.0E-6; // absolute perturbation of particle centroids: 1.0E-6 * ran(&idum);
 
     REAL x1 = allContainer.getMinCorner().getX() + edge;
     REAL y1 = allContainer.getMinCorner().getY() + edge;
@@ -1488,7 +1489,7 @@ namespace dem {
 	  for (x = x1; x - x2 < EPS; x += diaMax * (diaRelax + 1)) {
 	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + offset, y + offset, z)); // z should not offset
+	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum))); // z should not offset
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }
@@ -1502,6 +1503,7 @@ namespace dem {
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1510,6 +1512,7 @@ namespace dem {
 	  for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1518,6 +1521,7 @@ namespace dem {
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1526,6 +1530,7 @@ namespace dem {
 	  for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -3141,7 +3146,7 @@ namespace dem {
     granularStressRate.setZero();
     OldroStressRate.setZero();  
     TruesStressRate.setZero(); 
-    granularStrain.clear();
+    granularStrain.clear(); // clear() does not setZero().
 
     if (particleVec.size() >= 10) { // contactVec.size()?
       updateGranularCell();
@@ -3180,7 +3185,8 @@ namespace dem {
     printStressVec.clear();
     gather(boostWorld, printStress, printStressVec, 0); // Boost MPI
 
-    // parallel IO: must be outside of the condition if (particleVec.size() >= 10)
+    // parallel IO: must be outside of the condition if (particleVec.size() >= 10).
+    // must ensure granularStrain be initialized.
     MPI_Status status;
     MPI_File tensorFile;
     MPI_File_open(mpiWorld, const_cast<char *> (str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &tensorFile);
@@ -3209,6 +3215,8 @@ namespace dem {
       inf << std::endl;
     }
 
+    if (granularStrain.count("intgraF") == 0) 
+      granularStrain["intgraF"].setZero();
     inf << std::setw(OWID) << std::left << "intgraF=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -3217,6 +3225,8 @@ namespace dem {
       inf << std::endl;
     }
 
+    if (granularStrain.count("F") == 0) 
+      granularStrain["F"].setZero();
     inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -3225,6 +3235,8 @@ namespace dem {
       inf << std::endl;
     }
 
+    if (granularStrain.count("R") == 0) 
+      granularStrain["R"].setZero();
     inf << std::setw(OWID) << std::left << "R=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -3233,6 +3245,8 @@ namespace dem {
       inf << std::endl;
     }
 
+    if (granularStrain.count("U") == 0) 
+      granularStrain["U"].setZero();
     inf << std::setw(OWID) << std::left << "U=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -3241,6 +3255,8 @@ namespace dem {
       inf << std::endl;
     }
 
+    if (granularStrain.count("l") == 0) 
+      granularStrain["l"].setZero();
     inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -3249,6 +3265,8 @@ namespace dem {
       inf << std::endl;
     }
 
+    if (granularStrain.count("d") == 0) 
+      granularStrain["d"].setZero();
     inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -3374,8 +3392,7 @@ namespace dem {
     rbox.appendPoints(ptclCoordStream); 
 
     orgQhull::Qhull qhull;
-    //qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; keep in mind qdelaunay == qhull d Qbb 
-    qhull.runQhull(rbox, "d QbB Qt i"); // QbB != Qbb
+    qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; note qdelaunay == qhull d Qbb 
 
     std::stringstream cellConnectStream;
     qhull.setOutputStream(&cellConnectStream);
@@ -4141,6 +4158,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.TruesStressRate[8] = TruesStressRate(2,2);
 
     //std::cout << "granularStrain.size()=" << granularStrain.size() << std::endl;
+    // granularStrain initialization has been ensured herein:
     printStress.deformGradient[0] = granularStrain["F"](0,0);
     printStress.deformGradient[1] = granularStrain["F"](0,1);
     printStress.deformGradient[2] = granularStrain["F"](0,2);
