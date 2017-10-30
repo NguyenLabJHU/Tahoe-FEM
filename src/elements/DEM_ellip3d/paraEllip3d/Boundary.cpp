@@ -152,12 +152,15 @@ namespace dem {
   }
 
   void planeBoundary::updateIsotropic(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
-
+    std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
     REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
     REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
+
+    // topSpeedup does not exist when isotropicType = 2 or 3
     REAL topSpeedup = dem::Parameter::getSingleton().parameter["topSpeedup"];
+
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
     REAL atf = forceDamp*timeStep;
 
@@ -206,7 +209,7 @@ namespace dem {
     case 6:
       if (fabs(normal.getZ()/areaZ - sigma)/sigma > tol) {
 	vel = ((normal.getZ() - sigma*areaZ)>0 ? 1:-1) * boundaryRate;
-	if (normal.getZ() == 0 ) vel = -boundaryRate*topSpeedup;
+	if (isotropicType == 1 && normal.getZ() == 0 ) vel = -boundaryRate*topSpeedup;
 	//vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() - sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
 	pos = prevPoint.getZ() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
