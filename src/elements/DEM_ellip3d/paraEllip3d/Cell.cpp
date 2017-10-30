@@ -60,24 +60,17 @@ namespace dem {
 
   void Cell::setNodeOrderCalcMatrix() {
     if(getVolume() < 0) { // swap node 2 and node 3
-      debugInf << "Error 1: nodes are not numbered counter-clockwise? volume=" << getVolume() << " iteration=" << iteration << std::endl
-	       << std::setw(OWID) << m << std::setw(OWID) << n << std::setw(OWID) << i << std::setw(OWID) << j << std::endl
-	       << std::setw(OWID) << ptclMap[m]->getCurrPos().getX() << std::setw(OWID) << ptclMap[m]->getCurrPos().getY() << std::setw(OWID) << ptclMap[m]->getCurrPos().getZ() << std::endl
-	       << std::setw(OWID) << ptclMap[n]->getCurrPos().getX() << std::setw(OWID) << ptclMap[n]->getCurrPos().getY() << std::setw(OWID) << ptclMap[n]->getCurrPos().getZ() << std::endl
-	       << std::setw(OWID) << ptclMap[i]->getCurrPos().getX() << std::setw(OWID) << ptclMap[i]->getCurrPos().getY() << std::setw(OWID) << ptclMap[i]->getCurrPos().getZ() << std::endl
-	       << std::setw(OWID) << ptclMap[j]->getCurrPos().getX() << std::setw(OWID) << ptclMap[j]->getCurrPos().getY() << std::setw(OWID) << ptclMap[j]->getCurrPos().getZ() << std::endl;
+      /*
+      std::cout << "tetra nodes are not numbered counter-clockwise, volume=" << getVolume() << " iteration=" << iteration << std::endl
+		<< std::setw(OWID) << m << std::setw(OWID) << n << std::setw(OWID) << i << std::setw(OWID) << j << std::endl
+		<< std::setw(OWID) << ptclMap[m]->getCurrPos().getX() << std::setw(OWID) << ptclMap[m]->getCurrPos().getY() << std::setw(OWID) << ptclMap[m]->getCurrPos().getZ() << std::endl
+		<< std::setw(OWID) << ptclMap[n]->getCurrPos().getX() << std::setw(OWID) << ptclMap[n]->getCurrPos().getY() << std::setw(OWID) << ptclMap[n]->getCurrPos().getZ() << std::endl
+		<< std::setw(OWID) << ptclMap[i]->getCurrPos().getX() << std::setw(OWID) << ptclMap[i]->getCurrPos().getY() << std::setw(OWID) << ptclMap[i]->getCurrPos().getZ() << std::endl
+		<< std::setw(OWID) << ptclMap[j]->getCurrPos().getX() << std::setw(OWID) << ptclMap[j]->getCurrPos().getY() << std::setw(OWID) << ptclMap[j]->getCurrPos().getZ() << std::endl;
+      */
       int iTmp = n;
       n = i;
       i = iTmp;
-    }
-
-    if(getVolume() < 0){ // means m, n, i, j are not numbered counter-clockwise
-      debugInf << "Error 2: nodes are not numbered counter-clockwise? volume=" << getVolume() << " iteration=" << iteration << std::endl
-	       << std::setw(OWID) << m << std::setw(OWID) << n << std::setw(OWID) << i << std::setw(OWID) << j << std::endl
-	       << std::setw(OWID) << ptclMap[m]->getCurrPos().getX() << std::setw(OWID) << ptclMap[m]->getCurrPos().getY() << std::setw(OWID) << ptclMap[m]->getCurrPos().getZ() << std::endl
-	       << std::setw(OWID) << ptclMap[n]->getCurrPos().getX() << std::setw(OWID) << ptclMap[n]->getCurrPos().getY() << std::setw(OWID) << ptclMap[n]->getCurrPos().getZ() << std::endl
-	       << std::setw(OWID) << ptclMap[i]->getCurrPos().getX() << std::setw(OWID) << ptclMap[i]->getCurrPos().getY() << std::setw(OWID) << ptclMap[i]->getCurrPos().getZ() << std::endl
-	       << std::setw(OWID) << ptclMap[j]->getCurrPos().getX() << std::setw(OWID) << ptclMap[j]->getCurrPos().getY() << std::setw(OWID) << ptclMap[j]->getCurrPos().getZ() << std::endl;
     }
 
     calcMatrixB();
