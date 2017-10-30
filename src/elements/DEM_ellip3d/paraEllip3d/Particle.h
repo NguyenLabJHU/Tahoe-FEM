@@ -96,9 +96,13 @@ namespace dem {
     Vec  getForce() const {return force;}
     Vec  getMoment() const {return moment;}
     Vec  getAccel() const {return force/mass;}
+    Vec  getAngularAccel() const {
+      Vec local = globalToLocal(moment);
+      return Vec(local.getX()/momentJ.getX(), local.getY()/momentJ.getY(), local.getZ()/momentJ.getZ());
+    }
     Vec  getConstForce() const {return constForce;}
     Vec  getConstMoment() const {return constMoment;}
-    Vec  getmomentJ() const {return momentJ;}
+    Vec  getMomentJ() const {return momentJ;}
     bool isInContact() const {return inContact;}
     std::size_t  getContactNum() const {return contactNum;}
 
