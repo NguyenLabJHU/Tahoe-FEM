@@ -378,7 +378,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if (timeCount + timeStep >= timeIncr/netSnap) {
-	gatherGranularStress(timeStep, timeIncr/netSnap, combineString("deposit_tensor_", iterSnap, 3).c_str()); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("deposit_tensor_", iterSnap, 3).c_str(),timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshort particle positions
       }
 #endif
@@ -579,7 +579,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
-	gatherGranularStress(timeStep, netStep / netSnap * timeStep, combineString("isotropic_tensor_", iterSnap, 3).c_str()); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("isotropic_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshort particle positions
       }
 #endif
@@ -620,11 +620,18 @@ namespace dem {
 
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
+#ifdef STRESS_STRAIN
+	  gatherGranularStress("isotropic_tensor_end");
+#endif
 	  if (mpiRank == 0) {
 	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	    printGranularStressFEM("isotropic_stress_plot_end.dat");
+	    printGranularStressOrdered("isotropic_stress_data_end.dat");
+#endif
 	  }
 	  break;
 	}
@@ -634,11 +641,18 @@ namespace dem {
 	  sigmaVar += sigmaInc;
 	}
 	if (tractionErrorTol(sigmaEnd, "isotropic")) {
+#ifdef STRESS_STRAIN
+	  gatherGranularStress("isotropic_tensor_end");
+#endif
 	  if (mpiRank == 0) {
 	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	    printGranularStressFEM("isotropic_stress_plot_end.dat");
+	    printGranularStressOrdered("isotropic_stress_data_end.dat");
+#endif
 	  }
 	  break;
 	}
@@ -743,7 +757,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
-	gatherGranularStress(timeStep, netStep / netSnap * timeStep, combineString("oedometer_tensor_", iterSnap, 3).c_str()); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("oedometer_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshort particle positions
       }
 #endif
@@ -877,7 +891,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
-	gatherGranularStress(timeStep, netStep / netSnap * timeStep, combineString("triaxial_tensor_", iterSnap, 3).c_str()); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("triaxial_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshort particle positions
       }
 #endif
@@ -985,7 +999,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
-	gatherGranularStress(timeStep, netStep / netSnap * timeStep, combineString("plnstrn_tensor_", iterSnap, 3).c_str()); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("plnstrn_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshort particle positions
       }
 #endif
@@ -1120,7 +1134,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
-	gatherGranularStress(timeStep, netStep / netSnap * timeStep, combineString("trueTriaxial_tensor_", iterSnap, 3).c_str()); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("trueTriaxial_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshort particle positions
       }
 #endif
@@ -3139,7 +3153,7 @@ namespace dem {
   }
 
 
-  void Assembly::gatherGranularStress(REAL timeStep, REAL timeIncr, const char *str) {
+  void Assembly::gatherGranularStress(const char *str, REAL timeStep, REAL timeIncr) {
     // no matter how many particles exist in the compute grid, these variables need to be cleared.
     cellVec.clear();
     granularStress.setZero();
@@ -3152,7 +3166,8 @@ namespace dem {
       updateGranularCell();
       calcGranularStress(granularStress);
       calcGranularStrain(timeIncr);
-      granularStressRate = (granularStress - prevGranularStress) / timeStep;
+      if (timeStep != 0)
+	granularStressRate = (granularStress - prevGranularStress) / timeStep;
       // objective stress rate (using l and d)
       OldroStressRate = granularStressRate - granularStrain["l"] * granularStress - granularStress * granularStrain["l"].transpose();
       TruesStressRate = OldroStressRate + granularStress * granularStrain["d"].trace();
@@ -3348,8 +3363,12 @@ namespace dem {
     Eigen::Matrix3d matrix_w = 0.5 * (matrix_l - matrix_l.transpose());
 
     // time integration for deformation gradient
-    Eigen::Matrix3d intgraF = (timeIncr * matrix_l + Eigen::Matrix3d::Identity(3,3)) * prevSnapMatrixF;
-    prevSnapMatrixF = intgraF;   
+    Eigen::Matrix3d intgraF;
+    intgraF.setZero();
+    if (timeIncr != 0) {
+      intgraF = (timeIncr * matrix_l + Eigen::Matrix3d::Identity(3,3)) * prevSnapMatrixF;
+      prevSnapMatrixF = intgraF;   
+    }
 
     granularStrain.clear();
     granularStrain["intgraF"] = intgraF;

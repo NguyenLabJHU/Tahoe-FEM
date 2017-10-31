@@ -212,7 +212,7 @@ namespace dem {
 
 #ifdef STRESS_STRAIN
     // continuum functions
-    void gatherGranularStress(REAL timeStep, REAL timeIncr, const char *str);
+    void gatherGranularStress(const char *str, REAL timeStep=0, REAL timeIncr=0);
     void updateGranularCell();
     void snapParticlePos();
     REAL getGranularCellVolume();
