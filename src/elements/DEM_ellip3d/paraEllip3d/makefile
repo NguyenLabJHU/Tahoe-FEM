@@ -7,6 +7,7 @@ PLATFORM = soilblast
 #PLATFORM = onyx
 #PLATFORM = excalibur
 #PLATFORM = thunder
+#PLATFORM = centennial
 #PLATFORM = lightning
 #PLATFORM = garnet
 
@@ -148,6 +149,18 @@ ifeq ($(PLATFORM), thunder)
  endif
  ifeq ($(COMPILERS), gcc-sgi)
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
+ endif
+endif
+
+ifeq ($(PLATFORM), centennial)
+ ifeq ($(COMPILERS), intel-sgi)
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.15_intel-2017.1.132
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-2017.1.132
+  endif
  endif
 endif
 
