@@ -19,16 +19,7 @@ COMPILERS = gcc-openmpi
 #COMPILERS = gcc-sgi
 #COMPILERS = gcc-cray
 
-###3. C++11 or not?
-C++11 =
-#C++11 = -std=c++11
-
-###4. use papi or not?
-PAPI = no
-#PAPI = yes
-
-###5. compute continuum_stress-strain or not?
-#STRESS_STRAIN = no
+###3. compute continuum_stress-strain or not?
 STRESS_STRAIN = yes
 ifeq ($(STRESS_STRAIN), yes)
  EIGEN = yes
@@ -40,7 +31,10 @@ else
  STRESS_STRAIN_MACRO =
 endif
 
-###6. boost location
+###4. use papi or not?
+#PAPI = yes
+
+###5. boost location
 ifeq ($(PLATFORM), soilblast)
  #BOOST_ROOT = default
  BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
@@ -231,7 +225,11 @@ ifeq ($(COMPILERS), intel-cray)
  OPENMP = -qopenmp
 endif
 
-# optimize or debug
+###2 standard, optimize or debug
+#C++11 or not?
+C++11 =
+#C++11 = -std=c++11
+
 OPTIMIZE = -O3 -DNDEBUG $(C++11)
 #OPTIMIZE = -Wall -g $(C++11)
 #gcc: full level of IEEE 754 compliance
@@ -243,9 +241,9 @@ OPTIMIZE = -O3 -DNDEBUG $(C++11)
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
 # CXXFLAGS
- CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH) $(STRESS_STRAIN_MACRO)
+CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH) $(STRESS_STRAIN_MACRO)
 
-###2. BOOST details
+###3. configurations of BOOST, PAPI, Eigen and Qhull
 ifeq ($(PLATFORM), soilblast)
   ifeq ($(BOOST_ROOT), default)
    BOOST_LIB_DIR=-L/usr/lib64/openmpi/lib:/usr/lib64/compat-openmpi/lib:/usr/lib64
@@ -311,7 +309,7 @@ LIB_DIR=$(BOOST_LIB_DIR) $(PAPI_LIB_DIR) $(QHULL_LIB_DIR)
 LIBS=$(BOOST_LIBS) $(PAPI_LIBS) $(QHULL_LIBS)
 RUN_LIB_DIR=$(BOOST_RUN_LIB_DIR) $(PAPI_RUN_LIB_DIR) $(QHULL_RUN_LIB_DIR)
 
-###3. makefile
+###4. makefile
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 #OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
