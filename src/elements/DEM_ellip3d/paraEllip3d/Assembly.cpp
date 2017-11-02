@@ -937,11 +937,19 @@ namespace dem {
       ++iteration;
     } 
 
+#ifdef STRESS_STRAIN
+    gatherGranularStress("triaxial_tensor_end");
+#endif
+
     if (mpiRank == 0) {
       printParticle("triaxial_particle_end");
       printBdryContact("triaxial_bdrycntc_end");
       printBoundary("triaxial_boundary_end");
       printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+      printGranularStressFEM("triaxial_stress_plot_end.dat");
+      printGranularStressOrdered("triaxial_stress_data_end.dat");
+#endif
     }
   
     if (mpiRank == 0) closeProg(progressInf);
