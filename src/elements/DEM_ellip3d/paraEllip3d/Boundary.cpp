@@ -157,12 +157,11 @@ namespace dem {
     REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
+    REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
+    REAL atf = forceDamp * timeStep;
 
     // topSpeedup does not exist when isotropicType = 2 or 3
     REAL topSpeedup = dem::Parameter::getSingleton().parameter["topSpeedup"];
-
-    REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp*timeStep;
 
     REAL vel, pos;
     switch (id) {
@@ -227,7 +226,7 @@ namespace dem {
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp*timeStep;
+    REAL atf = forceDamp * timeStep;
 
     REAL vel, pos;
     switch (id) {
@@ -252,6 +251,13 @@ namespace dem {
     prevVeloc = veloc;
   }
 
+  // Normally it works well for boundary walls to displace outwards or inwards at at constant boundary rate,
+  // depending on the difference of internal and external resultant forces. However, for a small number of 
+  // particles (which implies more inhomogeneous fabric), boundary walls should follow the same equation of 
+  // motion as particles, in order to sustain a constant confining pressure in triaxial tests:
+  // 1. use the same massScale.
+  // 2. let atf = 2 (critial background damping, usually leading to equilibrium) or atf = 0 (no background damping, often leading to zero tractions).
+  // 3. virtualMass = 1.0E-7
   void planeBoundary::updateTriaxial(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
     std::size_t triaxialType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["triaxialType"]);
     std::size_t unloadStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["unloadStep"]);
@@ -261,42 +267,63 @@ namespace dem {
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp*timeStep;
+    REAL atf = forceDamp * timeStep;
+
+//#define INHOMOGENEOUS 1
+#ifdef INHOMOGENEOUS
+    REAL virtualMass = 1.0E-7; // virtual mass of boundary walls for triaxial tests.
+    REAL mass = virtualMass * massScale;
+    atf = 2;
+#endif
 
     REAL vel, pos;
     switch (id) {
     case 1: 
       if (fabs(normal.getX()/areaX + sigma)/sigma > tol) {
+#ifdef INHOMOGENEOUS
+	vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() + sigma * areaX) / mass * timeStep * 2 / (2 + atf);
+#else
 	vel = ((normal.getX() + sigma*areaX)>0 ? 1:-1) * boundaryRate;
-	//vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() + sigma * areaX) / mass * timeStep * 2 / (2 + atf);
+#endif
 	pos = prevPoint.getX() + vel * timeStep;
 	setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
 	setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() )); }
       break;
     case 2:
       if (fabs(normal.getX()/areaX - sigma)/sigma > tol) {
+#ifdef INHOMOGENEOUS
+	vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() - sigma * areaX) / mass * timeStep * 2 / (2 + atf);
+#else
 	vel = ((normal.getX() - sigma*areaX)>0 ? 1:-1) * boundaryRate;
-	//vel = prevVeloc.getX() * (2-atf) / (2+atf) + (normal.getX() - sigma * areaX) / mass * timeStep * 2 / (2 + atf);
+#endif
 	pos = prevPoint.getX() + vel * timeStep;
 	setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
 	setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() )); }
       break;
     case 3:
       if (fabs(normal.getY()/areaY + sigma)/sigma > tol) {
+#ifdef INHOMOGENEOUS
+	vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() + sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+#else
 	vel = ((normal.getY() + sigma*areaY)>0 ? 1:-1) * boundaryRate;
-	//vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() + sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+#endif
 	pos = prevPoint.getY() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
 	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() )); }
       break;
     case 4:
       if (fabs(normal.getY()/areaY - sigma)/sigma > tol) {
+#ifdef INHOMOGENEOUS
+	vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() - sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+#else
 	vel = ((normal.getY() - sigma*areaY)>0 ? 1:-1) * boundaryRate;
-	//vel = prevVeloc.getY() * (2-atf) / (2+atf) + (normal.getY() - sigma * areaY) / mass * timeStep * 2 / (2 + atf);
+#endif
 	pos = prevPoint.getY() + vel * timeStep;
 	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
 	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() )); }
       break;
+
+    // displacement control
     case 5:
       if (triaxialType == 1)
 	vel = boundaryRate;
@@ -344,7 +371,7 @@ namespace dem {
     REAL boundaryRate  = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL sideRateRatio = dem::Parameter::getSingleton().parameter["sideRateRatio"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp*timeStep;
+    REAL atf = forceDamp * timeStep;
 
     REAL vel, pos;
     switch (id) { // boundary x1(1) and boundary x2(2) do not move
@@ -364,6 +391,7 @@ namespace dem {
 	setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
 	setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() )); }
       break;
+
     // displacement control, leading to zero volumetric strain
     case 5:
       if (plnstrnType == 1)
@@ -410,7 +438,7 @@ namespace dem {
     //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
     REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
-    REAL atf = forceDamp*timeStep;
+    REAL atf = forceDamp * timeStep;
 
     REAL vel, pos;
     switch (id) {
