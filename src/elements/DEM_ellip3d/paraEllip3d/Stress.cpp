@@ -27,6 +27,8 @@ namespace dem {
       stretch[i] = 0;
       velocityGradient[i] = 0;  
       rateOfDeform[i] = 0;
+      greenStrain[i] = 0;
+      eulerStrain[i] = 0;
     }
 
     for (int i = 0; i < 9; ++i) {
@@ -69,6 +71,12 @@ namespace dem {
 
 	<< std::setw(OWID) << stretch[0]<< std::setw(OWID) << stretch[1]<< std::setw(OWID) << stretch[2]
 	<< std::setw(OWID) << stretch[3]<< std::setw(OWID) << stretch[4]<< std::setw(OWID) << stretch[5]
+
+	<< std::setw(OWID) << greenStrain[0]<< std::setw(OWID) << greenStrain[1]<< std::setw(OWID) << greenStrain[2]
+	<< std::setw(OWID) << greenStrain[3]<< std::setw(OWID) << greenStrain[4]<< std::setw(OWID) << greenStrain[5]
+
+	<< std::setw(OWID) << eulerStrain[0]<< std::setw(OWID) << eulerStrain[1]<< std::setw(OWID) << eulerStrain[2]
+	<< std::setw(OWID) << eulerStrain[3]<< std::setw(OWID) << eulerStrain[4]<< std::setw(OWID) << eulerStrain[5]
 
 	<< std::setw(OWID) << velocityGradient[0]<< std::setw(OWID) << velocityGradient[1]<< std::setw(OWID) << velocityGradient[2]
 	<< std::setw(OWID) << velocityGradient[3]<< std::setw(OWID) << velocityGradient[4]<< std::setw(OWID) << velocityGradient[5]

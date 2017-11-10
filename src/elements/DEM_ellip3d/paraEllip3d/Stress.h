@@ -30,6 +30,8 @@ namespace dem {
     REAL deformGradient[9];   // unsymmetric
     REAL rotation[9];         // unsymmetric
     REAL stretch[6];          // symmetric
+    REAL greenStrain[6];      // symmetric
+    REAL eulerStrain[6];      // symmetric
 
     REAL velocityGradient[9]; // unsymmetric
     REAL rateOfDeform[6];     // symmetric
@@ -55,6 +57,8 @@ namespace dem {
       ar & deformGradient;
       ar & rotation;
       ar & stretch;
+      ar & greenStrain;
+      ar & eulerStrain;
       ar & velocityGradient;
       ar & rateOfDeform;
       ar & spin;
