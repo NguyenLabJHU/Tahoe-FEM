@@ -158,7 +158,7 @@ namespace dem {
     // v is the point the line passing through, dirc is the unit vector parallel to the line
     bool intersectWithLine(Vec v, Vec dirc, Vec rt[]) const;
     
-    // find the point on plane which is deepest into a particles, px + qy + rz + s = 0 is the equation 
+    // find the point on plane which is deepest into a particle, px + qy + rz + s = 0 is the equation 
     // of the plane, true means intersection; false means no intersection.
     bool nearestPTOnPlane(REAL p, REAL q, REAL r, REAL s, Vec &ptnp) const;
     
