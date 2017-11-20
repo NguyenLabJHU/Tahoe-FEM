@@ -214,6 +214,7 @@ namespace dem {
     // continuum functions
     void gatherGranularStress(const char *str, REAL timeStep=0, REAL timeIncr=0);
     void updateGranularCell();
+    void updateGranularCellOnBoundary();
     void snapParticlePos();
     REAL getGranularCellVolume();
     void calcPrevGranularStress();
@@ -550,6 +551,10 @@ namespace dem {
     void findParticleInRectangle(const Rectangle &container,
 				 const std::vector<Particle *> &allParticle,
 				 std::vector<Particle *> &foundParticle);
+
+    void findBdryParticle(std::vector<Particle *> &foundParticle);
+    void findSixBdryParticle(std::vector<Particle *> &foundParticle);
+    void findEightVerticeParticle(std::vector<Particle *> &foundParticle);
     
   };
   

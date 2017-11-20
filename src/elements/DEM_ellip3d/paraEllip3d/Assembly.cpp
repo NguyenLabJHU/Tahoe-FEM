@@ -160,7 +160,7 @@ namespace dem {
       std::vector<REAL> &massSize    = massGrad.getSize();
       for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] = 0;
 
-      for (std::vector<Particle*>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
+      for (std::vector<Particle *>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
 	for (int i = massPercent.size()-1; i >= 0 ; --i) { // do not use size_t for descending series
 	  if ( (*itr)->getA() <= massSize[i] )
 	    massPercent[i] += (*itr)->getMass();
@@ -189,7 +189,7 @@ namespace dem {
       std::vector<REAL> &massSize    = massGrad.getSize();
       for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] = 0;
 
-      for (std::vector<Particle*>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
+      for (std::vector<Particle *>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
 	for (int i = massPercent.size()-1; i >= 0 ; --i) { // do not use size_t for descending series
 	  if ( (*itr)->getA() <= massSize[i] )
 	    massPercent[i] += (*itr)->getMass(); // += 1 for calculating number percentage
@@ -478,8 +478,8 @@ namespace dem {
       REAL y2 = dem::Parameter::getSingleton().parameter["cavityMaxY"];
       REAL z2 = dem::Parameter::getSingleton().parameter["cavityMaxZ"];
     
-      std::vector<Particle*> cavityParticleVec;
-      std::vector<Particle*>::iterator it;
+      std::vector<Particle *> cavityParticleVec;
+      std::vector<Particle *>::iterator it;
       Vec center;
     
       for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it ){
@@ -1568,9 +1568,9 @@ namespace dem {
 	bool moveYTail = false;
 
 	// define the grids based on the minimum particle
-	int  gridNx = floor(allContainer.getDimx()/diaMin);
-	REAL gridDim= allContainer.getDimx()/gridNx; // gridDim == diaMin if divisible
-	int  gridNy = floor(allContainer.getDimy()/gridDim);
+	int  gridNx = floor(allContainer.getDimX()/diaMin);
+	REAL gridDim= allContainer.getDimX()/gridNx; // gridDim == diaMin if divisible
+	int  gridNy = floor(allContainer.getDimY()/gridDim);
 	int  gridNz = floor((dem::Parameter::getSingleton().parameter["floatMaxZ"] - allContainer.getMinCorner().getZ())/gridDim);
 
 	//debugInf << "bottomGap, sideGap, nx, ny, nz dim=" <<bottomGap << " " << sideGap << " " << gridNx << " " << gridNy << " " << gridNz << " " << gridDim << std::endl;
@@ -1735,7 +1735,7 @@ namespace dem {
     REAL z2 = v2.getZ();
     REAL maxR = gradation.getPtclMaxRadius();
  
-    std::vector<Particle*>::iterator itr;
+    std::vector<Particle *>::iterator itr;
     Vec center;
 
     for (itr = allParticleVec.begin(); itr != allParticleVec.end(); ) {
@@ -1768,7 +1768,7 @@ namespace dem {
     REAL z0S = dem::Parameter::getSingleton().parameter["z0S"];
     REAL r0S = dem::Parameter::getSingleton().parameter["r0S"];
  
-    std::vector<Particle*>::iterator itr;
+    std::vector<Particle *>::iterator itr;
     Vec center;
     REAL dist;
 
@@ -1789,10 +1789,9 @@ namespace dem {
   }
 
 
-  void Assembly::
-  findParticleInRectangle(const Rectangle &container,
-			  const std::vector<Particle*> &inputParticle,
-			  std::vector<Particle*> &foundParticle) {
+  void Assembly::findParticleInRectangle(const Rectangle &container,
+					 const std::vector<Particle *> &inputParticle,
+					 std::vector<Particle *> &foundParticle) {
     Vec  v1 = container.getMinCorner();
     Vec  v2 = container.getMaxCorner();
     REAL x1 = v1.getX();
@@ -1812,6 +1811,136 @@ namespace dem {
   }
 
 
+  void Assembly::findBdryParticle(std::vector<Particle *> &foundParticle) {
+    // container: last update in commuParticle(); next update in migrateParticle() 
+    Vec v1 = container.getMinCorner();
+    Vec v2 = container.getMaxCorner(); 
+    REAL borderWidth = gradation.getPtclMeanRadius() * 2;
+    Rectangle containerX1(v1.getX(), v1.getY(), v1.getZ(), 
+			  v1.getX() + borderWidth, v2.getY(), v2.getZ());
+    Rectangle containerX2(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
+			  v2.getX(), v2.getY(), v2.getZ());
+    Rectangle containerY1(v1.getX(), v1.getY(), v1.getZ(), 
+			  v2.getX(), v1.getY() + borderWidth, v2.getZ());
+    Rectangle containerY2(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
+			  v2.getX(), v2.getY(), v2.getZ());
+    Rectangle containerZ1(v1.getX(), v1.getY(), v1.getZ(),
+			  v2.getX(), v2.getY(), v1.getZ() + borderWidth);
+    Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
+			  v2.getX(), v2.getY(), v2.getZ());
+
+    std::vector<Rectangle> bdryContainerVec;
+    bdryContainerVec.push_back(containerX1);
+    bdryContainerVec.push_back(containerX2);
+    bdryContainerVec.push_back(containerY1);
+    bdryContainerVec.push_back(containerY2);
+    bdryContainerVec.push_back(containerZ1);
+    bdryContainerVec.push_back(containerZ2);
+
+    for (int it = 0; it < particleVec.size(); ++it) {
+      Vec center = particleVec[it]->getCurrPos();
+      for (int jt = 0; jt < bdryContainerVec.size(); ++jt) {
+	Vec  v1 = bdryContainerVec[jt].getMinCorner();
+	Vec  v2 = bdryContainerVec[jt].getMaxCorner();
+	REAL x1 = v1.getX();
+	REAL y1 = v1.getY();
+	REAL z1 = v1.getZ();
+	REAL x2 = v2.getX();
+	REAL y2 = v2.getY();
+	REAL z2 = v2.getZ();
+	// it is critical to use EPS
+	if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
+	    center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
+	    center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) {
+	  foundParticle.push_back(particleVec[it]);
+	  break; // avoid repeated count of a particle
+	}
+      }
+    }
+  }
+
+
+  void Assembly::findSixBdryParticle(std::vector<Particle *> &foundParticle) {
+    std::vector<Vec> sixSurfaceCenter;
+    // may change order?
+    sixSurfaceCenter.push_back(container.getSurfaceCenter(1));
+    sixSurfaceCenter.push_back(container.getSurfaceCenter(2));
+    sixSurfaceCenter.push_back(container.getSurfaceCenter(3));
+    sixSurfaceCenter.push_back(container.getSurfaceCenter(4));
+    sixSurfaceCenter.push_back(container.getSurfaceCenter(5));
+    sixSurfaceCenter.push_back(container.getSurfaceCenter(6));
+
+    /*
+    for (int it = 0; it < sixSurfaceCenter.size(); ++it) {
+      sixSurfaceCenter[it].print(std::cout);
+      std::cout << std::endl;
+    }
+    */
+
+    // in this implmentation, a particle could be closest to multiple surface centers and leads to Qhull coplanar issue
+    for (int jt = 0; jt < sixSurfaceCenter.size(); ++jt) {
+      REAL minDist, minIt;
+
+      for (int it = 0; it < particleVec.size(); ++it) {
+	REAL dist = vfabs(particleVec[it]->getCurrPos() - sixSurfaceCenter[jt]);
+	if (it == 0) {
+	  minDist = dist;
+	  minIt = it;
+	} else {
+	  if (dist < minDist) {
+	    minDist = dist;
+	    minIt = it;
+	  }
+	}
+      } // end of for loop it
+
+      if (minIt >= 0 && minIt < particleVec.size())
+	foundParticle.push_back(particleVec[minIt]);
+
+    } // end of for loop jt
+
+    //std::cout << "foundParticle size = " << foundParticle.size() << std::endl;
+  }
+
+
+  void Assembly::findEightVerticeParticle(std::vector<Particle *> &foundParticle) {
+    std::vector<Vec> eightVertice;
+    for (int it = 0; it < 8; ++it)
+      eightVertice.push_back(container.getVertice(it + 1));
+
+    /*
+    for (int it = 0; it < eightVertice.size(); ++it) {
+      eightVertice[it].print(std::cout);
+      std::cout << std::endl;
+    }
+    */
+
+    // in this implmentation, a particle could be closest to multiple vertices and leads to Qhull coplanar issue
+    for (int jt = 0; jt < eightVertice.size(); ++jt) {
+      REAL minDist, minIt;
+
+      for (int it = 0; it < particleVec.size(); ++it) {
+	REAL dist = vfabs(particleVec[it]->getCurrPos() - eightVertice[jt]);
+	if (it == 0) {
+	  minDist = dist;
+	  minIt = it;
+	} else {
+	  if (dist < minDist) {
+	    minDist = dist;
+	    minIt = it;
+	  }
+	}
+      } // end of for loop it
+
+      if (minIt >= 0 && minIt < particleVec.size())
+	foundParticle.push_back(particleVec[minIt]);
+
+    } // end of for loop jt
+
+    //std::cout << "foundParticle size = " << foundParticle.size() << std::endl;
+  }
+
+
   void Assembly::removeParticleOutRectangle() {
     // use updated container
     Vec  v1 = container.getMinCorner();
@@ -1823,7 +1952,7 @@ namespace dem {
     REAL y2 = v2.getY();
     REAL z2 = v2.getZ();
 
-    std::vector<Particle*>::iterator itr;
+    std::vector<Particle *>::iterator itr;
     Vec center;
     //std::size_t flag = 0;
 
@@ -1848,7 +1977,7 @@ namespace dem {
     /*
       if (flag == 1) {
       debugInf << " now " << particleVec.size() << ": ";
-      for (std::vector<Particle*>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      for (std::vector<Particle *>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       debugInf << std::setw(3) << (*it)->getId();
       debugInf << std::endl;
       }
@@ -1857,11 +1986,11 @@ namespace dem {
   }
 
 
-  REAL Assembly::getPtclMaxX(const std::vector<Particle*> &inputParticle) const {
+  REAL Assembly::getPtclMaxX(const std::vector<Particle *> &inputParticle) const {
     if (inputParticle.size() == 0)
       return -1/EPS;
 
-    std::vector<Particle*>::const_iterator it = inputParticle.begin();
+    std::vector<Particle *>::const_iterator it = inputParticle.begin();
     REAL x0 = (*it)->getCurrPos().getX();
     for (; it != inputParticle.end(); ++it) {
       if ( (*it)->getCurrPos().getX() > x0 )
@@ -1871,11 +2000,11 @@ namespace dem {
   }
 
 
-  REAL Assembly::getPtclMinX(const std::vector<Particle*> &inputParticle) const {
+  REAL Assembly::getPtclMinX(const std::vector<Particle *> &inputParticle) const {
     if (inputParticle.size() == 0)
       return 1/EPS;
 
-    std::vector<Particle*>::const_iterator it = inputParticle.begin();
+    std::vector<Particle *>::const_iterator it = inputParticle.begin();
     REAL x0 = (*it)->getCurrPos().getX();
     for (; it != inputParticle.end(); ++it) {
       if ( (*it)->getCurrPos().getX() < x0 )
@@ -1885,11 +2014,11 @@ namespace dem {
   }
 
 
-  REAL Assembly::getPtclMaxY(const std::vector<Particle*> &inputParticle) const {
+  REAL Assembly::getPtclMaxY(const std::vector<Particle *> &inputParticle) const {
     if (inputParticle.size() == 0)
       return -1/EPS;
 
-    std::vector<Particle*>::const_iterator it = inputParticle.begin();
+    std::vector<Particle *>::const_iterator it = inputParticle.begin();
     REAL y0 = (*it)->getCurrPos().getY();
     for (; it != inputParticle.end(); ++it) {
       if ( (*it)->getCurrPos().getY() > y0 )
@@ -1899,11 +2028,11 @@ namespace dem {
   }
 
 
-  REAL Assembly::getPtclMinY(const std::vector<Particle*> &inputParticle) const {
+  REAL Assembly::getPtclMinY(const std::vector<Particle *> &inputParticle) const {
     if (inputParticle.size() == 0)
       return 1/EPS;
 
-    std::vector<Particle*>::const_iterator it = inputParticle.begin();
+    std::vector<Particle *>::const_iterator it = inputParticle.begin();
     REAL y0 = (*it)->getCurrPos().getY();
     for (; it != inputParticle.end(); ++it) {
       if ( (*it)->getCurrPos().getY() < y0 )
@@ -1913,11 +2042,11 @@ namespace dem {
   }
 
 
-  REAL Assembly::getPtclMaxZ(const std::vector<Particle*> &inputParticle) const {
+  REAL Assembly::getPtclMaxZ(const std::vector<Particle *> &inputParticle) const {
     if (inputParticle.size() == 0)
       return -1/EPS;
 
-    std::vector<Particle*>::const_iterator it = inputParticle.begin();
+    std::vector<Particle *>::const_iterator it = inputParticle.begin();
     REAL z0 = (*it)->getCurrPos().getZ();
     for (; it != inputParticle.end(); ++it) {
       if ( (*it)->getCurrPos().getZ() > z0 )
@@ -1927,11 +2056,11 @@ namespace dem {
   }
 
 
-  REAL Assembly::getPtclMinZ(const std::vector<Particle*> &inputParticle) const {
+  REAL Assembly::getPtclMinZ(const std::vector<Particle *> &inputParticle) const {
     if (inputParticle.size() == 0)
       return 1/EPS;
 
-    std::vector<Particle*>::const_iterator it = inputParticle.begin();
+    std::vector<Particle *>::const_iterator it = inputParticle.begin();
     REAL z0 = (*it)->getCurrPos().getZ();
     for (; it != inputParticle.end(); ++it) {
       if ( (*it)->getCurrPos().getZ() < z0 )
@@ -1983,7 +2112,7 @@ namespace dem {
       Vec vspan = v2 - v1;
 
       boost::mpi::request *reqs = new boost::mpi::request [mpiSize - 1];
-      std::vector<Particle*> tmpParticleVec;
+      std::vector<Particle *> tmpParticleVec;
       for (int iRank = mpiSize - 1; iRank >= 0; --iRank) {
 	tmpParticleVec.clear(); // do not release memory!
 	int ndim = 3;
@@ -2205,14 +2334,14 @@ namespace dem {
     MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y2Z2);
 
     // if found, communicate with neighboring blocks
-    std::vector<Particle*> particleX1, particleX2;
-    std::vector<Particle*> particleY1, particleY2;
-    std::vector<Particle*> particleZ1, particleZ2;
-    std::vector<Particle*> particleX1Y1, particleX1Y2, particleX1Z1, particleX1Z2; 
-    std::vector<Particle*> particleX2Y1, particleX2Y2, particleX2Z1, particleX2Z2; 
-    std::vector<Particle*> particleY1Z1, particleY1Z2, particleY2Z1, particleY2Z2; 
-    std::vector<Particle*> particleX1Y1Z1, particleX1Y1Z2, particleX1Y2Z1, particleX1Y2Z2; 
-    std::vector<Particle*> particleX2Y1Z1, particleX2Y1Z2, particleX2Y2Z1, particleX2Y2Z2; 
+    std::vector<Particle *> particleX1, particleX2;
+    std::vector<Particle *> particleY1, particleY2;
+    std::vector<Particle *> particleZ1, particleZ2;
+    std::vector<Particle *> particleX1Y1, particleX1Y2, particleX1Z1, particleX1Z2; 
+    std::vector<Particle *> particleX2Y1, particleX2Y2, particleX2Z1, particleX2Z2; 
+    std::vector<Particle *> particleY1Z1, particleY1Z2, particleY2Z1, particleY2Z2; 
+    std::vector<Particle *> particleX1Y1Z1, particleX1Y1Z2, particleX1Y2Z1, particleX1Y2Z2; 
+    std::vector<Particle *> particleX2Y1Z1, particleX2Y1Z2, particleX2Y2Z1, particleX2Y2Z2; 
     boost::mpi::request reqX1[2], reqX2[2];
     boost::mpi::request reqY1[2], reqY2[2];
     boost::mpi::request reqZ1[2], reqZ2[2];
@@ -2480,7 +2609,7 @@ namespace dem {
     mergeParticleVec.insert(mergeParticleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
 
     /*
-      std::vector<Particle*> testParticleVec;
+      std::vector<Particle *> testParticleVec;
       testParticleVec.insert(testParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
       testParticleVec.insert(testParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
       testParticleVec.insert(testParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
@@ -2500,7 +2629,7 @@ namespace dem {
       << " rNum="    
       << std::setw(4) << recvParticleVec.size() << ": ";   
 
-      for (std::vector<Particle*>::const_iterator it = testParticleVec.begin(); it != testParticleVec.end();++it)
+      for (std::vector<Particle *>::const_iterator it = testParticleVec.begin(); it != testParticleVec.end();++it)
       debugInf << (*it)->getId() << ' ';
       debugInf << std::endl;
       testParticleVec.clear();
@@ -2510,7 +2639,7 @@ namespace dem {
 
   void Assembly::releaseRecvParticle() {
     // release memory of received particles
-    for (std::vector<Particle*>::iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
+    for (std::vector<Particle *>::iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
       delete (*it);
     recvParticleVec.clear();
     // 6 surfaces
@@ -2739,14 +2868,14 @@ namespace dem {
     v2 = container.getMaxCorner();  
 
     // if a neighbor exists, transfer particles crossing the boundary in between.
-    std::vector<Particle*> particleX1, particleX2;
-    std::vector<Particle*> particleY1, particleY2;
-    std::vector<Particle*> particleZ1, particleZ2;
-    std::vector<Particle*> particleX1Y1, particleX1Y2, particleX1Z1, particleX1Z2; 
-    std::vector<Particle*> particleX2Y1, particleX2Y2, particleX2Z1, particleX2Z2; 
-    std::vector<Particle*> particleY1Z1, particleY1Z2, particleY2Z1, particleY2Z2; 
-    std::vector<Particle*> particleX1Y1Z1, particleX1Y1Z2, particleX1Y2Z1, particleX1Y2Z2; 
-    std::vector<Particle*> particleX2Y1Z1, particleX2Y1Z2, particleX2Y2Z1, particleX2Y2Z2; 
+    std::vector<Particle *> particleX1, particleX2;
+    std::vector<Particle *> particleY1, particleY2;
+    std::vector<Particle *> particleZ1, particleZ2;
+    std::vector<Particle *> particleX1Y1, particleX1Y2, particleX1Z1, particleX1Z2; 
+    std::vector<Particle *> particleX2Y1, particleX2Y2, particleX2Z1, particleX2Z2; 
+    std::vector<Particle *> particleY1Z1, particleY1Z2, particleY2Z1, particleY2Z2; 
+    std::vector<Particle *> particleX1Y1Z1, particleX1Y1Z2, particleX1Y2Z1, particleX1Y2Z2; 
+    std::vector<Particle *> particleX2Y1Z1, particleX2Y1Z2, particleX2Y2Z1, particleX2Y2Z2; 
     boost::mpi::request reqX1[2], reqX2[2];
     boost::mpi::request reqY1[2], reqY2[2];
     boost::mpi::request reqZ1[2], reqZ2[2];
@@ -3012,10 +3141,10 @@ namespace dem {
       if (recvParticleVec.size() > 0) {    
       debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank 
       << "   added=";
-      for (std::vector<Particle*>::const_iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
+      for (std::vector<Particle *>::const_iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
       debugInf << std::setw(3) << (*it)->getId();
       debugInf << " now " << particleVec.size() << ": ";
-      for (std::vector<Particle*>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+      for (std::vector<Particle *>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       debugInf << std::setw(3) << (*it)->getId();
       debugInf << std::endl;
       }
@@ -3066,14 +3195,14 @@ namespace dem {
       releaseGatheredParticle();
 
       // duplicate particleVec so that it is not destroyed by allParticleVec in next iteration, otherwise it causes memory error.
-      std::vector<Particle*> dupParticleVec(particleVec.size());
+      std::vector<Particle *> dupParticleVec(particleVec.size());
       for (std::size_t i = 0; i < dupParticleVec.size(); ++i)
 	dupParticleVec[i] = new Particle(*particleVec[i]);
 
       // fill allParticleVec with dupParticleVec and received particles
       allParticleVec.insert(allParticleVec.end(), dupParticleVec.begin(), dupParticleVec.end());
 
-      std::vector<Particle*> tmpParticleVec;
+      std::vector<Particle *> tmpParticleVec;
       long gatherRam = 0;
       for (int iRank = 1; iRank < mpiSize; ++iRank) {
 
@@ -3153,7 +3282,9 @@ namespace dem {
 
 #ifdef STRESS_STRAIN
   void Assembly::calcPrevGranularStress() {
+    cellVec.clear();
     prevGranularStress.setZero();
+
     if (particleVec.size() >= 10) { // contactVec.size()?
       updateGranularCell();
       calcGranularStress(prevGranularStress);
@@ -3173,13 +3304,15 @@ namespace dem {
     if (particleVec.size() >= 10) { // contactVec.size()?
       updateGranularCell();
       calcGranularStress(granularStress);
-      calcGranularStrain(timeIncr);
       if (timeStep != 0)
 	granularStressRate = (granularStress - prevGranularStress) / timeStep;
       // objective stress rate (using l and d)
       OldroStressRate = granularStressRate - granularStrain["l"] * granularStress - granularStress * granularStrain["l"].transpose();
       TruesStressRate = OldroStressRate + granularStress * granularStrain["d"].trace();
 
+      // compute granular strain based on boundary particles, not all of the particles.
+      updateGranularCellOnBoundary();
+      calcGranularStrain(timeIncr);
       convertGranularStressForPrint(); // inside the condition if (particleVec.size() >= 10), to ensure values exist before conversion.
       /*
       Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
@@ -3465,7 +3598,7 @@ namespace dem {
       ptclCoordStream << particleVec[i]->getCurrPos().getX() << " "
 		      << particleVec[i]->getCurrPos().getY() << " "
 		      << particleVec[i]->getCurrPos().getZ() << " ";
-    //std::cout << "ptcl coordinate: " << std::endl << ptclCoordStream.str() << std::endl;    
+    //std::cout << "ptcl coordinate: " << std::endl << ptclCoordStream.str() << std::endl; 
 
     orgQhull::RboxPoints rbox;
     rbox.appendPoints(ptclCoordStream); 
@@ -3499,9 +3632,82 @@ namespace dem {
   }
 
 
+  void Assembly::updateGranularCellOnBoundary() {
+    std::vector<Particle *> bdryParticleVec;
+    //findBdryParticle(bdryParticleVec);
+    //findSixBdryParticle(bdryParticleVec);
+    findEightVerticeParticle(bdryParticleVec);
+
+    cellVec.clear();
+    int tetra[8][4]={
+      {1,2,5,4},
+      {2,1,3,6},
+      {3,2,4,7},
+      {4,3,1,8},
+      {5,8,1,6},
+      {6,5,2,7},
+      {7,6,3,8},
+      {8,7,4,5}
+    };
+
+    int m, n, i, j;
+    for (int it = 0; it < 8; ++it) {
+      m = tetra[it][0];
+      n = tetra[it][1];
+      i = tetra[it][2];
+      j = tetra[it][3];
+      Cell tmpCell(m, n, i, j, bdryParticleVec[m-1], bdryParticleVec[n-1], bdryParticleVec[i-1], bdryParticleVec[j-1]);
+      if (fabs(tmpCell.getVolume()) > EPS)
+	cellVec.push_back(tmpCell);
+    }
+
+    for (int i = 0; i < cellVec.size(); ++i)
+      cellVec[i].setNodeOrderCalcMatrix();
+
+    /*
+    std::stringstream ptclCoordStream;
+    ptclCoordStream << 3 << " " << bdryParticleVec.size() << "\n";
+    for (int i = 0; i < bdryParticleVec.size(); ++i)
+      ptclCoordStream << bdryParticleVec[i]->getCurrPos().getX() << " "
+		      << bdryParticleVec[i]->getCurrPos().getY() << " "
+		      << bdryParticleVec[i]->getCurrPos().getZ() << "\n";
+    std::cout << "ptcl coordinate: " << std::endl << ptclCoordStream.str();    
+
+    orgQhull::RboxPoints rbox;
+    rbox.appendPoints(ptclCoordStream); 
+
+    orgQhull::Qhull qhull;
+    qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; note qdelaunay == qhull d Qbb 
+
+    std::stringstream cellConnectStream;
+    qhull.setOutputStream(&cellConnectStream);
+    qhull.outputQhull();
+    //std::cout << "cell connectivity: " << std::endl << cellConnectStream.str() << std::endl;
+
+    int totalNum;
+    cellConnectStream >> totalNum; 
+    std::cout << totalNum << std::endl;
+    cellVec.clear();
+    int m, n, i, j;
+    for(int it = 0; it < totalNum; ++it){
+      cellConnectStream >> m >> n >> i >> j;
+      ++m;
+      ++n;
+      ++i;
+      ++j;
+      std::cout << m << " " << n << " " << i << " " << j << "\n";
+      // Qhull IDs start from 0; FEM IDs start from 1; particleVec[it-1]: must -1 to obtain the corresponding coordinates. 
+      Cell tmpCell(m, n, i, j, particleVec[m-1], particleVec[n-1], particleVec[i-1], particleVec[j-1]);
+      if (fabs(tmpCell.getVolume()) > EPS)
+	cellVec.push_back(tmpCell);
+    }
+    */
+  }
+
+
   // only snapshot particle positions for strain measurement
   void Assembly::snapParticlePos() {
-    for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+    for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       (*it)->setSnapPos();
   }
 
@@ -4656,6 +4862,15 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "epsilon_y"
 	<< std::setw(OWID) << "epsilon_z"
 	<< std::setw(OWID) << "epsilon_v"
+
+	<< std::setw(OWID) << "Green_x"
+	<< std::setw(OWID) << "Green_y"
+	<< std::setw(OWID) << "Green_z"
+	<< std::setw(OWID) << "Euler_x"
+	<< std::setw(OWID) << "Euler_y"
+	<< std::setw(OWID) << "Euler_z"
+	<< std::setw(OWID) << "vol_strain"
+
 	<< std::setw(OWID) << "void_ratio"
 	<< std::setw(OWID) << "porosity"
 
@@ -4780,8 +4995,34 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << 1-(x2-x1)/distX
 	<< std::setw(OWID) << 1-(y2-y1)/distY
 	<< std::setw(OWID) << 1-(z2-z1)/distZ
-	<< std::setw(OWID) << 3-(x2-x1)/distX - (y2-y1)/distY - (z2-z1)/distZ
-	<< std::setw(OWID) << voidRatio
+	<< std::setw(OWID) << 3-(x2-x1)/distX - (y2-y1)/distY - (z2-z1)/distZ;
+
+    // Green and Euler strain
+    REAL dx = x2 - x1;
+    REAL dy = y2 - y1;
+    REAL dz = z2 - z1;
+    REAL dX = distX;
+    REAL dY = distY;
+    REAL dZ = distZ;
+    REAL C11 = dx * dx / (dX * dX); // C11 != C1, but C11 C22 C33 = C1 C2 C3
+    REAL C22 = dy * dy / (dY * dY);
+    REAL C33 = dz * dz / (dZ * dZ);
+    REAL volStrain = sqrt(C11 * C22 * C33) - 1; // the same value for Green and Euler strain
+    REAL E11 = (C11 - 1)/2;
+    REAL E22 = (C22 - 1)/2;
+    REAL E33 = (C33 - 1)/2;
+    REAL e11 = (1.0 - 1/C11)/2;
+    REAL e22 = (1.0 - 1/C22)/2;
+    REAL e33 = (1.0 - 1/C33)/2;
+    ofs << std::setw(OWID) << E11
+	<< std::setw(OWID) << E22
+	<< std::setw(OWID) << E33
+	<< std::setw(OWID) << e11
+	<< std::setw(OWID) << e22
+	<< std::setw(OWID) << e33
+	<< std::setw(OWID) << volStrain;
+
+    ofs << std::setw(OWID) << voidRatio
 	<< std::setw(OWID) << voidRatio / (1 + voidRatio);
 
     // velocity
@@ -4844,7 +5085,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	>> str >> str >> str >> str >> str >> str >> str >> str >> str >> str
 	>> str >> str >> str >> str >> str >> str >> str >> str >> str;
   
-    std::vector<Particle*>::iterator it;
+    std::vector<Particle *>::iterator it;
     for(it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       delete (*it);
     allParticleVec.clear();
@@ -4855,7 +5096,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (std::size_t i = 0; i < particleNum; ++i){
       ifs >> id >> type >> a >> b >> c >> px >> py >> pz >> dax >> day >> daz >> dbx >> dby >> dbz >> dcx >> dcy >> dcz
 	  >> vx >> vy >> vz >> omx >> omy >> omz >> fx >> fy >> fz >> mx >> my >> mz;
-      Particle* pt= new Particle(id, type, Vec(a,b,c), Vec(px,py,pz), Vec(dax,day,daz), Vec(dbx,dby,dbz), Vec(dcx,dcy,dcz), young, poisson);
+      Particle *pt= new Particle(id, type, Vec(a,b,c), Vec(px,py,pz), Vec(dax,day,daz), Vec(dbx,dby,dbz), Vec(dcx,dcy,dcz), young, poisson);
     
       // optional settings for a particle's initial status
       if ( (static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["toInitParticle"])) == 1 ) {
@@ -4923,7 +5164,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::endl;
   
     Vec vObj;
-    std::vector<Particle*>::const_iterator  it;
+    std::vector<Particle *>::const_iterator  it;
     for (it = allParticleVec.begin(); it != allParticleVec.end();++it)  {
       ofs << std::setw(OWID) << (*it)->getId()
 	  << std::setw(OWID) << (*it)->getType()
@@ -4984,7 +5225,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 
 
-  void Assembly::printParticle(const char *str, std::vector<Particle*>  &particleVec) const {
+  void Assembly::printParticle(const char *str, std::vector<Particle *>  &particleVec) const {
     std::ofstream ofs(str);
     if(!ofs) { debugInf << "stream error: printParticle" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -5022,7 +5263,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::endl;
   
     Vec vObj;
-    std::vector<Particle*>::const_iterator  it;
+    std::vector<Particle *>::const_iterator  it;
     for (it = particleVec.begin(); it != particleVec.end();++it)  {
       ofs << std::setw(OWID) << (*it)->getId()
 	  << std::setw(OWID) << (*it)->getType()
@@ -5366,7 +5607,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	}
  
     // 4-dimensional array of cellVec
-    typedef std::pair<bool, std::vector<Particle*> > cellT;
+    typedef std::pair<bool, std::vector<Particle *> > cellT;
     std::vector< std::vector< std::vector < cellT > > > cellVec;
     cellVec.resize(nx);
     for (int i = 0; i < cellVec.size(); ++i) {
@@ -5476,7 +5717,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	      int ck = k + neighbor[ncell][2];
 	      if (ci > -1 && ci < nx && cj > -1 && cj < ny && ck > -1 && ck < nz && cellVec[ci][cj][ck].first == false ) {
 		//debugInf << "i j k m ncell ci cj ck size contacts= " << i << " " << j << " " << k << " " << m  << " " << ncell << " " << ci << " " << cj << " " << ck << " " << cellVec[ci][cj][ck].second.size() << " "  << contactVec.size() << std::endl;
-		std::vector<Particle*> vt = cellVec[ci][cj][ck].second;
+		std::vector<Particle *> vt = cellVec[ci][cj][ck].second;
 		for (int n = 0; n < vt.size(); ++n) {
 		  pt = vt[n];
 		  v  = pt->getCurrPos();
@@ -5554,7 +5795,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 
   void Assembly::dragForce(){
-    for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+    for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       (*it)->dragForce();
   }
 
@@ -5564,7 +5805,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       gettimeofday(&time_p1,NULL); 
 #endif 
 
-    for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+    for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       (*it)->update();
 
 #ifdef DEM_PROFILE
@@ -5657,7 +5898,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 
   void Assembly::clearContactForce() {
-    for(std::vector<Particle*>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
+    for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it)
       (*it)->clearContactForce();
   }
 
@@ -5807,7 +6048,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   void Assembly::calcTransEnergy() {
     REAL pEngy = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin(); it != particleVec.end(); ++it) {
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getTransEnergy();
@@ -5818,7 +6059,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   void Assembly::calcRotatEnergy() {
     REAL pEngy = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin(); it != particleVec.end(); ++it) {
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getRotatEnergy();
@@ -5829,7 +6070,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   void Assembly::calcKinetEnergy() {
     REAL pEngy = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin();it != particleVec.end(); ++it) {
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getKinetEnergy();
@@ -5840,7 +6081,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   void Assembly::calcGraviEnergy(REAL ref) {
     REAL pEngy = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin();it != particleVec.end(); ++it) {
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getPotenEnergy(ref);
@@ -5856,7 +6097,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   REAL Assembly::getMass() const {
     REAL var = 0;
-    for (std::vector<Particle*>::const_iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    for (std::vector<Particle *>::const_iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       var += (*it)->getMass();
     return var;
   }
@@ -5864,7 +6105,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   REAL Assembly::getParticleVolume() const {
     REAL var = 0;
-    for (std::vector<Particle*>::const_iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
+    for (std::vector<Particle *>::const_iterator it = allParticleVec.begin(); it != allParticleVec.end(); ++it)
       if ((*it)->getType() == 0)
 	var += (*it)->getVolume();
     return var;
@@ -5928,7 +6169,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   REAL Assembly::getAvgTransVelocity() const {
     REAL avgv = 0;
     std::size_t count = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin(); it != particleVec.end(); ++it)
       if ((*it)->getType() == 0) {
 	avgv += vfabs((*it)->getCurrVeloc());
@@ -5941,7 +6182,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   REAL Assembly::getAvgRotatVelocity() const {
     REAL avgv = 0;
     std::size_t count = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin(); it != particleVec.end(); ++it)
       if ((*it)->getType() == 0) {
 	avgv += vfabs((*it)->getCurrOmga());
@@ -5954,7 +6195,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   REAL Assembly::getAvgForce() const {
     REAL avgv = 0;
     std::size_t count = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin(); it != particleVec.end(); ++it)
       if ((*it)->getType() == 0) {
 	avgv += vfabs((*it)->getForce());
@@ -5967,7 +6208,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   REAL Assembly::getAvgMoment() const {
     REAL avgv = 0;
     std::size_t count = 0;
-    std::vector<Particle*>::const_iterator it;
+    std::vector<Particle *>::const_iterator it;
     for (it = particleVec.begin();it != particleVec.end(); ++it)
       if ((*it)->getType() == 0) {
 	avgv += vfabs((*it)->getMoment());
@@ -6236,7 +6477,7 @@ debugfile);         // output file, debug info
  REAL ht)
  {
  REAL x,y,z;
- Particle* newptcl;
+ Particle *newptcl;
  particleNum = 0;
  REAL wall=2.2; // wall - wall height; ht - free particle height
  REAL est =1.02;
@@ -6495,8 +6736,8 @@ debugfile);         // output file, debug info
    // z1: inner, outer
    // z2: inner, outer
    void Assembly::checkMembrane(vector<REAL> &vx ) const {
-   std::vector<Particle*> vec1d;  // 1-dimension
-   std::vector< std::vector<Particle*>  > vec2d; // 2-dimension
+   std::vector<Particle *> vec1d;  // 1-dimension
+   std::vector< std::vector<Particle *>  > vec2d; // 2-dimension
    REAL in, out, tmp;
    REAL x1_in, x1_out, x2_in, x2_out;
    REAL y1_in, y1_out, y2_in, y2_out;
@@ -6638,7 +6879,7 @@ debugfile);         // output file, debug info
    Vec u, v;
    num = particleVec.size();
    ot = particleVec.begin();
-   std::vector<Particle*>::iterator ot, it, pt;
+   std::vector<Particle *>::iterator ot, it, pt;
   
    #pragma omp parallel num_threads(nThreads) private(tid, ts, tnum, it, pt, i, j, u, v) shared(num) reduction(+: possContact)
    {
@@ -6973,7 +7214,7 @@ debugfile);         // output file, debug info
    }
  
    // 4-dimensional array of cellVec
-   typedef std::pair<bool, std::vector<Particle*> > cellT;
+   typedef std::pair<bool, std::vector<Particle *> > cellT;
    std::vector< std::vector< std::vector < cellT > > > cellVec;
    cellVec.resize(nx);
    for (int i = 0; i < cellVec.size(); ++i) {
@@ -7049,7 +7290,7 @@ debugfile);         // output file, debug info
    int ck = k + neighbor[ncell][2];
    if (ci > -1 && ci < nx && cj > -1 && cj < ny && ck > -1 && ck < nz && cellVec[ci][cj][ck].first == false ) {
    //debugInf << "i j k m ncell ci cj ck size contacts= " << i << " " << j << " " << k << " " << m  << " " << ncell << " " << ci << " " << cj << " " << ck << " " << cellVec[ci][cj][ck].second.size() << " "  << contactVec.size() << std::endl;
-   std::vector<Particle*> vt = cellVec[ci][cj][ck].second;
+   std::vector<Particle *> vt = cellVec[ci][cj][ck].second;
    for (int n = 0; n < vt.size(); ++n) {
    pt = vt[n];
    v  = pt->getCurrPos();
@@ -7094,7 +7335,7 @@ debugfile);         // output file, debug info
 
 
    Vec Assembly::getTopFreeParticlePosition() const {
-   std::vector<Particle*>::const_iterator it,jt,kt;
+   std::vector<Particle *>::const_iterator it,jt,kt;
    it=particleVec.begin();
    while (it!=particleVec.end() && (*it)->getType()!=0)   // find the 1st free particle
    ++it;
@@ -7129,7 +7370,7 @@ debugfile);         // output file, debug info
 
    REAL Assembly::ellipPileForce() {
    REAL val=0;
-   for(std::vector<Particle*>::iterator it=particleVec.begin();it!=particleVec.end();++it)
+   for(std::vector<Particle *>::iterator it=particleVec.begin();it!=particleVec.end();++it)
    if ((*it)->getType()==3) {
    val = (*it)->getForce().getZ();
    break;
@@ -7139,7 +7380,7 @@ debugfile);         // output file, debug info
 
    Vec Assembly::ellipPileDimn() {
    Vec val;
-   for(std::vector<Particle*>::iterator it=particleVec.begin();it!=particleVec.end();++it)
+   for(std::vector<Particle *>::iterator it=particleVec.begin();it!=particleVec.end();++it)
    if ((*it)->getType()==3) {
    val = Vec((*it)->getA(), (*it)->getB(), (*it)->getC());
    break;
@@ -7149,7 +7390,7 @@ debugfile);         // output file, debug info
 
    REAL Assembly::ellipPileTipZ() {
    REAL val=0;
-   for(std::vector<Particle*>::iterator it=particleVec.begin();it!=particleVec.end();++it)
+   for(std::vector<Particle *>::iterator it=particleVec.begin();it!=particleVec.end();++it)
    if ((*it)->getType()==3) {
    val = (*it)->getCurrPos().getZ()-(*it)->getA();
    break;
@@ -7172,7 +7413,7 @@ debugfile);         // output file, debug info
    }
 
    void Assembly::ellipPileUpdate() {
-   for(std::vector<Particle*>::iterator it=particleVec.begin();it!=particleVec.end();++it) {
+   for(std::vector<Particle *>::iterator it=particleVec.begin();it!=particleVec.end();++it) {
    if ((*it)->getType()==3) {
    (*it)->setCurrVeloc(Vec(0, 0, -pileRate));
    (*it)->setCurrPos( (*it)->getPrevPos() + (*it)->getCurrVeloc() * timeStep);
@@ -7457,7 +7698,7 @@ debugfile);         // output file, debug info
    REAL maxRadius = gradation.getPtclMaxRadius();
    REAL maxDiameter = maxRadius * 2.0;
    REAL z0 = container.getMinCorner().getZ();
-   std::vector<Particle*> lastPtcls;
+   std::vector<Particle *> lastPtcls;
    Particle *newPtcl = NULL;
    int layers = 1; // how many layers of new particles to generate each time
 
@@ -7502,7 +7743,7 @@ debugfile);         // output file, debug info
 
    }
    else {
-   vector<Particle*>::iterator it;
+   vector<Particle *>::iterator it;
    bool allInContact = false;
    for ( it = lastPtcls.begin(); it != lastPtcls.end(); ++it) {
    if ( (*it)->isInContact() ) 
@@ -7716,7 +7957,7 @@ debugfile);         // output file, debug info
    y0 = cavity.getCenter().getY();
    z0 = cavity.getCenter().getZ();
  
-   std::vector<Particle*>::iterator itr;
+   std::vector<Particle *>::iterator itr;
    Vec center;
    REAL delta = gradation.getPtclMaxRadius();
 
@@ -7755,7 +7996,7 @@ debugfile);         // output file, debug info
    y2 = cavity.getMaxCorner().getY();
    z2 = cavity.getMaxCorner().getZ();
  
-   std::vector<Particle*>::iterator itr;
+   std::vector<Particle *>::iterator itr;
    Vec center;
 
    int cavityPtclNum = 0;
@@ -7834,7 +8075,7 @@ debugfile);         // output file, debug info
    z2 = cavity.getMaxCorner().getZ();
   
    Vec tmp;
-   std::vector<Particle*>::const_iterator  it;
+   std::vector<Particle *>::const_iterator  it;
    for (it=particleVec.begin();it!=particleVec.end();++it)  {
    Vec center=(*it)->getCurrPos();
    if(center.getX() > x1 && center.getX() < x2 &&
@@ -8285,11 +8526,11 @@ debugfile);         // output file, debug info
    REAL y0 = v0.getY();
    REAL z0 = v0.getZ();
 
-   Particle* newptcl = NULL;
+   Particle *newptcl = NULL;
    REAL x, y, z;
   
-   std::vector<Particle*> vec1d;  // 1-dimension
-   std::vector< std::vector<Particle*>  > vec2d; // 2-dimension
+   std::vector<Particle *> vec1d;  // 1-dimension
+   std::vector< std::vector<Particle *>  > vec2d; // 2-dimension
    Spring* newSpring = NULL;
    int memPtclIndex = trimHistoryNum;
    // process in the order of surfaces: x1 x2 y1 y2 z1 z2
@@ -8444,35 +8685,35 @@ debugfile);         // output file, debug info
 
    // membrane particles at the edges of each surface, for example,
    // x1y1 means particles on surface x1 connecting to particles on surface y1
-   std::vector<Particle*> x1y1;
-   std::vector<Particle*> x1y2;
-   std::vector<Particle*> x1z1;
-   std::vector<Particle*> x1z2;
+   std::vector<Particle *> x1y1;
+   std::vector<Particle *> x1y2;
+   std::vector<Particle *> x1z1;
+   std::vector<Particle *> x1z2;
 
-   std::vector<Particle*> x2y1;
-   std::vector<Particle*> x2y2;
-   std::vector<Particle*> x2z1;
-   std::vector<Particle*> x2z2;
+   std::vector<Particle *> x2y1;
+   std::vector<Particle *> x2y2;
+   std::vector<Particle *> x2z1;
+   std::vector<Particle *> x2z2;
 
-   std::vector<Particle*> y1x1;
-   std::vector<Particle*> y1x2;
-   std::vector<Particle*> y1z1;
-   std::vector<Particle*> y1z2;
+   std::vector<Particle *> y1x1;
+   std::vector<Particle *> y1x2;
+   std::vector<Particle *> y1z1;
+   std::vector<Particle *> y1z2;
 
-   std::vector<Particle*> y2x1;
-   std::vector<Particle*> y2x2;
-   std::vector<Particle*> y2z1;
-   std::vector<Particle*> y2z2;
+   std::vector<Particle *> y2x1;
+   std::vector<Particle *> y2x2;
+   std::vector<Particle *> y2z1;
+   std::vector<Particle *> y2z2;
 
-   std::vector<Particle*> z1x1;
-   std::vector<Particle*> z1x2;
-   std::vector<Particle*> z1y1;
-   std::vector<Particle*> z1y2;
+   std::vector<Particle *> z1x1;
+   std::vector<Particle *> z1x2;
+   std::vector<Particle *> z1y1;
+   std::vector<Particle *> z1y2;
 
-   std::vector<Particle*> z2x1;
-   std::vector<Particle*> z2x2;
-   std::vector<Particle*> z2y1;
-   std::vector<Particle*> z2y2;
+   std::vector<Particle *> z2x1;
+   std::vector<Particle *> z2x2;
+   std::vector<Particle *> z2y1;
+   std::vector<Particle *> z2y2;
 
    // find edge particles for each surface
    // memBoundary[0, 1, 2, 3, 4, 5] correspond to 
@@ -8609,7 +8850,7 @@ debugfile);         // output file, debug info
    {
    readParticle(iniptclfile);
   
-   std::vector<Particle*>::iterator itr;
+   std::vector<Particle *>::iterator itr;
    for (itr = particleVec.begin(); itr != particleVec.end(); ) {
    if ( (*itr)->getType() == 1 ) { // 1-fixed
    Vec center=(*itr)->getCurrPos();
@@ -9087,7 +9328,7 @@ debugfile);         // output file, debug info
    REAL x2 = v2.getX();
    REAL y2 = v2.getY();
    REAL z2 = v2.getZ();
-   std::vector<Particle*>::const_iterator  it;
+   std::vector<Particle *>::const_iterator  it;
    Vec pos;
    for (it=particleVec.begin();it!=particleVec.end();++it)
    {
