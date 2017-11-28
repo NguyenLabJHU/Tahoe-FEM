@@ -3229,8 +3229,7 @@ namespace dem {
 
   void Assembly::gatherBdryContact() {
     if (isBdryProcess()) {
-      // it is good to clear possibly contacting particles, otherwise it causes more MPI transmission.
-      // however, the contactInfo of a boundary should not be cleared.
+      // clear possibly contacting particles; do NOT clear contactInfo.
       for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
 	(*it)->clearPossParticle();      
 
@@ -3239,22 +3238,28 @@ namespace dem {
     }
 
     if (mpiRank == 0) {
-      mergeBoundaryVec.clear(); // do not delete pointers as shared with boundaryVec
+      mergeBoundaryVec.clear(); // do not delete pointers as shared with boundaryVec in updateBoundary().
       std::vector<Boundary *>().swap(mergeBoundaryVec);
 
       mergeBoundaryVec = boundaryVec; 
-      std::vector<Boundary *> tmpBoundaryVec;   
+      std::vector<Boundary *> rBoundaryVec; // received BoundaryVec, must release memory after use.
       for (std::size_t it = 0; it < bdryProcess.size(); ++it) {
 	if (bdryProcess[it] != 0) {// not root process
-	  tmpBoundaryVec.clear();  // do not destroy particles!
-	  boostWorld.recv(bdryProcess[it], mpiTag, tmpBoundaryVec);
-	  // merge tmpBoundaryVec into mergeBoundaryVec
-	  assert(tmpBoundaryVec.size() == mergeBoundaryVec.size());
-	  for (std::size_t jt = 0; jt < tmpBoundaryVec.size(); ++jt)
+	  rBoundaryVec.clear();  // do not destroy particles
+	  boostWorld.recv(bdryProcess[it], mpiTag, rBoundaryVec);
+
+	  // 1. merge rBoundaryVec into mergeBoundaryVec
+	  assert(rBoundaryVec.size() == mergeBoundaryVec.size());
+	  for (std::size_t jt = 0; jt < rBoundaryVec.size(); ++jt) {
 	    mergeBoundaryVec[jt]->getContactInfo().insert(   \
 							  mergeBoundaryVec[jt]->getContactInfo().end(), \
-							  tmpBoundaryVec[jt]->getContactInfo().begin(), \
-							  tmpBoundaryVec[jt]->getContactInfo().end() );
+							  rBoundaryVec[jt]->getContactInfo().begin(), \
+							  rBoundaryVec[jt]->getContactInfo().end() );
+	  }
+	  // 2. release memory (destroy pointers) for rBoundaryVec, which contains pointers, even though the 
+	  // pointers point to objects that contains no pointer or pointer-associated members.
+	  for(std::vector<Boundary *>::iterator kt = rBoundaryVec.begin(); kt != rBoundaryVec.end(); ++kt)
+	    delete (*kt);	  
 	}    
       }
 
