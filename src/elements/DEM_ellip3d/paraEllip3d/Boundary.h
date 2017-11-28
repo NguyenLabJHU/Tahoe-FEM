@@ -46,13 +46,14 @@ namespace dem {
   /////////////////////////////////////
   class BdryContact {
   public:
-    Particle *ptcl;
+    //Particle *ptcl;
     Vec point;
     Vec normal;
     Vec tangt;
     REAL penetr;
 
   public:
+    /*
   BdryContact()
     :ptcl(NULL), point(0), normal(0), tangt(0), penetr(0) 
     {}
@@ -60,10 +61,20 @@ namespace dem {
   BdryContact(Particle *p, Vec pt, Vec nm, Vec tg, REAL pntr)
     :ptcl(p), point(pt), normal(nm), tangt(tg), penetr(pntr) 
     {}
+    */
+
+  BdryContact()
+    :point(0), normal(0), tangt(0), penetr(0) 
+    {}
+    
+  BdryContact(Vec pt, Vec nm, Vec tg, REAL pntr)
+    :point(pt), normal(nm), tangt(tg), penetr(pntr) 
+    {}
 
     // 1. compile warning: it will not be called because of forward declaration of class Particle.
     // 2. moving all implementations to Boundary.cpp will get rid of the compile warning.
     // 3. however, it causes double free error in run time, because the pointers to class Particle are generated and managed elsewhere.
+    // 4. thus, the destructor is NOT needed.
     /*
     ~BdryContact() {
       delete ptcl; 
@@ -87,7 +98,7 @@ namespace dem {
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
-      ar & ptcl;
+      //ar & ptcl; // not needed for collection
       ar & point;
       ar & normal;
       ar & tangt;
@@ -157,7 +168,7 @@ namespace dem {
       ar & type;
       ar & extraNum;
       ar & extraEdge;
-      ar & possParticle;
+      //ar & possParticle; // not needed for collection
       ar & contactInfo;
       ar & contactNum;
       ar & normal;
