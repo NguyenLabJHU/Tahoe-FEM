@@ -1265,7 +1265,7 @@ namespace dem {
     std::map<std::string, REAL> normalForce;
     REAL x1, x2, y1, y2, z1, z2;
     // do not use mergeBoundaryVec because each process calls this function.
-    for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
       Vec point  = (*it)->getPoint();
@@ -3231,7 +3231,7 @@ namespace dem {
     if (isBdryProcess()) {
       // it is good to clear possibly contacting particles, otherwise it causes more MPI transmission.
       // however, the contactInfo of a boundary should not be cleared.
-      for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+      for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
 	(*it)->clearPossParticle();      
 
       if (mpiRank != 0)
@@ -3243,7 +3243,7 @@ namespace dem {
       std::vector<Boundary *>().swap(mergeBoundaryVec);
 
       mergeBoundaryVec = boundaryVec; 
-      std::vector<Boundary*> tmpBoundaryVec;   
+      std::vector<Boundary *> tmpBoundaryVec;   
       for (std::size_t it = 0; it < bdryProcess.size(); ++it) {
 	if (bdryProcess[it] != 0) {// not root process
 	  tmpBoundaryVec.clear();  // do not destroy particles!
@@ -3259,7 +3259,7 @@ namespace dem {
       }
 
       // must update after collecting all boundary contact info
-      for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+      for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	(*it)->updateStatForce();
     }
   }
@@ -3272,7 +3272,7 @@ namespace dem {
     ofs.precision(OPREC);
   
     ofs << std::setw(OWID) << mergeBoundaryVec.size() << std::endl << std::endl;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       (*it)->printContactInfo(ofs);
     }
   
@@ -4739,7 +4739,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // normalForce
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
       switch (id) {
@@ -4770,7 +4770,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // contactNum
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getContactNum();
     }
@@ -4781,7 +4781,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // avgPenetr
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getAvgPenetr();
     }
@@ -4813,7 +4813,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   void Assembly::getStartDimension(REAL &distX, REAL &distY, REAL &distZ) {
     REAL x1, x2, y1, y2, z1, z2;
     // use boundaryVec
-    for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
       switch ((*it)->getId()) {
       case 1: 
 	x1 = (*it)->getPoint().getX();
@@ -4916,7 +4916,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   void Assembly::printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REAL distZ) {
     REAL x1, x2, y1, y2, z1, z2;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       switch ((*it)->getId()) {
       case 1: 
 	x1 = (*it)->getPoint().getX();
@@ -4950,7 +4950,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       var[i] = 0;
       vel[i] = 0;
     }
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
       Vec veloc  = (*it)->getVeloc();
@@ -5032,7 +5032,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // contactNum
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getContactNum();
     }
@@ -5043,7 +5043,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // avgPenetr
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getAvgPenetr();
     }
@@ -5396,7 +5396,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl << std::endl
 	<< std::setw(OWID) << boundaryVec.size() << std::endl;
 
-    for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+    for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
       (*it)->print(ofs);
   
     ofs.close();
@@ -5818,7 +5818,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   void Assembly::updateBoundary(REAL sigma, std::string type, REAL sigmaX, REAL sigmaY) {
     if (mpiRank == 0) {
       REAL x1, x2, y1, y2, z1, z2;
-      for(std::vector<Boundary*>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+      for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
 	switch ((*it)->getId()) {
 	case 1: 
 	  x1 = (*it)->getPoint().getX();
@@ -5845,29 +5845,29 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       REAL areaZ = (x2 - x1) * (y2 - y1);
 
       if (type.compare("isotropic") == 0) {
-	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateIsotropic(sigma, areaX, areaY, areaZ);
       } else if (type.compare("oedometer") == 0) {
-	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateOedometer(sigma, areaX, areaY, areaZ);
       } else if (type.compare("triaxial") == 0) {
-	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateTriaxial(sigma, areaX, areaY, areaZ);
       } else if (type.compare("plnstrn") == 0) {
-	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updatePlaneStrain(sigma, areaX, areaY, areaZ);
       } else if (type.compare("trueTriaxial") == 0) {
-	for(std::vector<Boundary*>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateTrueTriaxial(sigma, areaX, areaY, areaZ, sigmaX, sigmaY);
       }
 
       // update boundaryVec from mergeBoundaryVec and remove contactInfo to reduce MPI transmission
       boundaryVec = mergeBoundaryVec; 
-      for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+      for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
 	(*it)->clearContactInfo();
 
       // update allContainer
-      for(std::vector<Boundary*>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+      for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
 	switch ((*it)->getId()) {
 	case 1: 
 	  x1 = (*it)->getPoint().getX();
@@ -5904,13 +5904,13 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 
   void Assembly::findBdryContact() {
-    for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+    for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
       (*it)->findBdryContact(particleVec);
   }
 
 
   void Assembly::boundaryForce() {
-    for(std::vector<Boundary*>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+    for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
       (*it)->boundaryForce(boundaryTgtMap);
   }
 
@@ -7456,7 +7456,7 @@ debugfile);         // output file, debug info
    ofs.setf(std::ios::scientific, std::ios::floatfield);
   
    ofs << std::setw(OWID) << cavityBoundaryVec.size() << std::endl;
-   std::vector<Boundary*>::const_iterator rt;
+   std::vector<Boundary *>::const_iterator rt;
    for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
    (*rt)->display(ofs);
    ofs << std::endl;
@@ -7467,20 +7467,20 @@ debugfile);         // output file, debug info
 
 
    void Assembly::findCavityContact() {
-   std::vector<Boundary*>::iterator rt;
+   std::vector<Boundary *>::iterator rt;
    for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
    (*rt)->findBdryContact(allParticleVec);
    }
 
 
    void Assembly::cavityBoundaryForce() {
-   std::vector<Boundary*>::iterator rt;
+   std::vector<Boundary *>::iterator rt;
    for(rt = cavityBoundaryVec.begin(); rt != cavityBoundaryVec.end(); ++rt)
    (*rt)->boundaryForce(boundaryTgtMap);
    }
 
    Vec Assembly::getNormalForce(int bdry) const {
-   std::vector<Boundary*>::const_iterator it;
+   std::vector<Boundary *>::const_iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==bdry)
    return (*it)->getNormalForce();
@@ -7489,7 +7489,7 @@ debugfile);         // output file, debug info
    }
 
    Vec Assembly::getShearForce(int bdry) const {
-   std::vector<Boundary*>::const_iterator it;
+   std::vector<Boundary *>::const_iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==bdry)
    return (*it)->getShearForce();
@@ -7498,7 +7498,7 @@ debugfile);         // output file, debug info
    }
 
    REAL Assembly::getAvgNormal(int bdry) const {
-   std::vector<Boundary*>::const_iterator it;
+   std::vector<Boundary *>::const_iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==bdry)
    return (*it)->getAvgNormal();
@@ -7507,7 +7507,7 @@ debugfile);         // output file, debug info
    }
 
    Vec Assembly::getApt(int bdry) const {
-   std::vector<Boundary*>::const_iterator it;
+   std::vector<Boundary *>::const_iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==bdry)
    return (*it)->getApt();
@@ -7517,7 +7517,7 @@ debugfile);         // output file, debug info
 
 
    Vec Assembly::getDirc(int bdry) const {
-   std::vector<Boundary*>::const_iterator it;
+   std::vector<Boundary *>::const_iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==bdry)
    return (*it)->getDirc();
@@ -7526,7 +7526,7 @@ debugfile);         // output file, debug info
    }
 
    REAL Assembly::getArea(int n) const {
-   std::vector<Boundary*>::const_iterator it;
+   std::vector<Boundary *>::const_iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==n)
    return (*it)->area;
@@ -7535,7 +7535,7 @@ debugfile);         // output file, debug info
    }
 
    void Assembly::setArea(int n, REAL a) {
-   std::vector<Boundary*>::iterator it;
+   std::vector<Boundary *>::iterator it;
    for(it=boundaryVec.begin();it!=boundaryVec.end();++it) {
    if((*it)->getBdryID()==n)
    (*it)->area=a;
@@ -7543,7 +7543,7 @@ debugfile);         // output file, debug info
    }
 
    REAL Assembly::getAvgPressure() const {
-   std::vector<Boundary*>::const_iterator rt;
+   std::vector<Boundary *>::const_iterator rt;
    REAL avgpres=0;
    for(rt=boundaryVec.begin();rt!=boundaryVec.end();++rt)
    avgpres+=vfabs((*rt)->getNormalForce())/(*rt)->getArea();
@@ -7553,7 +7553,7 @@ debugfile);         // output file, debug info
    // only update CoefOfLimits[0] for specified boundaries
    void Assembly::updateBoundary(int bn[], UPDATECTL rbctl[], int num) {
    for(int i=0;i<num;i++) {
-   for(std::vector<Boundary*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt) {
+   for(std::vector<Boundary *>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt) {
    if((*rt)->getBdryID()==bn[i]) {
    (*rt)->update(rbctl[i]);
    break;
@@ -7564,9 +7564,9 @@ debugfile);         // output file, debug info
 
    // update CoefOfLimits[1,2,3,4] for all 6 boundaries
    void Assembly::updateBoundary6() {
-   for(std::vector<Boundary*>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt) {
+   for(std::vector<Boundary *>::iterator rt=boundaryVec.begin();rt!=boundaryVec.end();++rt) {
    if((*rt)->getBdryID()==1 || (*rt)->getBdryID()==3) {
-   for(std::vector<Boundary*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt) {
+   for(std::vector<Boundary *>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt) {
    if((*lt)->getBdryID()==4)
    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
    else if((*lt)->getBdryID()==2)
@@ -7578,7 +7578,7 @@ debugfile);         // output file, debug info
    }
    }
    else if((*rt)->getBdryID()==2 || (*rt)->getBdryID()==4) {
-   for(std::vector<Boundary*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt) {
+   for(std::vector<Boundary *>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt) {
    if((*lt)->getBdryID()==1)
    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
    else if((*lt)->getBdryID()==3)
@@ -7591,7 +7591,7 @@ debugfile);         // output file, debug info
 
    }
    else if((*rt)->getBdryID()==5 || (*rt)->getBdryID()==6) {
-   for(std::vector<Boundary*>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt) {
+   for(std::vector<Boundary *>::iterator lt=boundaryVec.begin();lt!=boundaryVec.end();++lt) {
    if((*lt)->getBdryID()==1)
    (*rt)->CoefOfLimits[1].apt=(*lt)->CoefOfLimits[0].apt;
    else if((*lt)->getBdryID()==3)
