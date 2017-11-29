@@ -299,7 +299,7 @@ namespace dem {
 #ifdef MODULE_TIME
     pretime1=MPI_Wtime();
 #endif
-    scatterParticle(); // scatter particles only once; also updates grid for the first time
+    scatterParticle(); // scatter particles only once
 #ifdef MODULE_TIME
     pretime2=MPI_Wtime();
     debugInf << std::setw(OWID) << "readFile" << std::setw(OWID) << pretime1-pretime0
@@ -609,7 +609,6 @@ namespace dem {
       }
 
       updateBoundary(sigmaVar, "isotropic"); // must call after printBdryContact
-      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -787,7 +786,6 @@ namespace dem {
       }
 
       updateBoundary(sigmaVar, "oedometer"); // must call after printBdryContact
-      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -921,7 +919,6 @@ namespace dem {
       }
 
       updateBoundary(sigmaConf, "triaxial"); // must call after printBdryContact
-      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -1037,7 +1034,6 @@ namespace dem {
       }
 
       updateBoundary(sigmaConf, "plnstrn"); // must call after printBdryContact
-      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -1184,7 +1180,6 @@ namespace dem {
 	}
 	updateBoundary(sigmaZ, "trueTriaxial", sigmaX, sigmaY); // must call after printBdryContact
       }
-      updateGrid();
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -2683,6 +2678,7 @@ namespace dem {
     updateGridMaxZ();
   }
 
+
   void Assembly::updateGrid5() {
     updateGridMinX();
     updateGridMaxX();
@@ -2690,6 +2686,7 @@ namespace dem {
     updateGridMaxY();
     updateGridMaxZ();
   }
+
 
   void Assembly::updateGridExplosion() {
     updateGridMinXExplosion();
@@ -5361,8 +5358,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 			getPtclMaxX(allParticleVec) + gradation.getPtclMaxRadius(),
 			getPtclMaxY(allParticleVec) + gradation.getPtclMaxRadius(),
 			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
+    } else if (gridUpdate == -1) { // for isotroipc, triaxial, etc whereby grid follows boundaries exactly.
+      setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer
     }
-    // setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); 
 
     boundaryVec.clear();
     Boundary *bptr;
@@ -5895,10 +5893,12 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	}
       }
       setContainer(Rectangle(x1, y1, z1, x2, y2, z2));
+      setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); // the same as allContainer
     }
 
     broadcast(boostWorld, boundaryVec, 0);
-
+    broadcast(boostWorld, allContainer, 0); // not necessary, because only root process uses it.
+    broadcast(boostWorld, grid, 0); // must do
   }
 
 

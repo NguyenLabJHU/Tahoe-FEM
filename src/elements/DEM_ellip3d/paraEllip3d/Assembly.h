@@ -51,10 +51,16 @@ namespace dem {
     std::vector<Spring *>   springVec;       // springs connecting membrane particles
 
     // container property
-    Rectangle allContainer;// whole container, broadcast among processes for once
+    Rectangle allContainer;// whole container, broadcast among processes initially; not updated, or updated and broadcast by updateBoundary()..
     Rectangle container;   // container per process
     Rectangle cavity;      // cavity inside container
-    Rectangle grid;        // adaptive compute grid, broadcast among processes for once, updated by all processes
+
+    // adaptive compute grid, it
+    // (1) follows particle motion in depoisition, collapse, explosion, etc; 
+    // (2) or follows boundary motion in isotropic, triaxial, etc.
+    // broadcast among processes initially;
+    // updated by all processes like updateGrid(), i.e., (1); or updated and broadcast by root process in updateBoundary(), i.e., (2).
+    Rectangle grid;
 
     // boundary property
     std::vector<Boundary *> boundaryVec;       // rigid boundaries, broadcast among processes upon changed.

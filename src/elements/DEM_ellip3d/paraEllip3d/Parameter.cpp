@@ -179,7 +179,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 6; ++i) {
+      for (i = 0; i < 7; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -196,7 +196,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 7; ++i) {
+      for (i = 0; i < 8; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -205,7 +205,7 @@ namespace dem {
     }
       break;
 
-    case 203: { // isotropic 
+    case 203: { // isotropic 3
       std::size_t i;
       for (i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
@@ -213,7 +213,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 3; ++i) {
+      for (i = 0; i < 4; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -243,7 +243,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 7; ++i) {
+      for (i = 0; i < 8; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -260,7 +260,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 3; ++i) {
+      for (i = 0; i < 4; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -290,7 +290,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 5; ++i) {
+      for (i = 0; i < 6; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -307,7 +307,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 6; ++i) {
+      for (i = 0; i < 7; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -324,7 +324,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 6; ++i) {
+      for (i = 0; i < 7; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -341,7 +341,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 7; ++i) {
+      for (i = 0; i < 8; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -358,7 +358,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 9; ++i) {
+      for (i = 0; i < 10; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -375,7 +375,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 10; ++i) {
+      for (i = 0; i < 11; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
@@ -392,7 +392,7 @@ namespace dem {
 	ssline >> str >> str2;
 	datafile[str] = str2;
       }
-      for (i = 0; i < 10; ++i) {
+      for (i = 0; i < 11; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;
