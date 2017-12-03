@@ -3559,8 +3559,11 @@ namespace dem {
     }
 
     Eigen::Matrix3d matrixE = 0.5 * (matrixF.transpose() * matrixF - Eigen::Matrix3d::Identity(3,3));
-    Eigen::Matrix3d matrix_e= 0.5 * (Eigen::Matrix3d::Identity(3,3) - (matrixF * matrixF.transpose()).inverse());
     Eigen::Matrix3d intgraE = 0.5 * (intgraF.transpose() * intgraF - Eigen::Matrix3d::Identity(3,3));
+    Eigen::Matrix3d matrix_e;
+    matrix_e.setZero();
+    if (matrixF != Eigen::Matrix3d::Zero(3,3))
+      matrix_e = 0.5 * (Eigen::Matrix3d::Identity(3,3) - (matrixF * matrixF.transpose()).inverse());
 
     granularStrain.clear();
     granularStrain["intgraF"] = intgraF;
