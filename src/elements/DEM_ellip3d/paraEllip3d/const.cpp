@@ -8,6 +8,9 @@ namespace dem {
   // numerical EPS (NOT machine epsilon)
   const REAL EPS  = 1.0E-12;
 
+  // minimum particle number for computing granular stress and strain
+  const int stressMinPtcl = 8;
+
   // algorithm tolerance
   const REAL TOL  = 1.0E-6;
 

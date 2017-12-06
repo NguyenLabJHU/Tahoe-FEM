@@ -16,6 +16,9 @@ namespace dem {
   // algorithm tolerance
   extern const REAL TOL;
 
+  // minimum particle number for computing granular stress and strain
+  extern const int stressMinPtcl;
+
   // random number seed (NOT a constant)
   extern long idum;
 
