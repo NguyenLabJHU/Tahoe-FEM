@@ -25,7 +25,6 @@ namespace dem {
       stress[i] = 0;
       stressRate[i] = 0;
       stretch[i] = 0;
-      velocityGradient[i] = 0;  
       rateOfDeform[i] = 0;
       greenStrain[i] = 0;
       eulerStrain[i] = 0;
@@ -36,6 +35,7 @@ namespace dem {
       TruesStressRate[i] = 0;
       deformGradient[i] = 0;
       rotation[i] = 0;
+      velocityGradient[i] = 0;  
       norm[i] = 0;
       stressEigenVector[i] = 0;
       stressRateEigenVector[i] = 0;
