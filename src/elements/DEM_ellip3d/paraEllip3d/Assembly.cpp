@@ -608,15 +608,10 @@ namespace dem {
 	++iterSnap;
       }
 
-      updateBoundary(sigmaVar, "isotropic"); // must call after printBdryContact
-
-      releaseRecvParticle(); // late release because printContact refers to received particles
-      time1 = MPI_Wtime();
-      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
-	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
-		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
-
+      // print final state
+      // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
+      // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
+      //    such that gatherGranularStress() may refer to non-existing pointers.
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
 #ifdef STRESS_STRAIN
@@ -676,6 +671,17 @@ namespace dem {
 	  break;
 	}
       }
+      // end of print final state
+
+      updateBoundary(sigmaVar, "isotropic"); // must call after printBdryContact
+
+      // breaks above may stop releaseRecvParticle and cause memory leaking.
+      releaseRecvParticle(); // late release because printContact refers to received particles
+      time1 = MPI_Wtime();
+      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       ++iteration;
     } 
@@ -920,6 +926,27 @@ namespace dem {
 
       updateBoundary(sigmaConf, "triaxial"); // must call after printBdryContact
 
+      // print final state
+      // 1. it must be after updateBoundary() to print the correct final boundaries.
+      // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
+      //    such that gatherGranularStress() may refer to non-existing pointers.
+      if (iteration == endStep) {
+#ifdef STRESS_STRAIN
+	gatherGranularStress("triaxial_tensor_end");
+#endif
+	if (mpiRank == 0) {
+	  printParticle("triaxial_particle_end");
+	  printBdryContact("triaxial_bdrycntc_end");
+	  printBoundary("triaxial_boundary_end");
+	  printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM("triaxial_stress_plot_end.dat");
+	  printGranularStressOrdered("triaxial_stress_data_end.dat");
+#endif
+	}
+      }
+      // end of print final state
+
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
@@ -933,21 +960,6 @@ namespace dem {
       // no break condition, just through top/bottom displacement control
       ++iteration;
     } 
-
-#ifdef STRESS_STRAIN
-    gatherGranularStress("triaxial_tensor_end");
-#endif
-
-    if (mpiRank == 0) {
-      printParticle("triaxial_particle_end");
-      printBdryContact("triaxial_bdrycntc_end");
-      printBoundary("triaxial_boundary_end");
-      printCompressProg(progressInf, distX, distY, distZ);
-#ifdef STRESS_STRAIN
-      printGranularStressFEM("triaxial_stress_plot_end.dat");
-      printGranularStressOrdered("triaxial_stress_data_end.dat");
-#endif
-    }
   
     if (mpiRank == 0) closeProg(progressInf);
   }
