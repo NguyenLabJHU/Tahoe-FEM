@@ -50,6 +50,7 @@
 #include <ctime>
 #include <cassert>
 #include <utility>
+#include <set>
 #include <sys/time.h>
 #include <omp.h>
 
@@ -1922,7 +1923,9 @@ namespace dem {
     }
     */
 
-    // in this implmentation, a particle could be closest to multiple vertices and leads to Qhull coplanar issue
+    // in this implmentation, a particle could be closest to multiple vertices and 
+    // leads to Qhull coplanar issue, or "nan" problem if Qhull is not used.
+    // so updateGranularCellOnBoundary() checks if there exists repeated particles.
     for (int jt = 0; jt < eightVertice.size(); ++jt) {
       REAL minDist, minIt;
 
@@ -2857,7 +2860,7 @@ namespace dem {
 
   void Assembly::migrateParticle() 
   {
-    // now use updated grids to determine the new container of each process
+    // now use updated grid to determine the new container of each process
     Vec    v1 = grid.getMinCorner();
     Vec    v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
@@ -3299,7 +3302,7 @@ namespace dem {
     cellVec.clear();
     prevGranularStress.setZero();
 
-    if (particleVec.size() >= 10) { // contactVec.size()?
+    if (particleVec.size() >= stressMinPtcl) {
       updateGranularCell();
       calcGranularStress(prevGranularStress);
     }
@@ -3314,8 +3317,9 @@ namespace dem {
     OldroStressRate.setZero();  
     TruesStressRate.setZero(); 
     granularStrain.clear(); // clear() does not setZero().
+    printStress.setZero();
 
-    if (particleVec.size() >= 10) { // contactVec.size()?
+    if (particleVec.size() >= stressMinPtcl) {
       updateGranularCell();
       calcGranularStress(granularStress);
       if (timeStep != 0)
@@ -3327,7 +3331,7 @@ namespace dem {
       // compute granular strain based on boundary particles, not all of the particles.
       updateGranularCellOnBoundary();
       calcGranularStrain(timeIncr);
-      convertGranularStressForPrint(); // inside the condition if (particleVec.size() >= 10), to ensure values exist before conversion.
+      convertGranularStressForPrint(); // inside the condition if (particleVec.size() >= stressMinPtcl), to ensure values exist before conversion.
       /*
       Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
       std::cout << "iteration=" << iteration << " process=" << mpiRank << " (" << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << ")" << std::endl
@@ -3359,7 +3363,7 @@ namespace dem {
     printStressVec.clear();
     gather(boostWorld, printStress, printStressVec, 0); // Boost MPI
 
-    // parallel IO: must be outside of the condition if (particleVec.size() >= 10).
+    // parallel IO: must be outside of the condition if (particleVec.size() >= stressMinPtcl).
     // granularStrain initialization has been ensured in calcGranularStrain().
     MPI_Status status;
     MPI_File tensorFile;
@@ -3655,31 +3659,34 @@ namespace dem {
     //findSixBdryParticle(bdryParticleVec);
     findEightVerticeParticle(bdryParticleVec);
 
-    cellVec.clear();
-    int tetra[8][4]={
-      {1,2,5,4},
-      {2,1,3,6},
-      {3,2,4,7},
-      {4,3,1,8},
-      {5,8,1,6},
-      {6,5,2,7},
-      {7,6,3,8},
-      {8,7,4,5}
-    };
+    std::set<Particle *> bdryParticleSet(bdryParticleVec.begin(), bdryParticleVec.end());
+    if (bdryParticleSet.size() == 8) { // ensure 8 different particles 
+      cellVec.clear();
+      int tetra[8][4]={
+	{1,2,5,4},
+	{2,1,3,6},
+	{3,2,4,7},
+	{4,3,1,8},
+	{5,8,1,6},
+	{6,5,2,7},
+	{7,6,3,8},
+	{8,7,4,5}
+      };
 
-    int m, n, i, j;
-    for (int it = 0; it < 8; ++it) {
-      m = tetra[it][0];
-      n = tetra[it][1];
-      i = tetra[it][2];
-      j = tetra[it][3];
-      Cell tmpCell(m, n, i, j, bdryParticleVec[m-1], bdryParticleVec[n-1], bdryParticleVec[i-1], bdryParticleVec[j-1]);
-      if (fabs(tmpCell.getVolume()) > EPS)
-	cellVec.push_back(tmpCell);
+      int m, n, i, j;
+      for (int it = 0; it < 8; ++it) {
+	m = tetra[it][0];
+	n = tetra[it][1];
+	i = tetra[it][2];
+	j = tetra[it][3];
+	Cell tmpCell(m, n, i, j, bdryParticleVec[m-1], bdryParticleVec[n-1], bdryParticleVec[i-1], bdryParticleVec[j-1]);
+	if (fabs(tmpCell.getVolume()) > EPS)
+	  cellVec.push_back(tmpCell);
+      }
+
+      for (int i = 0; i < cellVec.size(); ++i)
+	cellVec[i].setNodeOrderCalcMatrix();
     }
-
-    for (int i = 0; i < cellVec.size(); ++i)
-      cellVec[i].setNodeOrderCalcMatrix();
 
     /*
     std::stringstream ptclCoordStream;
@@ -3899,7 +3906,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
 116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
 
-    long int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
+    int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
     std::size_t index = 0;
     for (std::size_t i = 0; i < mpiProcX + 1; ++i)
@@ -3912,10 +3919,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // Tecplot: 
     // BLOCK format must be used for cell-centered data.
     // For nodal variables, provide the values for each variable in nodal order. 
-    // Similarly, for cell-centered values,provide the variable values in cell order.
+    // Similarly, for cell-centered values, provide the variable values in cell order.
 
     // Implement A: for current Tecplot line character limit 32,000
-    long int lineLen = 32000;
+    int lineLen = 32000;
     int valNum = lineLen / OWID - 10; // leave room for 10 values
     int k;
 
