@@ -931,10 +931,8 @@ namespace dem {
 	++iterSnap;
       }
 
-      updateBoundary(sigmaConf, "triaxial"); // must call after printBdryContact
-
       // print final state
-      // 1. it must be after updateBoundary() to achieve the correct final boundaries.
+      // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
@@ -953,6 +951,8 @@ namespace dem {
 	}
       }
       // end of print final state
+
+      updateBoundary(sigmaConf, "triaxial"); // must call after printBdryContact
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
@@ -1052,10 +1052,8 @@ namespace dem {
 	++iterSnap;
       }
 
-      updateBoundary(sigmaConf, "plnstrn"); // must call after printBdryContact
-
       // print final state
-      // 1. it must be after updateBoundary() to achieve the correct final boundaries.
+      // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
@@ -1067,6 +1065,8 @@ namespace dem {
 	}
       }
       // end of print final state
+
+      updateBoundary(sigmaConf, "plnstrn"); // must call after printBdryContact
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
