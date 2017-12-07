@@ -613,6 +613,7 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
+      broadcast(boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
 #ifdef STRESS_STRAIN
@@ -795,6 +796,7 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
+      broadcast(boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
       if (oedometerType == 1) {
 	if (tractionErrorTol(sigmaVar, "oedometer")) {
 	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
@@ -1195,6 +1197,7 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
+      broadcast(boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
       if (trueTriaxialType == 1) {
 	if (tractionErrorTol(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY)) {
 	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
