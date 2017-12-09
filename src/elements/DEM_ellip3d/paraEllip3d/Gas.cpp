@@ -13,7 +13,7 @@ namespace dem {
     return strcpy( cstr, obj.c_str() );
   }
 
-  const REAL Gas::Rs;
+  const REAL Gas::Rs = 287.06; // specific gas constant
 
   void Gas::initParameter(Rectangle &container, Gradation &gradation) {
 
