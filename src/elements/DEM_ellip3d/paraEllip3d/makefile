@@ -132,15 +132,15 @@ endif
 
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /home/yanb/local/boost-1.65.1_mpt-2.14_intel-compilers-15.3.187
+  BOOST_ROOT = /home/yanb/local/boost-1.65.1_mpt-2.14_intel-compilers-15.0.3.187
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-15.3.187
+   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-15.0.3.187
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /home/yanb/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /home/yanb/local/qhull-2015.2-intel-compilers-15.3.187
+   QHULL_ROOT = /home/yanb/local/qhull-2015.2-intel-compilers-15.0.3.187
   endif
  endif
  ifeq ($(COMPILERS), gcc-sgi)
