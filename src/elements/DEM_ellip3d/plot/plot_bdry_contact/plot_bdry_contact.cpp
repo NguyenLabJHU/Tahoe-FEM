@@ -77,11 +77,11 @@ int main(int argc, char *argv[])
   char num[4], s[20];
 
     std::vector<BdryContact> contactInfo;
-  for(int n=first; n<=last; n+=incre) {
+  for(int step=first; step<=last; step+=incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
     else {
-      sprintf(num, "%03d", n);
+      sprintf(num, "%03d", step);
       strcpy(filein, argv[1]);
       strcat(filein, "_");
       strcat(filein, num);
