@@ -25,10 +25,6 @@ ifeq ($(STRESS_STRAIN), yes)
  EIGEN = yes
  QHULL = yes
  STRESS_STRAIN_MACRO = -DSTRESS_STRAIN
-else
- EIGEN = no
- QHULL = no
- STRESS_STRAIN_MACRO =
 endif
 
 ###4. use papi or not?
@@ -229,7 +225,6 @@ endif
 
 ###2 standard, optimize or debug
 #C++11 or not?
-#C++11 =
 C++11 = -std=c++11
 
 OPTIMIZE = -O3 -DNDEBUG $(C++11)
