@@ -3,17 +3,22 @@ How to use paraEllip3d
 1. compile
 
    1) setup compile environment, e.g.:
-      module load openmpi-1.6.4-gcc-4.6.4
+      module load openmpi-3.0.0-gcc-6.4.0
 
-   2) setup boost in makefile, e.g.:
-      BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+   2) select a platform and corresponding compilers, setup paths to 
+      boost and other libraries in makefile, e.g.:
+      BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0
+      PAPI_ROOT  = /usr/local/papi-5.5.1-openmpi-3.0.0-gcc-6.4.0      
+      EIGEN_ROOT = /usr/local/eigen-3.3.4      
+      QHULL_ROOT = /usr/local/qhull-2015.2-gcc-6.4.0
+  
       Note: run environment must conform, for example, 
             Torque/PBS qsub script should have the line:
-            module load openmpi-1.6.4-gcc-4.6.4
+            module load openmpi-3.0.0-gcc-6.4.0
 
    3) make
 
-   4) copy paraEllip3d to your simulation directory
+   4) copy paraEllip3d to your simulation directory.
 
 2. run
 
@@ -39,7 +44,7 @@ How to use paraEllip3d
        mpiProcZ  1
        ompThreads 12
 
-   3) MPI-only mode (recommended on a single workstation)
+   3) MPI-only mode (recommended)
 
       mpirun -np 64 ./paraEllip3d input.txt
 
@@ -53,7 +58,7 @@ How to use paraEllip3d
       i.e., 64 = 4 * 4 * 4, where np obviously means number 
       of processes. And ompThreads = 1 must be specified.
 
-   4) MPI/OpenMP hybrid mode (recommended on clusters)
+   4) MPI/OpenMP hybrid mode (not recommended)
 
       mpirun -np 64 -npernode 1 ./paraEllip3d input.txt
 
@@ -73,44 +78,53 @@ How to use paraEllip3d
 
 3. job script examples for Torque/PBS
 
-   1) On soilblast
+   1) On soilblast/soilblast2
 
-    !/bin/sh
+#!/bin/sh
 
-    #PBS -m abe
-    #PBS -M your_email_address
-    #PBS -j oe
+# #PBS -m abe
+# #PBS -M your_email_address
+#PBS -j oe
 
-    #PBS -N benchmark
-    #PBS -l nodes=1:ppn=12
-    #PBS -l walltime=24:00:00
+#PBS -N run
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=24:00:00
 
-    module purge
-    module load openmpi-1.6.4-gcc-4.6.4
+module purge
+#module load openmpi-x86_64
+module load openmpi-3.0.0-gcc-6.4.0
 
-    cd $PBS_O_WORKDIR
-    mpirun -np 12 ./paraEllip3d input.txt
+export LD_LIBRARY_PATH=/usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/qhull-2015.2-gcc-6.4.0/lib:$LD_LIBRARY_PATH
+
+cd $PBS_O_WORKDIR
+mpirun -np 8 ./paraEllip3d input.txt
     
-   2) On Janus(it is a good practice to compile and run 
-      in the same environment, i.e., use job script for
-      compile.)
+   2) On DoD supercomputers, e.g., centennial.arl.hpc.mil
 
-    #!/bin/sh
+#!/bin/bash
 
-    #PBS -m abe
-    #PBS -M your_email_address
-    #PBS -j oe
+## optional
+#PBS -m abe
+#PBS -M your_email_address
+#PBS -j oe
+#PBS -N run
 
-    #PBS -N benchmark
-    #PBS -l nodes=8:ppn=12
-    #PBS -l walltime=24:00:00
-    #PBS -q janus-small
-    #PBS -A CEAE00000001
+## required
+#PBS -l select=1:ncpus=40:mpiprocs=8
+#PBS -l walltime=24:00:00
+#PBS -q standard
+#PBS -A ONRDC34502393
 
-    . /curc/tools/utils/dkinit
-    reuse Torque
-    reuse Moab
-    reuse .openmpi-1.4.3_gcc-4.5.2_torque-2.5.8_ib
+## load modules
+#default compiler/intel/2017.1.132   
+#default mpi/sgimpt/2.15
 
-    cd $PBS_O_WORKDIR
-    mpirun -np 8 -npernode 1 ./paraEllip3d input.txt
+## cd to work dir
+cd $PBS_O_WORKDIR
+
+## export additional environment variables
+export LD_LIBRARY_PATH=/p/home/yanb/local/boost-1.65.1_mpt-2.15_intel-2017.1.132/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/p/home/yanb/local/qhull-2015.2-intel-2017.1.132/lib:$LD_LIBRARY_PATH
+
+mpiexec_mpt -np 8 ./paraEllip3d input.txt
