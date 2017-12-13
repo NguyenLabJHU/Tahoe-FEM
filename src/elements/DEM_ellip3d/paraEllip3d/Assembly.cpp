@@ -3336,13 +3336,15 @@ namespace dem {
       calcGranularStress(granularStress);
       if (timeStep != 0)
 	granularStressRate = (granularStress - prevGranularStress) / timeStep;
-      // objective stress rate (using l and d)
-      OldroStressRate = granularStressRate - granularStrain["l"] * granularStress - granularStress * granularStrain["l"].transpose();
-      TruesStressRate = OldroStressRate + granularStress * granularStrain["d"].trace();
 
       // compute granular strain based on boundary particles, not all of the particles.
       updateGranularCellOnBoundary();
       calcGranularStrain(timeIncr);
+
+      // objective stress rate (using l and d), must be after calcGranularStrain(timeIncr)
+      OldroStressRate = granularStressRate - granularStrain["l"] * granularStress - granularStress * granularStrain["l"].transpose();
+      TruesStressRate = OldroStressRate + granularStress * granularStrain["d"].trace();
+
       convertGranularStressForPrint(); // inside the condition if (particleVec.size() >= stressMinPtcl), to ensure values exist before conversion.
       /*
       Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
