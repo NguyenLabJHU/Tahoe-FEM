@@ -361,7 +361,7 @@ namespace dem {
 #endif
       commuParticle(); 
 #ifdef MODULE_TIME
-      if (toCheckTime) time2 = MPI_Wtime(); commuT = time2 - time0;
+      if (toCheckTime) {time2 = MPI_Wtime(); commuT = time2 - time0;}
 #endif
 
       /**/calcTimeStep(); // use values from last step, must call before findContact (which clears data)
@@ -398,7 +398,7 @@ namespace dem {
 	updateGrid();
 
 #ifdef MODULE_TIME
-      if (toCheckTime) time2 = MPI_Wtime(); gridT = time2 - time1;
+      if (toCheckTime) {time2 = MPI_Wtime(); gridT = time2 - time1;}
 #endif
 
       /**/timeCount += timeStep;
@@ -412,7 +412,7 @@ namespace dem {
 	gatherBdryContact();
 	gatherEnergy(); 
 #ifdef MODULE_TIME
-	if (toCheckTime) time2 = MPI_Wtime(); gatherT = time2 - time1;
+	if (toCheckTime) {time2 = MPI_Wtime(); gatherT = time2 - time1;}
 #endif
 
 	if (mpiRank == 0) {
@@ -438,7 +438,7 @@ namespace dem {
 #endif
       migrateParticle(); 
 #ifdef MODULE_TIME
-      if (toCheckTime) time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      if (toCheckTime) {time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;}
       if (mpiRank == 0 && toCheckTime) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT  << std::setw(OWID) << gridT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT - commuT - gridT - migraT << std::setw(OWID) << totalT 
