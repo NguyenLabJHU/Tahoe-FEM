@@ -870,7 +870,7 @@ namespace dem {
       vtmp.push_back(BoundaryTgt(id, tgtForce, tgtDisp, tgtLoading, tgtDispStart, tgtPeak, tgtSlide, tgtRoll));
     }
   
-    plane->getContactInfo().push_back(BdryContact(pt1, -normalForce, -tgtForce, penetr));
+    plane->getContactInfo().push_back(BdryContact(pt1, -normalForce, -tgtForce, penetr, pt1 - currPos));
     // update forces acting on boundary in class Boundary, not here
   }
   

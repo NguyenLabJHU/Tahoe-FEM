@@ -3281,7 +3281,7 @@ namespace dem {
 							  rBoundaryVec[jt]->getContactInfo().end() );
 	  }
 	  // 2. release memory (destroy pointers) for rBoundaryVec, which contains pointers, even though the 
-	  // pointers point to objects that contains no pointer or pointer-associated members.
+	  // pointers point to objects that do not contain pointer or pointer-associated members.
 	  for(std::vector<Boundary *>::iterator kt = rBoundaryVec.begin(); kt != rBoundaryVec.end(); ++kt)
 	    delete (*kt);	  
 	}    
@@ -3315,7 +3315,7 @@ namespace dem {
     prevGranularStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
-      updateGranularCell();
+      //updateGranularCell();
       calcGranularStress(prevGranularStress);
     }
   }
@@ -3332,7 +3332,7 @@ namespace dem {
     printStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
-      updateGranularCell();
+      //updateGranularCell();
       calcGranularStress(granularStress);
       if (timeStep != 0)
 	granularStressRate = (granularStress - prevGranularStress) / timeStep;
@@ -4672,13 +4672,13 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 
 
-  void Assembly::calcGranularStress(Eigen::Matrix3d &stress) { // sigma(i,j) = 1/V sum(li Fj)
+  void Assembly::calcGranularStress(Eigen::Matrix3d &stress) { // sigma(i,j) = 1/V sum(fi lj)
     stress.setZero();
 
-    Eigen::Vector3d lc, p1Center, p2Center;	
-    Eigen::RowVector3d Fc;
+    Eigen::Vector3d fc;	
+    Eigen::RowVector3d lc, p1Center, p2Center;
     lc.setZero();
-    Fc.setZero();
+    fc.setZero();
     p1Center.setZero();
     p2Center.setZero();
 
@@ -4692,19 +4692,43 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       p2Center(2) = it->getP2()->getCurrPos().getZ();
 
       lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
-      Fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
-      Fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
-      Fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
+      fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
+      fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
+      fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
 
-      //std::cout << "lc=" << lc.transpose() << " Fc=" << Fc << std::endl; 
-      stress += lc * Fc;
+      //std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
+      stress += fc * lc;
+    }
+
+    // for boundary processes the boundary contact forces must be included.
+    // for non-boundary processes, the contact forces from adjacent compute grids are already included.
+    if (isBdryProcess()) {
+      Eigen::Vector3d fe;	
+      Eigen::RowVector3d le;
+      le.setZero();
+      fe.setZero();
+      for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+	for (std::vector<BdryContact>::iterator jt = (*it)->getContactInfo().begin(); jt != (*it)->getContactInfo().end(); ++jt) {
+	  le(0) = jt->centerToPoint.getX();
+	  le(1) = jt->centerToPoint.getY();
+	  le(2) = jt->centerToPoint.getZ();
+	  fe(0) = (-jt->normal - jt->tangt).getX();
+	  fe(1) = (-jt->normal - jt->tangt).getY();
+	  fe(2) = (-jt->normal - jt->tangt).getZ();
+
+	  stress += fe * le;
+	}
+      }
     }
 
     //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
+    /*
     if (getGranularCellVolume() == 0) 
       stress.setZero();
     else
       stress /= getGranularCellVolume();
+    */
+    stress /= container.getVolume();
   }
 #endif
 // end of #ifdef STRESS_STRAIN

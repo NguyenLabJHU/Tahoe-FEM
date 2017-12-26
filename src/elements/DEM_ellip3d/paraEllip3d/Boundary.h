@@ -51,6 +51,7 @@ namespace dem {
     Vec normal;
     Vec tangt;
     REAL penetr;
+    Vec centerToPoint;
 
   public:
     /*
@@ -64,11 +65,11 @@ namespace dem {
     */
 
   BdryContact()
-    :point(0), normal(0), tangt(0), penetr(0) 
+    :point(0), normal(0), tangt(0), penetr(0), centerToPoint(0) 
     {}
     
-  BdryContact(Vec pt, Vec nm, Vec tg, REAL pntr)
-    :point(pt), normal(nm), tangt(tg), penetr(pntr) 
+  BdryContact(Vec pt, Vec nm, Vec tg, REAL pntr, Vec cToP)
+    :point(pt), normal(nm), tangt(tg), penetr(pntr), centerToPoint(cToP) 
     {}
 
     // 1. compile warning: it will not be called because of forward declaration of class Particle.
@@ -103,6 +104,7 @@ namespace dem {
       ar & normal;
       ar & tangt;
       ar & penetr;
+      ar & centerToPoint;
     }
   };
 
