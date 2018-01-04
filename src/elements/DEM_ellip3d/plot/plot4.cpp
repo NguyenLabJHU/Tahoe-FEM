@@ -191,13 +191,13 @@ int main(int argc, char *argv[]) {
   long double cx, cy, cz, rd, wd, lt, ht;
   long double x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, tmp;
   long double x, y, z, xp, yp, zp, t, theta; // x, y, z are local coodinates, xp, yp, zp are global.
-  int n, i, j, k;
+  int i, j, k;
 
-  for(n=first; n<=last; n+=incre) {
+  for(int snapshot = first; snapshot <= last; snapshot += incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
     else {
-      sprintf(num, "%03d", n);
+      sprintf(num, "%03d", snapshot);
       strcpy(filein, argv[1]);
       strcat(filein, "_");
       strcat(filein, num);

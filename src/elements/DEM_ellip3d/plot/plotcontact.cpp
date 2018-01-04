@@ -44,9 +44,6 @@ int main(int argc, char *argv[])
   char fileout[50];
   char num[4], s[20];
 
-  int n, k;
-  int TotalNum;
-
   int ptcl_1;
   int ptcl_2;
   double point1_x;
@@ -77,11 +74,11 @@ int main(int argc, char *argv[])
   double vibra_t_step;
   double impact_t_step;
 
-  for(n=first; n<=last; n+=incre) {
+  for(int snapshot = first; snapshot <= last; snapshot += incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
     else {
-      sprintf(num, "%03d", n);
+      sprintf(num, "%03d", snapshot);
       strcpy(filein, argv[1]);
       strcat(filein, "_");
       strcat(filein, num);
@@ -97,7 +94,8 @@ int main(int argc, char *argv[])
     if(!ofs)  { cout<<"stream error!"<<endl; exit(-1);}
     ofs.setf(ios::scientific, ios::floatfield);
 
-    ifs >> TotalNum;
+    int totalNum;
+    ifs >> totalNum;
     ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
        >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
 
@@ -120,8 +118,8 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "penetration"
 	<< endl;
 
-    ofs << "ZONE I=" << TotalNum <<", DATAPACKING=POINT" << endl;
-    for(k = 0; k < TotalNum; ++k) {
+    ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT" << endl;
+    for(int it = 0; it < totalNum; ++it) {
       ifs >> ptcl_1 >> ptcl_2 >> point1_x >> point1_y >> point1_z >> point2_x >> point2_y >> point2_z 
 	  >> radius_1 >> radius_2 >> penetration >> tangt_disp >> contact_radius >> R0 >> E0 >> normal_force >> tangt_force >> normal_all
 	  >> contact_x >> contact_y >> contact_z >> normal_x >> normal_y >> normal_z >> tangt_x >> tangt_y >> tangt_z >> vibra_t_step >> impact_t_step;

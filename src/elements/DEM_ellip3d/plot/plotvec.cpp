@@ -44,18 +44,17 @@ int main(int argc, char *argv[])
   char fileout[50];
   char num[4], s[20];
 
-  int id, type, TotalNum;
+  int id, type, totalNum;
   long double cx, cy, cz, rd, wd, lt, ht;
   long double a, b, c, x0, y0, z0, l1, l2, l3, m1, m2, m3, n1, n2, n3, v1, v2, v3, w1, w2, w3, f1, f2, f3, mt1, mt2, mt3;
   long double dx0, dy0, dz0;
-  int n, k;
 
   std::map<int, std::vector<long double> > centerInit; // map: the particle ID order varies in different files because of MPI gathering.
-  for(n=first; n<=last; n+=incre) {
+  for(int snapshot = first; snapshot <= last; snapshot += incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
     else {
-      sprintf(num, "%03d", n);
+      sprintf(num, "%03d", snapshot);
       strcpy(filein, argv[1]);
       strcat(filein, "_");
       strcat(filein, num);
@@ -71,7 +70,7 @@ int main(int argc, char *argv[])
     if(!ofs)  { cout<<"stream error!"<<endl; exit(-1);}
     ofs.setf(ios::scientific, ios::floatfield);
 
-    ifs >> TotalNum;
+    ifs >> totalNum;
     ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
        >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
 
@@ -96,12 +95,12 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "moment_z"
 	<< endl;
 
-    ofs << "ZONE I=" << TotalNum <<", DATAPACKING=POINT" << endl;
-    for(k = 0; k < TotalNum; ++k) {
+    ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT" << endl;
+    for(int it = 0; it < totalNum; ++it) {
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
 	  >>v1>>v2>>v3>>w1>>w2>>w3>>f1>>f2>>f3>>mt1>>mt2>>mt3;
 
-      if (n == first) {
+      if (snapshot == first) {
 	std::vector<long double> triple(3);
 	triple[0] = x0;
 	triple[1] = y0;
