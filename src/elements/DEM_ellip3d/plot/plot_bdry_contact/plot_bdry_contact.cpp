@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
   char fileout[50];
   char num[4], s[20];
 
-    std::vector<BdryContact> contactInfo;
-  for(int step=first; step<=last; step+=incre) {
+  std::vector<BdryContact> contactInfo;
+  for(int step = first; step <= last; step += incre) {
     if(argc == 2)
       strcpy(filein, argv[1]);
     else {
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 
     }
 
-    ofs	<< std::setw(OWID) << "VARIABLES =" << std::endl
+    ofs	<< std::setw(OWID) << "VARIABLES=" << std::endl
 	<< std::setw(OWID) << "pos_x"
 	<< std::setw(OWID) << "pos_y"
 	<< std::setw(OWID) << "pos_z"
