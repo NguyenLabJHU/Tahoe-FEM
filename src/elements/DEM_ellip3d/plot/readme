@@ -52,3 +52,36 @@ remove redundance (unique) in particle contact info.
 
 dupSpecimen:
 duplicate specimen in x, y, z directions.
+
+examples of plotting internal contact forces, and all contact forces:
+1. for internal_contact:
+mkdir internal_contact
+uniqueContact deposit_contact 1 500
+plotcontact deposit_contact 1 500 1
+mv deposit_contact_*.dat internal_contact
+cd internal_contact
+mypre;rm *.dat
+
+2. for merged_contact:
+mkdir merged_contact
+uniqueContact deposit_contact 1 500
+plotcontact deposit_contact 1 500 1
+mv deposit_contact_*.dat merged_contact
+plot_bdry_contact deposit_bdrycntc 1 500 1
+mv deposit_bdrycntc_*.dat merged_contact
+cd merged_contact
+plotcontactall deposit_contact deposit_bdrycntc 1 500 1
+rm deposit_contact_[0-9][0-9][0-9].dat deposit_bdrycntc_*.dat
+mypre;rm *.dat
+
+example of plotting contact tetrahedra:
+uniqueContact deposit_contact 1 100
+cp -pr deposit_contact* tetra_contact/dat
+cd tetra_contact/dat
+plotcontact deposit_contact 1 100 1
+rm deposit_contact_[0-9][0-9][0-9]
+plot_contact_tetra deposit_contact 1 100 1
+mkdir ../tetra
+mv *tetra.dat ../tetra
+cd ../tetra
+mypre;rm *.dat
