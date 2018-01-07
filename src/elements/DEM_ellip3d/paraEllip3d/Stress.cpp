@@ -91,6 +91,9 @@ namespace dem {
 	<< std::setw(OWID) << norm[3]<< std::setw(OWID) << norm[4]<< std::setw(OWID) << norm[5]
 	<< std::setw(OWID) << norm[6]<< std::setw(OWID) << norm[7]<< std::setw(OWID) << norm[8]
 
+	<< std::setw(OWID) << (stressEigenValue[0] + stressEigenValue[1] + stressEigenValue[2]) / 3
+	<< std::setw(OWID) << sqrt((pow(stressEigenValue[0]-stressEigenValue[1],2) + pow(stressEigenValue[1]-stressEigenValue[2],2) + pow(stressEigenValue[2]-stressEigenValue[0],2)) / 2)
+
 	<< std::setw(OWID) << stressEigenValue[0]<< std::setw(OWID) << stressEigenValue[1]<< std::setw(OWID) << stressEigenValue[2]
 	<< std::setw(OWID) << stressEigenVector[0]<< std::setw(OWID) << stressEigenVector[1]<< std::setw(OWID) << stressEigenVector[2]
 	<< std::setw(OWID) << stressEigenVector[3]<< std::setw(OWID) << stressEigenVector[4]<< std::setw(OWID) << stressEigenVector[5]
