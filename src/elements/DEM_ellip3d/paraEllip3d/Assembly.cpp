@@ -3832,6 +3832,8 @@ namespace dem {
 	<< " " << "Green_xy"
 	<< " " << "Green_xz"
 	<< " " << "Green_yz"
+	<< " " << "Green_vol"
+	<< " " << "Green_shr"
 
 	<< " " << "Euler_xx"
 	<< " " << "Euler_yy"
@@ -3839,6 +3841,8 @@ namespace dem {
 	<< " " << "Euler_xy"
 	<< " " << "Euler_xz"
 	<< " " << "Euler_yz"
+	<< " " << "Euler_vol"
+	<< " " << "Euler_shr"
 
 	<< " " << "l_xx"
 	<< " " << "l_xy"
@@ -3873,7 +3877,6 @@ namespace dem {
 
 	<< " " << "p"
 	<< " " << "q"
-
 	<< " " << "sigma_1"
 	<< " " << "sigma_2"
 	<< " " << "sigma_3"
@@ -3921,7 +3924,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,\
 61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
-116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
+116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
 
     int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
@@ -4046,11 +4049,51 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::endl;
     }
 
+    // Green volume and shear stains
+    numCompo = 2;
+    double green[2];
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	double xx = printStressVec[i].greenStrain[0];
+	double yy = printStressVec[i].greenStrain[1];
+	double zz = printStressVec[i].greenStrain[2];
+	double xy = printStressVec[i].greenStrain[3];
+	double xz = printStressVec[i].greenStrain[4];
+	double yz = printStressVec[i].greenStrain[5];
+	green[0] = (xx + yy + zz) / 3;
+	green[1] = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
+	ofs << std::setw(OWID) << green[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
     numCompo = 6;
     for (int j = 0; j < numCompo; ++j) {
       k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
 	ofs << std::setw(OWID) << printStressVec[i].eulerStrain[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
+    // Euler volume and shear stains
+    numCompo = 2;
+    double euler[2];
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	double xx = printStressVec[i].eulerStrain[0];
+	double yy = printStressVec[i].eulerStrain[1];
+	double zz = printStressVec[i].eulerStrain[2];
+	double xy = printStressVec[i].eulerStrain[3];
+	double xz = printStressVec[i].eulerStrain[4];
+	double yz = printStressVec[i].eulerStrain[5];
+	euler[0] = (xx + yy + zz) / 3;
+	euler[1] = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
+	ofs << std::setw(OWID) << euler[j];
 	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
       }
       ofs << std::endl;
@@ -4412,6 +4455,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "Green_xy"
 	<< std::setw(OWID) << "Green_xz"
 	<< std::setw(OWID) << "Green_yz"
+	<< std::setw(OWID) << "Green_vol"
+	<< std::setw(OWID) << "Green_shr"
 
 	<< std::setw(OWID) << "Euler_xx"
 	<< std::setw(OWID) << "Euler_yy"
@@ -4419,6 +4464,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "Euler_xy"
 	<< std::setw(OWID) << "Euler_xz"
 	<< std::setw(OWID) << "Euler_yz"
+	<< std::setw(OWID) << "Euler_vol"
+	<< std::setw(OWID) << "Euler_shr"
 
 	<< std::setw(OWID) << "l_xx"
 	<< std::setw(OWID) << "l_xy"
@@ -4453,7 +4500,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 	<< std::setw(OWID) << "p"
 	<< std::setw(OWID) << "q"
-
 	<< std::setw(OWID) << "sigma_1"
 	<< std::setw(OWID) << "sigma_2"
 	<< std::setw(OWID) << "sigma_3"

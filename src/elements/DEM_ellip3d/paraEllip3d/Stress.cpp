@@ -45,6 +45,25 @@ namespace dem {
   } 
 
   void Stress::print(std::ostream &ofs) const {
+    double xx, yy, zz, xy, xz, yz;
+    xx = greenStrain[0];
+    yy = greenStrain[1];
+    zz = greenStrain[2];
+    xy = greenStrain[3];
+    xz = greenStrain[4];
+    yz = greenStrain[5];
+    double greenVolumeStrain = (xx + yy + zz) / 3;
+    double greenShearStrain = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
+
+    xx = eulerStrain[0];
+    yy = eulerStrain[1];
+    zz = eulerStrain[2];
+    xy = eulerStrain[3];
+    xz = eulerStrain[4];
+    yz = eulerStrain[5];
+    double eulerVolumeStrain = (xx + yy + zz) / 3;
+    double eulerShearStrain = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
+
     ofs << std::setw(OWID) << coord[0] << std::setw(OWID) << coord[1] << std::setw(OWID) << coord[2]
 
 	<< std::setw(OWID) << stress[0]<< std::setw(OWID) << stress[1]<< std::setw(OWID) << stress[2]
@@ -74,9 +93,11 @@ namespace dem {
 
 	<< std::setw(OWID) << greenStrain[0]<< std::setw(OWID) << greenStrain[1]<< std::setw(OWID) << greenStrain[2]
 	<< std::setw(OWID) << greenStrain[3]<< std::setw(OWID) << greenStrain[4]<< std::setw(OWID) << greenStrain[5]
+	<< std::setw(OWID) << greenVolumeStrain << std::setw(OWID) << greenShearStrain
 
 	<< std::setw(OWID) << eulerStrain[0]<< std::setw(OWID) << eulerStrain[1]<< std::setw(OWID) << eulerStrain[2]
 	<< std::setw(OWID) << eulerStrain[3]<< std::setw(OWID) << eulerStrain[4]<< std::setw(OWID) << eulerStrain[5]
+	<< std::setw(OWID) << eulerVolumeStrain << std::setw(OWID) << eulerShearStrain
 
 	<< std::setw(OWID) << velocityGradient[0]<< std::setw(OWID) << velocityGradient[1]<< std::setw(OWID) << velocityGradient[2]
 	<< std::setw(OWID) << velocityGradient[3]<< std::setw(OWID) << velocityGradient[4]<< std::setw(OWID) << velocityGradient[5]
