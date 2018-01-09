@@ -1,0 +1,5 @@
+while [ `nodefree` -le 160 ]
+do
+  sleep 30m
+done
+mail beichuan.yan@colorado.edu -s "Topaz 160-node available" < /dev/null

@@ -1,0 +1,15 @@
+if (($# != 4)); then
+echo "purpose: convert CFD data to Tecplot format"
+echo "  usage: mygas prefix start_snap end_snap increment"
+echo "example: mygas couple 1 100 5"
+exit
+fi
+
+prefix=$1
+ptcl=$1"_fluidplot"
+
+for suffix in `printf "%03d\n" $(seq $2 $4 $3)`
+do
+  preplot $ptcl"_"$suffix".dat"
+  printf "%s\n" $ptcl"_"$suffix".dat"
+done
