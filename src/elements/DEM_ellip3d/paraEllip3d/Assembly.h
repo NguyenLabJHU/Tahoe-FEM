@@ -195,6 +195,7 @@ namespace dem {
 
     void isotropic();
     void oedometer();
+    void oedometerImpact();
     void triaxial();
     void planeStrain();
     void trueTriaxial();

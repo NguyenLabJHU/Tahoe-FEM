@@ -133,6 +133,9 @@ int main(int argc, char* argv[]) {
   case 602: // resume expanding particles inside a virtual cavity and see what occurs
     assemb.resumeExpandCavityParticle();
     break;  
+  case 603: // oedometer impact from top
+    assemb.oedometerImpact();
+    break;
   case 701: // couple with gas flow, bottom "left" part, R-H conditions
     assemb.coupleWithGas();
     break;  

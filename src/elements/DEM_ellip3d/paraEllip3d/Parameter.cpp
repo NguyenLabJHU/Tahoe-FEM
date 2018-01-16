@@ -418,6 +418,23 @@ namespace dem {
     }
       break;
 
+    case 603: { // oedometer impact from top
+      std::size_t i;
+      for (i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (i = 0; i < 3; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
     case 701: { // couple with gas flow, bottom "left" part, R-H conditions
       std::size_t i;
       for (i = 0; i < 2; ++i) {

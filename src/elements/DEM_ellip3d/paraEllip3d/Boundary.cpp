@@ -495,6 +495,29 @@ namespace dem {
     prevVeloc = veloc;
   }
 
+  void planeBoundary::updateOedometerImpact(REAL areaX, REAL areaY, REAL areaZ) {
+
+    REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];
+    REAL massScale = dem::Parameter::getSingleton().parameter["massScale"];
+    //REAL mass = dem::Parameter::getSingleton().parameter["boundaryMass"];
+    REAL boundaryRate = dem::Parameter::getSingleton().parameter["boundaryRate"];
+    REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
+    REAL atf = forceDamp * timeStep;
+
+    REAL vel, pos;
+    switch (id) {
+    case 6:
+      vel = -boundaryRate;
+      //vel = prevVeloc.getZ() * (2-atf) / (2+atf) + (normal.getZ() - sigma * areaZ) / mass * timeStep * 2 / (2 + atf);
+      pos = prevPoint.getZ() + vel * timeStep;
+      setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
+      setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
+      break;
+    }
+    prevPoint = point;
+    prevVeloc = veloc;
+  }
+
   cylinderBoundary::cylinderBoundary(std::size_t tp, std::ifstream &ifs)
     :Boundary(tp, ifs) {
     REAL dx, dy, dz, px, py, pz;

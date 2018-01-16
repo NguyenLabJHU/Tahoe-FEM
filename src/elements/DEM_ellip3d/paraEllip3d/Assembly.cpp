@@ -1278,6 +1278,126 @@ namespace dem {
   }
 
 
+  void Assembly::oedometerImpact() 
+  {
+    if (mpiRank == 0) {
+      readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      openCompressProg(progressInf, "oedometerImpact_progress");
+    }
+    scatterParticle();
+
+    std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
+    std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
+    std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
+    std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
+    std::size_t netStep   = endStep - startStep + 1;
+    std::size_t netSnap   = endSnap - startSnap + 1; 
+    timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
+
+    REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
+    iteration = startStep;
+    std::size_t iterSnap = startSnap;
+    REAL distX, distY, distZ;
+    if (mpiRank == 0) {
+      plotBoundary((combineString("oedometerImpact_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
+      plotGrid((combineString("oedometerImpact_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
+      printParticle(combineString("oedometerImpact_particle_", iterSnap - 1, 3).c_str());
+      printBdryContact(combineString("oedometerImpact_bdrycntc_", iterSnap -1, 3).c_str());
+      printBoundary(combineString("oedometerImpact_boundary_", iterSnap - 1, 3).c_str());
+      getStartDimension(distX, distY, distZ);
+    }
+    if (mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+    while (iteration <= endStep) {
+      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
+      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
+
+      // displacement control relies on constant time step, so do not call calcTimeStep().
+      //calcTimeStep(); // use values from last step, must call before findContact
+      findContact();
+      if (isBdryProcess()) findBdryContact();
+
+      clearContactForce();
+      internalForce();
+      if (isBdryProcess()) boundaryForce();
+
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(combineString("oedometerImpact_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshort particle positions
+      }
+#endif
+
+      updateParticle();
+      gatherBdryContact(); // must call before updateBoundary
+   
+      if (iteration % (netStep / netSnap) == 0) {
+	time1 = MPI_Wtime();
+	gatherParticle();
+	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
+
+	if (mpiRank == 0) {
+	  plotBoundary((combineString("oedometerImpact_bdryplot_", iterSnap, 3) + ".dat").c_str());
+	  plotGrid((combineString("oedometerImpact_gridplot_", iterSnap, 3) + ".dat").c_str());
+	  printParticle(combineString("oedometerImpact_particle_", iterSnap, 3).c_str());
+	  printBdryContact(combineString("oedometerImpact_bdrycntc_", iterSnap, 3).c_str());
+	  printBoundary(combineString("oedometerImpact_boundary_", iterSnap, 3).c_str());
+	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM((combineString("oedometerImpact_stress_plot_", iterSnap, 3) + ".dat").c_str());
+	  printGranularStressOrdered((combineString("oedometerImpact_stress_data_", iterSnap, 3) + ".dat").c_str());
+#endif
+	}
+	printContact(combineString("oedometerImpact_contact_", iterSnap, 3).c_str());      
+	++iterSnap;
+      }
+
+      // print final state
+      // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
+      // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
+      //    such that gatherGranularStress() may refer to non-existing pointers.
+      if (iteration == endStep) {
+#ifdef STRESS_STRAIN
+	gatherGranularStress("oedometerImpact_tensor_end");
+#endif
+	if (mpiRank == 0) {
+	  printParticle("oedometerImpact_particle_end");
+	  printBdryContact("oedometerImpact_bdrycntc_end");
+	  printBoundary("oedometerImpact_boundary_end");
+	  printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM("oedometerImpact_stress_plot_end.dat");
+	  printGranularStressOrdered("oedometerImpact_stress_data_end.dat");
+#endif
+	}
+      }
+      // end of print final state
+
+      updateBoundary(0, "oedometerImpact"); // must call after printBdryContact
+
+      releaseRecvParticle(); // late release because printContact refers to received particles
+      time1 = MPI_Wtime();
+      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
+
+      if (mpiRank == 0 && iteration % 10 == 0)
+	printCompressProg(progressInf, distX, distY, distZ);
+
+      // no break condition, just through top displacement control
+      ++iteration;
+    } 
+  
+    if (mpiRank == 0) closeProg(progressInf);
+  }
+
+
   bool Assembly::tractionErrorTol(REAL sigma, std::string type, REAL sigmaX, REAL sigmaY) {
     // sigma implies sigmaZ
     REAL tol = dem::Parameter::getSingleton().parameter["tractionErrorTol"];
@@ -6036,6 +6156,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       } else if (type.compare("trueTriaxial") == 0) {
 	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
 	  (*it)->updateTrueTriaxial(sigma, areaX, areaY, areaZ, sigmaX, sigmaY);
+      } else if (type.compare("oedometerImpact") == 0) {
+	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	  (*it)->updateOedometerImpact(areaX, areaY, areaZ);
       }
 
       // update boundaryVec from mergeBoundaryVec and remove contactInfo to reduce MPI transmission
