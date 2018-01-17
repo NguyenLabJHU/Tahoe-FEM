@@ -188,6 +188,7 @@ namespace dem {
     if (mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());    
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      std::vector<REAL> &percent = gradation.getPercent();
 
       // statistics of mass distribution
       Gradation massGrad = gradation;
@@ -201,12 +202,15 @@ namespace dem {
 	    massPercent[i] += (*itr)->getMass(); // += 1 for calculating number percentage
 	}
       REAL totalMass = massPercent[0];
-      for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] /= totalMass;
-      debugInf << std::endl << "mass percentage of particles:" << std::endl
-	       << std::setw(OWID) << massPercent.size() << std::endl;
+      for (std::size_t i = 0; i < massPercent.size(); ++i) 
+	massPercent[i] /= totalMass;
+
+      debugInf << std::setw(OWID) << "calculate mass percentage" << std::endl
+	       << std::setw(OWID) << massPercent.size() << std::endl
+	       << std::setw(OWID) << "number_percent" << std::setw(OWID) << "mass_percent" << std::setw(OWID) << "diameter" << std::endl;
       for (std::size_t i = 0; i < massPercent.size(); ++i)
-	debugInf << std::setw(OWID) << massPercent[i] << std::setw(OWID) << massSize[i] << std::endl;
-    }
+	debugInf << std::setw(OWID) << percent[i] << std::setw(OWID) << massPercent[i] << std::setw(OWID) << massSize[i]*2 << std::endl;
+     }
   }
 
 
