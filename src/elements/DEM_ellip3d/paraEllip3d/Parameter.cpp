@@ -63,8 +63,14 @@ namespace dem {
 	REAL percent, size;
 	ssline >> percent >> size;
 	gradation.push_back(std::make_pair(percent, size));
-      } 
-    }
+      }
+      for (i = 0; i < 7; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+     }
       break;
 
     case 003: { // trimOnly
