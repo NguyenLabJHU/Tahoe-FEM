@@ -159,20 +159,25 @@ namespace dem {
       Gradation massGrad = gradation;
       std::vector<REAL> &massPercent = massGrad.getPercent();
       std::vector<REAL> &massSize    = massGrad.getSize();
-      for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] = 0;
+      for (std::size_t i = 0; i < massPercent.size(); ++i) 
+	massPercent[i] = 0;
 
-      for (std::vector<Particle *>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
+      for (std::vector<Particle*>::iterator itr = allParticleVec.begin(); itr != allParticleVec.end(); ++itr)
 	for (int i = massPercent.size()-1; i >= 0 ; --i) { // do not use size_t for descending series
 	  if ( (*itr)->getA() <= massSize[i] )
 	    massPercent[i] += (*itr)->getMass();
 	}
       REAL totalMass = massPercent[0];
-      for (std::size_t i = 0; i < massPercent.size(); ++i) massPercent[i] /= totalMass;
-      debugInf << std::endl << "mass percentage of particles:" << std::endl
-	       << std::setw(OWID) << massPercent.size() << std::endl;
+      for (std::size_t i = 0; i < massPercent.size(); ++i) 
+	massPercent[i] /= totalMass;
+
+      debugInf << std::setw(OWID) << "tune mass percentage" << std::endl
+	       << std::setw(OWID) << massPercent.size() << std::endl
+	       << std::setw(OWID) << "number_percent" << std::setw(OWID) << "mass_percent" << std::setw(OWID) << "diameter" << std::endl;
       for (std::size_t i = 0; i < massPercent.size(); ++i)
-	debugInf << std::setw(OWID) << massPercent[i] << std::setw(OWID) << massSize[i] << std::endl;
+	debugInf << std::setw(OWID) << percent[i] << std::setw(OWID) << massPercent[i] << std::setw(OWID) << massSize[i]*2 << std::endl;
     }
+
   }
 
 
