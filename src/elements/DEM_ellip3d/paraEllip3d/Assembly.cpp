@@ -1714,7 +1714,7 @@ namespace dem {
 	// Choices:
 	// (a) Move particles at y tail: it cuts particles even in y+ direction but results in more smaller particles at y+. Better for a small number of particles.
 	// (b) Do not move particles at y tail: it cannot cut particle even in y+ direction, and requires larger side gap. Better for a large number of particles.
-	bool moveYTail = false;
+	bool moveYTail = true; // true or false
 
 	// define the grids based on the minimum particle
 	int  gridNx = floor(allContainer.getDimX()/diaMin);
