@@ -2504,8 +2504,8 @@ namespace dem {
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();   
     //debugInf << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
-    //REAL borderWidth = gradation.getPtclMaxRadius() * 2;
-    REAL borderWidth = gradation.getPtclMeanRadius() * 2;
+    REAL borderWidth = gradation.getPtclMaxRadius() * 2;
+    //REAL borderWidth = gradation.getPtclMeanRadius() * 2;
 
     // 6 surfaces
     if (rankX1 >= 0) { // surface x1
