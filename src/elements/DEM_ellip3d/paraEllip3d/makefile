@@ -13,9 +13,9 @@ PLATFORM = soilblast
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
+#COMPILERS = intel-intel
 #COMPILERS = intel-cray
 #COMPILERS = intel-sgi
-#COMPILERS = intel-intel
 #COMPILERS = gcc-sgi
 #COMPILERS = gcc-cray
 
@@ -32,6 +32,7 @@ endif
 
 ###5. boost location
 ifeq ($(PLATFORM), soilblast)
+
  ifeq ($(COMPILERS), gcc-openmpi)
   #BOOST_ROOT = default
   BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
@@ -48,6 +49,20 @@ ifeq ($(PLATFORM), soilblast)
    QHULL_ROOT = /usr/local/qhull-2015.2-gcc-4.6.4
   endif
  endif
+ 
+ ifeq ($(COMPILERS), intel-intel)
+  BOOST_ROOT = /usr/local/boost-1.66.0-intel-psxe-2018
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = 
+  endif
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /usr/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /usr/local/qhull-2015.2-intel-psxe-2018
+  endif
+ endif
+ 
 endif
 
 ifeq ($(PLATFORM), excalibur)
