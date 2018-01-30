@@ -55,13 +55,13 @@ namespace dem {
     int getM() const {return m;}
     int getN() const {return n;}
     int getI() const {return i;}
-    int getj() const {return j;}
+    int getJ() const {return j;}
 
     // need a const version version?
-    Particle* getMParticle() {return ptclMap[m];}
-    Particle* getNParticle() {return ptclMap[n];}
-    Particle* getIParticle() {return ptclMap[i];}
-    Particle* getJParticle() {return ptclMap[j];}
+    Particle* getParticleM() {return ptclMap[m];}
+    Particle* getParticleN() {return ptclMap[n];}
+    Particle* getParticleI() {return ptclMap[i];}
+    Particle* getParticleJ() {return ptclMap[j];}
 
     Matrix43d getMatrixB() const {return matrixB;}
     Eigen::Matrix3d  getMatrix_l() const {return matrix_l;}
