@@ -74,11 +74,6 @@ int main(int argc, char *argv[])
     ofs.open(fileout);
     if(!ofs)  { cout<<"stream error 2!"<<endl; exit(-1);}
     ofs.setf(ios::scientific, ios::floatfield);
-    ofs << "VARIABLES=" << endl
-	<< setw(OWID) << "x"
-	<< setw(OWID) << "y"
-	<< setw(OWID) << "z"
-	<< endl;
 
     int totalParticle;
     ifs >> totalParticle;
@@ -130,6 +125,11 @@ int main(int argc, char *argv[])
 
     int totalTetra;
     connectStream >> totalTetra;
+    ofs << "VARIABLES=" << endl
+	<< setw(OWID) << "x"
+	<< setw(OWID) << "y"
+	<< setw(OWID) << "z"
+	<< endl;
     ofs << "ZONE N=" << totalParticle << ", E=" << totalTetra  <<", DATAPACKING=POINT, ZONETYPE=FETETRAHEDRON" << endl;
 
     // open again
