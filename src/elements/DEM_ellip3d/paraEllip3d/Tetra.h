@@ -1,7 +1,7 @@
 #ifdef STRESS_STRAIN
 
-#ifndef CELL_H
-#define CELL_H
+#ifndef TETRA_H
+#define TETRA_H
 
 #include "Vec.h"
 #include "Particle.h"
@@ -17,10 +17,10 @@ typedef Eigen::Matrix<double, 3, 1> Matrix31d;
 
 namespace dem {
 
-  class Cell {
+  class Tetra {
 
   private:
-    int m, n, i, j;    // node number of a cell (tetrahedron)
+    int m, n, i, j;    // node number of a tetrahedron
     std::map<int, Particle*> ptclMap; // map between node number and particle
     Matrix43d matrixB; // "strain" matrix, based on shape function N(x), x is current coordinates
     Eigen::Matrix3d  matrix_l;   // velocity gradient, dvdx, using shape function
@@ -29,7 +29,7 @@ namespace dem {
     //Eigen::Matrix3d  matrix_l2;  // velocity gradient, dvdx, directly resolved, exactly the same
 
   public:
-    Cell()
+    Tetra()
     : m(0), n(0), i(0), j(0) {
       matrixB.setZero();
       matrix_l.setZero();
@@ -38,7 +38,7 @@ namespace dem {
       //matrix_l2.setZero();
     }
     
-    Cell(int d1, int d2, int d3, int d4, Particle *p1, Particle *p2, Particle *p3, Particle *p4)
+    Tetra(int d1, int d2, int d3, int d4, Particle *p1, Particle *p2, Particle *p3, Particle *p4)
     : m(d1), n(d2), i(d3), j(d4) {
       ptclMap[m] = p1;
       ptclMap[n] = p2;

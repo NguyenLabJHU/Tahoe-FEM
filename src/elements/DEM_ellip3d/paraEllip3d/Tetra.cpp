@@ -1,6 +1,6 @@
 #ifdef STRESS_STRAIN
 
-#include "Cell.h"
+#include "Tetra.h"
 #include "const.h"
 #include <iostream>
 #include <iomanip>
@@ -8,7 +8,7 @@
 
 namespace dem {
 
-  REAL Cell::getInitVolume() {
+  REAL Tetra::getInitVolume() {
     REAL x1, y1, z1;
     REAL x2, y2, z2;
     REAL x3, y3, z3;
@@ -33,7 +33,7 @@ namespace dem {
   }
 
 
-  REAL Cell::getVolume() {
+  REAL Tetra::getVolume() {
     REAL x1, y1, z1;
     REAL x2, y2, z2;
     REAL x3, y3, z3;
@@ -58,7 +58,7 @@ namespace dem {
   }
 
 
-  void Cell::setNodeOrderCalcMatrix() {
+  void Tetra::setNodeOrderCalcMatrix() {
     if(getVolume() < 0) { // swap node 2 and node 3
       /*
       std::cout << "tetra nodes are not numbered counter-clockwise, volume=" << getVolume() << " iteration=" << iteration << std::endl
@@ -89,7 +89,7 @@ namespace dem {
   }
 
 
-  void Cell::calcMatrixB() { // based on current configuration x, not initial configuration X, B=B(x)
+  void Tetra::calcMatrixB() { // based on current configuration x, not initial configuration X, B=B(x)
     REAL x1, y1, z1;
     REAL x2, y2, z2;
     REAL x3, y3, z3;
@@ -149,7 +149,7 @@ namespace dem {
   }
 
 
-  void Cell::calcMatrix_l() {
+  void Tetra::calcMatrix_l() {
     Matrix31d v1(3,1), v2(3,1), v3(3,1), v4(3,1);
 
     v1 << ptclMap[m]->getCurrVeloc().getX(), ptclMap[m]->getCurrVeloc().getY(), ptclMap[m]->getCurrVeloc().getZ();
@@ -178,7 +178,7 @@ namespace dem {
   }
 
 
-  void Cell::calcMatrixF() { // dx = F dX, a linear solver for F based on any three independent edges of a tetrahedron
+  void Tetra::calcMatrixF() { // dx = F dX, a linear solver for F based on any three independent edges of a tetrahedron
     // three edge vectors: jm, jn, ji
     Eigen::Matrix3d dXdYdZ; // in Ax=b, this is A
     Eigen::Vector3d dxdxdx, dydydy, dzdzdz; // in Ax=b, this is b
@@ -253,7 +253,7 @@ namespace dem {
   }
 
   /*
-  void Cell::calcMatrix_l2() {
+  void Tetra::calcMatrix_l2() {
     // three edge vectors: jm, jn, ji
     Eigen::Matrix3d dxdydz; // in Ax=b, this is A
     Eigen::Vector3d dvxdvxdvx, dvydvydvy, dvzdvzdvz; // in Ax=b, this is b

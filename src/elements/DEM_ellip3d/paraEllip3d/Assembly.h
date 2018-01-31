@@ -5,7 +5,7 @@
 
 #ifdef STRESS_STRAIN
 #include "Stress.h"
-#include "Cell.h"
+#include "Tetra.h"
 #endif
 
 #include "Parameter.h"
@@ -98,7 +98,7 @@ namespace dem {
     std::map<std::string, Eigen::Matrix3d> granularStrain; // granular strains, per process
     Stress printStress;                 // only for printing, per process
     std::vector<Stress> printStressVec; // only meaningful to root process
-    std::vector<Cell> cellVec;          // cells (tetrahedra) per process
+    std::vector<Tetra> tetraVec;        // tetrahedrons per process
 #endif
 
     // MPI data
@@ -220,10 +220,10 @@ namespace dem {
 #ifdef STRESS_STRAIN
     // continuum functions
     void gatherGranularStress(const char *str, REAL timeStep=0, REAL timeIncr=0);
-    void updateGranularCell();
-    void updateGranularCellOnBoundary();
+    void updateGranularTetra();
+    void updateGranularTetraOnBoundary();
     void snapParticlePos();
-    REAL getGranularCellVolume();
+    REAL getGranularTetraVolume();
     void calcPrevGranularStress();
     void calcGranularStress(Eigen::Matrix3d &);
     void calcGranularStrain(REAL timeIncr);

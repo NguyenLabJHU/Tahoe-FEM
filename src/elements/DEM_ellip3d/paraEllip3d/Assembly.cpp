@@ -2066,7 +2066,7 @@ namespace dem {
 
     // in this implmentation, a particle could be closest to multiple vertices and 
     // leads to Qhull coplanar issue, or "nan" problem if Qhull is not used.
-    // so updateGranularCellOnBoundary() checks if there exists repeated particles.
+    // so updateGranularTetraOnBoundary() checks if there exists repeated particles.
     for (int jt = 0; jt < eightVertice.size(); ++jt) {
       REAL minDist, minIt;
 
@@ -3440,11 +3440,11 @@ namespace dem {
 
 #ifdef STRESS_STRAIN
   void Assembly::calcPrevGranularStress() {
-    cellVec.clear();
+    tetraVec.clear();
     prevGranularStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
-      //updateGranularCell();
+      //updateGranularTetra();
       calcGranularStress(prevGranularStress);
     }
   }
@@ -3452,7 +3452,7 @@ namespace dem {
 
   void Assembly::gatherGranularStress(const char *str, REAL timeStep, REAL timeIncr) {
     // no matter how many particles exist in the compute grid, these variables need to be cleared.
-    cellVec.clear();
+    tetraVec.clear();
     granularStress.setZero();
     granularStressRate.setZero();
     OldroStressRate.setZero();  
@@ -3461,13 +3461,13 @@ namespace dem {
     printStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
-      //updateGranularCell();
+      //updateGranularTetra();
       calcGranularStress(granularStress);
       if (timeStep != 0)
 	granularStressRate = (granularStress - prevGranularStress) / timeStep;
 
       // compute granular strain based on boundary particles, not all of the particles.
-      updateGranularCellOnBoundary();
+      updateGranularTetraOnBoundary();
       calcGranularStrain(timeIncr);
 
       // objective stress rate (using l and d), must be after calcGranularStrain(timeIncr)
@@ -3666,10 +3666,10 @@ namespace dem {
     // averaging for matrixF, only accounting for initially "continuous" tetrahedra
     avg.setZero();
     actualVolume = 0;
-    for (int i = 0; i < cellVec.size(); ++i) {
-      if (cellVec[i].getMatrixF() != Eigen::Matrix3d::Zero(3,3)) {
-	avg += cellVec[i].getMatrixF() * cellVec[i].getVolume();
-	actualVolume += cellVec[i].getVolume();
+    for (int i = 0; i < tetraVec.size(); ++i) {
+      if (tetraVec[i].getMatrixF() != Eigen::Matrix3d::Zero(3,3)) {
+	avg += tetraVec[i].getMatrixF() * tetraVec[i].getVolume();
+	actualVolume += tetraVec[i].getVolume();
       }
     }
     if (actualVolume == 0) avg.setZero(); else avg /= actualVolume;
@@ -3678,10 +3678,10 @@ namespace dem {
     // averaging for matrixFdot, only accounting for initially "continuous" tetrahedra
     avg.setZero();
     actualVolume = 0;
-    for (int i = 0; i < cellVec.size(); ++i) {
-      if (cellVec[i].getMatrixFdot() != Eigen::Matrix3d::Zero(3,3)) {
-	avg += cellVec[i].getMatrixFdot() * cellVec[i].getVolume();
-	actualVolume += cellVec[i].getVolume();
+    for (int i = 0; i < tetraVec.size(); ++i) {
+      if (tetraVec[i].getMatrixFdot() != Eigen::Matrix3d::Zero(3,3)) {
+	avg += tetraVec[i].getMatrixFdot() * tetraVec[i].getVolume();
+	actualVolume += tetraVec[i].getVolume();
       }
     }
     if (actualVolume == 0) avg.setZero(); else avg /= actualVolume;
@@ -3689,10 +3689,10 @@ namespace dem {
 
     // averaging for matrix_l, not associated with initial state of any tetrahedra
     avg.setZero();
-    for (int i = 0; i < cellVec.size(); ++i) {
-      avg += cellVec[i].getMatrix_l() * cellVec[i].getVolume();
+    for (int i = 0; i < tetraVec.size(); ++i) {
+      avg += tetraVec[i].getMatrix_l() * tetraVec[i].getVolume();
     }
-    if (getGranularCellVolume() == 0) avg.setZero(); else avg /= getGranularCellVolume();
+    if (getGranularTetraVolume() == 0) avg.setZero(); else avg /= getGranularTetraVolume();
     Eigen::Matrix3d matrix_l = avg;
 
     // polar decompostion of matrixF
@@ -3741,7 +3741,7 @@ namespace dem {
   }
 
 
-  void Assembly::updateGranularCell() {
+  void Assembly::updateGranularTetra() {
     /* testing rbox 10 D3
     std::stringstream ptclCoordStream("3 10 \
 -0.0222149361131852 -0.366434993563625 0.3270621312102882 \
@@ -3770,33 +3770,33 @@ namespace dem {
     orgQhull::Qhull qhull;
     qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; note qdelaunay == qhull d Qbb 
 
-    std::stringstream cellConnectStream;
-    qhull.setOutputStream(&cellConnectStream);
+    std::stringstream tetraConnectStream;
+    qhull.setOutputStream(&tetraConnectStream);
     qhull.outputQhull();
-    //std::cout << "cell connectivity: " << std::endl << cellConnectStream.str() << std::endl;
+    //std::cout << "tetra connectivity: " << std::endl << tetraConnectStream.str() << std::endl;
 
     int totalNum;
-    cellConnectStream >> totalNum;
-    cellVec.clear();
+    tetraConnectStream >> totalNum;
+    tetraVec.clear();
     int m, n, i, j;
     for(int it = 0; it < totalNum; ++it){
-      cellConnectStream >> m >> n >> i >> j;
+      tetraConnectStream >> m >> n >> i >> j;
       ++m;
       ++n;
       ++i;
       ++j;
       // Qhull IDs start from 0; FEM IDs start from 1; particleVec[it-1]: must -1 to obtain the corresponding coordinates. 
-      Cell tmpCell(m, n, i, j, particleVec[m-1], particleVec[n-1], particleVec[i-1], particleVec[j-1]);
-      if (fabs(tmpCell.getVolume()) > EPS)
-	cellVec.push_back(tmpCell);
+      Tetra tmpTetra(m, n, i, j, particleVec[m-1], particleVec[n-1], particleVec[i-1], particleVec[j-1]);
+      if (fabs(tmpTetra.getVolume()) > EPS)
+	tetraVec.push_back(tmpTetra);
     }
     
-    for (int i = 0; i < cellVec.size(); ++i)
-      cellVec[i].setNodeOrderCalcMatrix();
+    for (int i = 0; i < tetraVec.size(); ++i)
+      tetraVec[i].setNodeOrderCalcMatrix();
   }
 
 
-  void Assembly::updateGranularCellOnBoundary() {
+  void Assembly::updateGranularTetraOnBoundary() {
     std::vector<Particle *> bdryParticleVec;
     //findBdryParticle(bdryParticleVec);
     //findSixBdryParticle(bdryParticleVec);
@@ -3804,7 +3804,7 @@ namespace dem {
 
     std::set<Particle *> bdryParticleSet(bdryParticleVec.begin(), bdryParticleVec.end());
     if (bdryParticleSet.size() == 8) { // ensure 8 different particles 
-      cellVec.clear();
+      tetraVec.clear();
       int tetra[8][4]={
 	{1,2,5,4},
 	{2,1,3,6},
@@ -3822,13 +3822,13 @@ namespace dem {
 	n = tetra[it][1];
 	i = tetra[it][2];
 	j = tetra[it][3];
-	Cell tmpCell(m, n, i, j, bdryParticleVec[m-1], bdryParticleVec[n-1], bdryParticleVec[i-1], bdryParticleVec[j-1]);
-	if (fabs(tmpCell.getVolume()) > EPS)
-	  cellVec.push_back(tmpCell);
+	Tetra tmpTetra(m, n, i, j, bdryParticleVec[m-1], bdryParticleVec[n-1], bdryParticleVec[i-1], bdryParticleVec[j-1]);
+	if (fabs(tmpTetra.getVolume()) > EPS)
+	  tetraVec.push_back(tmpTetra);
       }
 
-      for (int i = 0; i < cellVec.size(); ++i)
-	cellVec[i].setNodeOrderCalcMatrix();
+      for (int i = 0; i < tetraVec.size(); ++i)
+	tetraVec[i].setNodeOrderCalcMatrix();
     }
 
     /*
@@ -3846,27 +3846,27 @@ namespace dem {
     orgQhull::Qhull qhull;
     qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; note qdelaunay == qhull d Qbb 
 
-    std::stringstream cellConnectStream;
-    qhull.setOutputStream(&cellConnectStream);
+    std::stringstream tetraConnectStream;
+    qhull.setOutputStream(&tetraConnectStream);
     qhull.outputQhull();
-    //std::cout << "cell connectivity: " << std::endl << cellConnectStream.str() << std::endl;
+    //std::cout << "tetra connectivity: " << std::endl << tetraConnectStream.str() << std::endl;
 
     int totalNum;
-    cellConnectStream >> totalNum; 
+    tetraConnectStream >> totalNum; 
     std::cout << totalNum << std::endl;
-    cellVec.clear();
+    tetraVec.clear();
     int m, n, i, j;
     for(int it = 0; it < totalNum; ++it){
-      cellConnectStream >> m >> n >> i >> j;
+      tetraConnectStream >> m >> n >> i >> j;
       ++m;
       ++n;
       ++i;
       ++j;
       std::cout << m << " " << n << " " << i << " " << j << "\n";
       // Qhull IDs start from 0; FEM IDs start from 1; particleVec[it-1]: must -1 to obtain the corresponding coordinates. 
-      Cell tmpCell(m, n, i, j, particleVec[m-1], particleVec[n-1], particleVec[i-1], particleVec[j-1]);
-      if (fabs(tmpCell.getVolume()) > EPS)
-	cellVec.push_back(tmpCell);
+      Tetra tmpTetra(m, n, i, j, particleVec[m-1], particleVec[n-1], particleVec[i-1], particleVec[j-1]);
+      if (fabs(tmpTetra.getVolume()) > EPS)
+	tetraVec.push_back(tmpTetra);
     }
     */
   }
@@ -4861,10 +4861,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 
 
-  REAL Assembly::getGranularCellVolume() {
+  REAL Assembly::getGranularTetraVolume() {
     REAL volume = 0;
-    for (int i = 0; i < cellVec.size(); ++i)
-      volume += cellVec[i].getVolume();
+    for (int i = 0; i < tetraVec.size(); ++i)
+      volume += tetraVec[i].getVolume();
     //std::cout << "volume = " << volume << std::endl;
     return volume;
   }
@@ -4966,10 +4966,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
     /*
-    if (getGranularCellVolume() == 0) 
+    if (getGranularTetraVolume() == 0) 
       stress.setZero();
     else
-      stress /= getGranularCellVolume();
+      stress /= getGranularTetraVolume();
     */
     stress /= container.getVolume();
   }
