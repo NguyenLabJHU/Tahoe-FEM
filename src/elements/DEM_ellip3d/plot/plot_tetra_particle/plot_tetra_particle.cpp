@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 {
   if(argc < 2) {
     cout << endl 
-	 << "-- Plot particle centroid meshes --"<<endl
+	 << "-- Plot particle centroid tetrahedrons --"<<endl
 	 << "Usage:" << endl
 	 << "1) process a single file:  plot_tetra_particle particle_file" << endl
 	 << "   --example: plot_tetra_particle triaxial_particle_008" << endl

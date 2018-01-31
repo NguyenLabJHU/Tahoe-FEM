@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 {
   if(argc < 2) {
     cout << endl 
-	 << "-- Plot contact meshes using data processed by plotcontact --"<<endl
+	 << "-- Plot contact tetrahedrons using data processed by plotcontact --"<<endl
 	 << "Usage:" << endl
 	 << "1) process a single file:  plot_tetra_contact contact_file" << endl
 	 << "   --example: plot_tetra_contact triaxial_contact_008 (not triaxial_contact_008.dat)" << endl
