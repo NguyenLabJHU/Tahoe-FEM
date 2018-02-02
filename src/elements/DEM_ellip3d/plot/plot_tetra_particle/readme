@@ -1,6 +1,0 @@
-g++ -o plot_tetra_particle plot_tetra_particle.cpp -I/usr/local/qhull-2015.2/src -L/usr/local/qhull-2015.2/lib -lqhullcpp -lqhull_r
-
-to run the code:
-export PATH=/usr/local/qhull-2015.2/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/qhull-2015.2/lib:$LD_LIBRARY_PATH
-
