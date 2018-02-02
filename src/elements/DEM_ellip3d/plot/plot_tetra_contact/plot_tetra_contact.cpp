@@ -1,3 +1,5 @@
+#include "Vec.h"
+#include "Tetra.h"
 #include <vector>
 #include <string>
 #include <map>
@@ -21,6 +23,7 @@
 using namespace std;
 
 const double PI = 3.1415927;
+const double EPS = 1.0E-12;
 static const int OWID = 15;
 static const int OPREC= 6;
 
@@ -50,9 +53,9 @@ int main(int argc, char *argv[])
   }
 
   ifstream ifs;
-  ofstream ofs;
+  ofstream ofs, ofs2;
   char filein[50];
-  char fileout[50];
+  char fileout[50], fileout2[50];
   char num[4], s[20], snum[20];
 
   int ptcl_1;
@@ -91,6 +94,19 @@ int main(int argc, char *argv[])
   double vibra_t_step;
   double impact_t_step;
 
+  ofstream ofs3;
+  ofs3.open("tetra_particle_stats");
+  if(!ofs3)  { cout<<"stream error 4!"<<endl; exit(-1);}
+  ofs3.setf(ios::scientific, ios::floatfield);
+  ofs3 << setw(OWID) << "snap"
+       << setw(OWID) << "avgLength"
+       << setw(OWID) << "avgSideLen"
+       << setw(OWID) << "avgBottLen"
+       << setw(OWID) << "sideBottRatio"
+       << setw(OWID) << "topSolidAng_sr"
+       << setw(OWID) << "topConeAng_deg"
+       << std::endl;
+
   for(int step=first; step<=last; step+=incre) {
     if(argc == 2) {
       strcpy(filein, argv[1]);
@@ -101,11 +117,13 @@ int main(int argc, char *argv[])
       strcat(filein, num);
     }
     strcpy(fileout, filein);
+    strcpy(fileout2, filein);
     strcat(filein, ".dat");
-    strcat(fileout, "_tetra.dat");      
+    strcat(fileout, "_tetra_block.dat");      
+    strcat(fileout2, "_tetra_point.dat");      
 
     ifs.open(filein);
-    if(!ifs)  { cout<<"stream error!"<<endl; exit(-1);}
+    if(!ifs)  { cout<<"stream error 1!"<<endl; exit(-1);}
 
     // read data and obtain lines, snum reads "I=1216252," from "ZONE I=1216252, DATAPACKING=POINT"
     ifs >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
@@ -119,25 +137,33 @@ int main(int argc, char *argv[])
 
     if (totalContact < 5) { // Qhull needs at least 5 points in 3D
       ifs.close();
-    }
-    else {
-      cout << "generating file " << fileout << " ......" <<endl;
+    } else {
+      cout << "generating file " << fileout << " " << fileout2 << " ......" <<endl;
       ofs.open(fileout);
-      if(!ofs)  { cout<<"stream error!"<<endl; exit(-1);}
+      if(!ofs)  { cout<<"stream error 2!"<<endl; exit(-1);}
       ofs.setf(ios::scientific, ios::floatfield);
+      ofs2.open(fileout2);
+      if(!ofs2)  { cout<<"stream error 3!"<<endl; exit(-1);}
+      ofs2.setf(ios::scientific, ios::floatfield);
 
       // prepare data for Qhull
       std::stringstream coordStream;
       coordStream << 3 << " " << totalContact << " ";
+      std::vector<Vec> spaceCoords(totalContact);
+      std::size_t index = 0;
       for(int k = 0; k < totalContact; ++k) {
 	ifs >> x >> y >> z
 	    >> normal_x >> normal_y >> normal_z
 	    >> tangt_x >> tangt_y >> tangt_z
 	    >> total_x >> total_y >> total_z
 	    >> normal >> shear >> total >> penetration;
+
 	coordStream << x << " "
 		    << y << " "
 		    << z << " ";     
+
+	// store coordindates
+	spaceCoords[index++] = Vec(x, y, z); 
       }
       ifs.close();
 
@@ -152,45 +178,172 @@ int main(int argc, char *argv[])
 
       int totalTetra;
       connectStream >> totalTetra;
+      std::vector<Tetra> tetraVec;
+      int i, j, k, l;
+      for(int it=0; it!=totalTetra; it++) {
+	connectStream >> i >> j >> k >> l;
+	++i;
+	++j;
+	++k;
+	++l; // Qhull IDs start from 0; FEM IDs start from 1
+	Tetra tmpTetra(i, j, k, l, spaceCoords[i-1], spaceCoords[j-1], spaceCoords[k-1], spaceCoords[l-1]);
+	if (fabs(tmpTetra.getVolume()) > EPS) // only store non-coplanar tetrahedrons
+	  tetraVec.push_back(tmpTetra);
+      }
+      for (int i = 0; i < tetraVec.size(); ++i)
+	tetraVec[i].setNodeOrder();
+
+      // print total average of each variable
+      double avgLength = 0;
+      double avgSideLen = 0;
+      double avgBottLen = 0;
+      double sideBottRatio = 0;
+      double topSolidAng_sr = 0;
+      double topConeAng_deg = 0;
+      for (int i = 0; i < tetraVec.size(); ++i) {
+	avgLength += tetraVec[i].getAngles()[0];
+	avgSideLen += tetraVec[i].getAngles()[1];
+	avgBottLen += tetraVec[i].getAngles()[2];
+	sideBottRatio += tetraVec[i].getAngles()[3];
+	topSolidAng_sr += tetraVec[i].getAngles()[4];
+	topConeAng_deg += tetraVec[i].getAngles()[5];
+      }
+      avgLength /= tetraVec.size();
+      avgSideLen /= tetraVec.size();
+      avgBottLen /= tetraVec.size();
+      sideBottRatio /= tetraVec.size();
+      topSolidAng_sr /= tetraVec.size();
+      topConeAng_deg /= tetraVec.size();
+      ofs3 << setw(OWID) << step
+	   << setw(OWID) << avgLength
+	   << setw(OWID) << avgSideLen
+	   << setw(OWID) << avgBottLen
+	   << setw(OWID) << sideBottRatio
+	   << setw(OWID) << topSolidAng_sr
+	   << setw(OWID) << topConeAng_deg
+	   << std::endl;
+
+      // print Tecplot Block format
       ofs << "VARIABLES=" << endl
 	  << setw(OWID) << "x"
 	  << setw(OWID) << "y"
 	  << setw(OWID) << "z"
+	  << setw(OWID) << "avgLength"
+	  << setw(OWID) << "avgSideLen"
+	  << setw(OWID) << "avgBottLen"
+	  << setw(OWID) << "sideBottRatio"
+	  << setw(OWID) << "topSolidAng_sr"
+	  << setw(OWID) << "topConeAng_deg"
 	  << endl;
-      ofs << "ZONE N=" << totalContact << ", E=" << totalTetra  <<", DATAPACKING=POINT, ZONETYPE=FETETRAHEDRON" << endl;
+      ofs << "ZONE N=" << totalContact << ", E=" << tetraVec.size()  <<", DATAPACKING=BLOCK, \
+VARLOCATION=([4,5,6,7,8,9]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
 
-      // open again
-      ifs.open(filein);
-      if(!ifs)  { cout<<"stream error!"<<endl; exit(-1);}
-      ifs >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
-	  >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
-      for(int k = 0; k < totalContact; ++k) {
-	ifs >> x >> y >> z
-	    >> normal_x >> normal_y >> normal_z
-	    >> tangt_x >> tangt_y >> tangt_z
-	    >> total_x >> total_y >> total_z
-	    >> normal >> shear >> total >> penetration;
+      // Tecplot: 
+      // BLOCK format must be used for cell-centered data.
+      // For nodal variables, provide the values for each variable in nodal order. 
+      // Similarly, for cell-centered values, provide the variable values in cell order.
 
-	ofs << setw(OWID) << x
-	    << setw(OWID) << y
-	    << setw(OWID) << z << std::endl;
+      // Implement A: for current Tecplot line character limit 32,000
+      int lineLen = 32000;
+      int valNum = lineLen / OWID - 10; // leave room for 10 values
+      int kut;
 
+      // print variables
+      // coordinates
+      kut = 0;
+      for (std::size_t i = 0; i < spaceCoords.size(); ++i) {
+	ofs << std::setw(OWID) << spaceCoords[i].getX();
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
-      ifs.close();
+      ofs << std::endl;
 
-      int m, n, i, j;
-      for(int it=0; it!=totalTetra; it++) {
-	connectStream >> m >> n >> i >> j;
-	++m;
-	++n;
-	++i;
-	++j; // Qhull IDs start from 0; FEM IDs start from 1
-	ofs << setw(OWID) << m << setw(OWID) << n << setw(OWID) << i << setw(OWID) << j << std::endl;
+      kut = 0;
+      for (std::size_t i = 0; i < spaceCoords.size(); ++i) {
+	ofs << std::setw(OWID) << spaceCoords[i].getY();
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
+      ofs << std::endl;
 
+      kut = 0;
+      for (std::size_t i = 0; i < spaceCoords.size(); ++i) {
+	ofs << std::setw(OWID) << spaceCoords[i].getZ();
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      // variables
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getAngles()[0];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getAngles()[1];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getAngles()[2];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getAngles()[3];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getAngles()[4];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getAngles()[5];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      // print connections
+      for (std::size_t i = 0; i < tetraVec.size(); ++i)
+	ofs << std::setw(OWID) << tetraVec[i].getI()
+	    << std::setw(OWID) << tetraVec[i].getJ()
+	    << std::setw(OWID) << tetraVec[i].getK()
+	    << std::setw(OWID) << tetraVec[i].getL()
+	    << std::endl;
       ofs.close();
-    } // end of if (totalContact >= 5)
-  }
+
+      // print Tecplot POINT format
+      ofs2<< "VARIABLES=" << endl
+	  << setw(OWID) << "x"
+	  << setw(OWID) << "y"
+	  << setw(OWID) << "z"
+	  << endl;
+      ofs2<< "ZONE N=" << totalContact << ", E=" << tetraVec.size()  <<", DATAPACKING=POINT, ZONETYPE=FETETRAHEDRON" << endl;
+      for (int i = 0; i < spaceCoords.size(); ++i)
+	ofs2 << std::setw(OWID) << spaceCoords[i].getX() << std::setw(OWID) << spaceCoords[i].getY() << std::setw(OWID) << spaceCoords[i].getZ() << std::endl;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i)
+	ofs2<< std::setw(OWID) << tetraVec[i].getI()
+	    << std::setw(OWID) << tetraVec[i].getJ()
+	    << std::setw(OWID) << tetraVec[i].getK()
+	    << std::setw(OWID) << tetraVec[i].getL()
+	    << std::endl;
+      ofs2.close();
+
+    } // end of if (totalContact < 5)
+
+  } // end of for(int step=first; step<=last; step+=incre)
   
+  ofs3.close();
   return 0;
 }
