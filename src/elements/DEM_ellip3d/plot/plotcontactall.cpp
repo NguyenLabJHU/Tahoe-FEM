@@ -21,10 +21,10 @@ int main(int argc, char *argv[])
     cout << endl 
 	 << "-- Merge internal and boundary contact forces from Tecplot .dat files --"<<endl
 	 << "Usage:" << endl
-	 << "1) process a single snapshot:  plotcontact contact_file boundary_file" << endl
-	 << "   --example: plotcontact triaxial_contact_008 triaxial_bdrycntc_008 (NOT triaxial_contact_008.dat triaxial_bdrycntc_008.dat)" << endl
-	 << "2) process multiple snapshots: plotcontact contact_file_prefix boundary_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
-	 << "   --example: plotcontact triaxial_contact triaxial_bdrycntc  1  100  5" << endl << endl;
+	 << "1) process a single snapshot:  plotcontactall contact_file boundary_file" << endl
+	 << "   --example: plotcontactall triaxial_contact_008 triaxial_bdrycntc_008 (NOT triaxial_contact_008.dat triaxial_bdrycntc_008.dat)" << endl
+	 << "2) process multiple snapshots: plotcontactall contact_file_prefix boundary_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
+	 << "   --example: plotcontactall triaxial_contact triaxial_bdrycntc  1  100  5" << endl << endl;
     return -1;
   }	
 
