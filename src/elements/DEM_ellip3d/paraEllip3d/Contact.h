@@ -69,6 +69,7 @@ namespace dem {
     Particle* getP2() const;
     Vec  getPoint1() const {return point1;}
     Vec  getPoint2() const {return point2;}
+    Vec  getPoint() const {return (point1 + point2)/2;}
     REAL getRadius1() const {return radius1;}
     REAL getRadius2() const {return radius2;}
     REAL getR0() const {return R0;}

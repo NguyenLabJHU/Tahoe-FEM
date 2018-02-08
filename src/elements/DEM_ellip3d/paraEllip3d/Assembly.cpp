@@ -4871,98 +4871,186 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 
   void Assembly::calcGranularStress(Eigen::Matrix3d &stress) { // sigma(i,j) = 1/V sum(fi lj)
-    stress.setZero();
+    // formula
+    // 0 - Bagi formula
+    // 1 - Saxce formula
+    // 2 - Nicot formula
+    // 3 - Weber formula
+    // 4 - Drescher formula
+    int formula = 1;
 
-    Eigen::Vector3d fc;	
-    Eigen::RowVector3d lc, p1Center, p2Center;
-    lc.setZero();
-    fc.setZero();
-    p1Center.setZero();
-    p2Center.setZero();
+    if (formula == 0 || formula == 1 || formula == 2) {
+ 
+      // start of Bagi formula
+      stress.setZero();
+      // internal contact forces
+      Eigen::Vector3d fc;	
+      Eigen::RowVector3d lc, p1Center, p2Center;
+      lc.setZero();
+      fc.setZero();
+      p1Center.setZero();
+      p2Center.setZero();
+      for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
+	p1Center(0) = it->getP1()->getCurrPos().getX();
+	p1Center(1) = it->getP1()->getCurrPos().getY();
+	p1Center(2) = it->getP1()->getCurrPos().getZ();
+	p2Center(0) = it->getP2()->getCurrPos().getX();
+	p2Center(1) = it->getP2()->getCurrPos().getY();
+	p2Center(2) = it->getP2()->getCurrPos().getZ();
+	lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
+	fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
+	fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
+	fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
+	//std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
+	stress += fc * lc;
+      }
 
-    for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
-      p1Center(0) = it->getP1()->getCurrPos().getX();
-      p1Center(1) = it->getP1()->getCurrPos().getY();
-      p1Center(2) = it->getP1()->getCurrPos().getZ();
-
-      p2Center(0) = it->getP2()->getCurrPos().getX();
-      p2Center(1) = it->getP2()->getCurrPos().getY();
-      p2Center(2) = it->getP2()->getCurrPos().getZ();
-
-      lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
-      fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
-      fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
-      fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
-
-      //std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
-      stress += fc * lc;
-    }
-
-    // for boundary processes the boundary contact forces must be included.
-    // for non-boundary processes, the contact forces from adjacent compute grids are already included.
-    if (isBdryProcess()) {
-      Eigen::Vector3d fe;	
-      Eigen::RowVector3d le;
-      le.setZero();
-      fe.setZero();
-      for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
-	for (std::vector<BdryContact>::iterator jt = (*it)->getContactInfo().begin(); jt != (*it)->getContactInfo().end(); ++jt) {
-	  le(0) = jt->centerToPoint.getX();
-	  le(1) = jt->centerToPoint.getY();
-	  le(2) = jt->centerToPoint.getZ();
-	  fe(0) = (-jt->normal - jt->tangt).getX();
-	  fe(1) = (-jt->normal - jt->tangt).getY();
-	  fe(2) = (-jt->normal - jt->tangt).getZ();
-
-	  stress += fe * le;
+      // for boundary processes the boundary contact forces must be included.
+      // for non-boundary processes, the contact forces from adjacent compute grids are already included.
+      if (isBdryProcess()) {
+	Eigen::Vector3d fe;	
+	Eigen::RowVector3d le;
+	le.setZero();
+	fe.setZero();
+	for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+	  for (std::vector<BdryContact>::iterator jt = (*it)->getContactInfo().begin(); jt != (*it)->getContactInfo().end(); ++jt) {
+	    le(0) = jt->centerToPoint.getX();
+	    le(1) = jt->centerToPoint.getY();
+	    le(2) = jt->centerToPoint.getZ();
+	    fe(0) = (-jt->normal - jt->tangt).getX();
+	    fe(1) = (-jt->normal - jt->tangt).getY();
+	    fe(2) = (-jt->normal - jt->tangt).getZ();
+	    stress += fe * le;
+	  }
 	}
       }
-    }
+      // end of Bagi formula
 
-    // intertial terms, Nicot, Eq. (28)
-    if (dem::Parameter::getSingleton().parameter["massScale"] == 1.0 &&
-	dem::Parameter::getSingleton().parameter["mntScale"] == 1.0 &&
-	dem::Parameter::getSingleton().parameter["forceDamp"] == 0.0 &&
-	dem::Parameter::getSingleton().parameter["momentDamp"] == 0.0) {
+    } // end of Bagi formula for case 1, 2, 3.
+
+    if (formula == 1) { // Saxce formula. Gravity term should not appear.
+
+      // body force terms (including gravity and inertia)
+      if (dem::Parameter::getSingleton().parameter["massScale"] == 1.0 &&
+	  dem::Parameter::getSingleton().parameter["mntScale"] == 1.0 &&
+	  dem::Parameter::getSingleton().parameter["forceDamp"] == 0.0 &&
+	  dem::Parameter::getSingleton().parameter["momentDamp"] == 0.0) {
+
+	Eigen::Vector3d fb;	
+	Eigen::RowVector3d lb;
+	lb.setZero();
+	fb.setZero();
+	for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
+	  fb(0) = (*it)->getMass() * ( -(*it)->getAccel().getX());
+	  fb(1) = (*it)->getMass() * ( -(*it)->getAccel().getY());
+	  fb(2) = (*it)->getMass() * ( -(*it)->getAccel().getZ());
+	  //fb(2) = (*it)->getMass() * (-dem::Parameter::getSingleton().parameter["gravAccel"] - (*it)->getAccel().getZ());
+	  lb(0) = (*it)->getCurrPos().getX();
+	  lb(1) = (*it)->getCurrPos().getY();
+	  lb(2) = (*it)->getCurrPos().getZ();
+	}
+	stress += fb * lb;
+      }
+
+    } else if (formula == 2) { // Nicot formula.  Gravity term should not appear.
+
+      // intertial terms, Nicot, Eq. (28)
+      if (dem::Parameter::getSingleton().parameter["massScale"] == 1.0 &&
+	  dem::Parameter::getSingleton().parameter["mntScale"] == 1.0 &&
+	  dem::Parameter::getSingleton().parameter["forceDamp"] == 0.0 &&
+	  dem::Parameter::getSingleton().parameter["momentDamp"] == 0.0) {
 	
-      Eigen::Matrix3d inertial;
-      inertial.setZero();
-      for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
-	Eigen::Matrix3d localInertialTensor;
-	localInertialTensor << 
-	  (*it)->getMomentJ().getX(), 0, 0,
-	  0, (*it)->getMomentJ().getY(), 0,
-	  0, 0, (*it)->getMomentJ().getZ();
+	Eigen::Matrix3d inertial;
+	inertial.setZero();
+	for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
+	  Eigen::Matrix3d localInertialTensor;
+	  localInertialTensor << 
+	    (*it)->getMomentJ().getX(), 0, 0,
+	    0, (*it)->getMomentJ().getY(), 0,
+	    0, 0, (*it)->getMomentJ().getZ();
       
-	Eigen::Matrix3d Q; // coordinate rotation matrix
-	Q << 
-	  cos((*it)->getCurrDirecA().getX()), cos((*it)->getCurrDirecB().getX()), cos((*it)->getCurrDirecC().getX()),
-	  cos((*it)->getCurrDirecA().getY()), cos((*it)->getCurrDirecB().getY()), cos((*it)->getCurrDirecC().getY()),
-	  cos((*it)->getCurrDirecA().getZ()), cos((*it)->getCurrDirecB().getZ()), cos((*it)->getCurrDirecC().getZ());
+	  Eigen::Matrix3d Q; // coordinate rotation matrix
+	  Q << 
+	    cos((*it)->getCurrDirecA().getX()), cos((*it)->getCurrDirecB().getX()), cos((*it)->getCurrDirecC().getX()),
+	    cos((*it)->getCurrDirecA().getY()), cos((*it)->getCurrDirecB().getY()), cos((*it)->getCurrDirecC().getY()),
+	    cos((*it)->getCurrDirecA().getZ()), cos((*it)->getCurrDirecB().getZ()), cos((*it)->getCurrDirecC().getZ());
 
-	Eigen::Matrix3d chi; // global inertial tensor
-	chi = Q.transpose() * localInertialTensor * Q;
+	  Eigen::Matrix3d chi; // global inertial tensor
+	  chi = Q.transpose() * localInertialTensor * Q;
 
-	Eigen::Vector3d omega; // global angular velocity
-	omega << (*it)->getCurrOmga().getX(), (*it)->getCurrOmga().getY(), (*it)->getCurrOmga().getZ(); // it returns global angular velocity
+	  Eigen::Vector3d omega; // global angular velocity
+	  omega << (*it)->getCurrOmga().getX(), (*it)->getCurrOmga().getY(), (*it)->getCurrOmga().getZ(); // it returns global angular velocity
 
-	Eigen::Vector3d localOmegaDot;
-	localOmegaDot << (*it)->getAngularAccel().getX(), (*it)->getAngularAccel().getY(), (*it)->getAngularAccel().getZ();
-	Eigen::Vector3d omegaDot = Q.transpose() * localOmegaDot;
+	  Eigen::Vector3d localOmegaDot;
+	  localOmegaDot << (*it)->getAngularAccel().getX(), (*it)->getAngularAccel().getY(), (*it)->getAngularAccel().getZ();
+	  Eigen::Vector3d omegaDot = Q.transpose() * localOmegaDot;
 
-	Eigen::Matrix3d permu; // 1st inertial term
-	for (int j = 0; j < 3; ++j) {
-	  permu(0,j) = omegaDot(1) * chi(j,2) - omega(2) * chi(j,1);
-	  permu(1,j) = omegaDot(2) * chi(j,0) - omega(0) * chi(j,2);
-	  permu(2,j) = omegaDot(0) * chi(j,1) - omega(1) * chi(j,0);
+	  Eigen::Matrix3d permu; // 1st inertial term
+	  for (int j = 0; j < 3; ++j) {
+	    permu(0,j) = omegaDot(1) * chi(j,2) - omega(2) * chi(j,1);
+	    permu(1,j) = omegaDot(2) * chi(j,0) - omega(0) * chi(j,2);
+	    permu(2,j) = omegaDot(0) * chi(j,1) - omega(1) * chi(j,0);
+	  }
+
+	  inertial -= omega.dot(omega) * chi; // 3rd inertial term
+	  inertial += omega * omega.transpose() * chi; // 2nd inertial term
+	  inertial += permu; // 1st inertial term
 	}
-
-	inertial -= omega.dot(omega) * chi; // 3rd inertial term
-	inertial += omega * omega.transpose() * chi; // 2nd inertial term
-	inertial += permu; // 1st inertial term
+	stress -= inertial;
       }
-      stress -= inertial;
-    }
+
+    } else if (formula == 3) { // Weber formula
+    
+      stress.setZero();
+      // internal contact forces
+      Eigen::Vector3d fc;	
+      Eigen::RowVector3d lc, p1Center, p2Center;
+      lc.setZero();
+      fc.setZero();
+      p1Center.setZero();
+      p2Center.setZero();
+      for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
+	p1Center(0) = it->getP1()->getCurrPos().getX();
+	p1Center(1) = it->getP1()->getCurrPos().getY();
+	p1Center(2) = it->getP1()->getCurrPos().getZ();
+	p2Center(0) = it->getP2()->getCurrPos().getX();
+	p2Center(1) = it->getP2()->getCurrPos().getY();
+	p2Center(2) = it->getP2()->getCurrPos().getZ();
+	lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
+	fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
+	fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
+	fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
+	//std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
+	stress += fc * lc;
+      }
+  
+    } else if (formula == 4) { // Drescher formula
+
+      // Drescher formula (also Cundall formula)
+      // boundary forces
+      // for boundary processes the boundary contact forces must be included.
+      // for non-boundary processes, the contact forces from adjacent compute grids are already included.
+      stress.setZero();  
+      if (isBdryProcess()) {
+	Eigen::Vector3d fe;	
+	Eigen::RowVector3d le;
+	le.setZero();
+	fe.setZero();
+	for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+	  for (std::vector<BdryContact>::iterator jt = (*it)->getContactInfo().begin(); jt != (*it)->getContactInfo().end(); ++jt) {
+	    le(0) = (jt->point).getX(); // point
+	    le(1) = (jt->point).getY();
+	    le(2) = (jt->point).getZ();
+	    fe(0) = (-jt->normal - jt->tangt).getX();
+	    fe(1) = (-jt->normal - jt->tangt).getY();
+	    fe(2) = (-jt->normal - jt->tangt).getZ();
+	    stress += fe * le;
+	  }
+	}
+      }
+      // end of Drescher formula
+
+    } // end of if else
 
     //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
     /*
