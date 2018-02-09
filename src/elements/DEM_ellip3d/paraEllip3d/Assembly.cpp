@@ -4877,7 +4877,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // 2 - Nicot formula
     // 3 - Weber formula
     // 4 - Drescher formula
-    int formula = 1;
+    int formula = 2;
 
     if (formula == 0 || formula == 1 || formula == 2) {
  
@@ -4931,73 +4931,61 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     if (formula == 1) { // Saxce formula. Gravity term should not appear.
 
       // body force terms (including gravity and inertia)
-      if (dem::Parameter::getSingleton().parameter["massScale"] == 1.0 &&
-	  dem::Parameter::getSingleton().parameter["mntScale"] == 1.0 &&
-	  dem::Parameter::getSingleton().parameter["forceDamp"] == 0.0 &&
-	  dem::Parameter::getSingleton().parameter["momentDamp"] == 0.0) {
-
-	Eigen::Vector3d fb;	
-	Eigen::RowVector3d lb;
-	lb.setZero();
-	fb.setZero();
-	for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
-	  fb(0) = (*it)->getMass() * ( -(*it)->getAccel().getX());
-	  fb(1) = (*it)->getMass() * ( -(*it)->getAccel().getY());
-	  fb(2) = (*it)->getMass() * ( -(*it)->getAccel().getZ());
-	  //fb(2) = (*it)->getMass() * (-dem::Parameter::getSingleton().parameter["gravAccel"] - (*it)->getAccel().getZ());
-	  lb(0) = (*it)->getCurrPos().getX();
-	  lb(1) = (*it)->getCurrPos().getY();
-	  lb(2) = (*it)->getCurrPos().getZ();
-	}
-	stress += fb * lb;
+      Eigen::Vector3d fb;	
+      Eigen::RowVector3d lb;
+      lb.setZero();
+      fb.setZero();
+      for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
+	fb(0) = -(*it)->getForce().getX();
+	fb(1) = -(*it)->getForce().getY();
+	fb(2) = -(*it)->getForce().getZ();
+	//std::cout << fb(0) << " " << fb(1) << " " << fb(2) << std::endl;
+	lb(0) = (*it)->getCurrPos().getX();
+	lb(1) = (*it)->getCurrPos().getY();
+	lb(2) = (*it)->getCurrPos().getZ();
       }
+      stress += fb * lb;
 
     } else if (formula == 2) { // Nicot formula.  Gravity term should not appear.
 
       // intertial terms, Nicot, Eq. (28)
-      if (dem::Parameter::getSingleton().parameter["massScale"] == 1.0 &&
-	  dem::Parameter::getSingleton().parameter["mntScale"] == 1.0 &&
-	  dem::Parameter::getSingleton().parameter["forceDamp"] == 0.0 &&
-	  dem::Parameter::getSingleton().parameter["momentDamp"] == 0.0) {
-	
-	Eigen::Matrix3d inertial;
-	inertial.setZero();
-	for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
-	  Eigen::Matrix3d localInertialTensor;
-	  localInertialTensor << 
-	    (*it)->getMomentJ().getX(), 0, 0,
-	    0, (*it)->getMomentJ().getY(), 0,
-	    0, 0, (*it)->getMomentJ().getZ();
+      Eigen::Matrix3d inertial;
+      inertial.setZero();
+      for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
+	Eigen::Matrix3d localInertialTensor;
+	localInertialTensor << 
+	  (*it)->getMomentJ().getX(), 0, 0,
+	  0, (*it)->getMomentJ().getY(), 0,
+	  0, 0, (*it)->getMomentJ().getZ();
       
-	  Eigen::Matrix3d Q; // coordinate rotation matrix
-	  Q << 
-	    cos((*it)->getCurrDirecA().getX()), cos((*it)->getCurrDirecB().getX()), cos((*it)->getCurrDirecC().getX()),
-	    cos((*it)->getCurrDirecA().getY()), cos((*it)->getCurrDirecB().getY()), cos((*it)->getCurrDirecC().getY()),
-	    cos((*it)->getCurrDirecA().getZ()), cos((*it)->getCurrDirecB().getZ()), cos((*it)->getCurrDirecC().getZ());
+	Eigen::Matrix3d Q; // coordinate rotation matrix
+	Q << 
+	  cos((*it)->getCurrDirecA().getX()), cos((*it)->getCurrDirecB().getX()), cos((*it)->getCurrDirecC().getX()),
+	  cos((*it)->getCurrDirecA().getY()), cos((*it)->getCurrDirecB().getY()), cos((*it)->getCurrDirecC().getY()),
+	  cos((*it)->getCurrDirecA().getZ()), cos((*it)->getCurrDirecB().getZ()), cos((*it)->getCurrDirecC().getZ());
 
-	  Eigen::Matrix3d chi; // global inertial tensor
-	  chi = Q.transpose() * localInertialTensor * Q;
+	Eigen::Matrix3d chi; // global inertial tensor
+	chi = Q.transpose() * localInertialTensor * Q;
 
-	  Eigen::Vector3d omega; // global angular velocity
-	  omega << (*it)->getCurrOmga().getX(), (*it)->getCurrOmga().getY(), (*it)->getCurrOmga().getZ(); // it returns global angular velocity
+	Eigen::Vector3d omega; // global angular velocity
+	omega << (*it)->getCurrOmga().getX(), (*it)->getCurrOmga().getY(), (*it)->getCurrOmga().getZ(); // it returns global angular velocity
 
-	  Eigen::Vector3d localOmegaDot;
-	  localOmegaDot << (*it)->getAngularAccel().getX(), (*it)->getAngularAccel().getY(), (*it)->getAngularAccel().getZ();
-	  Eigen::Vector3d omegaDot = Q.transpose() * localOmegaDot;
+	Eigen::Vector3d localOmegaDot;
+	localOmegaDot << (*it)->getAngularAccel().getX(), (*it)->getAngularAccel().getY(), (*it)->getAngularAccel().getZ();
+	Eigen::Vector3d omegaDot = Q.transpose() * localOmegaDot;
 
-	  Eigen::Matrix3d permu; // 1st inertial term
-	  for (int j = 0; j < 3; ++j) {
-	    permu(0,j) = omegaDot(1) * chi(j,2) - omega(2) * chi(j,1);
-	    permu(1,j) = omegaDot(2) * chi(j,0) - omega(0) * chi(j,2);
-	    permu(2,j) = omegaDot(0) * chi(j,1) - omega(1) * chi(j,0);
-	  }
-
-	  inertial -= omega.dot(omega) * chi; // 3rd inertial term
-	  inertial += omega * omega.transpose() * chi; // 2nd inertial term
-	  inertial += permu; // 1st inertial term
+	Eigen::Matrix3d permu; // 1st inertial term
+	for (int j = 0; j < 3; ++j) {
+	  permu(0,j) = omegaDot(1) * chi(j,2) - omega(2) * chi(j,1);
+	  permu(1,j) = omegaDot(2) * chi(j,0) - omega(0) * chi(j,2);
+	  permu(2,j) = omegaDot(0) * chi(j,1) - omega(1) * chi(j,0);
 	}
-	stress -= inertial;
+
+	inertial -= omega.dot(omega) * chi; // 3rd inertial term
+	inertial += omega * omega.transpose() * chi; // 2nd inertial term
+	inertial += permu; // 1st inertial term
       }
+      stress -= inertial;
 
     } else if (formula == 3) { // Weber formula
     
