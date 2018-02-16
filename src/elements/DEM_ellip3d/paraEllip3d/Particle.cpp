@@ -17,7 +17,7 @@ const std::size_t START = 10000;  // at which time step to apply moment? for mom
 namespace dem {
 
   Particle::Particle()
-    :id(0), type(0), a(0), b(0), c(0),
+    :id(0), type(0), received(false), a(0), b(0), c(0),
      young(0), poisson(0),
      currPos(0), prevPos(0),
      initPos(0), snapPos(0),
@@ -82,20 +82,20 @@ namespace dem {
   }
 
 
-  Particle::Particle(std::size_t n, std::size_t tp, Vec center, REAL r, REAL yng, REAL poi)
-    :id(n), type(tp), a(r), b(r), c(r), young(yng), poisson(poi), currPos(center) {
+  Particle::Particle(std::size_t n, std::size_t tp, bool bv, Vec center, REAL r, REAL yng, REAL poi)
+    :id(n), type(tp), received(bv), a(r), b(r), c(r), young(yng), poisson(poi), currPos(center) {
     init();
   }
 
 
-  Particle::Particle(std::size_t n, std::size_t tp, Vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
-    :id(n), type(tp), a(ra), b(rb), c(rc), young(yng), poisson(poi), currPos(center) {
+  Particle::Particle(std::size_t n, std::size_t tp, bool bv, Vec center, REAL ra, REAL rb, REAL rc, REAL yng, REAL poi)
+    :id(n), type(tp), received(bv), a(ra), b(rb), c(rc), young(yng), poisson(poi), currPos(center) {
     init();
   }
 
 
-  Particle::Particle(std::size_t n, std::size_t tp, Vec center, Gradation &grad, REAL yng, REAL poi)
-    :id(n), type(tp), young(yng), poisson(poi), currPos(center)  {
+  Particle::Particle(std::size_t n, std::size_t tp, bool bv, Vec center, Gradation &grad, REAL yng, REAL poi)
+    :id(n), type(tp), received(bv), young(yng), poisson(poi), currPos(center)  {
     // generate particle size in terms of gradation distribution
     REAL sieveNum = grad.getSieveNum();
     REAL randNum = ran(&idum);
@@ -122,8 +122,8 @@ namespace dem {
   }
   
 
-  Particle::Particle(std::size_t n, std::size_t tp, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL yng, REAL poi)
-    :id(n), type(tp), young(yng), poisson(poi) {
+  Particle::Particle(std::size_t n, std::size_t tp, bool bv, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL yng, REAL poi)
+    :id(n), type(tp), received(bv), young(yng), poisson(poi) {
     a = dim.getX();
     b = dim.getY();
     c = dim.getZ();

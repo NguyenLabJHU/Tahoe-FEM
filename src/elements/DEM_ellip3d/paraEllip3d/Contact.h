@@ -88,6 +88,7 @@ namespace dem {
     void checkinPrevTgt(std::vector<ContactTgt>& contactTgtVec);
     Vec  normalForceVec() const {return normalForce;}
     Vec  tgtForceVec() const {return tgtForce;}
+    Vec  contactForceVec() const {return normalForce + tgtForce;}
     Vec  normalDampForceVec() const {return normalDampForce;}
     bool isRedundant(const Contact &other) const;
     bool operator==(const Contact &other) const;

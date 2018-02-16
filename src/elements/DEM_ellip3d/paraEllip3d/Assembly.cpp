@@ -1639,14 +1639,14 @@ namespace dem {
     REAL z0 = allContainer.getCenter().getZ();
 
     if (particleLayers == 0) {      // just one free particle
-      newptcl = new Particle(particleNum+1, 0, Vec(x0,y0,z0), gradation, young, poisson);
+      newptcl = new Particle(particleNum+1, 0, false, Vec(x0,y0,z0), gradation, young, poisson);
       allParticleVec.push_back(newptcl);
       ++particleNum;
     }
     else if (particleLayers == 1) { // a horizontal layer of free particles
       for (x = x1; x - x2 < EPS; x += diaMax)
 	for (y = y1; y - y2 < EPS; y += diaMax) {
-	  newptcl = new Particle(particleNum+1, 0, Vec(x,y,z0), gradation, young, poisson);
+	  newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z0), gradation, young, poisson);
 	  allParticleVec.push_back(newptcl);
 	  ++particleNum;
 	}
@@ -1659,7 +1659,7 @@ namespace dem {
 	  // from - to + direction
 	  for (x = x1; x - x2 < EPS; x += diaMax * (diaRelax + 1)) {
 	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
-	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum))); // z should not offset
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
@@ -1673,7 +1673,7 @@ namespace dem {
 	  // + + 
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
-	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
@@ -1682,7 +1682,7 @@ namespace dem {
 	  // - +
 	  for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
-	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
@@ -1691,7 +1691,7 @@ namespace dem {
 	  // + - 
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
-	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
@@ -1700,7 +1700,7 @@ namespace dem {
 	  // - -
 	  for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
-	      newptcl = new Particle(particleNum+1, 0, Vec(x,y,z), gradation, young, poisson);
+	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
@@ -1744,7 +1744,7 @@ namespace dem {
 	int iRecord, jRecord, kRecord;
 	while (iCount < gridNx - sideGap && jCount < gridNy - sideGap && kCount < gridNz) {
 	  // generate a particle without x, y, z coordinates
-	  newptcl = new Particle(particleNum+1, 0, Vec(0,0,0), gradation, young, poisson);
+	  newptcl = new Particle(particleNum+1, 0, false, Vec(0,0,0), gradation, young, poisson);
 	  int nGrid = ceil(newptcl->getA()*2.0 / gridDim);
 
 	  // locate the particle
@@ -2754,6 +2754,9 @@ namespace dem {
     if (rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
     if (rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
     if (rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
+
+    for (std::vector<Particle *>::iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
+      (*it)->setReceived(true);
 
     mergeParticleVec.clear();
     mergeParticleVec = particleVec; // duplicate pointers, pointing to the same memory
@@ -4891,18 +4894,44 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       p1Center.setZero();
       p2Center.setZero();
       for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
-	p1Center(0) = it->getP1()->getCurrPos().getX();
-	p1Center(1) = it->getP1()->getCurrPos().getY();
-	p1Center(2) = it->getP1()->getCurrPos().getZ();
-	p2Center(0) = it->getP2()->getCurrPos().getX();
-	p2Center(1) = it->getP2()->getCurrPos().getY();
-	p2Center(2) = it->getP2()->getCurrPos().getZ();
-	lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
-	fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
-	fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
-	fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
-	//std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
+
+	if (!it->getP1()->isReceived() && !it->getP2()->isReceived()) { // both inner
+	  //debugInf << "contact type: inner inner" << std::endl;
+	  p1Center(0) = it->getP1()->getCurrPos().getX();
+	  p1Center(1) = it->getP1()->getCurrPos().getY();
+	  p1Center(2) = it->getP1()->getCurrPos().getZ();
+	  p2Center(0) = it->getP2()->getCurrPos().getX();
+	  p2Center(1) = it->getP2()->getCurrPos().getY();
+	  p2Center(2) = it->getP2()->getCurrPos().getZ();
+	  lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
+	  fc(0) = it->contactForceVec().getX();
+	  fc(1) = it->contactForceVec().getY();
+	  fc(2) = it->contactForceVec().getZ();
+	  //std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
+
+	} else if (!it->getP1()->isReceived()) { // p1 inner, p2 outer
+	  //debugInf << "contact type: inner outer" << std::endl;
+	  Vec centerToPoint = it->getPoint() - it->getP1()->getCurrPos();
+	  lc(0) = centerToPoint.getX();
+	  lc(1) = centerToPoint.getY();
+	  lc(2) = centerToPoint.getZ();
+	  fc(0) = it->contactForceVec().getX();
+	  fc(1) = it->contactForceVec().getY();
+	  fc(2) = it->contactForceVec().getZ();
+
+	} else if (!it->getP2()->isReceived()) { // p2 inner, p1 outer
+	  //debugInf << "contact type: outer inner" << std::endl;
+	  Vec centerToPoint = it->getPoint() - it->getP2()->getCurrPos();
+	  lc(0) = centerToPoint.getX();
+	  lc(1) = centerToPoint.getY();
+	  lc(2) = centerToPoint.getZ();
+	  fc(0) = -it->contactForceVec().getX();
+	  fc(1) = -it->contactForceVec().getY();
+	  fc(2) = -it->contactForceVec().getZ();
+	}
+
 	stress += fc * lc;
+
       }
 
       // for boundary processes the boundary contact forces must be included.
@@ -4998,27 +5027,58 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       p1Center.setZero();
       p2Center.setZero();
       for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
-	p1Center(0) = it->getP1()->getCurrPos().getX();
-	p1Center(1) = it->getP1()->getCurrPos().getY();
-	p1Center(2) = it->getP1()->getCurrPos().getZ();
-	p2Center(0) = it->getP2()->getCurrPos().getX();
-	p2Center(1) = it->getP2()->getCurrPos().getY();
-	p2Center(2) = it->getP2()->getCurrPos().getZ();
-	lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
-	fc(0) = (it->normalForceVec().getX())+(it->tgtForceVec().getX());
-	fc(1) = (it->normalForceVec().getY())+(it->tgtForceVec().getY());
-	fc(2) = (it->normalForceVec().getZ())+(it->tgtForceVec().getZ());
-	//std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
-	stress += fc * lc;
+	if (!it->getP1()->isReceived() && !it->getP2()->isReceived()) { // both inner
+	  //debugInf << "contact type: inner inner" << std::endl;
+	  p1Center(0) = it->getP1()->getCurrPos().getX();
+	  p1Center(1) = it->getP1()->getCurrPos().getY();
+	  p1Center(2) = it->getP1()->getCurrPos().getZ();
+	  p2Center(0) = it->getP2()->getCurrPos().getX();
+	  p2Center(1) = it->getP2()->getCurrPos().getY();
+	  p2Center(2) = it->getP2()->getCurrPos().getZ();
+	  lc = -(p1Center - p2Center); // contact force points to particle 1; "-" sign is for Elasticity convention.
+	  fc(0) = it->contactForceVec().getX();
+	  fc(1) = it->contactForceVec().getY();
+	  fc(2) = it->contactForceVec().getZ();
+	  //std::cout << "lc=" << lc.transpose() << " fc=" << fc << std::endl; 
+	  stress += fc * lc;
+	}
       }
   
     } else if (formula == 4) { // Drescher formula
 
       // Drescher formula (also Cundall formula)
+      stress.setZero();  
+
+      // particle-to-particle contact force near boundary
+      Eigen::Vector3d fe;	
+      Eigen::RowVector3d le;
+      le.setZero();
+      fe.setZero();
+      for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
+	if (!it->getP1()->isReceived() && it->getP2()->isReceived()) { // p1 inner, p2 outer
+	  //debugInf << "contact type: inner outer" << std::endl;
+	  le(0) = it->getPoint().getX();
+	  le(1) = it->getPoint().getY();
+	  le(2) = it->getPoint().getZ();
+	  fe(0) = it->contactForceVec().getX();
+	  fe(1) = it->contactForceVec().getY();
+	  fe(2) = it->contactForceVec().getZ();
+
+	} else if (it->getP1()->isReceived() && !it->getP2()->isReceived()) { // p2 inner, p1 outer
+	  //debugInf << "contact type: outer inner" << std::endl;
+	  le(0) =  it->getPoint().getX();
+	  le(1) =  it->getPoint().getY();
+	  le(2) =  it->getPoint().getZ();
+	  fe(0) = -it->contactForceVec().getX();
+	  fe(1) = -it->contactForceVec().getY();
+	  fe(2) = -it->contactForceVec().getZ();
+	}
+	stress += fe * le;
+      }
+
       // boundary forces
       // for boundary processes the boundary contact forces must be included.
       // for non-boundary processes, the contact forces from adjacent compute grids are already included.
-      stress.setZero();  
       if (isBdryProcess()) {
 	Eigen::Vector3d fe;	
 	Eigen::RowVector3d le;
@@ -5477,7 +5537,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (std::size_t i = 0; i < particleNum; ++i){
       ifs >> id >> type >> a >> b >> c >> px >> py >> pz >> dax >> day >> daz >> dbx >> dby >> dbz >> dcx >> dcy >> dcz
 	  >> vx >> vy >> vz >> omx >> omy >> omz >> fx >> fy >> fz >> mx >> my >> mz;
-      Particle *pt= new Particle(id, type, Vec(a,b,c), Vec(px,py,pz), Vec(dax,day,daz), Vec(dbx,dby,dbz), Vec(dcx,dcy,dcz), young, poisson);
+      Particle *pt= new Particle(id, type, false, Vec(a,b,c), Vec(px,py,pz), Vec(dax,day,daz), Vec(dbx,dby,dbz), Vec(dcx,dcy,dcz), young, poisson);
     
       // optional settings for a particle's initial status
       if ( (static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["toInitParticle"])) == 1 ) {

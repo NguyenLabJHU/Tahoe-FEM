@@ -28,8 +28,10 @@ namespace dem {
     //   5 - free boundary particle
     //   6 - translate only, no rotation
     //  10 - ghost particle
+
     std::size_t  id;
-    std::size_t  type;            
+    std::size_t  type;
+    bool received;   // true if received from adjacent processes; false by default
     REAL a, b, c;    // three semi-axis length, must satisfy a >= b >= c
     REAL young;      // note: a(currDirecA), b(currDirecB), c(currDirecC) corresponds to x, y, z in local frame, respectively
     REAL poisson;
@@ -61,13 +63,14 @@ namespace dem {
 
   public:
     Particle();
-    Particle(std::size_t n, std::size_t type, Vec center, REAL r, REAL young, REAL poisson);
-    Particle(std::size_t n, std::size_t type, Vec center, REAL a, REAL b, REAL c, REAL young, REAL poisson);
-    Particle(std::size_t n, std::size_t type, Vec center, Gradation& grad, REAL young, REAL poisson);
-    Particle(std::size_t n, std::size_t type, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, bool recv, Vec center, REAL r, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, bool recv, Vec center, REAL a, REAL b, REAL c, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, bool recv, Vec center, Gradation& grad, REAL young, REAL poisson);
+    Particle(std::size_t n, std::size_t type, bool recv, Vec dim, Vec position, Vec dirca, Vec dircb, Vec dircc, REAL young, REAL poisson);
     
     std::size_t  getId() const {return id;}
     std::size_t  getType() const {return type;}
+    bool isReceived() const {return received;}
     REAL getA() const {return a;}
     REAL getB() const {return b;}
     REAL getC() const {return c;}
@@ -114,6 +117,7 @@ namespace dem {
     
     void setId(std::size_t n) {id = n;}
     void setType(std::size_t n) {type = n;}
+    void setReceived(bool val) {received = val;}
     void setA(REAL dd) {a = dd;}
     void setB(REAL dd) {b = dd;}
     void setC(REAL dd) {c = dd;}
@@ -182,6 +186,7 @@ namespace dem {
       void serialize(Archive & ar, const unsigned int version) {
       ar & id;
       ar & type;
+      ar & received;
       ar & a & b & c;
       ar & young;
       ar & poisson;
