@@ -58,6 +58,7 @@
 //#define DEM_PROFILE
 //#define CFD_PROFILE
 //#define BIGON
+#define TOTALMOMENT
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
@@ -3433,10 +3434,24 @@ namespace dem {
     ofs.precision(OPREC);
   
     ofs << std::setw(OWID) << mergeBoundaryVec.size() << std::endl << std::endl;
+#ifdef TOTALMOMENT
+    Vec totalMoment = 0;
+#endif
     for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
       (*it)->printContactInfo(ofs);
+#ifdef TOTALMOMENT
+      totalMoment += (*it)->getMoment();
+#endif
     }
-  
+#ifdef TOTALMOMENT
+    ofs << std::endl 
+	<< std::setw(OWID) << "totalMoment=" 
+	<< std::setw(OWID) << totalMoment.getX()
+	<< std::setw(OWID) << totalMoment.getY()
+	<< std::setw(OWID) << totalMoment.getZ()
+	<< std::setw(OWID) << vfabs(totalMoment)
+	<< std::endl;
+#endif
     ofs.close();
   }
 
@@ -5603,7 +5618,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "moment_y"
 	<< std::setw(OWID) << "moment_z"
 	<< std::endl;
-  
+
+#ifdef TOTALMOMENT  
+    Vec totalMoment = 0;
+#endif
     Vec vObj;
     std::vector<Particle *>::const_iterator  it;
     for (it = allParticleVec.begin(); it != allParticleVec.end();++it)  {
@@ -5652,6 +5670,20 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::setw(OWID) << vObj.getX()
 	  << std::setw(OWID) << vObj.getY()
 	  << std::setw(OWID) << vObj.getZ() << std::endl;
+
+#ifdef TOTALMOMENT       
+      REAL gravAccel = dem::Parameter::getSingleton().parameter["gravAccel"];
+      REAL gravScale = dem::Parameter::getSingleton().parameter["gravScale"];
+      vObj=(*it)->getCurrPos();
+      double d1 = vObj.getX();
+      double d2 = vObj.getY();
+      double d3 = vObj.getZ();
+      vObj = Vec(0, 0, -gravAccel * (*it)->getMass() * gravScale) - (*it)->getForce(); // f = rho (g-a) dV = mg - ma
+      double f1 = vObj.getX();
+      double f2 = vObj.getY();
+      double f3 = vObj.getZ();
+      totalMoment += Vec(d2*f3 - d3*f2, d3*f1 - d1*f3, d1*f2 - d2*f1);
+#endif
     }
   
     std::size_t sieveNum = gradation.getSieveNum();
@@ -5661,6 +5693,16 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (std::size_t i = 0; i < sieveNum; ++i)
       ofs << std::setw(OWID) << percent[i] << std::setw(OWID) << size[i] << std::endl;
     ofs << std::endl << std::setw(OWID) << gradation.getPtclRatioBA() << std::setw(OWID) << gradation.getPtclRatioCA() << std::endl;
+
+#ifdef TOTALMOMENT 
+    ofs << std::endl 
+	<< std::setw(OWID) << "totalMoment=" 
+	<< std::setw(OWID) << totalMoment.getX()
+	<< std::setw(OWID) << totalMoment.getY()
+	<< std::setw(OWID) << totalMoment.getZ()
+	<< std::setw(OWID) << vfabs(totalMoment)
+	<< std::endl;
+#endif
 
     ofs.close();
   }
