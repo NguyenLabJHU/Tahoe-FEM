@@ -160,6 +160,7 @@ namespace dem {
     std::size_t  contactNum;
     Vec  normal;
     Vec  tangt;
+    Vec  moment;
     REAL penetr;
     
   private:
@@ -175,12 +176,13 @@ namespace dem {
       ar & contactNum;
       ar & normal;
       ar & tangt;
+      ar & moment;
       ar & penetr;
     }
     
   public:
     Boundary(std::size_t i = 0, std::size_t tp = 0, std::size_t en = 0)
-      :id(i), type(tp), extraNum(en), contactNum(0), normal(0), tangt(0), penetr(0)  
+      :id(i), type(tp), extraNum(en), contactNum(0), normal(0), tangt(0), moment(0), penetr(0)  
       {}
 
     Boundary(std::size_t type, std::ifstream &ifs);
@@ -193,6 +195,7 @@ namespace dem {
     std::size_t getContactNum() const { return contactNum; }
     Vec  getNormalForce() const { return normal; }
     Vec  getTangtForce() const { return tangt; }
+    Vec  getMoment() const {return moment; };
     REAL getAvgPenetr() const { return penetr; }
 
     virtual void print(std::ostream &os);

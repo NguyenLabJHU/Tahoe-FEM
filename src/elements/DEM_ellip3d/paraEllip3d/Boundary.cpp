@@ -39,6 +39,7 @@ namespace dem {
     contactNum = 0;
     normal = 0;
     tangt  = 0;
+    moment = 0;
     penetr = 0;
   }
 
@@ -49,6 +50,13 @@ namespace dem {
       normal += it->normal;
       tangt  += it->tangt;
       penetr += it->penetr;
+      double d1 = it->point.getX();
+      double d2 = it->point.getY();
+      double d3 = it->point.getZ();
+      double f1 = (it->normal + it->tangt).getX();
+      double f2 = (it->normal + it->tangt).getY();
+      double f3 = (it->normal + it->tangt).getZ();
+      moment += Vec(d2*f3 - d3*f2, d3*f1 - d1*f3, d1*f2 - d2*f1);
     }
     if (contactNum != 0) 
       penetr /= contactNum;
