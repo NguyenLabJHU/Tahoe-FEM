@@ -1297,6 +1297,7 @@ namespace dem {
     }
     scatterParticle();
 
+    std::size_t endBoundaryStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endBoundaryStep"]);
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
     std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
@@ -1388,7 +1389,8 @@ namespace dem {
       }
       // end of print final state
 
-      updateBoundary(0, "oedometerImpact"); // must call after printBdryContact
+      if (iteration <= endBoundaryStep)
+	updateBoundary(0, "oedometerImpact"); // must call after printBdryContact
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
