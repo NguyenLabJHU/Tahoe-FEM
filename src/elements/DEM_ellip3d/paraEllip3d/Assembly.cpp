@@ -2662,7 +2662,7 @@ namespace dem {
     }
     if (rankX1Y2Z2 >= 0) { // edge x1y2z2
       Rectangle containerX1Y2Z2(v1.getX(), v2.getY() - borderWidth, v2.getZ() - borderWidth,
-				v1.getX() + borderWidth, v2.getY() + borderWidth, v2.getZ());
+				v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1Y2Z2, particleVec, particleX1Y2Z2);
       reqX1Y2Z2[0] = boostWorld.isend(rankX1Y2Z2, mpiTag,  particleX1Y2Z2);
       reqX1Y2Z2[1] = boostWorld.irecv(rankX1Y2Z2, mpiTag, rParticleX1Y2Z2);
