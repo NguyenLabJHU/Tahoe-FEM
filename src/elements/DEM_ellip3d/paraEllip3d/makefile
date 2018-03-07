@@ -245,7 +245,7 @@ endif
 #C++11 = -std=c++11
 
 OPTIMIZE = -O3 -DNDEBUG $(C++11)
-#OPTIMIZE = -O -Wall -g $(C++11)
+#OPTIMIZE = -O -Wall -g $(C++11) -D_GLIBCXX_DEBUG
 #gcc: full level of IEEE 754 compliance
 #OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans $(C++11)
 #intel: -fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
