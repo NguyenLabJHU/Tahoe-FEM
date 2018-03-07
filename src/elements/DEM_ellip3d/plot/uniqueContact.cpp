@@ -83,12 +83,12 @@ public:
 
 int main(int argc, char *argv[])
 {
-  if(argc < 4) {
+  if(argc < 5) {
     std::cout << std::endl 
 	      << "-- make unique (remove redundance in) interparticle contact info --" << std::endl
 	      << "-- note the original files are to be replaced --" << std::endl
-	      << "  Usage:  uniqueContact  file_prefix  start_snap  end_snap" << std::endl
-	      << "Example:  uniqueContact  dep_contact  80  100" << std::endl << std::endl;
+	      << "  Usage:  uniqueContact  file_prefix  start_snap  end_snap  increment" << std::endl
+	      << "Example:  uniqueContact  dep_contact  80  100  1" << std::endl << std::endl;
     return -1;
   }
 
@@ -97,11 +97,12 @@ int main(int argc, char *argv[])
   
   int startSnap = atoi(argv[2]);
   int endSnap   = atoi(argv[3]);
+  int incSnap   = atoi(argv[4]);
 
   boost::unordered_set<Contact> allContact; // all contacts, no redundance
 
   ///////////////////////////////////////////////////////////
-  for (int snapLoop = startSnap; snapLoop <= endSnap; ++snapLoop) {
+  for (int snapLoop = startSnap; snapLoop <= endSnap; snapLoop += incSnap) {
     allContact.clear();
 
     ///////////////////////////////////////////////////////////
