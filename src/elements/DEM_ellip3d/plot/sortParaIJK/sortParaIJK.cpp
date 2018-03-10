@@ -73,9 +73,6 @@ struct cmpIJK {
   }
 }; 
 
-//VARIABLES = "x"            "y"            "z"            "i"            "j"            "k"         
-//"Mach"      "density"    "momentumX"    "momentumY"    "momentumZ"       "energy"    "velocityX"    "velocityY"    "velocityZ"     "pressure"  "temperature"         
-//"mask"      "penalFx"      "penalFy"      "penalFz"   "pressureFx"   "pressureFy"   "pressureFz"
 class GasVar {
 public:
   Vec    coords;
@@ -184,6 +181,10 @@ int main(int argc, char *argv[])
     ifs.close();
     remove(str); // remove file
 
+    // Tecplot example:
+    //VARIABLES = x              y              z        iGlobal        jGlobal        kGlobal           Mach        density      momentumX      momentumY      momentumZ         energy      velocityX      velocityY      velocityZ       pressure    temperature           mask        penalFx        penalFy        penalFz     pressureFx     pressureFy     pressureFz
+    //ZONE I=             17, J=             17, K=             17, DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME=             10
+
     std::ofstream ofs(str);
     //std::string nstr = "new";
     //std::ofstream ofs((nstr+std::string(str)).c_str());
@@ -191,7 +192,8 @@ int main(int argc, char *argv[])
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
 
-    ofs << line1 << std::endl;
+    //ofs << line1 << std::endl;
+    ofs << "  VARIABLES = x              y              z           Mach        density      momentumX      momentumY      momentumZ         energy      velocityX      velocityY      velocityZ       pressure    temperature           mask        penalFx        penalFy        penalFz     pressureFx     pressureFy     pressureFz" << std::endl;
     ofs << line2 << std::endl;
     
     //std::cout << "lineNum=" << lineNum << " mapSize=" << gasVarMap.size() << std::endl;
@@ -200,9 +202,9 @@ int main(int argc, char *argv[])
       ofs << std::setw(OWID) << it->second.coords.getX()       
 	  << std::setw(OWID) << it->second.coords.getY()
 	  << std::setw(OWID) << it->second.coords.getZ()
-	  << std::setw(OWID) << it->first.i     
-	  << std::setw(OWID) << it->first.j    
-	  << std::setw(OWID) << it->first.k     
+	//<< std::setw(OWID) << it->first.i     
+	//<< std::setw(OWID) << it->first.j    
+	//<< std::setw(OWID) << it->first.k     
 	  << std::setw(OWID) << it->second.Mach     
 	  << std::setw(OWID) << it->second.density     
 	  << std::setw(OWID) << it->second.momentum.getX()
