@@ -51,6 +51,7 @@
 #include <cassert>
 #include <utility>
 #include <set>
+#include <valarray>
 #include <sys/time.h>
 #include <omp.h>
 
