@@ -561,6 +561,61 @@ namespace dem {
     }
       break;
 
+    case 801: { // pure gas flow, bottom "left" part, R-H conditions
+      std::size_t i;
+      for (i = 0; i < 24; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
+    case 802: { // pure gas flow, bottom "left" part
+      std::size_t i;
+      for (i = 0; i < 26; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
+    case 803: { // pure gas flow, rectangular "left" part
+      std::size_t i;
+      for (i = 0; i < 31; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
+    case 804: { // pure gas flow, spherical "left" part
+      std::size_t i;
+      for (i = 0; i < 29; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
+    case 805: { // pure gas flow, rectangular "left" part with a zone below
+      std::size_t i;
+      for (i = 0; i < 34; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
     }
     ifs.close();
   

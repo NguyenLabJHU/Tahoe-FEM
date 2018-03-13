@@ -8,6 +8,7 @@
 #include "Tetra.h"
 #endif
 
+#include "MPIFrame.h"
 #include "Parameter.h"
 #include "Vec.h"
 #include "Gradation.h"
@@ -51,7 +52,7 @@ namespace dem {
     std::vector<Spring *>   springVec;       // springs connecting membrane particles
 
     // container property
-    Rectangle allContainer;// whole container, broadcast among processes initially; not updated, or updated and broadcast by updateBoundary()..
+    Rectangle allContainer;// whole container, broadcast among processes initially; not updated, or updated and broadcast by updateBoundary().
     Rectangle container;   // container per process
     Rectangle cavity;      // cavity inside container
 
@@ -69,7 +70,7 @@ namespace dem {
     std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info  
 
     // gas property
-    Gas gas;
+    Gas gas; // correspond to particleVec
 
     // average data
     REAL avgNormal;        // only meaningful to root process
@@ -101,19 +102,9 @@ namespace dem {
     std::vector<Tetra> tetraVec;        // tetrahedrons per process
 #endif
 
-    // MPI data
-    boost::mpi::communicator boostWorld;
-    MPI_Comm mpiWorld, cartComm;
-    std::vector<std::size_t> bdryProcess;
-    int mpiProcX, mpiProcY, mpiProcZ;
-    int mpiRank, mpiSize, mpiTag, mpiCoords[3];
-    int rankX1, rankX2, rankY1, rankY2, rankZ1, rankZ2;
-    int rankX1Y1, rankX1Y2, rankX1Z1, rankX1Z2; 
-    int rankX2Y1, rankX2Y2, rankX2Z1, rankX2Z2; 
-    int rankY1Z1, rankY1Z2, rankY2Z1, rankY2Z2; 
-    int rankX1Y1Z1, rankX1Y1Z2, rankX1Y2Z1, rankX1Y2Z2; 
-    int rankX2Y1Z1, rankX2Y1Z2, rankX2Y2Z1, rankX2Y2Z2;
-    std::vector<Particle *> rParticleX1, rParticleX2; // r stands for received
+    MPIFrame mpi;
+
+    std::vector<Particle *> rParticleX1, rParticleX2; // r denotes received
     std::vector<Particle *> rParticleY1, rParticleY2; 
     std::vector<Particle *> rParticleZ1, rParticleZ2; 
     std::vector<Particle *> rParticleX1Y1, rParticleX1Y2, rParticleX1Z1, rParticleX1Z2; 
@@ -168,7 +159,8 @@ namespace dem {
       springVec.clear();
     }
    
-    void setCommunicator(boost::mpi::communicator &comm);
+    void setMPI(MPIFrame &m) {mpi = m;}
+
     void setContainer(Rectangle cont) { allContainer = cont; } 
     void setGrid(Rectangle cont) { grid = cont; } 
     void setGradation(Gradation grad) { gradation = grad; }
@@ -192,6 +184,7 @@ namespace dem {
 		 const char *inputParticle);
     void proceedFromPreset();
     void coupleWithGas();    
+    void pureGas();    
 
     void isotropic();
     void oedometer();
@@ -208,7 +201,6 @@ namespace dem {
     void readBoundary(const char *str, const int gridUpdate=0);
     void scatterParticle();
     void commuParticle();
-    bool isBdryProcess();
     void releaseRecvParticle();
     void releaseGatheredParticle();
     void releaseGatheredContact();

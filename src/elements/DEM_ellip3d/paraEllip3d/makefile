@@ -3,19 +3,18 @@
 #########################################################
 ###1. system platform
 PLATFORM = soilblast
+#PLATFORM = thunder
 #PLATFORM = topaz
 #PLATFORM = onyx
 #PLATFORM = excalibur
-#PLATFORM = thunder
 #PLATFORM = centennial
 #PLATFORM = lightning
-#PLATFORM = garnet
 
 ###2. compiler combinations (c++ and mpi)
 COMPILERS = gcc-openmpi
-#COMPILERS = intel-intel
-#COMPILERS = intel-cray
 #COMPILERS = intel-sgi
+#COMPILERS = intel-cray
+#COMPILERS = intel-intel
 #COMPILERS = gcc-sgi
 #COMPILERS = gcc-cray
 
@@ -130,30 +129,30 @@ endif
 
 ifeq ($(PLATFORM), topaz)
  ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.14_intel-16.0.0
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.15_intel-18.0.1
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.14_intel-16.0.0
+   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_mpt-2.15_intel-18.0.1
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-16.0.0
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-18.0.1
   endif
  endif
 endif
 
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /home/yanb/local/boost-1.65.1_mpt-2.14_intel-compilers-15.0.3.187
+  BOOST_ROOT = /home/yanb/local/boost-1.65.1_mpt-2.14_intel-compilers-17.0.2
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-15.0.3.187
+   PAPI_ROOT = /home/yanb/local/papi-5.4.1_mpt-2.14_intel-compilers-17.0.2
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /home/yanb/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /home/yanb/local/qhull-2015.2-intel-compilers-15.0.3.187
+   QHULL_ROOT = /home/yanb/local/qhull-2015.2-intel-compilers-17.0.2
   endif
  endif
  ifeq ($(COMPILERS), gcc-sgi)
@@ -177,12 +176,6 @@ ifeq ($(PLATFORM), lightning)
  ifeq ($(COMPILERS), intel-cray)
   #BOOST_ROOT = /home/yanb/local/boost-1.55.0_cray-mpich7.1.3_PrgEnv-intel5.2.40
   BOOST_ROOT = /home/yanb/local/boost-1.57.0_cray-mpich7.2.6_PrgEnv-intel5.2.82
- endif
-endif
-
-ifeq ($(PLATFORM), garnet)
- ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /u/yanb/local/boost-1.57.0_cray-mpich7.1.0_PrgEnv-intel5.2.82
  endif
 endif
 

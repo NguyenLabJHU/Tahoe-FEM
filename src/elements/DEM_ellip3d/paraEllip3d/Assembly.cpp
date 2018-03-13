@@ -57,7 +57,7 @@
 
 #define MODULE_TIME
 //#define DEM_PROFILE
-//#define CFD_PROFILE
+#define CFD_PROFILE
 //#define BIGON
 #define TOTALMOMENT
 
@@ -130,7 +130,7 @@ namespace dem {
   // method:  use trial and error method on number percentage until mass percentage is satisfied
   void Assembly::tuneMassPercent()
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       REAL minX = dem::Parameter::getSingleton().parameter["minX"];
       REAL minY = dem::Parameter::getSingleton().parameter["minY"];
       REAL minZ = dem::Parameter::getSingleton().parameter["minZ"];
@@ -187,7 +187,7 @@ namespace dem {
   // output:  particle file with precise gradation
   void Assembly::calcMassPercent()  
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());    
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       std::vector<REAL> &percent = gradation.getPercent();
@@ -218,7 +218,7 @@ namespace dem {
 
   void Assembly::depositIntoContainer() 
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       REAL minX = dem::Parameter::getSingleton().parameter["minX"];
       REAL minY = dem::Parameter::getSingleton().parameter["minY"];
       REAL minZ = dem::Parameter::getSingleton().parameter["minZ"];
@@ -249,7 +249,7 @@ namespace dem {
     deposit("deposit_boundary_ini",
 	    "float_particle_ini");
 
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       setContainer(Rectangle(allContainer.getMinCorner().getX(),
 			     allContainer.getMinCorner().getY(),
 			     allContainer.getMinCorner().getZ(),
@@ -270,7 +270,7 @@ namespace dem {
     deposit(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
 	    dem::Parameter::getSingleton().datafile["particleFile"].c_str());
   
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       setContainer(Rectangle(allContainer.getMinCorner().getX(),
 			     allContainer.getMinCorner().getY(),
 			     allContainer.getMinCorner().getZ(),
@@ -303,7 +303,7 @@ namespace dem {
 #ifdef MODULE_TIME
     pretime0=MPI_Wtime();
 #endif
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(inputParticle);
       readBoundary(inputBoundary, gridUpdate); // need particle info and gridUpdate to determine initial compute grid
       openDepositProg(progressInf, "deposit_progress");
@@ -333,13 +333,13 @@ namespace dem {
     /**/timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
     /**/REAL timeIncr  = timeStep * netStep;
     /**/REAL timeTotal = timeAccrued + timeStep * netStep;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("deposit_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("deposit_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("deposit_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("deposit_bdrycntc_", iterSnap -1, 3).c_str());
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "gridT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "compuT" << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl; 
 
@@ -363,6 +363,8 @@ namespace dem {
       exit(1);
     }
 #endif
+
+    mpi.findNeighborProcess(); // one-time operation
     /**/while (timeAccrued < timeTotal) { 
       //while (iteration <= endStep) {
       bool toCheckTime = (iteration + 1) % (netStep / netSnap) == 0;
@@ -377,11 +379,11 @@ namespace dem {
 
       /**/calcTimeStep(); // use values from last step, must call before findContact (which clears data)
       findContact();
-      if (isBdryProcess() || gridUpdate == 1) findBdryContact();
+      if (mpi.isBdryProcess() || gridUpdate == 1) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess() || gridUpdate == 1) boundaryForce();
+      if (mpi.isBdryProcess() || gridUpdate == 1) boundaryForce();
 
       dragForce();
 
@@ -426,7 +428,7 @@ namespace dem {
 	if (toCheckTime) {time2 = MPI_Wtime(); gatherT = time2 - time1;}
 #endif
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("deposit_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("deposit_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("deposit_particle_", iterSnap, 3).c_str());
@@ -450,7 +452,7 @@ namespace dem {
       migrateParticle(); 
 #ifdef MODULE_TIME
       if (toCheckTime) {time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;}
-      if (mpiRank == 0 && toCheckTime) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && toCheckTime) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT  << std::setw(OWID) << gridT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT - commuT - gridT - migraT << std::setw(OWID) << totalT 
 		 << std::setw(OWID) << (commuT + gridT + migraT)/totalT*100 << std::endl;
@@ -472,13 +474,13 @@ namespace dem {
     }
 #endif
   
-    if (mpiRank == 0) closeProg(progressInf);
+    if (mpi.mpiRank == 0) closeProg(progressInf);
   }
 
 
   void Assembly::expandCavityParticle() 
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       const char *inputParticle = dem::Parameter::getSingleton().datafile["particleFile"].c_str();
       REAL percent = dem::Parameter::getSingleton().parameter["expandPercent"];
       readParticle(inputParticle); 
@@ -523,7 +525,7 @@ namespace dem {
   void Assembly::isotropic() 
   {
     std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "isotropic_progress");
@@ -563,7 +565,7 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("isotropic_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("isotropic_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("isotropic_particle_", iterSnap - 1, 3).c_str());
@@ -571,20 +573,22 @@ namespace dem {
       printBoundary(combineString("isotropic_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       calcTimeStep(); // use values from last step, must call before findContact
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (mpi.isBdryProcess()) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
 #ifdef STRESS_STRAIN
       if ((iteration + 2) % (netStep / netSnap) == 0)
@@ -604,7 +608,7 @@ namespace dem {
 	gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("isotropic_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("isotropic_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("isotropic_particle_", iterSnap, 3).c_str());
@@ -624,13 +628,13 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
+      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
 #ifdef STRESS_STRAIN
 	  gatherGranularStress("isotropic_tensor_end");
 #endif
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
@@ -644,14 +648,14 @@ namespace dem {
 	}
       } else if (isotropicType == 2) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
-	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	}
 	if (tractionErrorTol(sigmaEnd, "isotropic")) {
 #ifdef STRESS_STRAIN
 	  gatherGranularStress("isotropic_tensor_end");
 #endif
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
@@ -667,7 +671,7 @@ namespace dem {
 
       if (isotropicType == 3) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
-	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	  if (sigmaVar == sigmaPath[sigma_i+1]) {
 	    sigmaVar = sigmaPath[++sigma_i];
@@ -675,7 +679,7 @@ namespace dem {
 	  }
 	}
 	if (tractionErrorTol(sigmaEnd, "isotropic")) {
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
@@ -691,14 +695,14 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       ++iteration;
     } 
   
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       closeProg(progressInf);
       closeProg(balancedInf);
     }
@@ -708,7 +712,7 @@ namespace dem {
   void Assembly::oedometer() 
   {
     std::size_t oedometerType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["oedometerType"]);
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "oedometer_progress");
@@ -746,7 +750,7 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("oedometer_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("oedometer_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("oedometer_particle_", iterSnap - 1, 3).c_str());
@@ -754,20 +758,22 @@ namespace dem {
       printBoundary(combineString("oedometer_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       calcTimeStep(); // use values from last step, must call before findContact
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (mpi.isBdryProcess()) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
 #ifdef STRESS_STRAIN
       if ((iteration + 2) % (netStep / netSnap) == 0)
@@ -787,7 +793,7 @@ namespace dem {
 	gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("oedometer_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("oedometer_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("oedometer_particle_", iterSnap, 3).c_str());
@@ -807,14 +813,14 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
+      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
       if (oedometerType == 1) {
 	if (tractionErrorTol(sigmaVar, "oedometer")) {
-	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	}
 	if (tractionErrorTol(sigmaEnd, "oedometer")) {
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("oedometer_particle_end");
 	    printBdryContact("oedometer_bdrycntc_end");
 	    printBoundary("oedometer_boundary_end");
@@ -824,7 +830,7 @@ namespace dem {
 	}
       } else if (oedometerType == 2) {
 	if (tractionErrorTol(sigmaVar, "oedometer")) {
-	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	  if (sigmaVar == sigmaPath[sigma_i+1]) {
 	    sigmaVar = sigmaPath[++sigma_i];
@@ -832,7 +838,7 @@ namespace dem {
 	  }
 	}
 	if (tractionErrorTol(sigmaEnd, "oedometer")) {
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("oedometer_particle_end");
 	    printBdryContact("oedometer_bdrycntc_end");
 	    printBoundary("oedometer_boundary_end");
@@ -848,14 +854,14 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       ++iteration;
     } 
   
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       closeProg(progressInf);
       closeProg(balancedInf);
     }
@@ -864,7 +870,7 @@ namespace dem {
 
   void Assembly::triaxial() 
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "triaxial_progress");
@@ -884,7 +890,7 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("triaxial_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("triaxial_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("triaxial_particle_", iterSnap - 1, 3).c_str());
@@ -892,9 +898,11 @@ namespace dem {
       printBoundary(combineString("triaxial_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -902,11 +910,11 @@ namespace dem {
       // displacement control relies on constant time step, so do not call calcTimeStep().
       //calcTimeStep(); // use values from last step, must call before findContact
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (mpi.isBdryProcess()) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
 #ifdef STRESS_STRAIN
       if ((iteration + 2) % (netStep / netSnap) == 0)
@@ -926,7 +934,7 @@ namespace dem {
 	gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("triaxial_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("triaxial_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("triaxial_particle_", iterSnap, 3).c_str());
@@ -950,7 +958,7 @@ namespace dem {
 #ifdef STRESS_STRAIN
 	gatherGranularStress("triaxial_tensor_end");
 #endif
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  printParticle("triaxial_particle_end");
 	  printBdryContact("triaxial_bdrycntc_end");
 	  printBoundary("triaxial_boundary_end");
@@ -968,24 +976,24 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
-      if (mpiRank == 0 && iteration % 10 == 0)
+      if (mpi.mpiRank == 0 && iteration % 10 == 0)
 	printCompressProg(progressInf, distX, distY, distZ);
 
       // no break condition, just through top/bottom displacement control
       ++iteration;
     } 
   
-    if (mpiRank == 0) closeProg(progressInf);
+    if (mpi.mpiRank == 0) closeProg(progressInf);
   }
 
 
   void Assembly::planeStrain() 
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "plnstrn_progress");
@@ -1005,7 +1013,7 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("plnstrn_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("plnstrn_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("plnstrn_particle_", iterSnap - 1, 3).c_str());
@@ -1013,9 +1021,11 @@ namespace dem {
       printBoundary(combineString("plnstrn_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -1023,11 +1033,11 @@ namespace dem {
       // displacement control relies on constant time step, so do not call calcTimeStep().
       //calcTimeStep(); // use values from last step, must call before findContact
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (mpi.isBdryProcess()) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
 #ifdef STRESS_STRAIN
       if ((iteration + 2) % (netStep / netSnap) == 0)
@@ -1047,7 +1057,7 @@ namespace dem {
 	gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("plnstrn_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("plnstrn_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("plnstrn_particle_", iterSnap, 3).c_str());
@@ -1068,7 +1078,7 @@ namespace dem {
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  printParticle("plnstrn_particle_end");
 	  printBdryContact("plnstrn_bdrycntc_end");
 	  printBoundary("plnstrn_boundary_end");
@@ -1082,25 +1092,25 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
-      if (mpiRank == 0 && iteration % 10 == 0)
+      if (mpi.mpiRank == 0 && iteration % 10 == 0)
 	printCompressProg(progressInf, distX, distY, distZ);
 
       // no break condition, just through top/bottom displacement control
       ++iteration;
     } 
 
-    if (mpiRank == 0) closeProg(progressInf);
+    if (mpi.mpiRank == 0) closeProg(progressInf);
   }
 
 
   void Assembly::trueTriaxial() 
   {
     std::size_t trueTriaxialType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["trueTriaxialType"]);
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "trueTriaxial_progress");
@@ -1147,7 +1157,7 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("trueTriaxial_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("trueTriaxial_particle_", iterSnap - 1, 3).c_str());
@@ -1155,20 +1165,22 @@ namespace dem {
       printBoundary(combineString("trueTriaxial_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       calcTimeStep(); // use values from last step, must call before findContact
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (mpi.isBdryProcess()) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
 #ifdef STRESS_STRAIN
       if ((iteration + 2) % (netStep / netSnap) == 0)
@@ -1188,7 +1200,7 @@ namespace dem {
 	gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("trueTriaxial_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("trueTriaxial_particle_", iterSnap, 3).c_str());
@@ -1208,16 +1220,16 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
+      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
       if (trueTriaxialType == 1) {
 	if (tractionErrorTol(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY)) {
-	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVarZ += sigmaIncZ;
 	  sigmaVarX += sigmaIncX;
 	  sigmaVarY += sigmaIncY;
 	}
 	if (tractionErrorTol(sigmaEndZ, "trueTriaxial", sigmaEndX, sigmaEndY)) {
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("trueTriaxial_particle_end");
 	    printBdryContact("trueTriaxial_bdrycntc_end");
 	    printBoundary("trueTriaxial_boundary_end");
@@ -1235,7 +1247,7 @@ namespace dem {
 	  sigmaX = sigmaInit[0]; sigmaY = sigmaInit[1]; sigmaZ = sigmaVar;
 	}
 	if (tractionErrorTol(sigmaZ, "trueTriaxial", sigmaX, sigmaY)) {
-	  if (mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
+	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
 	  sigmaVar += sigmaInc;
 	} 
    
@@ -1247,7 +1259,7 @@ namespace dem {
 	  sigmaX = sigmaInit[0]; sigmaY = sigmaInit[1]; sigmaZ = sigmaEnd;
 	}
 	if (tractionErrorTol(sigmaZ, "trueTriaxial", sigmaX, sigmaY)) {
-	  if (mpiRank == 0) {
+	  if (mpi.mpiRank == 0) {
 	    printParticle("trueTriaxial_particle_end");
 	    printBdryContact("trueTriaxial_bdrycntc_end");
 	    printBoundary("trueTriaxial_boundary_end");
@@ -1275,14 +1287,14 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
       ++iteration;
     } 
 
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       closeProg(progressInf);
       closeProg(balancedInf);
     }
@@ -1291,7 +1303,7 @@ namespace dem {
 
   void Assembly::oedometerImpact() 
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openCompressProg(progressInf, "oedometerImpact_progress");
@@ -1311,7 +1323,7 @@ namespace dem {
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL distX, distY, distZ;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("oedometerImpact_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("oedometerImpact_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("oedometerImpact_particle_", iterSnap - 1, 3).c_str());
@@ -1319,9 +1331,11 @@ namespace dem {
       printBoundary(combineString("oedometerImpact_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
     }
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
     while (iteration <= endStep) {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
@@ -1329,11 +1343,11 @@ namespace dem {
       // displacement control relies on constant time step, so do not call calcTimeStep().
       //calcTimeStep(); // use values from last step, must call before findContact
       findContact();
-      if (isBdryProcess()) findBdryContact();
+      if (mpi.isBdryProcess()) findBdryContact();
 
       clearContactForce();
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
 #ifdef STRESS_STRAIN
       if ((iteration + 2) % (netStep / netSnap) == 0)
@@ -1353,7 +1367,7 @@ namespace dem {
 	gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("oedometerImpact_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("oedometerImpact_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("oedometerImpact_particle_", iterSnap, 3).c_str());
@@ -1377,7 +1391,7 @@ namespace dem {
 #ifdef STRESS_STRAIN
 	gatherGranularStress("oedometerImpact_tensor_end");
 #endif
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  printParticle("oedometerImpact_particle_end");
 	  printBdryContact("oedometerImpact_bdrycntc_end");
 	  printBoundary("oedometerImpact_boundary_end");
@@ -1396,18 +1410,18 @@ namespace dem {
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
 
-      if (mpiRank == 0 && iteration % 10 == 0)
+      if (mpi.mpiRank == 0 && iteration % 10 == 0)
 	printCompressProg(progressInf, distX, distY, distZ);
 
       // no break condition, just through top displacement control
       ++iteration;
     } 
   
-    if (mpiRank == 0) closeProg(progressInf);
+    if (mpi.mpiRank == 0) closeProg(progressInf);
   }
 
 
@@ -1478,16 +1492,83 @@ namespace dem {
   }
 
 
+  void Assembly::pureGas() 
+  {
+    mpi.findNeighborProcess(); // one-time operation
+    gas.initPureGasParameter();
+    gas.setMPI(mpi);           // must do after mpi.findNeighborProcess().
+    gas.allocArray();
+    gas.initializePureGas();
+
+    std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
+    std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
+    std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
+    std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
+    std::size_t netStep   = endStep - startStep + 1;
+    std::size_t netSnap   = endSnap - startSnap + 1;
+    timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
+
+    iteration = startStep;
+    std::size_t iterSnap = startSnap;
+    REAL timeCount = 0;
+    timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
+    REAL timeIncr  = timeStep * netStep;
+    REAL timeTotal = timeAccrued + timeIncr;
+
+    gas.plot((combineString("pure_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+
+    REAL time_1, time_2, time_3;
+    while (timeAccrued < timeTotal) {
+
+      calcTimeStep(); // use values from last step, must call before findContact
+
+#ifdef CFD_PROFILE
+      time_1 = MPI_Wtime();
+#endif
+
+      gas.commu6();
+#ifdef CFD_PROFILE
+      time_2 = MPI_Wtime();
+#endif
+
+      gas.runOneStep(particleVec);
+#ifdef CFD_PROFILE
+      time_3 = MPI_Wtime();
+#endif
+      //gas.checkMomentum(particleVec);
+
+      timeCount += timeStep;
+      //timeAccrued += timeStep; // note gas.runOneStep() changes timeStep/timeAccrued and print timeAccrued
+      if (timeCount >= timeIncr/netSnap) { 
+	gas.plot((combineString("pure_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);     
+	timeCount = 0;
+	++iterSnap;
+      }
+
+#ifdef CFD_PROFILE
+      debugInf << std::setw(OWID) << time_2 - time_1
+	       << std::setw(OWID) << time_3 - time_2
+	       << std::setw(OWID) << (time_2 - time_1) / (time_3 - time_1) * 100;
+#endif
+      ++iteration;
+    } 
+  }
+
+
   void Assembly::coupleWithGas() 
   {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
       openDepositProg(progressInf, "couple_progress");
     }
     scatterParticle();
-    /*1*/ gas.initParameter(allContainer, gradation);
-    /*2*/ gas.initialize();
+
+    mpi.findNeighborProcess(); // one-time operation
+    /*01*/ gas.initParameter(gradation);
+    /*02*/ gas.setMPI(mpi);    // must do after mpi.findNeighborProcess().
+    /*03*/ gas.allocArray();
+    /*04*/ gas.initialize();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1504,77 +1585,89 @@ namespace dem {
     timeAccrued = static_cast<REAL> (dem::Parameter::getSingleton().parameter["timeAccrued"]);
     REAL timeIncr  = timeStep * netStep;
     REAL timeTotal = timeAccrued + timeIncr;
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       plotBoundary((combineString("couple_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("couple_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
-      /*3*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str()); 
     }
+    /*05*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+
     /*
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     */
 
-    struct timeval time_1, time_2, time_3, time_4, time_5, time_6, time_7;
+    REAL time_1, time_2, time_3, time_4, time_5, time_6, time_7;
     while (timeAccrued < timeTotal) {
-#ifdef CFD_PROFILE
-      gettimeofday(&time_1, NULL);
-#endif
-      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
-      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
+      clearContactForce(); // must call before gas.calcPtclForce
       calcTimeStep(); // use values from last step, must call before findContact
 
-      findContact();
-      if (isBdryProcess()) findBdryContact();
+#ifdef CFD_PROFILE
+      time_1 = MPI_Wtime();
+#endif
 
-      clearContactForce();
+      /*06*/ gas.commu20(); // must call before gas.getPtclInfo
+#ifdef CFD_PROFILE
+      time_2 = MPI_Wtime();
+#endif
 
+      /*07*/ gas.getPtclInfo(particleVec, gradation); // must call before commuParticle
 #ifdef CFD_PROFILE
-      gettimeofday(&time_2, NULL);
+      time_3 = MPI_Wtime();
 #endif
-      /*4*/ gas.getPtclInfo(particleVec, gradation); // not allParticleVec
+
+      /*08*/ gas.runOneStep(particleVec);
 #ifdef CFD_PROFILE
-      gettimeofday(&time_3, NULL);
+      time_4 = MPI_Wtime();
 #endif
-      /*5*/ gas.runOneStep(particleVec);
+
+      /*09*/ gas.calcPtclForce(particleVec);
 #ifdef CFD_PROFILE
-      gettimeofday(&time_4, NULL);
+      time_5 = MPI_Wtime();
 #endif
-      /*6*/ gas.calcPtclForce(particleVec); // not allParticleVec
+
+      /*10*/ gas.backCommu20();
 #ifdef CFD_PROFILE
-      gettimeofday(&time_5, NULL);
+      time_6 = MPI_Wtime();
 #endif
-      /*7*/ gas.penalize(particleVec);
+
+      /*11*/ gas.penalize(particleVec);
 #ifdef CFD_PROFILE
-      gettimeofday(&time_6, NULL);
+      time_7 = MPI_Wtime();
 #endif
       //gas.checkMomentum(particleVec);
 
+      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
+      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
+
+      findContact();
+      if (mpi.isBdryProcess()) findBdryContact();
+
       internalForce();
-      if (isBdryProcess()) boundaryForce();
+      if (mpi.isBdryProcess()) boundaryForce();
 
       updateParticle();
       updateGridMaxZ();
 
       timeCount += timeStep;
-      //timeAccrued += timeStep; // note gas.runOneStep() might change timeStep and print timeAccrued
+      //timeAccrued += timeStep; // note gas.runOneStep() changes timeStep/timeAccrued and print timeAccrued
       if (timeCount >= timeIncr/netSnap) { 
 	time1 = MPI_Wtime();
 	gatherParticle();
 	gatherBdryContact();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
-	if (mpiRank == 0) {
+	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("couple_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("couple_gridplot_", iterSnap, 3) + ".dat").c_str());
 	  printParticle(combineString("couple_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
-	  /*8*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str());
 	}
+	/*12*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
       
 	timeCount = 0;
@@ -1585,25 +1678,25 @@ namespace dem {
       time1 = MPI_Wtime();
       migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
       /*
-      if (mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
 		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
       */
 
 #ifdef CFD_PROFILE
-      gettimeofday(&time_7, NULL);
-      debugInf << std::setw(OWID) << timediffsec(time_2, time_3)
-	       << std::setw(OWID) << timediffsec(time_3, time_4)
-	       << std::setw(OWID) << timediffsec(time_4, time_5)
-	       << std::setw(OWID) << timediffsec(time_5, time_6)
-	       << std::setw(OWID) << timediffsec(time_2, time_6)
-	       << std::setw(OWID) << timediffsec(time_1, time_7) - timediffsec(time_2, time_6);
+      debugInf << std::setw(OWID) << time_2-time_1 // commuT
+	       << std::setw(OWID) << time_3-time_2 // getPtclT
+	       << std::setw(OWID) << time_4-time_3 // runT
+	       << std::setw(OWID) << time_5-time_4 // calPtclT
+	       << std::setw(OWID) << time_6-time_5 // bCommuT
+	       << std::setw(OWID) << time_7-time_6 // penalT
+	       << std::setw(OWID) << time_7-time_1;// totalT
 #endif
 
       ++iteration;
     } 
   
-    if (mpiRank == 0)
+    if (mpi.mpiRank == 0)
       closeProg(progressInf);
   }
 
@@ -1735,6 +1828,7 @@ namespace dem {
 	  for (int j = 0; j < gridMask[i].size(); ++j)
 	    gridMask[i][j].resize(gridNz);
 	}
+	// not necessary, resize does zero-initialization.
 	for (int i = 0; i < gridNx; ++i)
 	  for (int j = 0; j < gridNy; ++j)
 	    for (int k = 0; k < gridNz; ++k)
@@ -1852,7 +1946,7 @@ namespace dem {
   
 
   void Assembly::trimOnly() {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       trim(true,
 	   dem::Parameter::getSingleton().datafile["particleFile"].c_str(),
 	   "trim_particle_end");
@@ -1910,7 +2004,7 @@ namespace dem {
 
   void Assembly::removeBySphere()
   {
-   if (mpiRank == 0) {
+   if (mpi.mpiRank == 0) {
 
     readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
     readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
@@ -2119,7 +2213,7 @@ namespace dem {
 	     center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) )
 	{
 	  /*
-	    debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank
+	    debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpi.mpiRank
 	    << " removed=" << std::setw(3) << (*itr)->getId();	
 	    flag = 1;
 	  */
@@ -2225,91 +2319,52 @@ namespace dem {
   }
 
 
-  void Assembly::setCommunicator(boost::mpi::communicator &comm) {
-    boostWorld = comm;
-    mpiWorld = MPI_Comm(comm);
-    mpiProcX = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcX"]);
-    mpiProcY = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcY"]);
-    mpiProcZ = static_cast<int> (dem::Parameter::getSingleton().parameter["mpiProcZ"]);
-  
-    // create Cartesian virtual topology (unavailable in boost.mpi) 
-    int ndim = 3;
-    int dims[3] = {mpiProcX, mpiProcY, mpiProcZ};
-    int periods[3] = {0, 0, 0};
-    int reorder = 0; // mpiRank not reordered
-    MPI_Cart_create(mpiWorld, ndim, dims, periods, reorder, &cartComm);
-    MPI_Comm_rank(cartComm, &mpiRank); 
-    MPI_Comm_size(cartComm, &mpiSize);
-    MPI_Cart_coords(cartComm, mpiRank, ndim, mpiCoords);
-    mpiTag = 0;
-    assert(mpiRank == boostWorld.rank());
-    //debugInf << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
-
-    for (int iRank = 0; iRank < mpiSize; ++iRank) {
-      int ndim = 3;
-      int coords[3];
-      MPI_Cart_coords(cartComm, iRank, ndim, coords);
-      if (coords[0] == 0 || coords[0] == mpiProcX - 1 ||
-	  coords[1] == 0 || coords[1] == mpiProcY - 1 ||
-	  coords[2] == 0 || coords[2] == mpiProcZ - 1)
-	bdryProcess.push_back(iRank);
-    }
-  }
-
-
   void Assembly::scatterParticle() {
     // partition particles and send to each process
-    if (mpiRank == 0) { // process 0
+    if (mpi.mpiRank == 0) { // process 0
 
       // grid initialized in readBoundary()
       Vec v1 = grid.getMinCorner();
       Vec v2 = grid.getMaxCorner();
       Vec vspan = v2 - v1;
 
-      boost::mpi::request *reqs = new boost::mpi::request [mpiSize - 1];
+      boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
       std::vector<Particle *> tmpParticleVec;
-      for (int iRank = mpiSize - 1; iRank >= 0; --iRank) {
+      for (int iRank = mpi.mpiSize - 1; iRank >= 0; --iRank) {
 	tmpParticleVec.clear(); // do not release memory!
 	int ndim = 3;
 	int coords[3];
-	MPI_Cart_coords(cartComm, iRank, ndim, coords);
-	Rectangle container(v1.getX() + vspan.getX() / mpiProcX * coords[0],
-			    v1.getY() + vspan.getY() / mpiProcY * coords[1],
-			    v1.getZ() + vspan.getZ() / mpiProcZ * coords[2],
-			    v1.getX() + vspan.getX() / mpiProcX * (coords[0] + 1),
-			    v1.getY() + vspan.getY() / mpiProcY * (coords[1] + 1),
-			    v1.getZ() + vspan.getZ() / mpiProcZ * (coords[2] + 1));
+	MPI_Cart_coords(mpi.cartComm, iRank, ndim, coords);
+	Rectangle container(v1.getX() + vspan.getX() / mpi.mpiProcX * coords[0],
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * coords[1],
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * coords[2],
+			    v1.getX() + vspan.getX() / mpi.mpiProcX * (coords[0] + 1),
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * (coords[1] + 1),
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (coords[2] + 1));
 	findParticleInRectangle(container, allParticleVec, tmpParticleVec);
 	if (iRank != 0)
-	  reqs[iRank - 1] = boostWorld.isend(iRank, mpiTag, tmpParticleVec); // non-blocking send
+	  reqs[iRank - 1] = mpi.boostWorld.isend(iRank, mpi.mpiTag, tmpParticleVec); // non-blocking send
 	if (iRank == 0) {
 	  particleVec.resize(tmpParticleVec.size());
 	  for (int i = 0; i < particleVec.size(); ++i)
 	    particleVec[i] = new Particle(*tmpParticleVec[i]); // default synthesized copy constructor
 	} // now particleVec do not share memeory with allParticleVec
       }
-      boost::mpi::wait_all(reqs, reqs + mpiSize - 1); // for non-blocking send
+      boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
       delete [] reqs;
 
     } else { // other processes except 0
-      boostWorld.recv(0, mpiTag, particleVec);
+      mpi.boostWorld.recv(0, mpi.mpiTag, particleVec);
     }
 
     // content of allParticleVec may need to be printed, so do not clear it. 
-    //if (mpiRank == 0) releaseGatheredParticle();
+    //if (mpi.mpiRank == 0) releaseGatheredParticle();
 
     // broadcast necessary info
-    broadcast(boostWorld, gradation, 0);
-    broadcast(boostWorld, boundaryVec, 0);
-    broadcast(boostWorld, allContainer, 0);
-    broadcast(boostWorld, grid, 0);
-  }
-
-
-  bool Assembly::isBdryProcess() {
-    return (mpiCoords[0] == 0 || mpiCoords[0] == mpiProcX - 1 ||
-	    mpiCoords[1] == 0 || mpiCoords[1] == mpiProcY - 1 ||
-	    mpiCoords[2] == 0 || mpiCoords[2] == mpiProcZ - 1);
+    broadcast(mpi.boostWorld, gradation, 0);
+    broadcast(mpi.boostWorld, boundaryVec, 0);
+    broadcast(mpi.boostWorld, allContainer, 0);
+    broadcast(mpi.boostWorld, grid, 0);
   }
 
 
@@ -2319,176 +2374,14 @@ namespace dem {
     Vec v1 = grid.getMinCorner();
     Vec v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
-    container = Rectangle(v1.getX() + vspan.getX() / mpiProcX * mpiCoords[0],
-			  v1.getY() + vspan.getY() / mpiProcY * mpiCoords[1],
-			  v1.getZ() + vspan.getZ() / mpiProcZ * mpiCoords[2],
-			  v1.getX() + vspan.getX() / mpiProcX * (mpiCoords[0] + 1),
-			  v1.getY() + vspan.getY() / mpiProcY * (mpiCoords[1] + 1),
-			  v1.getZ() + vspan.getZ() / mpiProcZ * (mpiCoords[2] + 1));
+    container = Rectangle(v1.getX() + vspan.getX() / mpi.mpiProcX * mpi.mpiCoords[0],
+			  v1.getY() + vspan.getY() / mpi.mpiProcY * mpi.mpiCoords[1],
+			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * mpi.mpiCoords[2],
+			  v1.getX() + vspan.getX() / mpi.mpiProcX * (mpi.mpiCoords[0] + 1),
+			  v1.getY() + vspan.getY() / mpi.mpiProcY * (mpi.mpiCoords[1] + 1),
+			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (mpi.mpiCoords[2] + 1));
 
-    // find neighboring blocks
-    rankX1 = -1; rankX2 = -1; rankY1 = -1; rankY2 = -1; rankZ1 = -1; rankZ2 = -1;
-    rankX1Y1 = -1; rankX1Y2 = -1; rankX1Z1 = -1; rankX1Z2 = -1; 
-    rankX2Y1 = -1; rankX2Y2 = -1; rankX2Z1 = -1; rankX2Z2 = -1; 
-    rankY1Z1 = -1; rankY1Z2 = -1; rankY2Z1 = -1; rankY2Z2 = -1; 
-    rankX1Y1Z1 = -1; rankX1Y1Z2 = -1; rankX1Y2Z1 = -1; rankX1Y2Z2 = -1; 
-    rankX2Y1Z1 = -1; rankX2Y1Z2 = -1; rankX2Y2Z1 = -1; rankX2Y2Z2 = -1;
-    // x1: -x direction
-    int neighborCoords[3] = {mpiCoords[0], mpiCoords[1], mpiCoords[2]};
-    --neighborCoords[0];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1);
-    // x2: +x direction
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2);
-    // y1: -y direction
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[1];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankY1);
-    // y2: +y direction
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[1];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankY2);
-    // z1: -z direction
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankZ1);
-    // z2: +z direction
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankZ2);
-    // x1y1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; --neighborCoords[1];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Y1);
-    // x1y2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; ++neighborCoords[1];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Y2);
-    // x1z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Z1);
-    // x1z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Z2);
-    // x2y1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; --neighborCoords[1];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y1);
-    // x2y2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; ++neighborCoords[1];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y2);
-    // x2z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Z1);
-    // x2z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Z2);
-    // y1z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[1]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankY1Z1);
-    // y1z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[1]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankY1Z2);
-    // y2z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[1]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankY2Z1);
-    // y2z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[1]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankY2Z2);
-    // x1y1z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; --neighborCoords[1]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Y1Z1);
-    // x1y1z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; --neighborCoords[1]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Y1Z2);
-    // x1y2z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; ++neighborCoords[1]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Y2Z1);
-    // x1y2z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    --neighborCoords[0]; ++neighborCoords[1]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX1Y2Z2);
-    // x2y1z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; --neighborCoords[1]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y1Z1);
-    // x2y1z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; --neighborCoords[1]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y1Z2);
-    // x2y2z1
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; ++neighborCoords[1]; --neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y2Z1);
-    // x2y2z2
-    neighborCoords[0] = mpiCoords[0];
-    neighborCoords[1] = mpiCoords[1];
-    neighborCoords[2] = mpiCoords[2];
-    ++neighborCoords[0]; ++neighborCoords[1]; ++neighborCoords[2];
-    MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y2Z2);
-
-    // if found, communicate with neighboring blocks
+    // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
     std::vector<Particle *> particleX1, particleX2;
     std::vector<Particle *> particleY1, particleY2;
     std::vector<Particle *> particleZ1, particleZ2;
@@ -2507,257 +2400,257 @@ namespace dem {
     boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();   
-    //debugInf << "rank=" << mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
+    //debugInf << "rank=" << mpi.mpiRank << ' ' << v1.getX() << ' ' << v1.getY() << ' ' << v1.getZ() << ' '  << v2.getX() << ' ' << v2.getY() << ' ' << v2.getZ() << std::endl;
     REAL borderWidth = gradation.getPtclMaxRadius() * 2;
     //REAL borderWidth = gradation.getPtclMeanRadius() * 2;
 
     // 6 surfaces
-    if (rankX1 >= 0) { // surface x1
+    if (mpi.rankX1 >= 0) { // surface x1
       Rectangle containerX1(v1.getX(), v1.getY(), v1.getZ(), 
 			    v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1, particleVec, particleX1);
-      reqX1[0] = boostWorld.isend(rankX1, mpiTag,  particleX1);
-      reqX1[1] = boostWorld.irecv(rankX1, mpiTag, rParticleX1);
+      reqX1[0] = mpi.boostWorld.isend(mpi.rankX1, mpi.mpiTag,  particleX1);
+      reqX1[1] = mpi.boostWorld.irecv(mpi.rankX1, mpi.mpiTag, rParticleX1);
     }
-    if (rankX2 >= 0) { // surface x2
+    if (mpi.rankX2 >= 0) { // surface x2
       Rectangle containerX2(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
 			    v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2, particleVec, particleX2);
-      reqX2[0] = boostWorld.isend(rankX2, mpiTag,  particleX2);
-      reqX2[1] = boostWorld.irecv(rankX2, mpiTag, rParticleX2);
+      reqX2[0] = mpi.boostWorld.isend(mpi.rankX2, mpi.mpiTag,  particleX2);
+      reqX2[1] = mpi.boostWorld.irecv(mpi.rankX2, mpi.mpiTag, rParticleX2);
     }
-    if (rankY1 >= 0) {  // surface y1
+    if (mpi.rankY1 >= 0) {  // surface y1
       Rectangle containerY1(v1.getX(), v1.getY(), v1.getZ(), 
 			    v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerY1, particleVec, particleY1);
-      reqY1[0] = boostWorld.isend(rankY1, mpiTag,  particleY1);
-      reqY1[1] = boostWorld.irecv(rankY1, mpiTag, rParticleY1);
+      reqY1[0] = mpi.boostWorld.isend(mpi.rankY1, mpi.mpiTag,  particleY1);
+      reqY1[1] = mpi.boostWorld.irecv(mpi.rankY1, mpi.mpiTag, rParticleY1);
     }
-    if (rankY2 >= 0) {  // surface y2
+    if (mpi.rankY2 >= 0) {  // surface y2
       Rectangle containerY2(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
 			    v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerY2, particleVec, particleY2);
-      reqY2[0] = boostWorld.isend(rankY2, mpiTag,  particleY2);
-      reqY2[1] = boostWorld.irecv(rankY2, mpiTag, rParticleY2);
+      reqY2[0] = mpi.boostWorld.isend(mpi.rankY2, mpi.mpiTag,  particleY2);
+      reqY2[1] = mpi.boostWorld.irecv(mpi.rankY2, mpi.mpiTag, rParticleY2);
     }
-    if (rankZ1 >= 0) {  // surface z1
+    if (mpi.rankZ1 >= 0) {  // surface z1
       Rectangle containerZ1(v1.getX(), v1.getY(), v1.getZ(),
 			    v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerZ1, particleVec, particleZ1);
-      reqZ1[0] = boostWorld.isend(rankZ1, mpiTag,  particleZ1);
-      reqZ1[1] = boostWorld.irecv(rankZ1, mpiTag, rParticleZ1);
+      reqZ1[0] = mpi.boostWorld.isend(mpi.rankZ1, mpi.mpiTag,  particleZ1);
+      reqZ1[1] = mpi.boostWorld.irecv(mpi.rankZ1, mpi.mpiTag, rParticleZ1);
     }
-    if (rankZ2 >= 0) {  // surface z2
+    if (mpi.rankZ2 >= 0) {  // surface z2
       Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
 			    v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerZ2, particleVec, particleZ2);
-      reqZ2[0] = boostWorld.isend(rankZ2, mpiTag,  particleZ2);
-      reqZ2[1] = boostWorld.irecv(rankZ2, mpiTag, rParticleZ2);
+      reqZ2[0] = mpi.boostWorld.isend(mpi.rankZ2, mpi.mpiTag,  particleZ2);
+      reqZ2[1] = mpi.boostWorld.irecv(mpi.rankZ2, mpi.mpiTag, rParticleZ2);
     }
     // 12 edges
-    if (rankX1Y1 >= 0) { // edge x1y1
+    if (mpi.rankX1Y1 >= 0) { // edge x1y1
       Rectangle containerX1Y1(v1.getX(), v1.getY(), v1.getZ(),
 			      v1.getX() + borderWidth, v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX1Y1, particleVec, particleX1Y1);
-      reqX1Y1[0] = boostWorld.isend(rankX1Y1, mpiTag,  particleX1Y1);
-      reqX1Y1[1] = boostWorld.irecv(rankX1Y1, mpiTag, rParticleX1Y1);
+      reqX1Y1[0] = mpi.boostWorld.isend(mpi.rankX1Y1, mpi.mpiTag,  particleX1Y1);
+      reqX1Y1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1, mpi.mpiTag, rParticleX1Y1);
     }
-    if (rankX1Y2 >= 0) { // edge x1y2
+    if (mpi.rankX1Y2 >= 0) { // edge x1y2
       Rectangle containerX1Y2(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
 			      v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1Y2, particleVec, particleX1Y2);
-      reqX1Y2[0] = boostWorld.isend(rankX1Y2, mpiTag,  particleX1Y2);
-      reqX1Y2[1] = boostWorld.irecv(rankX1Y2, mpiTag, rParticleX1Y2);
+      reqX1Y2[0] = mpi.boostWorld.isend(mpi.rankX1Y2, mpi.mpiTag,  particleX1Y2);
+      reqX1Y2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2, mpi.mpiTag, rParticleX1Y2);
     }
-    if (rankX1Z1 >= 0) { // edge x1z1
+    if (mpi.rankX1Z1 >= 0) { // edge x1z1
       Rectangle containerX1Z1(v1.getX(), v1.getY(), v1.getZ(),
 			      v1.getX() + borderWidth, v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX1Z1, particleVec, particleX1Z1);
-      reqX1Z1[0] = boostWorld.isend(rankX1Z1, mpiTag,  particleX1Z1);
-      reqX1Z1[1] = boostWorld.irecv(rankX1Z1, mpiTag, rParticleX1Z1);
+      reqX1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Z1, mpi.mpiTag,  particleX1Z1);
+      reqX1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Z1, mpi.mpiTag, rParticleX1Z1);
     }
-    if (rankX1Z2 >= 0) { // edge x1z2
+    if (mpi.rankX1Z2 >= 0) { // edge x1z2
       Rectangle containerX1Z2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
 			      v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1Z2, particleVec, particleX1Z2);
-      reqX1Z2[0] = boostWorld.isend(rankX1Z2, mpiTag,  particleX1Z2);
-      reqX1Z2[1] = boostWorld.irecv(rankX1Z2, mpiTag, rParticleX1Z2);
+      reqX1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Z2, mpi.mpiTag,  particleX1Z2);
+      reqX1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Z2, mpi.mpiTag, rParticleX1Z2);
     }
-    if (rankX2Y1 >= 0) { // edge x2y1
+    if (mpi.rankX2Y1 >= 0) { // edge x2y1
       Rectangle containerX2Y1(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
 			      v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX2Y1, particleVec, particleX2Y1);
-      reqX2Y1[0] = boostWorld.isend(rankX2Y1, mpiTag,  particleX2Y1);
-      reqX2Y1[1] = boostWorld.irecv(rankX2Y1, mpiTag, rParticleX2Y1);
+      reqX2Y1[0] = mpi.boostWorld.isend(mpi.rankX2Y1, mpi.mpiTag,  particleX2Y1);
+      reqX2Y1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1, mpi.mpiTag, rParticleX2Y1);
     }
-    if (rankX2Y2 >= 0) { // edge x2y2
+    if (mpi.rankX2Y2 >= 0) { // edge x2y2
       Rectangle containerX2Y2(v2.getX() - borderWidth, v2.getY() - borderWidth, v1.getZ(),
 			      v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2Y2, particleVec, particleX2Y2);
-      reqX2Y2[0] = boostWorld.isend(rankX2Y2, mpiTag,  particleX2Y2);
-      reqX2Y2[1] = boostWorld.irecv(rankX2Y2, mpiTag, rParticleX2Y2);
+      reqX2Y2[0] = mpi.boostWorld.isend(mpi.rankX2Y2, mpi.mpiTag,  particleX2Y2);
+      reqX2Y2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2, mpi.mpiTag, rParticleX2Y2);
     }
-    if (rankX2Z1 >= 0) { // edge x2z1
+    if (mpi.rankX2Z1 >= 0) { // edge x2z1
       Rectangle containerX2Z1(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
 			      v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX2Z1, particleVec, particleX2Z1);
-      reqX2Z1[0] = boostWorld.isend(rankX2Z1, mpiTag,  particleX2Z1);
-      reqX2Z1[1] = boostWorld.irecv(rankX2Z1, mpiTag, rParticleX2Z1);
+      reqX2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Z1, mpi.mpiTag,  particleX2Z1);
+      reqX2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Z1, mpi.mpiTag, rParticleX2Z1);
     }
-    if (rankX2Z2 >= 0) { // edge x2z2
+    if (mpi.rankX2Z2 >= 0) { // edge x2z2
       Rectangle containerX2Z2(v2.getX() - borderWidth, v1.getY(), v2.getZ() - borderWidth,
 			      v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2Z2, particleVec, particleX2Z2);
-      reqX2Z2[0] = boostWorld.isend(rankX2Z2, mpiTag,  particleX2Z2);
-      reqX2Z2[1] = boostWorld.irecv(rankX2Z2, mpiTag, rParticleX2Z2);
+      reqX2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Z2, mpi.mpiTag,  particleX2Z2);
+      reqX2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Z2, mpi.mpiTag, rParticleX2Z2);
     }
-    if (rankY1Z1 >= 0) { // edge y1z1
+    if (mpi.rankY1Z1 >= 0) { // edge y1z1
       Rectangle containerY1Z1(v1.getX(), v1.getY(), v1.getZ(),
 			      v2.getX(), v1.getY() + borderWidth, v1.getZ() + borderWidth);
       findParticleInRectangle(containerY1Z1, particleVec, particleY1Z1);
-      reqY1Z1[0] = boostWorld.isend(rankY1Z1, mpiTag,  particleY1Z1);
-      reqY1Z1[1] = boostWorld.irecv(rankY1Z1, mpiTag, rParticleY1Z1);
+      reqY1Z1[0] = mpi.boostWorld.isend(mpi.rankY1Z1, mpi.mpiTag,  particleY1Z1);
+      reqY1Z1[1] = mpi.boostWorld.irecv(mpi.rankY1Z1, mpi.mpiTag, rParticleY1Z1);
     }
-    if (rankY1Z2 >= 0) { // edge y1z2
+    if (mpi.rankY1Z2 >= 0) { // edge y1z2
       Rectangle containerY1Z2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
 			      v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerY1Z2, particleVec, particleY1Z2);
-      reqY1Z2[0] = boostWorld.isend(rankY1Z2, mpiTag,  particleY1Z2);
-      reqY1Z2[1] = boostWorld.irecv(rankY1Z2, mpiTag, rParticleY1Z2);
+      reqY1Z2[0] = mpi.boostWorld.isend(mpi.rankY1Z2, mpi.mpiTag,  particleY1Z2);
+      reqY1Z2[1] = mpi.boostWorld.irecv(mpi.rankY1Z2, mpi.mpiTag, rParticleY1Z2);
     }
-    if (rankY2Z1 >= 0) { // edge y2z1
+    if (mpi.rankY2Z1 >= 0) { // edge y2z1
       Rectangle containerY2Z1(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
 			      v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerY2Z1, particleVec, particleY2Z1);
-      reqY2Z1[0] = boostWorld.isend(rankY2Z1, mpiTag,  particleY2Z1);
-      reqY2Z1[1] = boostWorld.irecv(rankY2Z1, mpiTag, rParticleY2Z1);
+      reqY2Z1[0] = mpi.boostWorld.isend(mpi.rankY2Z1, mpi.mpiTag,  particleY2Z1);
+      reqY2Z1[1] = mpi.boostWorld.irecv(mpi.rankY2Z1, mpi.mpiTag, rParticleY2Z1);
     }
-    if (rankY2Z2 >= 0) { // edge y2z2
+    if (mpi.rankY2Z2 >= 0) { // edge y2z2
       Rectangle containerY2Z2(v1.getX(), v2.getY() - borderWidth, v2.getZ() - borderWidth,
 			      v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerY2Z2, particleVec, particleY2Z2);
-      reqY2Z2[0] = boostWorld.isend(rankY2Z2, mpiTag,  particleY2Z2);
-      reqY2Z2[1] = boostWorld.irecv(rankY2Z2, mpiTag, rParticleY2Z2);
+      reqY2Z2[0] = mpi.boostWorld.isend(mpi.rankY2Z2, mpi.mpiTag,  particleY2Z2);
+      reqY2Z2[1] = mpi.boostWorld.irecv(mpi.rankY2Z2, mpi.mpiTag, rParticleY2Z2);
     }
     // 8 vertices
-    if (rankX1Y1Z1 >= 0) { // edge x1y1z1
+    if (mpi.rankX1Y1Z1 >= 0) { // vertice x1y1z1
       Rectangle containerX1Y1Z1(v1.getX(), v1.getY(), v1.getZ(),
 				v1.getX() + borderWidth, v1.getY() + borderWidth, v1.getZ() + borderWidth);
       findParticleInRectangle(containerX1Y1Z1, particleVec, particleX1Y1Z1);
-      reqX1Y1Z1[0] = boostWorld.isend(rankX1Y1Z1, mpiTag,  particleX1Y1Z1);
-      reqX1Y1Z1[1] = boostWorld.irecv(rankX1Y1Z1, mpiTag, rParticleX1Y1Z1);
+      reqX1Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z1, mpi.mpiTag,  particleX1Y1Z1);
+      reqX1Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z1, mpi.mpiTag, rParticleX1Y1Z1);
     }
-    if (rankX1Y1Z2 >= 0) { // edge x1y1z2
+    if (mpi.rankX1Y1Z2 >= 0) { // vertice x1y1z2
       Rectangle containerX1Y1Z2(v1.getX(), v1.getY(), v2.getZ() - borderWidth,
 				v1.getX() + borderWidth, v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX1Y1Z2, particleVec, particleX1Y1Z2);
-      reqX1Y1Z2[0] = boostWorld.isend(rankX1Y1Z2, mpiTag,  particleX1Y1Z2);
-      reqX1Y1Z2[1] = boostWorld.irecv(rankX1Y1Z2, mpiTag, rParticleX1Y1Z2);
+      reqX1Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z2, mpi.mpiTag,  particleX1Y1Z2);
+      reqX1Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z2, mpi.mpiTag, rParticleX1Y1Z2);
     }
-    if (rankX1Y2Z1 >= 0) { // edge x1y2z1
+    if (mpi.rankX1Y2Z1 >= 0) { // vertice x1y2z1
       Rectangle containerX1Y2Z1(v1.getX(), v2.getY() - borderWidth, v1.getZ(),
 				v1.getX() + borderWidth, v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX1Y2Z1, particleVec, particleX1Y2Z1);
-      reqX1Y2Z1[0] = boostWorld.isend(rankX1Y2Z1, mpiTag,  particleX1Y2Z1);
-      reqX1Y2Z1[1] = boostWorld.irecv(rankX1Y2Z1, mpiTag, rParticleX1Y2Z1);
+      reqX1Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z1, mpi.mpiTag,  particleX1Y2Z1);
+      reqX1Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z1, mpi.mpiTag, rParticleX1Y2Z1);
     }
-    if (rankX1Y2Z2 >= 0) { // edge x1y2z2
+    if (mpi.rankX1Y2Z2 >= 0) { // vertice x1y2z2
       Rectangle containerX1Y2Z2(v1.getX(), v2.getY() - borderWidth, v2.getZ() - borderWidth,
 				v1.getX() + borderWidth, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1Y2Z2, particleVec, particleX1Y2Z2);
-      reqX1Y2Z2[0] = boostWorld.isend(rankX1Y2Z2, mpiTag,  particleX1Y2Z2);
-      reqX1Y2Z2[1] = boostWorld.irecv(rankX1Y2Z2, mpiTag, rParticleX1Y2Z2);
+      reqX1Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z2, mpi.mpiTag,  particleX1Y2Z2);
+      reqX1Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z2, mpi.mpiTag, rParticleX1Y2Z2);
     }
-    if (rankX2Y1Z1 >= 0) { // edge x2y1z1
+    if (mpi.rankX2Y1Z1 >= 0) { // vertice x2y1z1
       Rectangle containerX2Y1Z1(v2.getX() - borderWidth, v1.getY(), v1.getZ(),
 				v2.getX(), v1.getY() + borderWidth, v1.getZ() + borderWidth);
       findParticleInRectangle(containerX2Y1Z1, particleVec, particleX2Y1Z1);
-      reqX2Y1Z1[0] = boostWorld.isend(rankX2Y1Z1, mpiTag,  particleX2Y1Z1);
-      reqX2Y1Z1[1] = boostWorld.irecv(rankX2Y1Z1, mpiTag, rParticleX2Y1Z1);
+      reqX2Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z1, mpi.mpiTag,  particleX2Y1Z1);
+      reqX2Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z1, mpi.mpiTag, rParticleX2Y1Z1);
     }
-    if (rankX2Y1Z2 >= 0) { // edge x2y1z2
+    if (mpi.rankX2Y1Z2 >= 0) { // vertice x2y1z2
       Rectangle containerX2Y1Z2(v2.getX() - borderWidth, v1.getY(), v2.getZ() - borderWidth,
 				v2.getX(), v1.getY() + borderWidth, v2.getZ());
       findParticleInRectangle(containerX2Y1Z2, particleVec, particleX2Y1Z2);
-      reqX2Y1Z2[0] = boostWorld.isend(rankX2Y1Z2, mpiTag,  particleX2Y1Z2);
-      reqX2Y1Z2[1] = boostWorld.irecv(rankX2Y1Z2, mpiTag, rParticleX2Y1Z2);
+      reqX2Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z2, mpi.mpiTag,  particleX2Y1Z2);
+      reqX2Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z2, mpi.mpiTag, rParticleX2Y1Z2);
     }
-    if (rankX2Y2Z1 >= 0) { // edge x2y2z1
+    if (mpi.rankX2Y2Z1 >= 0) { // vertice x2y2z1
       Rectangle containerX2Y2Z1(v2.getX() - borderWidth, v2.getY() - borderWidth, v1.getZ(),
 				v2.getX(), v2.getY(), v1.getZ() + borderWidth);
       findParticleInRectangle(containerX2Y2Z1, particleVec, particleX2Y2Z1);
-      reqX2Y2Z1[0] = boostWorld.isend(rankX2Y2Z1, mpiTag,  particleX2Y2Z1);
-      reqX2Y2Z1[1] = boostWorld.irecv(rankX2Y2Z1, mpiTag, rParticleX2Y2Z1);
+      reqX2Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z1, mpi.mpiTag,  particleX2Y2Z1);
+      reqX2Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z1, mpi.mpiTag, rParticleX2Y2Z1);
     }
-    if (rankX2Y2Z2 >= 0) { // edge x2y2z2
+    if (mpi.rankX2Y2Z2 >= 0) { // vertice x2y2z2
       Rectangle containerX2Y2Z2(v2.getX() - borderWidth, v2.getY() - borderWidth, v2.getZ() - borderWidth,
 				v2.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2Y2Z2, particleVec, particleX2Y2Z2);
-      reqX2Y2Z2[0] = boostWorld.isend(rankX2Y2Z2, mpiTag,  particleX2Y2Z2);
-      reqX2Y2Z2[1] = boostWorld.irecv(rankX2Y2Z2, mpiTag, rParticleX2Y2Z2);
+      reqX2Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z2, mpi.mpiTag,  particleX2Y2Z2);
+      reqX2Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z2, mpi.mpiTag, rParticleX2Y2Z2);
     }
 
     // 6 surfaces
-    if (rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
-    if (rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
-    if (rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
-    if (rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
-    if (rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
-    if (rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
+    if (mpi.rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
+    if (mpi.rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
+    if (mpi.rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
+    if (mpi.rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
+    if (mpi.rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
+    if (mpi.rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
     // 12 edges
-    if (rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
-    if (rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
-    if (rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
-    if (rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
-    if (rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
-    if (rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
-    if (rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
-    if (rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
-    if (rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
-    if (rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
-    if (rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
-    if (rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
+    if (mpi.rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
+    if (mpi.rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
+    if (mpi.rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
+    if (mpi.rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
+    if (mpi.rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
+    if (mpi.rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
+    if (mpi.rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
+    if (mpi.rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
+    if (mpi.rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
+    if (mpi.rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
+    if (mpi.rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
+    if (mpi.rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
     // 8 vertices
-    if (rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
-    if (rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
-    if (rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
-    if (rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
-    if (rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
-    if (rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
-    if (rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
-    if (rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);  
+    if (mpi.rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
+    if (mpi.rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
+    if (mpi.rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
+    if (mpi.rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
+    if (mpi.rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
+    if (mpi.rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
+    if (mpi.rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
+    if (mpi.rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);  
 
     // merge: particles inside container (at front) + particles from neighoring blocks (at end)
     recvParticleVec.clear();
     // 6 surfaces
-    if (rankX1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
-    if (rankX2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
-    if (rankY1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
-    if (rankY2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
-    if (rankZ1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
-    if (rankZ2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
+    if (mpi.rankX1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
+    if (mpi.rankX2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
+    if (mpi.rankY1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
+    if (mpi.rankY2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
+    if (mpi.rankZ1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
+    if (mpi.rankZ2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
     // 12 edges
-    if (rankX1Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
-    if (rankX1Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
-    if (rankX1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
-    if (rankX1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
-    if (rankX2Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
-    if (rankX2Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
-    if (rankX2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
-    if (rankX2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
-    if (rankY1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
-    if (rankY1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
-    if (rankY2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
-    if (rankY2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
+    if (mpi.rankX1Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
+    if (mpi.rankX1Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
+    if (mpi.rankX1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
+    if (mpi.rankX1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
+    if (mpi.rankX2Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
+    if (mpi.rankX2Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
+    if (mpi.rankX2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
+    if (mpi.rankX2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
+    if (mpi.rankY1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
+    if (mpi.rankY1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
+    if (mpi.rankY2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
+    if (mpi.rankY2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
     // 8 vertices
-    if (rankX1Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
-    if (rankX1Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
-    if (rankX1Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
-    if (rankX1Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
-    if (rankX2Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
-    if (rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
-    if (rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
-    if (rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
+    if (mpi.rankX1Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
+    if (mpi.rankX1Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
+    if (mpi.rankX1Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
+    if (mpi.rankX1Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
+    if (mpi.rankX2Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
+    if (mpi.rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
+    if (mpi.rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
+    if (mpi.rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
 
     for (std::vector<Particle *>::iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
       (*it)->setReceived(true);
@@ -2774,7 +2667,7 @@ namespace dem {
       testParticleVec.insert(testParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
       testParticleVec.insert(testParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
       testParticleVec.insert(testParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
-      debugInf << "iter=" << std::setw(4) << iteration << " rank=" << std::setw(4) << mpiRank 
+      debugInf << "iter=" << std::setw(4) << iteration << " rank=" << std::setw(4) << mpi.mpiRank 
       << " ptclNum=" << std::setw(4) << particleVec.size() 
       << " surface="
       << std::setw(4) << particleX1.size()  << std::setw(4) << particleX2.size()
@@ -2923,7 +2816,7 @@ namespace dem {
   void Assembly::updateGridMinX() {
     REAL pMinX = getPtclMinX(particleVec);
     REAL minX = 0;
-    MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
+    MPI_Allreduce(&pMinX, &minX, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
 
     setGrid(Rectangle(minX - gradation.getPtclMaxRadius(),
 		      grid.getMinCorner().getY(),
@@ -2937,7 +2830,7 @@ namespace dem {
   void Assembly::updateGridMaxX() {
     REAL pMaxX = getPtclMaxX(particleVec);
     REAL maxX = 0;
-    MPI_Allreduce(&pMaxX, &maxX, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+    MPI_Allreduce(&pMaxX, &maxX, 1, MPI_DOUBLE, MPI_MAX, mpi.mpiWorld);
 
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      grid.getMinCorner().getY(),
@@ -2951,7 +2844,7 @@ namespace dem {
   void Assembly::updateGridMinY() {
     REAL pMinY = getPtclMinY(particleVec);
     REAL minY = 0;
-    MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
+    MPI_Allreduce(&pMinY, &minY, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
 
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      minY - gradation.getPtclMaxRadius(),
@@ -2965,7 +2858,7 @@ namespace dem {
   void Assembly::updateGridMaxY() {
     REAL pMaxY = getPtclMaxY(particleVec);
     REAL maxY = 0;
-    MPI_Allreduce(&pMaxY, &maxY, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+    MPI_Allreduce(&pMaxY, &maxY, 1, MPI_DOUBLE, MPI_MAX, mpi.mpiWorld);
 
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      grid.getMinCorner().getY(),
@@ -2979,7 +2872,7 @@ namespace dem {
   void Assembly::updateGridMinZ() {
     REAL pMinZ = getPtclMinZ(particleVec);
     REAL minZ = 0;
-    MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
+    MPI_Allreduce(&pMinZ, &minZ, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
 
     setGrid(Rectangle(grid.getMinCorner().getX(),
 		      grid.getMinCorner().getY(),
@@ -2994,7 +2887,7 @@ namespace dem {
     // update compute grids adaptively due to particle motion
     REAL pMaxZ = getPtclMaxZ(particleVec);
     REAL maxZ = 0;
-    MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, mpiWorld);
+    MPI_Allreduce(&pMaxZ, &maxZ, 1, MPI_DOUBLE, MPI_MAX, mpi.mpiWorld);
 
     // no need to broadcast grid as it is updated in each process
     setGrid(Rectangle(grid.getMinCorner().getX(),
@@ -3012,22 +2905,22 @@ namespace dem {
     Vec    v1 = grid.getMinCorner();
     Vec    v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
-    REAL segX = vspan.getX() / mpiProcX;
-    REAL segY = vspan.getY() / mpiProcY;
-    REAL segZ = vspan.getZ() / mpiProcZ;
+    REAL segX = vspan.getX() / mpi.mpiProcX;
+    REAL segY = vspan.getY() / mpi.mpiProcY;
+    REAL segZ = vspan.getZ() / mpi.mpiProcZ;
 
     // new container
-    container = Rectangle(v1.getX() + vspan.getX() / mpiProcX * mpiCoords[0],
-			  v1.getY() + vspan.getY() / mpiProcY * mpiCoords[1],
-			  v1.getZ() + vspan.getZ() / mpiProcZ * mpiCoords[2],
-			  v1.getX() + vspan.getX() / mpiProcX * (mpiCoords[0] + 1),
-			  v1.getY() + vspan.getY() / mpiProcY * (mpiCoords[1] + 1),
-			  v1.getZ() + vspan.getZ() / mpiProcZ * (mpiCoords[2] + 1));
+    container = Rectangle(v1.getX() + vspan.getX() / mpi.mpiProcX * mpi.mpiCoords[0],
+			  v1.getY() + vspan.getY() / mpi.mpiProcY * mpi.mpiCoords[1],
+			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * mpi.mpiCoords[2],
+			  v1.getX() + vspan.getX() / mpi.mpiProcX * (mpi.mpiCoords[0] + 1),
+			  v1.getY() + vspan.getY() / mpi.mpiProcY * (mpi.mpiCoords[1] + 1),
+			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (mpi.mpiCoords[2] + 1));
 
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();  
 
-    // if a neighbor exists, transfer particles crossing the boundary in between.
+    // if a neighbor exists (by findMPINeighbor), transfer particles crossing the boundary in between.
     std::vector<Particle *> particleX1, particleX2;
     std::vector<Particle *> particleY1, particleY2;
     std::vector<Particle *> particleZ1, particleZ2;
@@ -3046,219 +2939,219 @@ namespace dem {
     boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
 
     // 6 surfaces
-    if (rankX1 >= 0) { // surface x1
+    if (mpi.rankX1 >= 0) { // surface x1
       Rectangle containerX1(v1.getX() - segX, v1.getY(), v1.getZ(), 
 			    v1.getX(), v2.getY(), v2.getZ());
       findParticleInRectangle(containerX1, particleVec, particleX1);
-      reqX1[0] = boostWorld.isend(rankX1, mpiTag,  particleX1);
-      reqX1[1] = boostWorld.irecv(rankX1, mpiTag, rParticleX1);
+      reqX1[0] = mpi.boostWorld.isend(mpi.rankX1, mpi.mpiTag,  particleX1);
+      reqX1[1] = mpi.boostWorld.irecv(mpi.rankX1, mpi.mpiTag, rParticleX1);
     }
-    if (rankX2 >= 0) { // surface x2
+    if (mpi.rankX2 >= 0) { // surface x2
       Rectangle containerX2(v2.getX(), v1.getY(), v1.getZ(),
 			    v2.getX() + segX, v2.getY(), v2.getZ());
       findParticleInRectangle(containerX2, particleVec, particleX2);
-      reqX2[0] = boostWorld.isend(rankX2, mpiTag,  particleX2);
-      reqX2[1] = boostWorld.irecv(rankX2, mpiTag, rParticleX2);
+      reqX2[0] = mpi.boostWorld.isend(mpi.rankX2, mpi.mpiTag,  particleX2);
+      reqX2[1] = mpi.boostWorld.irecv(mpi.rankX2, mpi.mpiTag, rParticleX2);
     }
-    if (rankY1 >= 0) {  // surface y1
+    if (mpi.rankY1 >= 0) {  // surface y1
       Rectangle containerY1(v1.getX(), v1.getY() - segY, v1.getZ(), 
 			    v2.getX(), v1.getY(), v2.getZ());
       findParticleInRectangle(containerY1, particleVec, particleY1);
-      reqY1[0] = boostWorld.isend(rankY1, mpiTag,  particleY1);
-      reqY1[1] = boostWorld.irecv(rankY1, mpiTag, rParticleY1);
+      reqY1[0] = mpi.boostWorld.isend(mpi.rankY1, mpi.mpiTag,  particleY1);
+      reqY1[1] = mpi.boostWorld.irecv(mpi.rankY1, mpi.mpiTag, rParticleY1);
     }
-    if (rankY2 >= 0) {  // surface y2
+    if (mpi.rankY2 >= 0) {  // surface y2
       Rectangle containerY2(v1.getX(), v2.getY(), v1.getZ(),
 			    v2.getX(), v2.getY() + segY, v2.getZ());
       findParticleInRectangle(containerY2, particleVec, particleY2);
-      reqY2[0] = boostWorld.isend(rankY2, mpiTag,  particleY2);
-      reqY2[1] = boostWorld.irecv(rankY2, mpiTag, rParticleY2);
+      reqY2[0] = mpi.boostWorld.isend(mpi.rankY2, mpi.mpiTag,  particleY2);
+      reqY2[1] = mpi.boostWorld.irecv(mpi.rankY2, mpi.mpiTag, rParticleY2);
     }
-    if (rankZ1 >= 0) {  // surface z1
+    if (mpi.rankZ1 >= 0) {  // surface z1
       Rectangle containerZ1(v1.getX(), v1.getY(), v1.getZ() - segZ,
 			    v2.getX(), v2.getY(), v1.getZ());
       findParticleInRectangle(containerZ1, particleVec, particleZ1);
-      reqZ1[0] = boostWorld.isend(rankZ1, mpiTag,  particleZ1);
-      reqZ1[1] = boostWorld.irecv(rankZ1, mpiTag, rParticleZ1);
+      reqZ1[0] = mpi.boostWorld.isend(mpi.rankZ1, mpi.mpiTag,  particleZ1);
+      reqZ1[1] = mpi.boostWorld.irecv(mpi.rankZ1, mpi.mpiTag, rParticleZ1);
     }
-    if (rankZ2 >= 0) {  // surface z2
+    if (mpi.rankZ2 >= 0) {  // surface z2
       Rectangle containerZ2(v1.getX(), v1.getY(), v2.getZ(),
 			    v2.getX(), v2.getY(), v2.getZ() + segZ);
       findParticleInRectangle(containerZ2, particleVec, particleZ2);
-      reqZ2[0] = boostWorld.isend(rankZ2, mpiTag,  particleZ2);
-      reqZ2[1] = boostWorld.irecv(rankZ2, mpiTag, rParticleZ2);
+      reqZ2[0] = mpi.boostWorld.isend(mpi.rankZ2, mpi.mpiTag,  particleZ2);
+      reqZ2[1] = mpi.boostWorld.irecv(mpi.rankZ2, mpi.mpiTag, rParticleZ2);
     }
     // 12 edges
-    if (rankX1Y1 >= 0) { // edge x1y1
+    if (mpi.rankX1Y1 >= 0) { // edge x1y1
       Rectangle containerX1Y1(v1.getX() - segX, v1.getY() - segY, v1.getZ(),
 			      v1.getX(), v1.getY(), v2.getZ());
       findParticleInRectangle(containerX1Y1, particleVec, particleX1Y1);
-      reqX1Y1[0] = boostWorld.isend(rankX1Y1, mpiTag,  particleX1Y1);
-      reqX1Y1[1] = boostWorld.irecv(rankX1Y1, mpiTag, rParticleX1Y1);
+      reqX1Y1[0] = mpi.boostWorld.isend(mpi.rankX1Y1, mpi.mpiTag,  particleX1Y1);
+      reqX1Y1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1, mpi.mpiTag, rParticleX1Y1);
     }
-    if (rankX1Y2 >= 0) { // edge x1y2
+    if (mpi.rankX1Y2 >= 0) { // edge x1y2
       Rectangle containerX1Y2(v1.getX() - segX, v2.getY(), v1.getZ(),
 			      v1.getX(), v2.getY() + segY, v2.getZ());
       findParticleInRectangle(containerX1Y2, particleVec, particleX1Y2);
-      reqX1Y2[0] = boostWorld.isend(rankX1Y2, mpiTag,  particleX1Y2);
-      reqX1Y2[1] = boostWorld.irecv(rankX1Y2, mpiTag, rParticleX1Y2);
+      reqX1Y2[0] = mpi.boostWorld.isend(mpi.rankX1Y2, mpi.mpiTag,  particleX1Y2);
+      reqX1Y2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2, mpi.mpiTag, rParticleX1Y2);
     }
-    if (rankX1Z1 >= 0) { // edge x1z1
+    if (mpi.rankX1Z1 >= 0) { // edge x1z1
       Rectangle containerX1Z1(v1.getX() - segX, v1.getY(), v1.getZ() -segZ,
 			      v1.getX(), v2.getY(), v1.getZ());
       findParticleInRectangle(containerX1Z1, particleVec, particleX1Z1);
-      reqX1Z1[0] = boostWorld.isend(rankX1Z1, mpiTag,  particleX1Z1);
-      reqX1Z1[1] = boostWorld.irecv(rankX1Z1, mpiTag, rParticleX1Z1);
+      reqX1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Z1, mpi.mpiTag,  particleX1Z1);
+      reqX1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Z1, mpi.mpiTag, rParticleX1Z1);
     }
-    if (rankX1Z2 >= 0) { // edge x1z2
+    if (mpi.rankX1Z2 >= 0) { // edge x1z2
       Rectangle containerX1Z2(v1.getX() - segX, v1.getY(), v2.getZ(),
 			      v1.getX(), v2.getY(), v2.getZ() + segZ);
       findParticleInRectangle(containerX1Z2, particleVec, particleX1Z2);
-      reqX1Z2[0] = boostWorld.isend(rankX1Z2, mpiTag,  particleX1Z2);
-      reqX1Z2[1] = boostWorld.irecv(rankX1Z2, mpiTag, rParticleX1Z2);
+      reqX1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Z2, mpi.mpiTag,  particleX1Z2);
+      reqX1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Z2, mpi.mpiTag, rParticleX1Z2);
     }
-    if (rankX2Y1 >= 0) { // edge x2y1
+    if (mpi.rankX2Y1 >= 0) { // edge x2y1
       Rectangle containerX2Y1(v2.getX(), v1.getY() - segY, v1.getZ(),
 			      v2.getX() + segX, v1.getY(), v2.getZ());
       findParticleInRectangle(containerX2Y1, particleVec, particleX2Y1);
-      reqX2Y1[0] = boostWorld.isend(rankX2Y1, mpiTag,  particleX2Y1);
-      reqX2Y1[1] = boostWorld.irecv(rankX2Y1, mpiTag, rParticleX2Y1);
+      reqX2Y1[0] = mpi.boostWorld.isend(mpi.rankX2Y1, mpi.mpiTag,  particleX2Y1);
+      reqX2Y1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1, mpi.mpiTag, rParticleX2Y1);
     }
-    if (rankX2Y2 >= 0) { // edge x2y2
+    if (mpi.rankX2Y2 >= 0) { // edge x2y2
       Rectangle containerX2Y2(v2.getX(), v2.getY(), v1.getZ(),
 			      v2.getX() + segX, v2.getY() + segY, v2.getZ());
       findParticleInRectangle(containerX2Y2, particleVec, particleX2Y2);
-      reqX2Y2[0] = boostWorld.isend(rankX2Y2, mpiTag,  particleX2Y2);
-      reqX2Y2[1] = boostWorld.irecv(rankX2Y2, mpiTag, rParticleX2Y2);
+      reqX2Y2[0] = mpi.boostWorld.isend(mpi.rankX2Y2, mpi.mpiTag,  particleX2Y2);
+      reqX2Y2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2, mpi.mpiTag, rParticleX2Y2);
     }
-    if (rankX2Z1 >= 0) { // edge x2z1
+    if (mpi.rankX2Z1 >= 0) { // edge x2z1
       Rectangle containerX2Z1(v2.getX(), v1.getY(), v1.getZ() - segZ,
 			      v2.getX() + segX, v2.getY(), v1.getZ());
       findParticleInRectangle(containerX2Z1, particleVec, particleX2Z1);
-      reqX2Z1[0] = boostWorld.isend(rankX2Z1, mpiTag,  particleX2Z1);
-      reqX2Z1[1] = boostWorld.irecv(rankX2Z1, mpiTag, rParticleX2Z1);
+      reqX2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Z1, mpi.mpiTag,  particleX2Z1);
+      reqX2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Z1, mpi.mpiTag, rParticleX2Z1);
     }
-    if (rankX2Z2 >= 0) { // edge x2z2
+    if (mpi.rankX2Z2 >= 0) { // edge x2z2
       Rectangle containerX2Z2(v2.getX(), v1.getY(), v2.getZ(),
 			      v2.getX() + segX, v2.getY(), v2.getZ() + segZ);
       findParticleInRectangle(containerX2Z2, particleVec, particleX2Z2);
-      reqX2Z2[0] = boostWorld.isend(rankX2Z2, mpiTag,  particleX2Z2);
-      reqX2Z2[1] = boostWorld.irecv(rankX2Z2, mpiTag, rParticleX2Z2);
+      reqX2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Z2, mpi.mpiTag,  particleX2Z2);
+      reqX2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Z2, mpi.mpiTag, rParticleX2Z2);
     }
-    if (rankY1Z1 >= 0) { // edge y1z1
+    if (mpi.rankY1Z1 >= 0) { // edge y1z1
       Rectangle containerY1Z1(v1.getX(), v1.getY() - segY, v1.getZ() - segZ,
 			      v2.getX(), v1.getY(), v1.getZ());
       findParticleInRectangle(containerY1Z1, particleVec, particleY1Z1);
-      reqY1Z1[0] = boostWorld.isend(rankY1Z1, mpiTag,  particleY1Z1);
-      reqY1Z1[1] = boostWorld.irecv(rankY1Z1, mpiTag, rParticleY1Z1);
+      reqY1Z1[0] = mpi.boostWorld.isend(mpi.rankY1Z1, mpi.mpiTag,  particleY1Z1);
+      reqY1Z1[1] = mpi.boostWorld.irecv(mpi.rankY1Z1, mpi.mpiTag, rParticleY1Z1);
     }
-    if (rankY1Z2 >= 0) { // edge y1z2
+    if (mpi.rankY1Z2 >= 0) { // edge y1z2
       Rectangle containerY1Z2(v1.getX(), v1.getY() - segY, v2.getZ(),
 			      v2.getX(), v1.getY(), v2.getZ() + segZ);
       findParticleInRectangle(containerY1Z2, particleVec, particleY1Z2);
-      reqY1Z2[0] = boostWorld.isend(rankY1Z2, mpiTag,  particleY1Z2);
-      reqY1Z2[1] = boostWorld.irecv(rankY1Z2, mpiTag, rParticleY1Z2);
+      reqY1Z2[0] = mpi.boostWorld.isend(mpi.rankY1Z2, mpi.mpiTag,  particleY1Z2);
+      reqY1Z2[1] = mpi.boostWorld.irecv(mpi.rankY1Z2, mpi.mpiTag, rParticleY1Z2);
     }
-    if (rankY2Z1 >= 0) { // edge y2z1
+    if (mpi.rankY2Z1 >= 0) { // edge y2z1
       Rectangle containerY2Z1(v1.getX(), v2.getY(), v1.getZ() - segZ,
 			      v2.getX(), v2.getY() + segY, v1.getZ());
       findParticleInRectangle(containerY2Z1, particleVec, particleY2Z1);
-      reqY2Z1[0] = boostWorld.isend(rankY2Z1, mpiTag,  particleY2Z1);
-      reqY2Z1[1] = boostWorld.irecv(rankY2Z1, mpiTag, rParticleY2Z1);
+      reqY2Z1[0] = mpi.boostWorld.isend(mpi.rankY2Z1, mpi.mpiTag,  particleY2Z1);
+      reqY2Z1[1] = mpi.boostWorld.irecv(mpi.rankY2Z1, mpi.mpiTag, rParticleY2Z1);
     }
-    if (rankY2Z2 >= 0) { // edge y2z2
+    if (mpi.rankY2Z2 >= 0) { // edge y2z2
       Rectangle containerY2Z2(v1.getX(), v2.getY(), v2.getZ(),
 			      v2.getX(), v2.getY() + segY, v2.getZ() + segZ);
       findParticleInRectangle(containerY2Z2, particleVec, particleY2Z2);
-      reqY2Z2[0] = boostWorld.isend(rankY2Z2, mpiTag,  particleY2Z2);
-      reqY2Z2[1] = boostWorld.irecv(rankY2Z2, mpiTag, rParticleY2Z2);
+      reqY2Z2[0] = mpi.boostWorld.isend(mpi.rankY2Z2, mpi.mpiTag,  particleY2Z2);
+      reqY2Z2[1] = mpi.boostWorld.irecv(mpi.rankY2Z2, mpi.mpiTag, rParticleY2Z2);
     }
     // 8 vertices
-    if (rankX1Y1Z1 >= 0) { // edge x1y1z1
+    if (mpi.rankX1Y1Z1 >= 0) { // vertice x1y1z1
       Rectangle containerX1Y1Z1(v1.getX() - segX, v1.getY() - segY, v1.getZ() - segZ,
 				v1.getX(), v1.getY(), v1.getZ());
       findParticleInRectangle(containerX1Y1Z1, particleVec, particleX1Y1Z1);
-      reqX1Y1Z1[0] = boostWorld.isend(rankX1Y1Z1, mpiTag,  particleX1Y1Z1);
-      reqX1Y1Z1[1] = boostWorld.irecv(rankX1Y1Z1, mpiTag, rParticleX1Y1Z1);
+      reqX1Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z1, mpi.mpiTag,  particleX1Y1Z1);
+      reqX1Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z1, mpi.mpiTag, rParticleX1Y1Z1);
     }
-    if (rankX1Y1Z2 >= 0) { // edge x1y1z2
+    if (mpi.rankX1Y1Z2 >= 0) { // vertice x1y1z2
       Rectangle containerX1Y1Z2(v1.getX() - segX, v1.getY() - segY, v2.getZ(),
 				v1.getX(), v1.getY(), v2.getZ() + segZ);
       findParticleInRectangle(containerX1Y1Z2, particleVec, particleX1Y1Z2);
-      reqX1Y1Z2[0] = boostWorld.isend(rankX1Y1Z2, mpiTag,  particleX1Y1Z2);
-      reqX1Y1Z2[1] = boostWorld.irecv(rankX1Y1Z2, mpiTag, rParticleX1Y1Z2);
+      reqX1Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z2, mpi.mpiTag,  particleX1Y1Z2);
+      reqX1Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z2, mpi.mpiTag, rParticleX1Y1Z2);
     }
-    if (rankX1Y2Z1 >= 0) { // edge x1y2z1
+    if (mpi.rankX1Y2Z1 >= 0) { // vertice x1y2z1
       Rectangle containerX1Y2Z1(v1.getX() - segX, v2.getY(), v1.getZ() - segZ,
 				v1.getX(), v2.getY() + segY, v1.getZ());
       findParticleInRectangle(containerX1Y2Z1, particleVec, particleX1Y2Z1);
-      reqX1Y2Z1[0] = boostWorld.isend(rankX1Y2Z1, mpiTag,  particleX1Y2Z1);
-      reqX1Y2Z1[1] = boostWorld.irecv(rankX1Y2Z1, mpiTag, rParticleX1Y2Z1);
+      reqX1Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z1, mpi.mpiTag,  particleX1Y2Z1);
+      reqX1Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z1, mpi.mpiTag, rParticleX1Y2Z1);
     }
-    if (rankX1Y2Z2 >= 0) { // edge x1y2z2
+    if (mpi.rankX1Y2Z2 >= 0) { // vertice x1y2z2
       Rectangle containerX1Y2Z2(v1.getX() - segX, v2.getY(), v2.getZ(),
 				v1.getX(), v2.getY() + segY, v2.getZ() + segZ);
       findParticleInRectangle(containerX1Y2Z2, particleVec, particleX1Y2Z2);
-      reqX1Y2Z2[0] = boostWorld.isend(rankX1Y2Z2, mpiTag,  particleX1Y2Z2);
-      reqX1Y2Z2[1] = boostWorld.irecv(rankX1Y2Z2, mpiTag, rParticleX1Y2Z2);
+      reqX1Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z2, mpi.mpiTag,  particleX1Y2Z2);
+      reqX1Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z2, mpi.mpiTag, rParticleX1Y2Z2);
     }
-    if (rankX2Y1Z1 >= 0) { // edge x2y1z1
+    if (mpi.rankX2Y1Z1 >= 0) { // vertice x2y1z1
       Rectangle containerX2Y1Z1(v2.getX(), v1.getY() - segY, v1.getZ() - segZ,
 				v2.getX() + segX, v1.getY(), v1.getZ());
       findParticleInRectangle(containerX2Y1Z1, particleVec, particleX2Y1Z1);
-      reqX2Y1Z1[0] = boostWorld.isend(rankX2Y1Z1, mpiTag,  particleX2Y1Z1);
-      reqX2Y1Z1[1] = boostWorld.irecv(rankX2Y1Z1, mpiTag, rParticleX2Y1Z1);
+      reqX2Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z1, mpi.mpiTag,  particleX2Y1Z1);
+      reqX2Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z1, mpi.mpiTag, rParticleX2Y1Z1);
     }
-    if (rankX2Y1Z2 >= 0) { // edge x2y1z2
+    if (mpi.rankX2Y1Z2 >= 0) { // vertice x2y1z2
       Rectangle containerX2Y1Z2(v2.getX(), v1.getY() - segY, v2.getZ(),
 				v2.getX() + segX, v1.getY(), v2.getZ() + segZ);
       findParticleInRectangle(containerX2Y1Z2, particleVec, particleX2Y1Z2);
-      reqX2Y1Z2[0] = boostWorld.isend(rankX2Y1Z2, mpiTag,  particleX2Y1Z2);
-      reqX2Y1Z2[1] = boostWorld.irecv(rankX2Y1Z2, mpiTag, rParticleX2Y1Z2);
+      reqX2Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z2, mpi.mpiTag,  particleX2Y1Z2);
+      reqX2Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z2, mpi.mpiTag, rParticleX2Y1Z2);
     }
-    if (rankX2Y2Z1 >= 0) { // edge x2y2z1
+    if (mpi.rankX2Y2Z1 >= 0) { // vertice x2y2z1
       Rectangle containerX2Y2Z1(v2.getX(), v2.getY(), v1.getZ() - segZ,
 				v2.getX() + segX, v2.getY() + segY, v1.getZ());
       findParticleInRectangle(containerX2Y2Z1, particleVec, particleX2Y2Z1);
-      reqX2Y2Z1[0] = boostWorld.isend(rankX2Y2Z1, mpiTag,  particleX2Y2Z1);
-      reqX2Y2Z1[1] = boostWorld.irecv(rankX2Y2Z1, mpiTag, rParticleX2Y2Z1);
+      reqX2Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z1, mpi.mpiTag,  particleX2Y2Z1);
+      reqX2Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z1, mpi.mpiTag, rParticleX2Y2Z1);
     }
-    if (rankX2Y2Z2 >= 0) { // edge x2y2z2
+    if (mpi.rankX2Y2Z2 >= 0) { // vertice x2y2z2
       Rectangle containerX2Y2Z2(v2.getX(), v2.getY(), v2.getZ(),
 				v2.getX() + segX, v2.getY() + segY, v2.getZ() + segZ);
       findParticleInRectangle(containerX2Y2Z2, particleVec, particleX2Y2Z2);
-      reqX2Y2Z2[0] = boostWorld.isend(rankX2Y2Z2, mpiTag,  particleX2Y2Z2);
-      reqX2Y2Z2[1] = boostWorld.irecv(rankX2Y2Z2, mpiTag, rParticleX2Y2Z2);
+      reqX2Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z2, mpi.mpiTag,  particleX2Y2Z2);
+      reqX2Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z2, mpi.mpiTag, rParticleX2Y2Z2);
     }
     // 6 surfaces
-    if (rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
-    if (rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
-    if (rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
-    if (rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
-    if (rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
-    if (rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
+    if (mpi.rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
+    if (mpi.rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
+    if (mpi.rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
+    if (mpi.rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
+    if (mpi.rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
+    if (mpi.rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
     // 12 edges
-    if (rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
-    if (rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
-    if (rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
-    if (rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
-    if (rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
-    if (rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
-    if (rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
-    if (rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
-    if (rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
-    if (rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
-    if (rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
-    if (rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
+    if (mpi.rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
+    if (mpi.rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
+    if (mpi.rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
+    if (mpi.rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
+    if (mpi.rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
+    if (mpi.rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
+    if (mpi.rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
+    if (mpi.rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
+    if (mpi.rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
+    if (mpi.rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
+    if (mpi.rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
+    if (mpi.rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
     // 8 vertices
-    if (rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
-    if (rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
-    if (rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
-    if (rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
-    if (rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
-    if (rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
-    if (rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
-    if (rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);  
+    if (mpi.rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
+    if (mpi.rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
+    if (mpi.rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
+    if (mpi.rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
+    if (mpi.rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
+    if (mpi.rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
+    if (mpi.rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
+    if (mpi.rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);  
 
     // delete outgoing particles
     removeParticleOutRectangle();
@@ -3266,40 +3159,40 @@ namespace dem {
     // add incoming particles
     recvParticleVec.clear(); // new use of recvParticleVec
     // 6 surfaces
-    if (rankX1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
-    if (rankX2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
-    if (rankY1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
-    if (rankY2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
-    if (rankZ1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
-    if (rankZ2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
+    if (mpi.rankX1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1.begin(), rParticleX1.end());
+    if (mpi.rankX2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2.begin(), rParticleX2.end());
+    if (mpi.rankY1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1.begin(), rParticleY1.end());
+    if (mpi.rankY2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2.begin(), rParticleY2.end());
+    if (mpi.rankZ1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ1.begin(), rParticleZ1.end());
+    if (mpi.rankZ2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleZ2.begin(), rParticleZ2.end());
     // 12 edges
-    if (rankX1Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
-    if (rankX1Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
-    if (rankX1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
-    if (rankX1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
-    if (rankX2Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
-    if (rankX2Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
-    if (rankX2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
-    if (rankX2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
-    if (rankY1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
-    if (rankY1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
-    if (rankY2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
-    if (rankY2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
+    if (mpi.rankX1Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1.begin(), rParticleX1Y1.end());
+    if (mpi.rankX1Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2.begin(), rParticleX1Y2.end());
+    if (mpi.rankX1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z1.begin(), rParticleX1Z1.end());
+    if (mpi.rankX1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Z2.begin(), rParticleX1Z2.end());
+    if (mpi.rankX2Y1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1.begin(), rParticleX2Y1.end());
+    if (mpi.rankX2Y2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2.begin(), rParticleX2Y2.end());
+    if (mpi.rankX2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z1.begin(), rParticleX2Z1.end());
+    if (mpi.rankX2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Z2.begin(), rParticleX2Z2.end());
+    if (mpi.rankY1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z1.begin(), rParticleY1Z1.end());
+    if (mpi.rankY1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY1Z2.begin(), rParticleY1Z2.end());
+    if (mpi.rankY2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z1.begin(), rParticleY2Z1.end());
+    if (mpi.rankY2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleY2Z2.begin(), rParticleY2Z2.end());
     // 8 vertices
-    if (rankX1Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
-    if (rankX1Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
-    if (rankX1Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
-    if (rankX1Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
-    if (rankX2Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
-    if (rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
-    if (rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
-    if (rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
+    if (mpi.rankX1Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z1.begin(), rParticleX1Y1Z1.end());
+    if (mpi.rankX1Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y1Z2.begin(), rParticleX1Y1Z2.end());
+    if (mpi.rankX1Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z1.begin(), rParticleX1Y2Z1.end());
+    if (mpi.rankX1Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX1Y2Z2.begin(), rParticleX1Y2Z2.end());
+    if (mpi.rankX2Y1Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z1.begin(), rParticleX2Y1Z1.end());
+    if (mpi.rankX2Y1Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y1Z2.begin(), rParticleX2Y1Z2.end());
+    if (mpi.rankX2Y2Z1 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z1.begin(), rParticleX2Y2Z1.end());
+    if (mpi.rankX2Y2Z2 >= 0) recvParticleVec.insert(recvParticleVec.end(), rParticleX2Y2Z2.begin(), rParticleX2Y2Z2.end());
 
     particleVec.insert(particleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
 
     /*
       if (recvParticleVec.size() > 0) {    
-      debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpiRank 
+      debugInf << "iter=" << std::setw(8) << iteration << " rank=" << std::setw(2) << mpi.mpiRank 
       << "   added=";
       for (std::vector<Particle *>::const_iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
       debugInf << std::setw(3) << (*it)->getId();
@@ -3347,8 +3240,8 @@ namespace dem {
 
   void Assembly::gatherParticle() {
     // update allParticleVec: process 0 collects all updated particles from each other process  
-    if (mpiRank != 0) {// each process except 0
-      boostWorld.send(0, mpiTag, particleVec);
+    if (mpi.mpiRank != 0) {// each process except 0
+      mpi.boostWorld.send(0, mpi.mpiTag, particleVec);
     }
     else { // process 0
       // allParticleVec is cleared before filling with new data
@@ -3364,10 +3257,10 @@ namespace dem {
 
       std::vector<Particle *> tmpParticleVec;
       long gatherRam = 0;
-      for (int iRank = 1; iRank < mpiSize; ++iRank) {
+      for (int iRank = 1; iRank < mpi.mpiSize; ++iRank) {
 
 	tmpParticleVec.clear();// do not destroy particles!
-	boostWorld.recv(iRank, mpiTag, tmpParticleVec);
+	mpi.boostWorld.recv(iRank, mpi.mpiTag, tmpParticleVec);
 	allParticleVec.insert(allParticleVec.end(), tmpParticleVec.begin(), tmpParticleVec.end());
 	gatherRam += tmpParticleVec.size();
 
@@ -3388,25 +3281,25 @@ namespace dem {
 
 
   void Assembly::gatherBdryContact() {
-    if (isBdryProcess()) {
+    if (mpi.isBdryProcess()) {
       // clear possibly contacting particles; do NOT clear contactInfo.
       for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
 	(*it)->clearPossParticle();      
 
-      if (mpiRank != 0)
-	boostWorld.send(0, mpiTag, boundaryVec);
+      if (mpi.mpiRank != 0)
+	mpi.boostWorld.send(0, mpi.mpiTag, boundaryVec);
     }
 
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       mergeBoundaryVec.clear(); // do not delete pointers as shared with boundaryVec in updateBoundary().
       std::vector<Boundary *>().swap(mergeBoundaryVec);
 
       mergeBoundaryVec = boundaryVec; 
       std::vector<Boundary *> rBoundaryVec; // received BoundaryVec, must release memory after use.
-      for (std::size_t it = 0; it < bdryProcess.size(); ++it) {
-	if (bdryProcess[it] != 0) {// not root process
+      for (std::size_t it = 0; it < mpi.bdryProcess.size(); ++it) {
+	if (mpi.bdryProcess[it] != 0) {// not root process
 	  rBoundaryVec.clear();  // do not destroy particles
-	  boostWorld.recv(bdryProcess[it], mpiTag, rBoundaryVec);
+	  mpi.boostWorld.recv(mpi.bdryProcess[it], mpi.mpiTag, rBoundaryVec);
 
 	  // 1. merge rBoundaryVec into mergeBoundaryVec
 	  assert(rBoundaryVec.size() == mergeBoundaryVec.size());
@@ -3498,7 +3391,7 @@ namespace dem {
       convertGranularStressForPrint(); // inside the condition if (particleVec.size() >= stressMinPtcl), to ensure values exist before conversion.
       /*
       Eigen::IOFormat fmt(Eigen::FullPrecision, 0, ", ", ";\n", "", "", "[", "]");
-      std::cout << "iteration=" << iteration << " process=" << mpiRank << " (" << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << ")" << std::endl
+      std::cout << "iteration=" << iteration << " process=" << mpi.mpiRank << " (" << mpi.mpiCoords[0] << " " << mpi.mpiCoords[1] << " " << mpi.mpiCoords[2] << ")" << std::endl
 		<< "prevStress= ..." << std::endl << prevGranularStress.format(fmt) << std::endl << std::endl
 		<< "stress= ..." << std::endl << granularStress.format(fmt) << std::endl << std::endl
 		<< "stressRate= ..." << std::endl << granularStressRate.format(fmt) << std::endl << std::endl
@@ -3525,20 +3418,20 @@ namespace dem {
     }
 
     printStressVec.clear();
-    gather(boostWorld, printStress, printStressVec, 0); // Boost MPI
+    gather(mpi.boostWorld, printStress, printStressVec, 0); // Boost MPI
 
     // parallel IO: must be outside of the condition if (particleVec.size() >= stressMinPtcl).
     // granularStrain initialization has been ensured in calcGranularStrain().
     MPI_Status status;
     MPI_File tensorFile;
-    MPI_File_open(mpiWorld, const_cast<char *> (str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &tensorFile);
-    if(boostWorld.rank() == 0 && !tensorFile) { debugInf << "stream error: gatherGranularStress" << std::endl; exit(-1);}
+    MPI_File_open(mpi.mpiWorld, const_cast<char *> (str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &tensorFile);
+    if(mpi.mpiRank == 0 && !tensorFile) { debugInf << "stream error: gatherGranularStress" << std::endl; MPI_Abort(mpi.mpiWorld, -1);}
     std::stringstream inf;
     inf.setf(std::ios::scientific, std::ios::floatfield);
 
     // OWID*8 + std::endl = 121
-    inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpiRank 
-	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpiCoords[0] << std::setw(OWID) << mpiCoords[1] << std::setw(OWID) << mpiCoords[2] << std::endl;
+    inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpi.mpiRank 
+	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpi.mpiCoords[0] << std::setw(OWID) << mpi.mpiCoords[1] << std::setw(OWID) << mpi.mpiCoords[2] << std::endl;
 
     // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
     // 1
@@ -4068,23 +3961,23 @@ namespace dem {
 
 	<< std::endl;
 
-    ofs	<< "ZONE T=\"stress\" N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
-	<< ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=BLOCK, \
+    ofs	<< "ZONE T=\"stress\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
+	<< ", E=" << mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ << ", DATAPACKING=BLOCK, \
 VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,\
 31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,\
 61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
 116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
 
-    int totalCoord = (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1);
+    int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
     std::size_t index = 0;
-    for (std::size_t i = 0; i < mpiProcX + 1; ++i)
-      for (std::size_t j = 0; j < mpiProcY + 1; ++j)
-	for (std::size_t k = 0; k < mpiProcZ + 1; ++k)
-	  spaceCoords[index++] = Vec(v1.getX() + vspan.getX() / mpiProcX * i,
-				     v1.getY() + vspan.getY() / mpiProcY * j,
-				     v1.getZ() + vspan.getZ() / mpiProcZ * k);
+    for (std::size_t i = 0; i < mpi.mpiProcX + 1; ++i)
+      for (std::size_t j = 0; j < mpi.mpiProcY + 1; ++j)
+	for (std::size_t k = 0; k < mpi.mpiProcZ + 1; ++k)
+	  spaceCoords[index++] = Vec(v1.getX() + vspan.getX() / mpi.mpiProcX * i,
+				     v1.getY() + vspan.getY() / mpi.mpiProcY * j,
+				     v1.getZ() + vspan.getZ() / mpi.mpiProcZ * k);
 
     // Tecplot: 
     // BLOCK format must be used for cell-centered data.
@@ -4117,8 +4010,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     }
     ofs << std::endl;
 
-    // The order of MPI gather agrees with (int iRank = 0; iRank < mpiSize; ++iRank) below.
-    // In setCommunicator(), int reorder = 0; // mpiRank not reordered
+    // The order of MPI gather agrees with (int iRank = 0; iRank < mpi.mpiSize; ++iRank) below.
+    // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
     int numCompo = 6;
     for (int j = 0; j < numCompo; ++j) {
       k = 0;
@@ -4380,8 +4273,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::setw(OWID) << spaceCoords[i].getZ();
     ofs << std::endl;
 
-    // The order of MPI gather agrees with (int iRank = 0; iRank < mpiSize; ++iRank) below.
-    // In setCommunicator(), int reorder = 0; // mpiRank not reordered
+    // The order of MPI gather agrees with (int iRank = 0; iRank < mpi.mpiSize; ++iRank) below.
+    // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
     int numCompo = 6;
     for (int j = 0; j < numCompo; ++j) {
       for (int i = 0; i < printStressVec.size(); ++i)
@@ -4503,20 +4396,20 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     */
 
     // The order agrees with MPI gather order.
-    // In setCommunicator(), int reorder = 0; // mpiRank not reordered
-    for (int iRank = 0; iRank < mpiSize; ++iRank) {
+    // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
+    for (int iRank = 0; iRank < mpi.mpiSize; ++iRank) {
       int coords[3];
-      MPI_Cart_coords(cartComm, iRank, 3, coords);
+      MPI_Cart_coords(mpi.cartComm, iRank, 3, coords);
 
-      int id4 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
-      int id1 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
-      int id3 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
-      int id2 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
+      int id4 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + coords[2];
+      int id1 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + coords[2];
+      int id3 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + coords[2];
+      int id2 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + coords[2];
 
-      int id8 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
-      int id5 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
-      int id7 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
-      int id6 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
+      int id8 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + (coords[2]+1);
+      int id5 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + (coords[2]+1);
+      int id7 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + (coords[2]+1);
+      int id6 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + (coords[2]+1);
 
       ofs << std::setw(8) << id1 << std::setw(8) << id2 << std::setw(8) << id3 << std::setw(8) << id4 
 	  << std::setw(8) << id5 << std::setw(8) << id6 << std::setw(8) << id7 << std::setw(8) << id8 << std::endl;
@@ -4691,9 +4584,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 	<< std::endl;
 
-    ofs << "ZONE I=" << mpiProcX
-	<< ", J=" << mpiProcY
-	<< ", K=" << mpiProcZ
+    ofs << "ZONE I=" << mpi.mpiProcX
+	<< ", J=" << mpi.mpiProcY
+	<< ", K=" << mpi.mpiProcZ
 	<< ", DATAPACKING=POINT"
 	<< std::endl;
 
@@ -4904,6 +4797,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
  
       // start of Bagi formula
       stress.setZero();
+
       // internal contact forces
       Eigen::Vector3d fc;	
       Eigen::RowVector3d lc, p1Center, p2Center;
@@ -4954,7 +4848,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
       // for boundary processes the boundary contact forces must be included.
       // for non-boundary processes, the contact forces from adjacent compute grids are already included.
-      if (isBdryProcess()) {
+      if (mpi.isBdryProcess()) {
 	Eigen::Vector3d fe;	
 	Eigen::RowVector3d le;
 	le.setZero();
@@ -4995,7 +4889,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     } else if (formula == 2) { // Nicot formula.  Gravity term should not appear.
 
-      // intertial terms, Nicot, Eq. (28)
+      // inertial terms, Nicot, Eq. (28)
       Eigen::Matrix3d inertial;
       inertial.setZero();
       for(std::vector<Particle *>::iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
@@ -5097,7 +4991,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       // boundary forces
       // for boundary processes the boundary contact forces must be included.
       // for non-boundary processes, the contact forces from adjacent compute grids are already included.
-      if (isBdryProcess()) {
+      if (mpi.isBdryProcess()) {
 	Eigen::Vector3d fe;	
 	Eigen::RowVector3d le;
 	le.setZero();
@@ -5118,7 +5012,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     } // end of if else
 
-    //std::cout << mpiRank << std::endl << sress << std::endl << std::endl;
+    //std::cout << mpi.mpiRank << std::endl << sress << std::endl << std::endl;
     /*
     if (getGranularTetraVolume() == 0) 
       stress.setZero();
@@ -5929,36 +5823,36 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     Vec v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
 
-    ofs	<< "ZONE T=\"grid\" N=" << (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1)
-	<< ", E=" << mpiProcX * mpiProcY * mpiProcZ << ", DATAPACKING=POINT, ZONETYPE=FEBRICK" << std::endl;
+    ofs	<< "ZONE T=\"grid\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
+	<< ", E=" << mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ << ", DATAPACKING=POINT, ZONETYPE=FEBRICK" << std::endl;
 
-    std::vector<Vec> coords((mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1));
+    std::vector<Vec> coords((mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1));
     std::size_t index = 0;
-    for (std::size_t i = 0; i < mpiProcX + 1; ++i)
-      for (std::size_t j = 0; j < mpiProcY + 1; ++j)
-	for (std::size_t k = 0; k < mpiProcZ + 1; ++k)
-	  coords[index++] = Vec(v1.getX() + vspan.getX() / mpiProcX * i,
-				v1.getY() + vspan.getY() / mpiProcY * j,
-				v1.getZ() + vspan.getZ() / mpiProcZ * k);
+    for (std::size_t i = 0; i < mpi.mpiProcX + 1; ++i)
+      for (std::size_t j = 0; j < mpi.mpiProcY + 1; ++j)
+	for (std::size_t k = 0; k < mpi.mpiProcZ + 1; ++k)
+	  coords[index++] = Vec(v1.getX() + vspan.getX() / mpi.mpiProcX * i,
+				v1.getY() + vspan.getY() / mpi.mpiProcY * j,
+				v1.getZ() + vspan.getZ() / mpi.mpiProcZ * k);
 
-    for (std::size_t i = 0; i < (mpiProcX + 1) * (mpiProcY + 1) * (mpiProcZ + 1); ++i)
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
       ofs << std::setw(OWID) << coords[i].getX() 
 	  << std::setw(OWID) << coords[i].getY() 
 	  << std::setw(OWID) << coords[i].getZ() << std::endl;
 
-    for (int iRank = 0; iRank < mpiSize; ++iRank) {
+    for (int iRank = 0; iRank < mpi.mpiSize; ++iRank) {
       int coords[3];
-      MPI_Cart_coords(cartComm, iRank, 3, coords);
+      MPI_Cart_coords(mpi.cartComm, iRank, 3, coords);
 
-      int id4 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
-      int id1 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + coords[2];
-      int id3 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
-      int id2 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + coords[2];
+      int id4 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + coords[2];
+      int id1 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + coords[2];
+      int id3 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + coords[2];
+      int id2 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + coords[2];
 
-      int id8 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
-      int id5 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + coords[1]*(mpiProcZ+1) + (coords[2]+1);
-      int id7 = 1 + coords[0]*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
-      int id6 = 1 + (coords[0]+1)*(mpiProcZ+1)*(mpiProcY+1) + (coords[1]+1)*(mpiProcZ+1) + (coords[2]+1);
+      int id8 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + (coords[2]+1);
+      int id5 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + coords[1]*(mpi.mpiProcZ+1) + (coords[2]+1);
+      int id7 = 1 + coords[0]*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + (coords[2]+1);
+      int id6 = 1 + (coords[0]+1)*(mpi.mpiProcZ+1)*(mpi.mpiProcY+1) + (coords[1]+1)*(mpi.mpiProcZ+1) + (coords[2]+1);
 
       ofs << std::setw(8) << id1 << std::setw(8) << id2 << std::setw(8) << id3 << std::setw(8) << id4 
 	  << std::setw(8) << id5 << std::setw(8) << id6 << std::setw(8) << id7 << std::setw(8) << id8 << std::endl;
@@ -6274,10 +6168,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 #endif   
     }
 
-    MPI_Reduce(pAvg, sum, 3, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
-    avgNormal = sum[0]/mpiSize;
-    avgShear  = sum[1]/mpiSize;
-    avgPenetr = sum[2]/mpiSize;
+    MPI_Reduce(pAvg, sum, 3, MPI_DOUBLE, MPI_SUM, 0, mpi.mpiWorld);
+    avgNormal = sum[0]/mpi.mpiSize;
+    avgShear  = sum[1]/mpi.mpiSize;
+    avgPenetr = sum[2]/mpi.mpiSize;
   }
 
 
@@ -6303,7 +6197,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 
   void Assembly::updateBoundary(REAL sigma, std::string type, REAL sigmaX, REAL sigmaY) {
-    if (mpiRank == 0) {
+    if (mpi.mpiRank == 0) {
       REAL x1, x2, y1, y2, z1, z2;
       for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
 	switch ((*it)->getId()) {
@@ -6383,9 +6277,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); // the same as allContainer
     }
 
-    broadcast(boostWorld, boundaryVec, 0);
-    broadcast(boostWorld, allContainer, 0); // not necessary, because only root process uses it.
-    broadcast(boostWorld, grid, 0); // must do
+    broadcast(mpi.boostWorld, boundaryVec, 0);
+    broadcast(mpi.boostWorld, allContainer, 0); // not necessary, because only root process uses it.
+    broadcast(mpi.boostWorld, grid, 0); // must do
   }
 
 
@@ -6414,8 +6308,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     //                   and use post-processing tool to remove redundant info.
     MPI_Status status;
     MPI_File contactFile;
-    MPI_File_open(mpiWorld, const_cast<char *>(str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &contactFile);
-    if(boostWorld.rank() == 0 && !contactFile) { debugInf << "stream error: printContact" << std::endl; exit(-1);}
+    MPI_File_open(mpi.mpiWorld, const_cast<char *>(str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &contactFile);
+    if(mpi.mpiRank == 0 && !contactFile) { debugInf << "stream error: printContact" << std::endl; MPI_Abort(mpi.mpiWorld, -1);}
 
     std::stringstream inf;
     inf.setf(std::ios::scientific, std::ios::floatfield);
@@ -6462,7 +6356,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     //                   use post-processing tool to merge files and remove redundance.
     /*
     std::string str0(str);
-    str0 += combineString(".p", mpiRank, 5);
+    str0 += combineString(".p", mpi.mpiRank, 5);
 
     std::ofstream ofs(str0.c_str());
     if(!ofs) { debugInf << "stream error: printContact" << std::endl; exit(-1); }
@@ -6545,7 +6439,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getTransEnergy();
     }
-    MPI_Reduce(&pEngy, &transEnergy, 1, MPI_DOUBLE, MPI_SUM, 0,  mpiWorld);
+    MPI_Reduce(&pEngy, &transEnergy, 1, MPI_DOUBLE, MPI_SUM, 0,  mpi.mpiWorld);
   }
 
 
@@ -6556,7 +6450,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getRotatEnergy();
     }
-    MPI_Reduce(&pEngy, &rotatEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
+    MPI_Reduce(&pEngy, &rotatEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpi.mpiWorld);
   }
 
 
@@ -6567,7 +6461,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getKinetEnergy();
     }
-    MPI_Reduce(&pEngy, &kinetEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
+    MPI_Reduce(&pEngy, &kinetEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpi.mpiWorld);
   }
 
 
@@ -6578,7 +6472,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       if ((*it)->getType() == 0)
 	pEngy += (*it)->getPotenEnergy(ref);
     }
-    MPI_Reduce(&pEngy, &graviEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpiWorld);
+    MPI_Reduce(&pEngy, &graviEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, mpi.mpiWorld);
   }
 
 
@@ -6613,14 +6507,15 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     dt[0] = dem::Parameter::getSingleton().parameter["timeStep"];
     dt[1] = vibraTimeStep;
     dt[2] = impactTimeStep;
-
+    
+    // this guarantees that all processes use the same timeStep, no need to broadcast or allreduce.
     timeStep = dt.min();
   }
 
 
   void Assembly::calcContactNum() {
     std::size_t pContactNum = contactVec.size();
-    MPI_Reduce(&pContactNum, &allContactNum, 1, MPI_INT, MPI_SUM, 0, mpiWorld);
+    MPI_Reduce(&pContactNum, &allContactNum, 1, MPI_INT, MPI_SUM, 0, mpi.mpiWorld);
   }
 
 
@@ -6637,7 +6532,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       }
     }
 
-    MPI_Allreduce(&pTimeStep, &vibraTimeStep, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
+    MPI_Allreduce(&pTimeStep, &vibraTimeStep, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
   }
 
 
@@ -6654,7 +6549,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       }
     }
 
-    MPI_Allreduce(&pTimeStep, &impactTimeStep, 1, MPI_DOUBLE, MPI_MIN, mpiWorld);
+    MPI_Allreduce(&pTimeStep, &impactTimeStep, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
   }
 
 

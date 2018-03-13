@@ -1,26 +1,44 @@
 #include "Gas.h"
 #include "const.h"
 #include <cmath>
+#include <string>
 #include <algorithm>
 
 namespace dem {
 
-  char *combineStr(char *cstr, const char *str, std::size_t num, std::size_t width) {
-    std::string obj(str);
+  std::string combineStr(const char *str, std::size_t num, std::size_t width) {
     std::stringstream ss;
     ss << std::setw(width) << std::setfill('0') << std::right << num;
+    std::string obj(str);
     obj += ss.str();
-    return strcpy( cstr, obj.c_str() );
+    return obj;
   }
 
   const REAL Gas::Rs = 287.06; // specific gas constant
 
-  void Gas::initParameter(Rectangle &container, Gradation &gradation) {
+  void Gas::initPureGasParameter() {
+    gridDz = dem::Parameter::getSingleton().parameter["gridSize"];;
+    haloGrid = 1;
+    initSharedParameter();
+    printSharedParameter();
+  }
 
+  void Gas::initParameter(Gradation &gradation) {
     ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
-    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
     porosity = dem::Parameter::getSingleton().parameter["porosity"];
     Cdi = dem::Parameter::getSingleton().parameter["Cdi"];
+    printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
+    REAL minR = gradation.getPtclMinRadius(1);
+    gridDz = (minR * 2) / ptclGrid;
+    haloGrid  = static_cast<std::size_t> (ceil((double)ptclGrid/2));
+    initSharedParameter();
+    debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
+    debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
+    printSharedParameter();
+  }
+
+  void Gas::initSharedParameter() {
+    Cd   = dem::Parameter::getSingleton().parameter["Cd"];
     RK = dem::Parameter::getSingleton().parameter["RK"];
     CFL = dem::Parameter::getSingleton().parameter["CFL"];
     gama = dem::Parameter::getSingleton().parameter["airGamma"];
@@ -87,20 +105,16 @@ namespace dem {
       uBL  = dem::Parameter::getSingleton().parameter["belowLeftVelocity"];
     }    
 
-    printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
-
-    REAL minR = gradation.getPtclMinRadius(1);
-    gridDz = (minR * 2) / ptclGrid;
-    gridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
-    gridDz = (z2F - z1F) / gridNz;
+    allGridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
+    gridDz = (z2F - z1F) / allGridNz;
     gridDx = gridDz;
     gridDy = gridDz;
-    gridNx = static_cast<std::size_t> (ceil((x2F - x1F) / gridDx));
-    gridNy = static_cast<std::size_t> (ceil((y2F - y1F) / gridDy));
+    allGridNx = static_cast<std::size_t> (ceil((x2F - x1F) / gridDx));
+    allGridNy = static_cast<std::size_t> (ceil((y2F - y1F) / gridDy));
 
-    gridNx += 2; // add two boundary cells
-    gridNy += 2;
-    gridNz += 2;
+    allGridNx += 2; // add two boundary cells
+    allGridNy += 2;
+    allGridNz += 2;
 
     // fixed
     nDim = 3;
@@ -120,114 +134,225 @@ namespace dem {
 
     // extended
     varMsk = nVar++;
+  }
 
-    // print
-    debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
-    debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
-    debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
-    debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
-    debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << (int) RK << std::endl;
-    debugInf << std::setw(OWID) << "CFL" << std::setw(OWID) << CFL << std::endl;
-    debugInf << std::setw(OWID) << "gama" << std::setw(OWID) << gama << std::endl;
-    debugInf << std::setw(OWID) << "rhoR" << std::setw(OWID) << rhoR << std::endl;
-    debugInf << std::setw(OWID) << "pR" << std::setw(OWID) << pR << std::endl;
-    debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
+  void Gas::printSharedParameter() {
+    if (mpi.mpiRank == 0) {
+      debugInf << std::setw(OWID) << "nVar" << std::setw(OWID) << nVar << std::endl;
+      debugInf << std::setw(OWID) << "nInteg" << std::setw(OWID) << nInteg << std::endl;
 
-    debugInf << std::setw(OWID) << "gridDx" << std::setw(OWID) << gridDx << std::endl;
-    debugInf << std::setw(OWID) << "gridDy" << std::setw(OWID) << gridDy << std::endl;
-    debugInf << std::setw(OWID) << "gridDz" << std::setw(OWID) << gridDz << std::endl;
-    debugInf << std::setw(OWID) << "gridNx" << std::setw(OWID) << gridNx << std::endl;
-    debugInf << std::setw(OWID) << "gridNy" << std::setw(OWID) << gridNy << std::endl;
-    debugInf << std::setw(OWID) << "gridNz" << std::setw(OWID) << gridNz << std::endl;
+      debugInf << std::setw(OWID) << "Cd" << std::setw(OWID) << Cd << std::endl;
+      debugInf << std::setw(OWID) << "Runge-Kutta" << std::setw(OWID) << (int) RK << std::endl;
+      debugInf << std::setw(OWID) << "CFL" << std::setw(OWID) << CFL << std::endl;
+      debugInf << std::setw(OWID) << "gama" << std::setw(OWID) << gama << std::endl;
+      debugInf << std::setw(OWID) << "rhoR" << std::setw(OWID) << rhoR << std::endl;
+      debugInf << std::setw(OWID) << "pR" << std::setw(OWID) << pR << std::endl;
+      debugInf << std::setw(OWID) << "uR" << std::setw(OWID) << uR << std::endl;
 
-    debugInf << std::setw(OWID) << "leftType" << std::setw(OWID) << leftType << std::endl;
-    debugInf << std::setw(OWID) << "x1F" << std::setw(OWID) << x1F << std::endl;
-    debugInf << std::setw(OWID) << "y1F" << std::setw(OWID) << y1F << std::endl;
-    debugInf << std::setw(OWID) << "z1F" << std::setw(OWID) << z1F << std::endl;
-    debugInf << std::setw(OWID) << "x2F" << std::setw(OWID) << x2F << std::endl;
-    debugInf << std::setw(OWID) << "y2F" << std::setw(OWID) << y2F << std::endl;
-    debugInf << std::setw(OWID) << "z2F" << std::setw(OWID) << z2F << std::endl;
-    debugInf << std::setw(OWID) << "x1Rflecting" << std::setw(OWID) << (int) arrayBC[0] << std::endl;
-    debugInf << std::setw(OWID) << "x2Rflecting" << std::setw(OWID) << (int) arrayBC[1] << std::endl;
-    debugInf << std::setw(OWID) << "y1Rflecting" << std::setw(OWID) << (int) arrayBC[2] << std::endl;
-    debugInf << std::setw(OWID) << "y2Rflecting" << std::setw(OWID) << (int) arrayBC[3] << std::endl;
-    debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << (int) arrayBC[4] << std::endl;
-    debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << (int) arrayBC[5] << std::endl;
-    debugInf << std::setw(OWID) << "printPtclNum" << std::setw(OWID) << printPtcls.size() << std::endl;
+      debugInf << std::setw(OWID) << "gridDx" << std::setw(OWID) << gridDx << std::endl;
+      debugInf << std::setw(OWID) << "gridDy" << std::setw(OWID) << gridDy << std::endl;
+      debugInf << std::setw(OWID) << "gridDz" << std::setw(OWID) << gridDz << std::endl;
+      debugInf << std::setw(OWID) << "allGridNx" << std::setw(OWID) << allGridNx << std::endl;
+      debugInf << std::setw(OWID) << "allGridNy" << std::setw(OWID) << allGridNy << std::endl;
+      debugInf << std::setw(OWID) << "allGridNz" << std::setw(OWID) << allGridNz << std::endl;
 
-    if (leftType == 1) {
-      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
-      debugInf << std::setw(OWID) << "shockMach" << std::setw(OWID) << MachShock << std::endl;
+      debugInf << std::setw(OWID) << "leftType" << std::setw(OWID) << leftType << std::endl;
+      debugInf << std::setw(OWID) << "x1F" << std::setw(OWID) << x1F << std::endl;
+      debugInf << std::setw(OWID) << "y1F" << std::setw(OWID) << y1F << std::endl;
+      debugInf << std::setw(OWID) << "z1F" << std::setw(OWID) << z1F << std::endl;
+      debugInf << std::setw(OWID) << "x2F" << std::setw(OWID) << x2F << std::endl;
+      debugInf << std::setw(OWID) << "y2F" << std::setw(OWID) << y2F << std::endl;
+      debugInf << std::setw(OWID) << "z2F" << std::setw(OWID) << z2F << std::endl;
+      debugInf << std::setw(OWID) << "x1Rflecting" << std::setw(OWID) << (int) arrayBC[0] << std::endl;
+      debugInf << std::setw(OWID) << "x2Rflecting" << std::setw(OWID) << (int) arrayBC[1] << std::endl;
+      debugInf << std::setw(OWID) << "y1Rflecting" << std::setw(OWID) << (int) arrayBC[2] << std::endl;
+      debugInf << std::setw(OWID) << "y2Rflecting" << std::setw(OWID) << (int) arrayBC[3] << std::endl;
+      debugInf << std::setw(OWID) << "z1Rflecting" << std::setw(OWID) << (int) arrayBC[4] << std::endl;
+      debugInf << std::setw(OWID) << "z2Rflecting" << std::setw(OWID) << (int) arrayBC[5] << std::endl;
+      debugInf << std::setw(OWID) << "printPtclNum" << std::setw(OWID) << printPtcls.size() << std::endl;
+
+      if (leftType == 1) {
+	debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+	debugInf << std::setw(OWID) << "shockMach" << std::setw(OWID) << MachShock << std::endl;
+      }
+      else if (leftType == 2) {
+	debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+	debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+	debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl; 
+	debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;      
+      } else if (leftType == 3) {
+	debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
+	debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
+	debugInf << std::setw(OWID) << "y1L" << std::setw(OWID) << y1L << std::endl;
+	debugInf << std::setw(OWID) << "y2L" << std::setw(OWID) << y2L << std::endl;
+	debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
+	debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+	debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+	debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;  
+	debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;     
+      } else if(leftType == 4) {
+	debugInf << std::setw(OWID) << "x0L" << std::setw(OWID) << x0L << std::endl;
+	debugInf << std::setw(OWID) << "y0L" << std::setw(OWID) << y0L << std::endl;
+	debugInf << std::setw(OWID) << "z0L" << std::setw(OWID) << z0L << std::endl;
+	debugInf << std::setw(OWID) << "r0L" << std::setw(OWID) << r0L << std::endl;
+	debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+	debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
+	debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
+      } else if (leftType == 5) {
+	debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
+	debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
+	debugInf << std::setw(OWID) << "y1L" << std::setw(OWID) << y1L << std::endl;
+	debugInf << std::setw(OWID) << "y2L" << std::setw(OWID) << y2L << std::endl;
+	debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
+	debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
+	debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+	debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;  
+	debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl; 
+	debugInf << std::setw(OWID) << "rhoBL" << std::setw(OWID) << rhoBL << std::endl;
+	debugInf << std::setw(OWID) << "pBL" << std::setw(OWID) << pBL << std::endl;  
+	debugInf << std::setw(OWID) << "uBL" << std::setw(OWID) << uBL << std::endl; 
+      }
+
+      REAL aNum = (z2F - z1F) / gridDz;
+      if (aNum != ceil(aNum) && aNum != floor(aNum)) // not a perfect method
+	debugInf << "fluid domain in z direction is NOT precisely grided!" << std::endl;
+      aNum = (x2F - x1F) / gridDx;
+      if (aNum != ceil(aNum) && aNum != floor(aNum))
+	debugInf << "fluid domain in x direction is NOT precisely grided!" << std::endl;
+      aNum = (y2F - y1F) / gridDy;
+      if (aNum != ceil(aNum) && aNum != floor(aNum))
+	debugInf << "fluid domain in y direction is NOT precisely grided!" << std::endl;
+
+      /*
+      debugInf << "nVar " << nVar << std::endl;
+      debugInf << "nInteg " << nInteg << std::endl;
+      debugInf << "varDen " << varDen << std::endl;    
+      debugInf << "varMom[0] " << varMom[0] << std::endl;    
+      debugInf << "varMom[1] " << varMom[1] << std::endl;
+      debugInf << "varMom[2] " << varMom[2] << std::endl;    
+      debugInf << "varEng " << varEng  << std::endl;    
+      debugInf << "varVel[0] " << varVel[0] << std::endl;    
+      debugInf << "varVel[1] " << varVel[1] << std::endl;    
+      debugInf << "varVel[2] " << varVel[2] << std::endl;    
+      debugInf << "varPrs " << varPrs  << std::endl;    
+      debugInf << "varMsk " << varMsk  << std::endl;   
+      */ 
     }
-    else if (leftType == 2) {
-      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
-      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl; 
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;      
-    } else if (leftType == 3) {
-      debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
-      debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
-      debugInf << std::setw(OWID) << "y1L" << std::setw(OWID) << y1L << std::endl;
-      debugInf << std::setw(OWID) << "y2L" << std::setw(OWID) << y2L << std::endl;
-      debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
-      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
-      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;  
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;     
-    } else if(leftType == 4) {
-      debugInf << std::setw(OWID) << "x0L" << std::setw(OWID) << x0L << std::endl;
-      debugInf << std::setw(OWID) << "y0L" << std::setw(OWID) << y0L << std::endl;
-      debugInf << std::setw(OWID) << "z0L" << std::setw(OWID) << z0L << std::endl;
-      debugInf << std::setw(OWID) << "r0L" << std::setw(OWID) << r0L << std::endl;
-      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;    
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
-    } else if (leftType == 5) {
-      debugInf << std::setw(OWID) << "x1L" << std::setw(OWID) << x1L << std::endl;
-      debugInf << std::setw(OWID) << "x2L" << std::setw(OWID) << x2L << std::endl;
-      debugInf << std::setw(OWID) << "y1L" << std::setw(OWID) << y1L << std::endl;
-      debugInf << std::setw(OWID) << "y2L" << std::setw(OWID) << y2L << std::endl;
-      debugInf << std::setw(OWID) << "z1L" << std::setw(OWID) << z1L << std::endl;
-      debugInf << std::setw(OWID) << "z2L" << std::setw(OWID) << z2L << std::endl;
-      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;  
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl; 
-      debugInf << std::setw(OWID) << "rhoBL" << std::setw(OWID) << rhoBL << std::endl;
-      debugInf << std::setw(OWID) << "pBL" << std::setw(OWID) << pBL << std::endl;  
-      debugInf << std::setw(OWID) << "uBL" << std::setw(OWID) << uBL << std::endl; 
+  }
+
+  void Gas::allocArray() {   
+    // step 1: determine haloGrid
+    haloGridX = haloGrid;
+    haloGridY = haloGrid;
+    haloGridZ = haloGrid;
+    if (mpi.mpiProcX == 1) haloGridX = 0;
+    if (mpi.mpiProcY == 1) haloGridY = 0;
+    if (mpi.mpiProcZ == 1) haloGridZ = 0;
+
+    // step 2: determine gridN
+    gridNx = ceil((double)allGridNx / mpi.mpiProcX) + 2*haloGridX; // min: +haloGrid; max: +haloGrid
+    gridNy = ceil((double)allGridNy / mpi.mpiProcY) + 2*haloGridY;
+    gridNz = ceil((double)allGridNz / mpi.mpiProcZ) + 2*haloGridZ;
+ 
+    if (mpi.isBdryProcessXMin())
+      gridNx = ceil((double)allGridNx / mpi.mpiProcX) + haloGridX;
+    if (mpi.isBdryProcessYMin())
+      gridNy = ceil((double)allGridNy / mpi.mpiProcY) + haloGridY;
+    if (mpi.isBdryProcessZMin())
+      gridNz = ceil((double)allGridNz / mpi.mpiProcZ) + haloGridZ;
+
+    if (mpi.isBdryProcessXMax())
+      gridNx = allGridNx - ceil((double)allGridNx / mpi.mpiProcX) * (mpi.mpiProcX-1) + haloGridX;
+    if (mpi.isBdryProcessYMax())
+      gridNy = allGridNy - ceil((double)allGridNy / mpi.mpiProcY) * (mpi.mpiProcY-1) + haloGridY;
+    if (mpi.isBdryProcessZMax())
+      gridNz = allGridNz - ceil((double)allGridNz / mpi.mpiProcZ) * (mpi.mpiProcZ-1) + haloGridZ;
+
+    if (mpi.mpiRank == 0) {
+      debugInf << std::setw(OWID) << "haloGridX=" << std::setw(OWID) << haloGridX << std::endl;
+      debugInf << std::setw(OWID) << "haloGridY=" << std::setw(OWID) << haloGridY << std::endl;
+      debugInf << std::setw(OWID) << "haloGridZ=" << std::setw(OWID) << haloGridZ << std::endl;
     }
 
-    REAL aNum = (z2F - z1F) / gridDz;
-    if (aNum != ceil(aNum) && aNum != floor(aNum)) // not a perfect method
-      debugInf << "fluid domain in z direction is NOT precisely grided!" << std::endl;
-    aNum = (x2F - x1F) / gridDx;
-    if (aNum != ceil(aNum) && aNum != floor(aNum))
-      debugInf << "fluid domain in x direction is NOT precisely grided!" << std::endl;
-    aNum = (y2F - y1F) / gridDy;
-    if (aNum != ceil(aNum) && aNum != floor(aNum))
-      debugInf << "fluid domain in y direction is NOT precisely grided!" << std::endl;
+    // step 3: determine bound
+    // for both serial and parallel:
+    // boundCup: size = gridN
+    boundCup = Bound(0, 0, 0, 
+		     gridNx - 1, gridNy - 1, gridNz - 1);
+
+    // for parallel:
+    // boundPrn: size = gridN - haloGrid*2
+    boundPrn = Bound(haloGridX, haloGridY, haloGridZ, 
+		     gridNx - haloGridX - 1, gridNy - haloGridY - 1, gridNz - haloGridZ - 1);
+    // boundCfd: size = gridN -haloGrid*2 + 2
+    boundCfd = Bound(haloGridX - 1, haloGridY - 1, haloGridZ - 1, 
+		     gridNx - haloGridX, gridNy - haloGridY, gridNz - haloGridZ);
+    // boundGod: size = gridN -haloGrid*2 + 1
+    boundGod = Bound(0, 0, 0, 
+		     gridNx - haloGridX*2, gridNy - haloGridY*2, gridNz - haloGridZ*2);
+
+    // for serial in a specific direction:
+    if (mpi.mpiProcX == 1) {
+      boundPrn.lowX = 1; boundPrn.uppX = gridNx - 2; boundPrn.sizeX = gridNx - 2;
+      boundCfd.lowX = 0; boundCfd.uppX = gridNx - 1; boundCfd.sizeX = gridNx;
+      boundGod.lowX = 0; boundGod.uppX = gridNx - 2; boundGod.sizeX = gridNx - 1;
+    }
+    if (mpi.mpiProcY == 1) {
+      boundPrn.lowY = 1; boundPrn.uppY = gridNy - 2; boundPrn.sizeY = gridNy - 2;
+      boundCfd.lowY = 0; boundCfd.uppY = gridNy - 1; boundCfd.sizeY = gridNy;
+      boundGod.lowY = 0; boundGod.uppY = gridNy - 2; boundGod.sizeY = gridNy - 1;
+    }
+    if (mpi.mpiProcZ == 1) {
+      boundPrn.lowZ = 1; boundPrn.uppZ = gridNz - 2; boundPrn.sizeZ = gridNz - 2;
+      boundCfd.lowZ = 0; boundCfd.uppZ = gridNz - 1; boundCfd.sizeZ = gridNz;
+      boundGod.lowZ = 0; boundGod.uppZ = gridNz - 2; boundGod.sizeZ = gridNz - 1;
+    }
 
     /*
-    debugInf << "nVar " << nVar << std::endl;
-    debugInf << "nInteg " << nInteg << std::endl;
-    debugInf << "varDen " << varDen << std::endl;    
-    debugInf << "varMom[0] " << varMom[0] << std::endl;    
-    debugInf << "varMom[1] " << varMom[1] << std::endl;
-    debugInf << "varMom[2] " << varMom[2] << std::endl;    
-    debugInf << "varEng " << varEng  << std::endl;    
-    debugInf << "varVel[0] " << varVel[0] << std::endl;    
-    debugInf << "varVel[1] " << varVel[1] << std::endl;    
-    debugInf << "varVel[2] " << varVel[2] << std::endl;    
-    debugInf << "varPrs " << varPrs  << std::endl;    
-    debugInf << "varMsk " << varMsk  << std::endl;   
-    */ 
+    std::cout << std::endl << "mpiRank = " << mpi.mpiRank << std::endl;
+    IJK globalLow, globalUpp;
+    IJK local;
+    local = IJK(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+    localIndexToGlobal(local, globalLow);
+    local = IJK(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+    localIndexToGlobal(local, globalUpp);
+    std::cout << std::setw(OWID) << "boundCupX: size, local[ ], global[ ]" << std::setw(OWID) << boundCup.sizeX << std::setw(OWID) << boundCup.lowX << std::setw(OWID) << boundCup.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
+    std::cout << std::setw(OWID) << "boundCupY: size, local[ ], global[ ]" << std::setw(OWID) << boundCup.sizeY << std::setw(OWID) << boundCup.lowY << std::setw(OWID) << boundCup.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
+    std::cout << std::setw(OWID) << "boundCupZ: size, local[ ], global[ ]" << std::setw(OWID) << boundCup.sizeZ << std::setw(OWID) << boundCup.lowZ << std::setw(OWID) << boundCup.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
 
-    // gridNx, gridNy, gridNz, nDim
-    arrayGridCoord.resize(gridNx);
+    local = IJK(boundCfd.lowX, boundCfd.lowY, boundCfd.lowZ);
+    localIndexToGlobal(local, globalLow);
+    local = IJK(boundCfd.uppX, boundCfd.uppY, boundCfd.uppZ);
+    localIndexToGlobal(local, globalUpp);
+    std::cout << std::setw(OWID) << "boundCfdX: size, local[ ], global[ ]" << std::setw(OWID) << boundCfd.sizeX << std::setw(OWID) << boundCfd.lowX << std::setw(OWID) << boundCfd.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
+    std::cout << std::setw(OWID) << "boundCfdY: size, local[ ], global[ ]" << std::setw(OWID) << boundCfd.sizeY << std::setw(OWID) << boundCfd.lowY << std::setw(OWID) << boundCfd.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
+    std::cout << std::setw(OWID) << "boundCfdZ: size, local[ ], global[ ]" << std::setw(OWID) << boundCfd.sizeZ << std::setw(OWID) << boundCfd.lowZ << std::setw(OWID) << boundCfd.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;    
+
+    local = IJK(boundGod.lowX, boundGod.lowY, boundGod.lowZ);
+    localIndexToGlobal(local, globalLow);
+    local = IJK(boundGod.uppX, boundGod.uppY, boundGod.uppZ);
+    localIndexToGlobal(local, globalUpp);
+    std::cout << std::setw(OWID) << "boundGodX: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeX << std::setw(OWID) << boundGod.lowX << std::setw(OWID) << boundGod.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
+    std::cout << std::setw(OWID) << "boundGodY: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeY << std::setw(OWID) << boundGod.lowY << std::setw(OWID) << boundGod.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
+    std::cout << std::setw(OWID) << "boundGodZ: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeZ << std::setw(OWID) << boundGod.lowZ << std::setw(OWID) << boundGod.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
+
+    local = IJK(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+    localIndexToGlobal(local, globalLow);
+    local = IJK(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+    localIndexToGlobal(local, globalUpp);
+    std::cout << std::setw(OWID) << "boundPrnX: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeX << std::setw(OWID) << boundPrn.lowX << std::setw(OWID) << boundPrn.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
+    std::cout << std::setw(OWID) << "boundPrnY: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeY << std::setw(OWID) << boundPrn.lowY << std::setw(OWID) << boundPrn.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
+    std::cout << std::setw(OWID) << "boundPrnZ: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeZ << std::setw(OWID) << boundPrn.lowZ << std::setw(OWID) << boundPrn.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
+    std::cout << std::endl;
+    */
+
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nDim
+    // resize does zero-initialization
+    arrayGridCoord.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayGridCoord.size(); ++i) {
-      arrayGridCoord[i].resize(gridNy);
+      arrayGridCoord[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j) {
-	arrayGridCoord[i][j].resize(gridNz);
+	arrayGridCoord[i][j].resize(boundCup.sizeZ);
 	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) 
 	  arrayGridCoord[i][j][k].resize(nDim);
       }
@@ -236,72 +361,80 @@ namespace dem {
     for (std::size_t i = 0; i < arrayGridCoord.size(); ++i)
       for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j)
 	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) {
-	  arrayGridCoord[i][j][k][0] = (x1F - gridDx/2) + i * gridDx;
-	  arrayGridCoord[i][j][k][1] = (y1F - gridDy/2) + j * gridDy;
-	  arrayGridCoord[i][j][k][2] = (z1F - gridDz/2) + k * gridDz;
+	  // i, j, k are local
+	  IJK local(i,j,k);
+	  IJK global;
+	  localIndexToGlobal(local, global);
+	  int iG = global.i;
+	  int jG = global.j;
+	  int kG = global.k;
+
+	  arrayGridCoord[i][j][k][0] = (x1F - gridDx/2) + iG * gridDx;
+	  arrayGridCoord[i][j][k][1] = (y1F - gridDy/2) + jG * gridDy;
+	  arrayGridCoord[i][j][k][2] = (z1F - gridDz/2) + kG * gridDz;
 	}
 
-    // gridNx, gridNy, gridNz, nDim
-    arrayPenalForce.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nDim
+    arrayPenalForce.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayPenalForce.size(); ++i) {
-      arrayPenalForce[i].resize(gridNy);
+      arrayPenalForce[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayPenalForce[i].size(); ++j) {
-	arrayPenalForce[i][j].resize(gridNz);
+	arrayPenalForce[i][j].resize(boundCup.sizeZ);
 	for (std::size_t k = 0; k < arrayPenalForce[i][j].size(); ++k) 
 	  arrayPenalForce[i][j][k].resize(nDim);
       }
     }
 
-    // gridNx, gridNy, gridNz, nDim
-    arrayPressureForce.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nDim
+    arrayPressureForce.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayPressureForce.size(); ++i) {
-      arrayPressureForce[i].resize(gridNy);
+      arrayPressureForce[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayPressureForce[i].size(); ++j) {
-	arrayPressureForce[i][j].resize(gridNz);
+	arrayPressureForce[i][j].resize(boundCup.sizeZ);
 	for (std::size_t k = 0; k < arrayPressureForce[i][j].size(); ++k) 
 	  arrayPressureForce[i][j][k].resize(nDim);
       }
     }
 
-    // gridNx, gridNy, gridNz, nVar
-    arrayU.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nVar
+    arrayU.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayU.size(); ++i) {
-      arrayU[i].resize(gridNy);
+      arrayU[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayU[i].size(); ++j) {
-	arrayU[i][j].resize(gridNz);
+	arrayU[i][j].resize(boundCup.sizeZ);
 	for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) 
 	  arrayU[i][j][k].resize(nVar);
       }
     }
 
-    // gridNx, gridNy, gridNz, nVar
-    arrayURota.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nVar
+    arrayURota.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayURota.size(); ++i) {
-      arrayURota[i].resize(gridNy);
+      arrayURota[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayURota[i].size(); ++j) {
-	arrayURota[i][j].resize(gridNz);
+	arrayURota[i][j].resize(boundCup.sizeZ);
 	for (std::size_t k = 0; k < arrayURota[i][j].size(); ++k) 
 	  arrayURota[i][j][k].resize(nVar);
       }
     }
 
-    // gridNx, gridNy, gridNz, nInteg
-    arrayFlux.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nInteg
+    arrayFlux.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayFlux.size(); ++i) {
-      arrayFlux[i].resize(gridNy);
+      arrayFlux[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayFlux[i].size(); ++j) {
-	arrayFlux[i][j].resize(gridNz);
+	arrayFlux[i][j].resize(boundCup.sizeZ);
 	for (std::size_t k = 0; k < arrayFlux[i][j].size(); ++k) 
 	  arrayFlux[i][j][k].resize(nInteg);
       }
     }
 
-    // gridNx-1, gridNy-1, gridNz-1, nInteg, nDim
-    arrayGodFlux.resize(gridNx-1);
+    // boundGod.sizeX, boundGod.sizeY, boundGod.sizeZ, nInteg, nDim
+    arrayGodFlux.resize(boundGod.sizeX);
     for (std::size_t i = 0; i < arrayGodFlux.size(); ++i) {
-      arrayGodFlux[i].resize(gridNy-1);
+      arrayGodFlux[i].resize(boundGod.sizeY);
       for (std::size_t j = 0; j < arrayGodFlux[i].size(); ++j) {
-	arrayGodFlux[i][j].resize(gridNz-1);
+	arrayGodFlux[i][j].resize(boundGod.sizeZ);
 	for (std::size_t k = 0; k < arrayGodFlux[i][j].size(); ++k) {
 	  arrayGodFlux[i][j][k].resize(nInteg);
 	  for (std::size_t m = 0; m < arrayGodFlux[i][j][k].size(); ++m)
@@ -311,12 +444,12 @@ namespace dem {
     }
 
     if (RK >= 2) {
-      // gridNx, gridNy, gridNz, nVar
-      arrayUN.resize(gridNx);
+      // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nVar
+      arrayUN.resize(boundCup.sizeX);
       for (std::size_t i = 0; i < arrayUN.size(); ++i) {
-	arrayUN[i].resize(gridNy);
+	arrayUN[i].resize(boundCup.sizeY);
 	for (std::size_t j = 0; j < arrayUN[i].size(); ++j) {
-	  arrayUN[i][j].resize(gridNz);
+	  arrayUN[i][j].resize(boundCup.sizeZ);
 	  for (std::size_t k = 0; k < arrayUN[i][j].size(); ++k) 
 	    arrayUN[i][j][k].resize(nVar);
 	}
@@ -324,68 +457,120 @@ namespace dem {
     }
 
     if (RK == 3) {
-      // gridNx, gridNy, gridNz, nVar
-      arrayUStar.resize(gridNx);
+      // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nVar
+      arrayUStar.resize(boundCup.sizeX);
       for (std::size_t i = 0; i < arrayUStar.size(); ++i) {
-	arrayUStar[i].resize(gridNy);
+	arrayUStar[i].resize(boundCup.sizeY);
 	for (std::size_t j = 0; j < arrayUStar[i].size(); ++j) {
-	  arrayUStar[i][j].resize(gridNz);
+	  arrayUStar[i][j].resize(boundCup.sizeZ);
 	  for (std::size_t k = 0; k < arrayUStar[i][j].size(); ++k) 
 	    arrayUStar[i][j][k].resize(nVar);
 	}
       }
 
-      // gridNx, gridNy, gridNz, nVar
-      arrayUStar2.resize(gridNx);
+      // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ, nVar
+      arrayUStar2.resize(boundCup.sizeX);
       for (std::size_t i = 0; i < arrayUStar2.size(); ++i) {
-	arrayUStar2[i].resize(gridNy);
+	arrayUStar2[i].resize(boundCup.sizeY);
 	for (std::size_t j = 0; j < arrayUStar2[i].size(); ++j) {
-	  arrayUStar2[i][j].resize(gridNz);
+	  arrayUStar2[i][j].resize(boundCup.sizeZ);
 	  for (std::size_t k = 0; k < arrayUStar2[i][j].size(); ++k) 
 	    arrayUStar2[i][j][k].resize(nVar);
 	}
       }
     }
 
-    // gridNx-1, gridNy-1, gridNz-1, nInteg
-    arrayGodFluxTmp.resize(gridNx-1);
+    // boundGod.sizeX, boundGod.sizeY, boundGod.sizeZ, nInteg
+    arrayGodFluxTmp.resize(boundGod.sizeX);
     for (std::size_t i = 0; i < arrayGodFluxTmp.size(); ++i) {
-      arrayGodFluxTmp[i].resize(gridNy-1);
+      arrayGodFluxTmp[i].resize(boundGod.sizeY);
       for (std::size_t j = 0; j < arrayGodFluxTmp[i].size(); ++j) {
-	arrayGodFluxTmp[i][j].resize(gridNz-1);
+	arrayGodFluxTmp[i][j].resize(boundGod.sizeZ);
 	for (std::size_t k = 0; k < arrayGodFluxTmp[i][j].size(); ++k) {
 	  arrayGodFluxTmp[i][j][k].resize(nInteg);
 	}
       }
     }
     
-    // gridNx, gridNy, gridNz
-    arrayH.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ
+    arrayH.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arrayH.size(); ++i) {
-      arrayH[i].resize(gridNy);
+      arrayH[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arrayH[i].size(); ++j)
-	arrayH[i][j].resize(gridNz);
+	arrayH[i][j].resize(boundCup.sizeZ);
     }
 
-    // gridNx, gridNy, gridNz
-    arraySoundSpeed.resize(gridNx);
+    // boundCup.sizeX, boundCup.sizeY, boundCup.sizeZ
+    arraySoundSpeed.resize(boundCup.sizeX);
     for (std::size_t i = 0; i < arraySoundSpeed.size(); ++i) {
-      arraySoundSpeed[i].resize(gridNy);
+      arraySoundSpeed[i].resize(boundCup.sizeY);
       for (std::size_t j = 0; j < arraySoundSpeed[i].size(); ++j)
-	arraySoundSpeed[i][j].resize(gridNz);
+	arraySoundSpeed[i][j].resize(boundCup.sizeZ);
     }
   }
 
-  void Gas::coordToIndex(REAL x, REAL y, REAL z, std::size_t &i, std::size_t &j, std::size_t &k) {
-    i = static_cast<std::size_t> ( (x - (x1F - gridDx/2)) / gridDx );
-    j = static_cast<std::size_t> ( (y - (y1F - gridDy/2)) / gridDy );
-    k = static_cast<std::size_t> ( (z - (z1F - gridDz/2)) / gridDz );
+  void Gas::coordToGlobalIndex(REAL x, REAL y, REAL z, std::size_t &i, std::size_t &j, std::size_t &k) {
+    // important to use round!
+    i = static_cast<std::size_t> ( round((x - (x1F - gridDx/2)) / gridDx ));
+    j = static_cast<std::size_t> ( round((y - (y1F - gridDy/2)) / gridDy ));
+    k = static_cast<std::size_t> ( round((z - (z1F - gridDz/2)) / gridDz ));
   }
 
-  void Gas::coordToIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k) {
-    i = static_cast<std::size_t> ( (v.getX() - (x1F - gridDx/2)) / gridDx );
-    j = static_cast<std::size_t> ( (v.getY() - (y1F - gridDy/2)) / gridDy );
-    k = static_cast<std::size_t> ( (v.getZ() - (z1F - gridDz/2)) / gridDz );
+  void Gas::coordToGlobalIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k) {
+    // important to use round!
+    i = static_cast<std::size_t> ( round((v.getX() - (x1F - gridDx/2)) / gridDx ));
+    j = static_cast<std::size_t> ( round((v.getY() - (y1F - gridDy/2)) / gridDy ));
+    k = static_cast<std::size_t> ( round((v.getZ() - (z1F - gridDz/2)) / gridDz ));
+  }
+
+  void Gas::coordToGlobalIndex(Vec v, IJK &t) {
+    // important to use round!
+    t.i = static_cast<std::size_t> ( round((v.getX() - (x1F - gridDx/2)) / gridDx ));
+    t.j = static_cast<std::size_t> ( round((v.getY() - (y1F - gridDy/2)) / gridDy ));
+    t.k = static_cast<std::size_t> ( round((v.getZ() - (z1F - gridDz/2)) / gridDz ));
+    //if (iteration == 1) std::cout << "coordToGlobalIndex=" << std::setw(OWID) << (v.getX() - (x1F - gridDx/2)) / gridDx << std::setw(OWID) << (v.getY() - (y1F - gridDy/2)) / gridDy << std::setw(OWID) << (v.getZ() - (z1F - gridDz/2)) / gridDz << std::endl;
+  }
+
+  void Gas::localIndexToGlobal(IJK &local, IJK &global) {
+    // do no use std::size_t for computing
+    int i = local.i;
+    int j = local.j;
+    int k = local.k;
+
+    int I = ceil((double)allGridNx / mpi.mpiProcX) * mpi.mpiCoords[0] - haloGridX + i;
+    int J = ceil((double)allGridNy / mpi.mpiProcY) * mpi.mpiCoords[1] - haloGridY + j;
+    int K = ceil((double)allGridNz / mpi.mpiProcZ) * mpi.mpiCoords[2] - haloGridZ + k;
+
+    // ensure starting from 0 for min boundary process
+    if (mpi.isBdryProcessXMin()) I = i;
+    if (mpi.isBdryProcessYMin()) J = j;
+    if (mpi.isBdryProcessZMin()) K = k;
+    // automatically end at (allGrid -1) for max boundary process
+
+    if (I < 0 || I > allGridNx -1 || J < 0 || J > allGridNy -1 || K < 0 || K > allGridNz -1) 
+      std::cout << "Gas::localIndexToGlobal: global IJK out of range!" << std::endl;
+
+    global.i = I;
+    global.j = J;
+    global.k = K;
+  }
+
+  void Gas::initializePureGas() {
+    negPrsDen = false;
+    RankineHugoniot();
+    initialCondition(); 
+    soundSpeed(); // for printing Mach number
+
+    if (mpi.mpiRank == 0) {
+      debugInf << std::setw(OWID) << "iteration" 
+	       << std::setw(OWID) << "demTimeStep"
+	       << std::setw(OWID) << "cfdTimeStep" 
+	       << std::setw(OWID) << "timeStep" 
+	       << std::setw(OWID) << "timeAccrued"
+	       << std::setw(OWID) << "cfdCommuTime"
+	       << std::setw(OWID) << "cfdRunTime"
+	       << std::setw(OWID) << "cfdCommu%";
+    }
   }
 
   void Gas::initialize() {
@@ -393,15 +578,21 @@ namespace dem {
     RankineHugoniot();
     initialCondition(); 
     soundSpeed(); // for printing Mach number
-    debugInf << std::setw(OWID) << "iteration" 
-	     << std::setw(OWID) << "demTimeStep"
-	     << std::setw(OWID) << "cfdTimeStep" 
-	     << std::setw(OWID) << "timeStep" 
-	     << std::setw(OWID) << "timeAccrued" /*
-	     << std::setw(OWID) << "uZMax"
-	     << std::setw(OWID) << "uZMin"
-	     << std::setw(OWID) << "soundSpeedMax"
-	     << std::setw(OWID) << "(|uZ|+a)Max" */;
+
+    if (mpi.mpiRank == 0) {
+      debugInf << std::setw(OWID) << "iteration" 
+	       << std::setw(OWID) << "demTimeStep"
+	       << std::setw(OWID) << "cfdTimeStep" 
+	       << std::setw(OWID) << "timeStep" 
+	       << std::setw(OWID) << "timeAccrued"
+	       << std::setw(OWID) << "cfdCommuTime"
+	       << std::setw(OWID) << "cfdGetTime"
+	       << std::setw(OWID) << "cfdRunTime"
+	       << std::setw(OWID) << "cfdForceTime"
+	       << std::setw(OWID) << "cfdBCommuTime"
+	       << std::setw(OWID) << "cfdPenalTime"
+	       << std::setw(OWID) << "cfdTotalTime";
+    }
   }
 
   void Gas::runOneStep(std::vector<Particle *> &ptcls) {
@@ -434,13 +625,23 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = 1; i < gridNx - 1 ; ++i)
-      for (j = 1; j < gridNy - 1; ++j)
-	for (k = 1; k < gridNz - 1; ++k)
-	  for (m = 0; m < nInteg; ++m)
-	    arrayU[i][j][k][m] -= (   timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
-				    + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
-				    + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) );
+
+    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (m = 0; m < nInteg; ++m) {
+	    // i, j, k must be mapped to arrayGodFlux
+	    int iGod = i - haloGridX + 1;
+	    int jGod = j - haloGridY + 1;
+	    int kGod = k - haloGridZ + 1;
+	    if (mpi.mpiProcX == 1) iGod = i;
+	    if (mpi.mpiProcY == 1) jGod = j;
+	    if (mpi.mpiProcZ == 1) kGod = k;
+	    arrayU[i][j][k][m] -= (   timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
+				      + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
+				      + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
+	  }
+
     UtoW();
   }
   
@@ -454,15 +655,23 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = 1; i < gridNx - 1 ; ++i)
-      for (j = 1; j < gridNy - 1; ++j)
-	for (k = 1; k < gridNz - 1; ++k)
-	  for (m = 0; m < nInteg; ++m)
+    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (m = 0; m < nInteg; ++m) {
+	    // i, j, k must be mapped to arrayGodFlux
+	    int iGod = i - haloGridX + 1;
+	    int jGod = j - haloGridY + 1;
+	    int kGod = k - haloGridZ + 1;
+	    if (mpi.mpiProcX == 1) iGod = i;
+	    if (mpi.mpiProcY == 1) jGod = j;
+	    if (mpi.mpiProcZ == 1) kGod = k;
 	    arrayU[i][j][k][m] = 0.5*( arrayUN[i][j][k][m] + arrayU[i][j][k][m] -
-                                (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0]) 
-				 + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1]) 
-				 + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) ) ); 
-							       ;
+				       (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0]) 
+					  + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1]) 
+					  + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) );
+	  } 
+
     UtoW();
   }
 
@@ -476,14 +685,22 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = 1; i < gridNx - 1 ; ++i)
-      for (j = 1; j < gridNy - 1; ++j)
-	for (k = 1; k < gridNz - 1; ++k)
-	  for (m = 0; m < nInteg; ++m)
+    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (m = 0; m < nInteg; ++m) {
+	    // i, j, k must be mapped to arrayGodFlux
+	    int iGod = i - haloGridX + 1;
+	    int jGod = j - haloGridY + 1;
+	    int kGod = k - haloGridZ + 1;
+	    if (mpi.mpiProcX == 1) iGod = i;
+	    if (mpi.mpiProcY == 1) jGod = j;
+	    if (mpi.mpiProcZ == 1) kGod = k;
 	    arrayU[i][j][k][m] = 0.75*arrayUN[i][j][k][m] + 0.25*arrayUStar[i][j][k][m] - 
-                                 0.25* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
-                                        + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
-                                        + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) );
+	      0.25* (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
+		       + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
+		       + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
+	  }
 
     UtoW();
   }
@@ -498,14 +715,22 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = 1; i < gridNx - 1 ; ++i)
-      for (j = 1; j < gridNy - 1; ++j)
-	for (k = 1; k < gridNz - 1; ++k)
-	  for (m = 0; m < nInteg; ++m)
+    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (m = 0; m < nInteg; ++m) {
+	    // i, j, k must be mapped to arrayGodFlux
+	    int iGod = i - haloGridX + 1;
+	    int jGod = j - haloGridY + 1;
+	    int kGod = k - haloGridZ + 1;
+	    if (mpi.mpiProcX == 1) iGod = i;
+	    if (mpi.mpiProcY == 1) jGod = j;
+	    if (mpi.mpiProcZ == 1) kGod = k;
 	    arrayU[i][j][k][m] = ( arrayUN[i][j][k][m] + 2*arrayUStar2[i][j][k][m] - 
-                                   2* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
-                                       + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
-				       + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) ) )/3.0;
+                                   2* (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
+					 + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
+					 + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) )/3.0;
+	  }
 
     UtoW();
   }
@@ -518,12 +743,13 @@ namespace dem {
     // iDim=1 for y sweep
     // iDim=2 for z sweep
     for (std::size_t iDim = 0; iDim < nDim; ++iDim) {
-      arrayURota = arrayU; // must have same rank and extent
+
+      arrayURota = arrayU; // works well for std::vector; for std::valarray they must have same rank and extent;
       
       // switch components
-      for (std::size_t i = 0; i < gridNx; ++i)
-	for (std::size_t j = 0; j < gridNy; ++j)
-	  for (std::size_t k = 0; k < gridNz; ++k) 
+      for (std::size_t i = 0; i < arrayURota.size(); ++i)
+	for (std::size_t j = 0; j < arrayURota[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayURota[i][j].size(); ++k) 
 	    for (std::size_t jdim = 0; jdim < nDim; ++jdim) {
 	      arrayURota[i][j][k][  varMom[jdim]  ] = arrayU[i][j][k][  varMom[id[iDim][jdim]]  ];
 	      arrayURota[i][j][k][  varVel[jdim]  ] = arrayU[i][j][k][  varVel[id[iDim][jdim]]  ];
@@ -533,21 +759,22 @@ namespace dem {
 
       int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
       // the value of a private variable is undefined when parallel construct is entered, so do not assign value here.
-      std::size_t i, j, k;
+      std::size_t i, j, k; // defined for arrayGodFlux, no need to map.
       std::size_t IL[3], IR[3];
       REAL UL[9], UR[9], FL[5], FR[5], HL, HR, avgH, avgU, avgV, avgW, avgh, pStar;
       int solver;
 
       // for local Riemann problem
 #pragma omp parallel for num_threads(ompThreads) private(i,j,k,IL,IR,UL,UR,FL,FR,HL,HR,avgH,avgU,avgV,avgW,avgh,pStar,solver) schedule(dynamic)
-      for (i = 0; i < gridNx - 1; ++i) { // variables defined at cell faces
-	for (j = 0; j < gridNy - 1; ++j) {
-	  for (k = 0; k < gridNz -1; ++k) {
+      for (i = boundGod.lowX; i <= boundGod.uppX; ++i) { // variables defined at cell faces
+	for (j = boundGod.lowY; j <= boundGod.uppY; ++j) {
+	  for (k = boundGod.lowZ; k <= boundGod.uppZ; ++k) {
 	    IL[0]=i; IL[1]=j; IL[2]=k; 
 	    IR[0]=i; IR[1]=j; IR[2]=k; 
 	    IR[iDim] += 1;    
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
+
 	    for (std::size_t m = 0; m < nVar; ++m) {
 	      UL[m] = arrayURota[IL[0]] [IL[1]] [IL[2]] [m];
 	      UR[m] = arrayURota[IR[0]] [IR[1]] [IR[2]] [m];
@@ -611,19 +838,18 @@ namespace dem {
 	}
       } // end of local Riemann problem
 
-      for (std::size_t i = 0; i < gridNx -1; ++i)
-	for (std::size_t j = 0; j < gridNy -1; ++j)
-	  for (std::size_t k = 0; k < gridNz -1; ++k)
+      for (std::size_t i = 0; i < arrayGodFluxTmp.size(); ++i)
+	for (std::size_t j = 0; j < arrayGodFluxTmp[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayGodFluxTmp[i][j].size(); ++k)
 	    for (std::size_t m = 0; m < nInteg; ++m)
 	      arrayGodFluxTmp[i][j][k][m] = arrayGodFlux[i][j][k][m][iDim];
 
       // switch components back for consistency with u
-      for (std::size_t i = 0; i < gridNx - 1; ++i)
-	for (std::size_t j = 0; j < gridNy - 1; ++j)
-	  for (std::size_t k = 0; k < gridNz -1; ++k)
+      for (std::size_t i = 0; i < arrayGodFlux.size(); ++i)
+	for (std::size_t j = 0; j < arrayGodFlux[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayGodFlux[i][j].size(); ++k)
 	    for (std::size_t m = 0; m < nDim; ++m)
 	      arrayGodFlux[i][j][k][varMom[m]][iDim] = arrayGodFluxTmp[i][j][k][ varMom[id[iDim][m]] ];
-
     } // end of for x, y, z directions
 
   }
@@ -640,7 +866,9 @@ namespace dem {
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 
 	// calculate momentum and density quotient before modification
-	bool inGrid = (i > 0 && i < gridNx-1 && j > 0 && j < gridNy-1 && k > 0 && k < gridNz-1 );
+	bool inGrid = (i >= boundCup.lowX && i <= boundCup.uppX && 
+		       j >= boundCup.lowY && j <= boundCup.uppY && 
+		       k >= boundCup.lowZ && k <= boundCup.uppZ );
 	REAL denQuot[3], u0[3];
 	if (inGrid) {
 	  denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
@@ -680,26 +908,55 @@ namespace dem {
   
   void Gas::initGhostPoints() {
     // non-reflecting BCs
-    for (std::size_t j = 1; j < gridNy - 1; ++j)
-      for (std::size_t k = 1; k < gridNz - 1; ++k)
-	for (std::size_t m = 0; m < nVar; ++m) {
-	  arrayU[0][j][k][m]    = arrayU[1][j][k][m]; 
-	  arrayU[gridNx-1][j][k][m] = arrayU[gridNx-2][j][k][m]; 
-	}
+    // -x
+    if (mpi.isBdryProcessXMin()) {
+      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (std::size_t m = 0; m < nVar; ++m) {
+	    arrayU[boundPrn.lowX-1][j][k][m] = arrayU[boundPrn.lowX][j][k][m]; 
+	  }
+    }
 
-    for (std::size_t i = 1; i < gridNx - 1; ++i)
-      for (std::size_t k = 1; k < gridNz -1; ++k)
-	for (std::size_t m = 0; m < nVar; ++m) {
-	  arrayU[i][0][k][m]    = arrayU[i][1][k][m]; 
-	  arrayU[i][gridNy-1][k][m] = arrayU[i][gridNy-2][k][m]; 
-	}
-
-    for (std::size_t i = 1; i < gridNx - 1; ++i)
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t m = 0; m < nVar; ++m) {
-	  arrayU[i][j][0][m]    = arrayU[i][j][1][m]; 
-	  arrayU[i][j][gridNz-1][m] = arrayU[i][j][gridNz-2][m]; 
-	}
+    // +x
+    if (mpi.isBdryProcessXMax()) {
+      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (std::size_t m = 0; m < nVar; ++m) {
+	    arrayU[boundPrn.uppX+1][j][k][m] = arrayU[boundPrn.uppX][j][k][m]; 
+	  }
+    }
+    // -y
+    if (mpi.isBdryProcessYMin()) {
+      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (std::size_t m = 0; m < nVar; ++m) {
+	    arrayU[i][boundPrn.lowY-1][k][m] = arrayU[i][boundPrn.lowY][k][m]; 
+	  }
+    }
+    // +y
+    if (mpi.isBdryProcessYMax()) {
+      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	  for (std::size_t m = 0; m < nVar; ++m) {
+	    arrayU[i][boundPrn.uppY+1][k][m] = arrayU[i][boundPrn.uppY][k][m]; 
+	  }
+    }
+    // -z
+    if (mpi.isBdryProcessZMin()) {
+      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	  for (std::size_t m = 0; m < nVar; ++m) {
+	    arrayU[i][j][boundPrn.lowZ-1][m] = arrayU[i][j][boundPrn.lowZ][m]; 
+	  }
+    }
+    // +z
+    if (mpi.isBdryProcessZMax()) {
+      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	  for (std::size_t m = 0; m < nVar; ++m) {
+	    arrayU[i][j][boundPrn.uppZ+1][m] = arrayU[i][j][boundPrn.uppZ][m]; 
+	  }
+    }
 
     // reflecting BCs
     bool reflecting = false;
@@ -711,86 +968,155 @@ namespace dem {
     }
 
     if (reflecting) {
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t k = 1; k < gridNz - 1; ++k)
-	  for (std::size_t m = 0; m < 1; ++m) { // x-direction
-	    arrayU[0][j][k][varMom[m]]    *= (1-2*arrayBC[0]); 
-	    arrayU[gridNx-1][j][k][varMom[m]] *= (1-2*arrayBC[1]); 
-	    arrayU[0][j][k][varVel[m]]    *= (1-2*arrayBC[0]); 
-	    arrayU[gridNx-1][j][k][varVel[m]] *= (1-2*arrayBC[1]); 
-	  }
+      // -x
+      if (mpi.isBdryProcessXMin()) {
+	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	    for (std::size_t m = 0; m < 1; ++m) {
+	      arrayU[boundPrn.lowX-1][j][k][varMom[m]]    *= (1-2*arrayBC[0]); 
+	      arrayU[boundPrn.lowX-1][j][k][varVel[m]]    *= (1-2*arrayBC[0]); 
+	    }
+      }
+      // +x
+      if (mpi.isBdryProcessXMax()) {
+	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	    for (std::size_t m = 0; m < 1; ++m) {
+	      arrayU[boundPrn.uppX+1][j][k][varMom[m]] *= (1-2*arrayBC[1]); 
+	      arrayU[boundPrn.uppX+1][j][k][varVel[m]] *= (1-2*arrayBC[1]); 
+	    }
+      }
+      // -y
+      if (mpi.isBdryProcessYMin()) {
+	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	    for (std::size_t m = 1; m < 2; ++m) {
+	      arrayU[i][boundPrn.lowY-1][k][varMom[m]]    *= (1-2*arrayBC[2]); 
+	      arrayU[i][boundPrn.lowY-1][k][varVel[m]]    *= (1-2*arrayBC[2]); 
+	    }
+      }
+      // +y
+      if (mpi.isBdryProcessYMax()) {
+	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	    for (std::size_t m = 1; m < 2; ++m) {
+	      arrayU[i][boundPrn.uppY+1][k][varMom[m]] *= (1-2*arrayBC[3]);
+	      arrayU[i][boundPrn.uppY+1][k][varVel[m]] *= (1-2*arrayBC[3]);  
+	    }
+      }
+      // -z
+      if (mpi.isBdryProcessZMin()) {
+	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	  for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	    for (std::size_t m = 2; m < 3; ++m) {
+	      arrayU[i][j][boundPrn.lowZ-1][varMom[m]]    *= (1-2*arrayBC[4]); 
+	      arrayU[i][j][boundPrn.lowZ-1][varVel[m]]    *= (1-2*arrayBC[4]); 
+	    }
+      }
+      // +z
+      if (mpi.isBdryProcessZMax()) {
+	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+	  for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	    for (std::size_t m = 2; m < 3; ++m) {
+	      arrayU[i][j][boundPrn.uppZ+1][varMom[m]] *= (1-2*arrayBC[5]); 
+	      arrayU[i][j][boundPrn.uppZ+1][varVel[m]] *= (1-2*arrayBC[5]); 
+	    }
+      }
 
-      for (std::size_t i = 1; i < gridNx - 1; ++i)
-	for (std::size_t k = 1; k < gridNz - 1; ++k)
-	  for (std::size_t m = 1; m < 2; ++m) { // y-direction
-	    arrayU[i][0][k][varMom[m]]    *= (1-2*arrayBC[2]); 
-	    arrayU[i][gridNy-1][k][varMom[m]] *= (1-2*arrayBC[3]);
-	    arrayU[i][0][k][varVel[m]]    *= (1-2*arrayBC[2]); 
-	    arrayU[i][gridNy-1][k][varVel[m]] *= (1-2*arrayBC[3]);  
-	  }
-
-      for (std::size_t i = 1; i < gridNx - 1; ++i)
-	for (std::size_t j = 1; j < gridNy - 1; ++j)
-	  for (std::size_t m = 2; m < 3; ++m) { // z-direction
-	    arrayU[i][j][0][varMom[m]]    *= (1-2*arrayBC[4]); 
-	    arrayU[i][j][gridNz-1][varMom[m]] *= (1-2*arrayBC[5]); 
-	    arrayU[i][j][0][varVel[m]]    *= (1-2*arrayBC[4]); 
-	    arrayU[i][j][gridNz-1][varVel[m]] *= (1-2*arrayBC[5]); 
-	  }
     }  
-  }
-  
-  void Gas::calcTimeStep() {
-    std::valarray<REAL> gridX(gridNx * gridNy * gridNz);
-    std::valarray<REAL> gridY(gridNx * gridNy * gridNz);
-    std::valarray<REAL> gridZ(gridNx * gridNy * gridNz);
 
-    std::valarray<REAL> velZ(gridNx * gridNy * gridNz);
-    std::valarray<REAL> sound(gridNx * gridNy * gridNz);
+  }
+
+  void Gas::calcTimeStep() {
+    std::vector<REAL> valX(boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
+    std::vector<REAL> valY(boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
+    std::vector<REAL> valZ(boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
 
     std::size_t i, j, k;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
-    for (i = 0; i < gridNx ; ++i)
-      for (j = 0; j < gridNy; ++j)
-	for (k = 0; k < gridNz; ++k) {
-	  gridX[i + j * gridNx + k * gridNx * gridNy] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
-	  gridY[i + j * gridNx + k * gridNx * gridNy] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
-	  gridZ[i + j * gridNx + k * gridNx * gridNy] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
+    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k) {
+	  std::size_t i1 = i - boundPrn.lowX;
+	  std::size_t j1 = j - boundPrn.lowY;
+	  std::size_t k1 = k - boundPrn.lowZ;
 
-	  velZ[i + j * gridNx + k * gridNx * gridNy]  = arrayU[i][j][k][varVel[2]];
-	  sound[i + j * gridNx + k * gridNx * gridNy] = arraySoundSpeed[i][j][k];
+	  valX[i1 + j1 * boundPrn.sizeX + k1 * boundPrn.sizeX * boundPrn.sizeY] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
+	  valY[i1 + j1 * boundPrn.sizeX + k1 * boundPrn.sizeX * boundPrn.sizeY] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
+	  valZ[i1 + j1 * boundPrn.sizeX + k1 * boundPrn.sizeX * boundPrn.sizeY] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
+	}
+
+    std::vector<REAL> dtMin(3);
+    dtMin[0] = gridDx / ( *std::max_element(valX.begin(), valX.end()) );
+    dtMin[1] = gridDy / ( *std::max_element(valY.begin(), valY.end()) ); 
+    dtMin[2] = gridDz / ( *std::max_element(valZ.begin(), valZ.end()) ); 
+    
+    REAL ptclTimeStep = timeStep;
+    REAL fluidTimeStep = CFL * (*std::min_element(dtMin.begin(), dtMin.end()));
+
+    // this guarantees that all processes use the same timeStep
+    REAL pTimeStep = std::min(ptclTimeStep, fluidTimeStep);
+    MPI_Allreduce(&pTimeStep, &timeStep, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
+    timeAccrued += timeStep;
+
+    if (mpi.mpiRank == 0) {
+      debugInf << std::endl
+	       << std::setw(OWID) << iteration 
+	       << std::setw(OWID) << ptclTimeStep 
+	       << std::setw(OWID) << fluidTimeStep 
+	       << std::setw(OWID) << timeStep
+	       << std::setw(OWID) << timeAccrued;
+    }
+  }
+
+  /*
+  // std::valarray also works well.  
+  void Gas::calcTimeStep() {
+    std::valarray<REAL> valX(boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
+    std::valarray<REAL> valY(boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
+    std::valarray<REAL> valZ(boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
+
+    std::size_t i, j, k;
+    int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
+#pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
+    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k) {
+	  std::size_t i1 = i - boundPrn.lowX;
+	  std::size_t j1 = j - boundPrn.lowY;
+	  std::size_t k1 = k - boundPrn.lowZ;
+
+	  valX[i1 + j1 * boundPrn.sizeX + k1 * boundPrn.sizeX * boundPrn.sizeY] = fabs(arrayU[i][j][k][varVel[0]]) + arraySoundSpeed[i][j][k];
+	  valY[i1 + j1 * boundPrn.sizeX + k1 * boundPrn.sizeX * boundPrn.sizeY] = fabs(arrayU[i][j][k][varVel[1]]) + arraySoundSpeed[i][j][k];
+	  valZ[i1 + j1 * boundPrn.sizeX + k1 * boundPrn.sizeX * boundPrn.sizeY] = fabs(arrayU[i][j][k][varVel[2]]) + arraySoundSpeed[i][j][k];
 	}
 
     std::valarray<REAL> dtMin(3);
-    dtMin[0] = gridDx / gridX.max();
-    dtMin[1] = gridDy / gridY.max();
-    dtMin[2] = gridDz / gridZ.max();
-    
+    dtMin[0] = gridDx / valX.max();
+    dtMin[1] = gridDy / valY.max();
+    dtMin[2] = gridDz / valZ.max();
+
     REAL ptclTimeStep = timeStep;
     REAL fluidTimeStep = CFL * dtMin.min();
     timeStep = std::min(ptclTimeStep, fluidTimeStep);
-    // timeStep = std::min(timeStep, CFL * dtMin.min());
     timeAccrued += timeStep;
     debugInf << std::endl
 	     << std::setw(OWID) << iteration 
 	     << std::setw(OWID) << ptclTimeStep 
 	     << std::setw(OWID) << fluidTimeStep 
 	     << std::setw(OWID) << timeStep 
-	     << std::setw(OWID) << timeAccrued /*
-	     << std::setw(OWID) << velZ.max()
-	     << std::setw(OWID) << velZ.min()
-	     << std::setw(OWID) << sound.max()
-	     << std::setw(OWID) << gridZ.max() */;	    
+	     << std::setw(OWID) << timeAccrued;
   }
+  */
 
   void Gas::soundSpeed() {
     std::size_t i, j, k;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
-    for (i = 0; i < gridNx ; ++i)
-      for (j = 0; j < gridNy; ++j)
-	for (k = 0; k < gridNz; ++k)
+    for (i = 0; i < arraySoundSpeed.size(); ++i)
+      for (j = 0; j < arraySoundSpeed[i].size(); ++j)
+	for (k = 0; k < arraySoundSpeed[i][j].size(); ++k)
 	  arraySoundSpeed[i][j][k] = sqrt(gama * arrayU[i][j][k][varPrs] / arrayU[i][j][k][varDen]);
   }
 
@@ -799,17 +1125,17 @@ namespace dem {
     std::size_t i, j, k;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k) schedule(dynamic)
-    for (i = 0; i < gridNx ; ++i)
-      for (j = 0; j < gridNy; ++j)
-	for (k = 0; k < gridNz; ++k)
+    for (i = 0; i < arrayH.size(); ++i)
+      for (j = 0; j < arrayH[i].size(); ++j)
+	for (k = 0; k < arrayH[i][j].size(); ++k)
 	  arrayH[i][j][k] = (arrayU[i][j][k][varEng] + arrayU[i][j][k][varPrs]) / arrayU[i][j][k][varDen];
   }
 
   void Gas::initialCondition() {
     if (leftType == 1 || leftType == 2) { // normal shock w/ and w/o Rankine-Hugoniot conditions
-      for (std::size_t i = 0; i < gridNx; ++i)
-	for (std::size_t j = 0; j < gridNy; ++j)
-	  for (std::size_t k = 0; k < gridNz; ++k) {
+      for (std::size_t i = 0; i < arrayU.size(); ++i)
+	for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
 	    if (arrayGridCoord[i][j][k][2] <= z2L) {
 	      arrayU[i][j][k][varDen] = rhoL;
 	      arrayU[i][j][k][varPrs] = pL;
@@ -827,9 +1153,9 @@ namespace dem {
 	  }
     }
     else if (leftType == 3) { // normal shock in x, y, z directions
-      for (std::size_t i = 0; i < gridNx; ++i)
-	for (std::size_t j = 0; j < gridNy; ++j)
-	  for (std::size_t k = 0; k < gridNz; ++k) {
+      for (std::size_t i = 0; i < arrayU.size(); ++i)
+	for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
 	    if ( arrayGridCoord[i][j][k][2] >= z1L && arrayGridCoord[i][j][k][2] <= z2L &&
 		 arrayGridCoord[i][j][k][0] >= x1L && arrayGridCoord[i][j][k][0] <= x2L &&
 		 arrayGridCoord[i][j][k][1] >= y1L && arrayGridCoord[i][j][k][1] <= y2L) {
@@ -847,9 +1173,9 @@ namespace dem {
 	    }
 	  }
     } else if (leftType == 4) { // spherical shock
-      for (std::size_t i = 0; i < gridNx; ++i)
-	for (std::size_t j = 0; j < gridNy; ++j)
-	  for (std::size_t k = 0; k < gridNz; ++k) {
+      for (std::size_t i = 0; i < arrayU.size(); ++i)
+	for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
 	    REAL radius = sqrt(pow(arrayGridCoord[i][j][k][0]-x0L,2) + pow(arrayGridCoord[i][j][k][1]-y0L,2) + pow(arrayGridCoord[i][j][k][2]-z0L,2));
 	    if (radius <= r0L) {
 	      arrayU[i][j][k][varDen]    = rhoL;
@@ -867,9 +1193,9 @@ namespace dem {
 	    }
 	  }
     } else if (leftType == 5) { // normal shock z directions, three initial zones
-      for (std::size_t i = 0; i < gridNx; ++i)
-	for (std::size_t j = 0; j < gridNy; ++j)
-	  for (std::size_t k = 0; k < gridNz; ++k) {
+      for (std::size_t i = 0; i < arrayU.size(); ++i)
+	for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	  for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
 	    if ( arrayGridCoord[i][j][k][2] >= z1L && arrayGridCoord[i][j][k][2] <= z2L ) {
 	      arrayU[i][j][k][varDen] = rhoL;
 	      arrayU[i][j][k][varPrs] = pL;
@@ -901,20 +1227,24 @@ namespace dem {
       rhoL = ( pow(rhoR*(shockSpeed-uR),2)*(1+gama) ) / ( rhoR*pow(shockSpeed-uR,2)*(gama-1) + 2*pR*gama);
       pL   = (pR*(1-gama)+2*rhoR*pow(shockSpeed-uR,2)) / (1+gama);
       uL   = ( rhoR*(shockSpeed-uR)*(2*shockSpeed + uR*(gama-1)) - 2*pR*gama ) / (rhoR * (shockSpeed-uR) * (1+gama));
-      debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl;
-      debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
-      debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;
-      debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
+      if (mpi.mpiRank == 0) {
+	debugInf << std::setw(OWID) << "shockSpeed" << std::setw(OWID) << shockSpeed << std::endl;
+	debugInf << std::setw(OWID) << "rhoL" << std::setw(OWID) << rhoL << std::endl;
+	debugInf << std::setw(OWID) << "pL" << std::setw(OWID) << pL << std::endl;
+	debugInf << std::setw(OWID) << "uL" << std::setw(OWID) << uL << std::endl;
+      }
     } 
 
     MachL = uL / sqrt(gama*pL/rhoL);
-    debugInf << std::setw(OWID) << "MachL" << std::setw(OWID) << MachL << std::endl << std::endl;
+    if (mpi.mpiRank == 0) {
+      debugInf << std::setw(OWID) << "MachL" << std::setw(OWID) << MachL << std::endl << std::endl;
+    }
   }
 
   void Gas::flux(std::size_t iDim, std::vector<Particle *> &ptcls) {
-    for (std::size_t i = 0; i < gridNx; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k) {
+    for (std::size_t i = 0; i < arrayFlux.size(); ++i)
+      for (std::size_t j = 0; j < arrayFlux[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayFlux[i][j].size(); ++k) {
 	  arrayFlux[i][j][k][varDen]    = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]]; // rho*u
 	  arrayFlux[i][j][k][varMom[0]] = arrayURota[i][j][k][varDen] * pow(arrayURota[i][j][k][varVel[0]],2) + arrayURota[i][j][k][varPrs]; // rho*u^2 + p
 	  arrayFlux[i][j][k][varMom[1]] = arrayURota[i][j][k][varDen] * arrayURota[i][j][k][varVel[0]] * arrayURota[i][j][k][varVel[1]]; // rho*u*v
@@ -1145,7 +1475,7 @@ namespace dem {
 
     /*
     REAL dBar = (sqrt(UL[varDen])*aL*aL+sqrt(UR[varDen])*aR*aR)/(sqrt(UL[varDen])+sqrt(UR[varDen])) 
-                + (0.5*sqrt(UL[varDen]*UR[varDen])/pow(sqrt(UL[varDen])+sqrt(UR[varDen]),2))*pow(UR[varVel[0]]-UL[varVel[0]],2);
+      + (0.5*sqrt(UL[varDen]*UR[varDen])/pow(sqrt(UL[varDen])+sqrt(UR[varDen]),2))*pow(UR[varVel[0]]-UL[varVel[0]],2);
     REAL SL = avgU - dBar; // the fastest signal velocities, avgU is uBar in Toro's book
     REAL SR = avgU + dBar;
 
@@ -1156,7 +1486,6 @@ namespace dem {
     avgR[varMom[2]] = 0;
     avgR[varEng]    = 0.5 * (uBar*uBar); // what about 3D?
 
-    /*
     REAL l[5] = {1-(gama-1)/2*uBar*uBar/(cBar*cBar), (gama-1)*uBar/(cBar*cBar), 0, 0, (1-gama)/(cBar*cBar)}; // what about 3D?
     REAL eta = 0;
     for (std::size_t i = 0; i < nInteg; ++i)
@@ -1165,6 +1494,7 @@ namespace dem {
     REAL bPos = std::max(SR, .0);
     REAL delta = 1/(timeStep*(cBar+fabs(uBar)));
     */
+
     if (SL >= 0) {
       for (std::size_t ie = 0; ie < nInteg; ++ie)
 	arrayGodFlux[it][jt][kt][ie][iDim] = FL[ie];
@@ -1213,14 +1543,14 @@ namespace dem {
     /*
     // Hlle part, this part does not work for 123 problem.
     REAL dBar = (sqrt(UL[varDen])*aL*aL+sqrt(UR[varDen])*aR*aR)/(sqrt(UL[varDen])+sqrt(UR[varDen])) 
-                + (0.5*sqrt(UL[varDen]*UR[varDen])/pow(sqrt(UL[varDen])+sqrt(UR[varDen]),2))*pow(UR[varVel[0]]-UL[varVel[0]],2);
+      + (0.5*sqrt(UL[varDen]*UR[varDen])/pow(sqrt(UL[varDen])+sqrt(UR[varDen]),2))*pow(UR[varVel[0]]-UL[varVel[0]],2);
     REAL SL = avgU - dBar; // the fastest signal velocities, avgU is uBar in Toro's book
     REAL SR = avgU + dBar;
     // end of Hlle part
     */
 
     REAL SStar = (UR[varPrs]-UL[varPrs]+UL[varDen]*UL[varVel[0]]*(SL-UL[varVel[0]])-UR[varDen]*UR[varVel[0]]*(SR-UR[varVel[0]])) / 
-                 (UL[varDen]*(SL-UL[varVel[0]])-UR[varDen]*(SR-UR[varVel[0]]));
+      (UL[varDen]*(SL-UL[varVel[0]])-UR[varDen]*(SR-UR[varVel[0]]));
     REAL DStar[5] = {0, 1, 0, 0, SStar};
 
     if (SL >= 0) {
@@ -1271,9 +1601,16 @@ namespace dem {
   void Gas::UtoW() { // converting conserved variables into primitive
     negPrsDen = false;
     
-    for (std::size_t i = 0; i < gridNx && !negPrsDen; ++i)  // stop if negPrsDen
-      for (std::size_t j = 0; j < gridNy && !negPrsDen; ++j)  // stop if negPrsDen
-	for (std::size_t k = 0; k < gridNz && !negPrsDen; ++k) {  // stop if negPrsDen
+    // unnecessary to tranverse the full boundCup domain, because only boundPrn is useful.
+    /*
+    for (std::size_t i = 0; i < arrayU.size() && !negPrsDen; ++i)  // stop if negPrsDen
+      for (std::size_t j = 0; j < arrayU[i].size() && !negPrsDen; ++j)  // stop if negPrsDen
+	for (std::size_t k = 0; k <  arrayU[i][j].size() && !negPrsDen; ++k) {  // stop if negPrsDen
+    */
+
+    for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX && !negPrsDen; ++i)  // stop if negPrsDen
+      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY && !negPrsDen; ++j)  // stop if negPrsDen
+	for (std::size_t k = boundPrn.lowZ; k <=  boundPrn.uppZ && !negPrsDen; ++k) {  // stop if negPrsDen
 
 	  for (std::size_t m = 0; m < nDim; ++m)
 	    arrayU[i][j][k][varVel[m]] = arrayU[i][j][k][varMom[m]] / arrayU[i][j][k][varDen];
@@ -1285,20 +1622,31 @@ namespace dem {
 	  arrayU[i][j][k][varPrs] = (arrayU[i][j][k][varEng] - arrayU[i][j][k][varDen]*arrayU[i][j][k][varPrs]) * (gama-1);
 
 	  if (arrayU[i][j][k][varPrs] <= 0) {
-	    debugInf << std::setw(OWID) << " UtoW:prs<0";
+	    std::cout << std::setw(OWID) << " UtoW:prs<0";
 	    negPrsDen = true;
 	  }
 	  if (arrayU[i][j][k][varDen] <= 0) {
-	    debugInf << std::setw(OWID) << " UtoW:den<0";
+	    std::cout << std::setw(OWID) << " UtoW:den<0";
 	    negPrsDen = true;
 	  }
+
+	  /*
+	  if (isnan(arrayU[i][j][k][varPrs])) {
+	    std::cout << std::setw(OWID) << " UtoW:prs=nan" << std::setw(OWID) << i << std::setw(OWID) << j << std::setw(OWID) << k << std::endl;
+	  }
+	  if (isnan(arrayU[i][j][k][varDen])) {
+	    std::cout << std::setw(OWID) << " UtoW:den=nan" << std::setw(OWID) << i << std::setw(OWID) << j << std::setw(OWID) << k << std::endl;
+	  }
+	  */
+	  
 	}
   }
 
   void Gas::WtoU() { // converting primitive variables into conserved
-    for (std::size_t i = 0; i < gridNx; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k) {
+    // necessary to tranverse the full boundCup domain
+    for (std::size_t i = 0; i < arrayU.size(); ++i)
+      for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
 	  for (std::size_t m = 0; m < nDim; ++m)
 	    arrayU[i][j][k][varMom[m]] = arrayU[i][j][k][varDen] * arrayU[i][j][k][varVel[m]];
 
@@ -1309,7 +1657,43 @@ namespace dem {
 	}
   }
 
+  void Gas::getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation) {
+    // two particles could have overlapping fluid grids in the following algorithm using maxGrid in 
+    // all 3 directions, so do not clear masks inside the loops, instead, clear masks here.
+    for (std::size_t i = 0; i < arrayU.size(); ++i)
+      for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayU[i][j].size(); ++k)
+	  arrayU[i][j][k][varMsk] = 0;
+
+    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
+      (*it)->clearFluidGrid();
+
+    std::size_t maxGrid = static_cast<std::size_t> (ceil(gradation.getPtclMaxRadius() / gridDx) ) ;
+    std::size_t ip, jp, kp;
+
+    for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      coordToGlobalIndex((*it)->getCurrPos(), ip, jp, kp); 
+      // std::cout << std::setw(OWID) << maxGrid  << std::setw(OWID) << ip << std::setw(OWID) << jp << std::setw(OWID) << kp;
+      // ensure each grid is in the valid range 0 ~ (n-1)
+      // never subtract two numbers of type std::size_t
+      for (std::size_t i = std::max((int)ip - (int)maxGrid, (int)boundCup.lowX); i <= std::min((int)(ip + maxGrid), (int)boundCup.uppX); ++i)
+	for (std::size_t j = std::max((int)jp - (int)maxGrid, (int)boundCup.lowY); j <= std::min((int)(jp + maxGrid), (int)boundCup.uppY); ++j)
+	  for (std::size_t k = std::max((int)kp - (int)maxGrid, (int)boundCup.lowZ); k <= std::min((int)(kp + maxGrid), (int)boundCup.uppZ); ++k) {
+	    REAL coordX = arrayGridCoord[i][j][k][0];
+	    REAL coordY = arrayGridCoord[i][j][k][1];
+	    REAL coordZ = arrayGridCoord[i][j][k][2];
+
+	    if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= 0 ) { // inside particle surface
+	      arrayU[i][j][k][varMsk] = 1; 
+	      (*it)->recordFluidGrid(i, j, k);
+	    }
+	  }
+    }
+  }
+
+
   /*
+  // an inefficient algorithm
   void Gas::getPtclInfo(std::vector<Particle *> &ptcls) {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
@@ -1334,46 +1718,12 @@ namespace dem {
   }
   */
 
-  void Gas::getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation) {
-    // two particles could have overlapping fluid grids in the following algorithm using maxGrid in 
-    // all 3 directions, so do not clear masks inside the loops, instead, clear masks here.
-    for (std::size_t i = 0; i < gridNx; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k)
-	  arrayU[i][j][k][varMsk] = 0;
-
-    for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
-      (*it)->clearFluidGrid();
-
-    std::size_t maxGrid = static_cast<std::size_t> (ceil(gradation.getPtclMaxRadius() / gridDx) ) ;
-    std::size_t ip, jp, kp;
-
-    for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
-      coordToIndex((*it)->getCurrPos(), ip, jp, kp); 
-      //debugInf << std::setw(OWID) << maxGrid  << std::setw(OWID) << ip << std::setw(OWID) << jp << std::setw(OWID) << kp;
-      // ensure each grid is in the valid range 0 ~ (n-1)
-      // never subtract two numbers of type std::size_t
-      for (std::size_t i = std::max((int)ip - (int)maxGrid, 0); i < std::min(ip + maxGrid + 1, gridNx); ++i)
-	for (std::size_t j = std::max((int)jp - (int)maxGrid, 0); j < std::min(jp + maxGrid + 1, gridNy); ++j)
-	  for (std::size_t k = std::max((int)kp - (int)maxGrid, 0); k < std::min(kp + maxGrid +1, gridNz); ++k) {
-	    REAL coordX = arrayGridCoord[i][j][k][0];
-	    REAL coordY = arrayGridCoord[i][j][k][1];
-	    REAL coordZ = arrayGridCoord[i][j][k][2];
-
-	    if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= 0 ) { // inside particle surface
-	      arrayU[i][j][k][varMsk] = 1; 
-	      (*it)->recordFluidGrid(i, j, k);
-	    }
-	  }
-    }
-  }
-
   void Gas::calcPtclForce(std::vector<Particle *> &ptcls) {
     // must clear forces each loop, otherwise Gas::plot prints wrong values;
     // but Gas::penalize works OK since it uses masks.
-    for (std::size_t i = 0; i < gridNx ; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k)
+    for (std::size_t i = 0; i < arrayPenalForce.size() ; ++i)
+      for (std::size_t j = 0; j < arrayPenalForce[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayPenalForce[i][j].size(); ++k)
 	  for (std::size_t m = 0; m < nDim; ++m) {
 	    arrayPenalForce[i][j][k][m] = 0;
 	    arrayPressureForce[i][j][k][m] = 0;
@@ -1430,7 +1780,9 @@ namespace dem {
 	arrayPenalForce[i][j][k][2] += globalPenal.getZ();
 
 	// restrict pressure gradient grids
- 	if (i > 0 && i < gridNx-1 && j > 0 && j < gridNy-1 && k > 0 && k < gridNz-1 ) { // do not use (i-1) for std::size_t because (i-1) is postive when i=0
+ 	if (i >= boundCup.lowX && i <= boundCup.uppX && 
+	    j >= boundCup.lowY && j <= boundCup.uppY && 
+	    k >= boundCup.lowZ && k <= boundCup.uppZ ) { // do not use (i-1) for std::size_t because (i-1) is postive when i=0
 	  arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][varPrs] - arrayU[i-1][j][k][varPrs])/(2*gridDx);
 	  arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][varPrs] - arrayU[i][j-1][k][varPrs])/(2*gridDy);
 	  arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][varPrs] - arrayU[i][j][k-1][varPrs])/(2*gridDz);
@@ -1461,10 +1813,9 @@ namespace dem {
 
       for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn) {
 	if ((*it)->getId() == printPtcls[iPrn]) {
-	  char cstr[50];
 	  std::fstream pfs;
-	  pfs.open (dem::combineStr(cstr, "particle_", printPtcls[iPrn], 7), std::fstream::out | std::fstream::app);
-	  if(!pfs) { debugInf << "stream error: Gas::calcPtclForce" << std::endl; exit(-1); }
+	  pfs.open (dem::combineStr("particle_", printPtcls[iPrn], 7).c_str(), std::fstream::out | std::fstream::app);
+	  if(!pfs) { std::cout << "stream error: Gas::calcPtclForce" << std::endl; exit(-1); }
 	  pfs.setf(std::ios::scientific, std::ios::floatfield);
 	  if (iteration == 1) {
 	    pfs << std::setw(OWID) << "iteration"
@@ -1553,9 +1904,9 @@ namespace dem {
     // A: mass and momentum of the flow field outside of the particles plus momentum of the particles as a function of time
     // B: momentum of the entire flow including inside of the particles plus momentum of the particles.
     Vec momAGas=0, momBGas=0, momPtcl=0, momA=0, momB=0;
-    for (std::size_t i = 0; i < gridNx ; ++i)
-      for (std::size_t j = 0; j < gridNy; ++j)
-	for (std::size_t k = 0; k < gridNz; ++k) {
+    for (std::size_t i = 0; i < boundCup.sizeX; ++i)
+      for (std::size_t j = 0; j < boundCup.sizeY; ++j)
+	for (std::size_t k = 0; k < boundCup.sizeZ; ++k) {
 	  momAGas += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]) * (1-arrayU[i][j][k][varMsk]); 
 	  momBGas += Vec(arrayU[i][j][k][varMom[0]], arrayU[i][j][k][varMom[1]], arrayU[i][j][k][varMom[2]]);
 	}
@@ -1595,69 +1946,180 @@ namespace dem {
     pfs.close();
   }
 
-  void Gas::plot(const char *str) const {
-    std::ofstream ofs(str);
-    if(!ofs) { debugInf << "stream error: Gas::plot" << std::endl; exit(-1); }
-    ofs.setf(std::ios::scientific, std::ios::floatfield);
-    ofs.precision(OPREC);
+  void Gas::plot(const char *str, std::size_t snap) {
+
+    if (mpi.mpiSize == 1) { // serial computing
+
+      std::ofstream ofs(str);
+      if(!ofs) { debugInf << "stream error: Gas::plot" << std::endl; exit(-1); }
+      ofs.setf(std::ios::scientific, std::ios::floatfield);
+      ofs.precision(OPREC);
     
-    ofs	<< std::setw(OWID) << "VARIABLES = \"x\""
-	<< std::setw(OWID) << "\"y\""
-	<< std::setw(OWID) << "\"z\""
-	<< std::setw(OWID) << "\"Mach\""
-	<< std::setw(OWID) << "\"density\""
-	<< std::setw(OWID) << "\"momentumX\""
-	<< std::setw(OWID) << "\"momentumY\""
-	<< std::setw(OWID) << "\"momentumZ\""
-	<< std::setw(OWID) << "\"energy\""
-	<< std::setw(OWID) << "\"velocityX\""
-	<< std::setw(OWID) << "\"velocityY\""
-	<< std::setw(OWID) << "\"velocityZ\""
-	<< std::setw(OWID) << "\"pressure\""
-	<< std::setw(OWID) << "\"temperature\""
-	<< std::setw(OWID) << "\"mask\""
-	<< std::setw(OWID) << "\"penalFx\""
-	<< std::setw(OWID) << "\"penalFy\""
-	<< std::setw(OWID) << "\"penalFz\""
-	<< std::setw(OWID) << "\"pressureFx\""
-	<< std::setw(OWID) << "\"pressureFy\""
-	<< std::setw(OWID) << "\"pressureFz\""
-	<< std::endl;
+      ofs << std::setw(OWID) << "VARIABLES = x"
+	  << std::setw(OWID) << "y"
+	  << std::setw(OWID) << "z"
+	  << std::setw(OWID) << "Mach"
+	  << std::setw(OWID) << "density"
+	  << std::setw(OWID) << "momentumX"
+	  << std::setw(OWID) << "momentumY"
+	  << std::setw(OWID) << "momentumZ"
+	  << std::setw(OWID) << "energy"
+	  << std::setw(OWID) << "velocityX"
+	  << std::setw(OWID) << "velocityY"
+	  << std::setw(OWID) << "velocityZ"
+	  << std::setw(OWID) << "pressure"
+	  << std::setw(OWID) << "temperature"
+	  << std::setw(OWID) << "mask"
+	  << std::setw(OWID) << "penalFx"
+	  << std::setw(OWID) << "penalFy"
+	  << std::setw(OWID) << "penalFz"
+	  << std::setw(OWID) << "pressureFx"
+	  << std::setw(OWID) << "pressureFy"
+	  << std::setw(OWID) << "pressureFz"
+	  << std::endl;
 
-    ofs << "ZONE I=" << gridNx -2
-	<< ", J=" << gridNy -2
-	<< ", K=" << gridNz -2
-	<< ", DATAPACKING=POINT"
-	<< std::endl;
+      ofs << "ZONE I=" << allGridNx -2
+	  << ", J=" << allGridNy -2
+	  << ", K=" << allGridNz -2
+	  << ", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME="
+	  << snap
+	  << std::endl;
 
-    for (std::size_t k = 1; k < gridNz - 1; ++k)
-      for (std::size_t j = 1; j < gridNy - 1; ++j)
-	for (std::size_t i = 1; i < gridNx -1; ++i) {
-	  ofs << std::setw(OWID) << arrayGridCoord[i][j][k][0]
-	      << std::setw(OWID) << arrayGridCoord[i][j][k][1]
-	      << std::setw(OWID) << arrayGridCoord[i][j][k][2]
-	      << std::setw(OWID) << vfabs( Vec(arrayU[i][j][k][varVel[0]], arrayU[i][j][k][varVel[1]], arrayU[i][j][k][varVel[2]]) ) / arraySoundSpeed[i][j][k]
-	      << std::setw(OWID) << arrayU[i][j][k][varDen]
-	      << std::setw(OWID) << arrayU[i][j][k][varMom[0]]
-	      << std::setw(OWID) << arrayU[i][j][k][varMom[1]]
-	      << std::setw(OWID) << arrayU[i][j][k][varMom[2]]
-	      << std::setw(OWID) << arrayU[i][j][k][varEng]
-	      << std::setw(OWID) << arrayU[i][j][k][varVel[0]]
-	      << std::setw(OWID) << arrayU[i][j][k][varVel[1]]
-	      << std::setw(OWID) << arrayU[i][j][k][varVel[2]]
-	      << std::setw(OWID) << arrayU[i][j][k][varPrs]
-	      << std::setw(OWID) << arrayU[i][j][k][varPrs]/(Rs*arrayU[i][j][k][varDen])
-	      << std::setw(OWID) << arrayU[i][j][k][varMsk]  
-	      << std::setw(OWID) << arrayPenalForce[i][j][k][0] 
-	      << std::setw(OWID) << arrayPenalForce[i][j][k][1] 
-	      << std::setw(OWID) << arrayPenalForce[i][j][k][2]
-	      << std::setw(OWID) << arrayPressureForce[i][j][k][0] 
-	      << std::setw(OWID) << arrayPressureForce[i][j][k][1] 
-	      << std::setw(OWID) << arrayPressureForce[i][j][k][2] 
-	      << std::endl;
-	}
+      // write in k,j,i order, only in this order does Tecplot plots correctly.
+      for (std::size_t k = 1; k < allGridNz - 1; ++k)
+	for (std::size_t j = 1; j < allGridNy - 1; ++j)
+	  for (std::size_t i = 1; i < allGridNx -1; ++i) {
+	    ofs << std::setw(OWID) << arrayGridCoord[i][j][k][0]
+		<< std::setw(OWID) << arrayGridCoord[i][j][k][1]
+		<< std::setw(OWID) << arrayGridCoord[i][j][k][2]
+		<< std::setw(OWID) << vfabs( Vec(arrayU[i][j][k][varVel[0]], arrayU[i][j][k][varVel[1]], arrayU[i][j][k][varVel[2]]) ) / arraySoundSpeed[i][j][k]
+		<< std::setw(OWID) << arrayU[i][j][k][varDen]
+		<< std::setw(OWID) << arrayU[i][j][k][varMom[0]]
+		<< std::setw(OWID) << arrayU[i][j][k][varMom[1]]
+		<< std::setw(OWID) << arrayU[i][j][k][varMom[2]]
+		<< std::setw(OWID) << arrayU[i][j][k][varEng]
+		<< std::setw(OWID) << arrayU[i][j][k][varVel[0]]
+		<< std::setw(OWID) << arrayU[i][j][k][varVel[1]]
+		<< std::setw(OWID) << arrayU[i][j][k][varVel[2]]
+		<< std::setw(OWID) << arrayU[i][j][k][varPrs]
+		<< std::setw(OWID) << arrayU[i][j][k][varPrs]/(Rs*arrayU[i][j][k][varDen])
+		<< std::setw(OWID) << arrayU[i][j][k][varMsk]  
+		<< std::setw(OWID) << arrayPenalForce[i][j][k][0] 
+		<< std::setw(OWID) << arrayPenalForce[i][j][k][1] 
+		<< std::setw(OWID) << arrayPenalForce[i][j][k][2]
+		<< std::setw(OWID) << arrayPressureForce[i][j][k][0] 
+		<< std::setw(OWID) << arrayPressureForce[i][j][k][1] 
+		<< std::setw(OWID) << arrayPressureForce[i][j][k][2] 
+		<< std::endl;
+	  }
 
-    ofs.close();
+      ofs.close();
+
+    } // end of serial
+    else { // parallel IO
+
+      int boundX = boundPrn.sizeX;
+      int boundY = boundPrn.sizeY;
+      int boundZ = boundPrn.sizeZ;
+      int allBoundX, allBoundY, allBoundZ;
+      MPI_Allreduce(&boundX, &allBoundX, 1, MPI_INT, MPI_SUM, mpi.mpiWorld);
+      MPI_Allreduce(&boundY, &allBoundY, 1, MPI_INT, MPI_SUM, mpi.mpiWorld);
+      MPI_Allreduce(&boundZ, &allBoundZ, 1, MPI_INT, MPI_SUM, mpi.mpiWorld);
+      allBoundX /= (mpi.mpiProcY * mpi.mpiProcZ);
+      allBoundY /= (mpi.mpiProcZ * mpi.mpiProcX);
+      allBoundZ /= (mpi.mpiProcX * mpi.mpiProcY);
+      //std::cout << "allBound="<< " "<< allBoundX<< " " << allBoundY<< " " << allBoundZ<< std::endl;
+
+      MPI_Status status;
+      MPI_File file;
+      MPI_File_open(mpi.mpiWorld, const_cast<char *> (str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+      if(mpi.mpiRank == 0 && !file) { debugInf << "stream error: Gas::plot" << std::endl; MPI_Abort(mpi.mpiWorld, -1);}
+      std::stringstream inf;
+      inf.setf(std::ios::scientific, std::ios::floatfield);
+
+      int length = 0;
+
+      // for MPI_File_write_ordered, each process can write different amount of data!
+      if (mpi.mpiRank == 0) { // root process
+	// OWID*24 + std::endl = 361
+	inf << std::setw(OWID) << "VARIABLES = x"
+	    << std::setw(OWID) << "y"
+	    << std::setw(OWID) << "z"
+	    << std::setw(OWID) << "iGlobal"
+	    << std::setw(OWID) << "jGlobal"
+	    << std::setw(OWID) << "kGlobal"
+	    << std::setw(OWID) << "Mach"
+	    << std::setw(OWID) << "density"
+	    << std::setw(OWID) << "momentumX"
+	    << std::setw(OWID) << "momentumY"
+	    << std::setw(OWID) << "momentumZ"
+	    << std::setw(OWID) << "energy"
+	    << std::setw(OWID) << "velocityX"
+	    << std::setw(OWID) << "velocityY"
+	    << std::setw(OWID) << "velocityZ"
+	    << std::setw(OWID) << "pressure"
+	    << std::setw(OWID) << "temperature"
+	    << std::setw(OWID) << "mask"
+	    << std::setw(OWID) << "penalFx"
+	    << std::setw(OWID) << "penalFy"
+	    << std::setw(OWID) << "penalFz"
+	    << std::setw(OWID) << "pressureFx"
+	    << std::setw(OWID) << "pressureFy"
+	    << std::setw(OWID) << "pressureFz"
+	    << std::endl;
+
+	// OWID*4 + 7 + 4 + 4 + 46 + std::endl = 122
+	inf << "ZONE I=" << std::setw(OWID) << allBoundX
+	    << ", J=" << std::setw(OWID) << allBoundY
+	    << ", K=" << std::setw(OWID) << allBoundZ
+	    << ", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME="
+	    << std::setw(OWID) << snap
+	    << std::endl;
+      
+	length += 483;
+      }
+
+      // (OWID*24 + std::endl) * ( boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ )
+      for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	  for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i) {
+	    // i, j, k are local
+	    IJK local(i,j,k);
+	    IJK global;
+	    localIndexToGlobal(local, global);
+
+	    inf << std::setw(OWID) << arrayGridCoord[i][j][k][0]
+		<< std::setw(OWID) << arrayGridCoord[i][j][k][1]
+		<< std::setw(OWID) << arrayGridCoord[i][j][k][2]
+		<< std::setw(OWID) << global.i
+		<< std::setw(OWID) << global.j
+		<< std::setw(OWID) << global.k
+		<< std::setw(OWID) << vfabs( Vec(arrayU[i][j][k][varVel[0]], arrayU[i][j][k][varVel[1]], arrayU[i][j][k][varVel[2]]) ) / arraySoundSpeed[i][j][k]
+		<< std::setw(OWID) << arrayU[i][j][k][varDen]
+		<< std::setw(OWID) << arrayU[i][j][k][varMom[0]]
+		<< std::setw(OWID) << arrayU[i][j][k][varMom[1]]
+		<< std::setw(OWID) << arrayU[i][j][k][varMom[2]]
+		<< std::setw(OWID) << arrayU[i][j][k][varEng]
+		<< std::setw(OWID) << arrayU[i][j][k][varVel[0]]
+		<< std::setw(OWID) << arrayU[i][j][k][varVel[1]]
+		<< std::setw(OWID) << arrayU[i][j][k][varVel[2]]
+		<< std::setw(OWID) << arrayU[i][j][k][varPrs]
+		<< std::setw(OWID) << arrayU[i][j][k][varPrs]/(Rs*arrayU[i][j][k][varDen])
+		<< std::setw(OWID) << arrayU[i][j][k][varMsk]  
+		<< std::setw(OWID) << arrayPenalForce[i][j][k][0] 
+		<< std::setw(OWID) << arrayPenalForce[i][j][k][1] 
+		<< std::setw(OWID) << arrayPenalForce[i][j][k][2]
+		<< std::setw(OWID) << arrayPressureForce[i][j][k][0] 
+		<< std::setw(OWID) << arrayPressureForce[i][j][k][1] 
+		<< std::setw(OWID) << arrayPressureForce[i][j][k][2] 
+		<< std::endl;
+	  }
+      length += (OWID*24 + 1) * (boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
+      MPI_File_write_ordered(file, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
+      MPI_File_close(&file);
+
+    } // end of parallel IO
+
   }
 
   void Gas::findPrsVel(REAL UL[], REAL UR[], REAL &p, REAL &u) {
@@ -1842,5 +2304,799 @@ namespace dem {
       }
     }
   }
+
+  void Gas::findGasInRectangle(IJK &start, IJK &end, std::vector<GasVar> &foundGas) {
+    for (std::size_t i = start.i; i <= end.i; ++i)
+      for (std::size_t j = start.j; j <= end.j; ++j)
+	for (std::size_t k = start.k; k <= end.k; ++k) {
+	  // i, j, k are local
+	  // i, j, k are local
+	  REAL den = arrayU[i][j][k][varDen];
+	  REAL mx  = arrayU[i][j][k][varMom[0]];
+	  REAL my  = arrayU[i][j][k][varMom[1]];
+	  REAL mz  = arrayU[i][j][k][varMom[2]];
+	  REAL eng = arrayU[i][j][k][varEng];
+	  REAL vx  = arrayU[i][j][k][varVel[0]];
+	  REAL vy  = arrayU[i][j][k][varVel[1]];
+	  REAL vz  = arrayU[i][j][k][varVel[2]];
+	  REAL prs = arrayU[i][j][k][varPrs];
+	  Vec  coords(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]);
+	  foundGas.push_back(GasVar(den, Vec(mx,my,mz), eng, Vec(vx,vy,vz), prs, coords));
+
+	  /*
+	  if (iteration == 1 && i==17)
+	    std::cout << "find,mpiRank=" << mpi.mpiRank << " ijk=" << std::setw(OWID) << i << std::setw(OWID) << j << std::setw(OWID) << k 
+		      << std::setw(OWID) << arrayU[i][j][k][varDen]
+		      << std::setw(OWID) << arrayU[i][j][k][varPrs]
+		      << std::endl;
+	  */
+	}
+  }
+
+  void Gas::findPenalInRectangle(IJK &start, IJK &end, std::vector<ValCoord> &foundPenal) {
+    for (std::size_t i = start.i; i <= end.i; ++i)
+      for (std::size_t j = start.j; j <= end.j; ++j)
+	for (std::size_t k = start.k; k <= end.k; ++k) {
+	  // i, j, k are local
+	  Vec penal(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
+	  Vec coords(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]);
+	  foundPenal.push_back(ValCoord(penal, coords));
+	}
+  }
+
+  void Gas::commu6() {
+    // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
+    std::vector<GasVar> gasX1, gasX2;
+    std::vector<GasVar> gasY1, gasY2;
+    std::vector<GasVar> gasZ1, gasZ2;
+
+    std::vector<GasVar> rGasX1, rGasX2;
+    std::vector<GasVar> rGasY1, rGasY2;
+    std::vector<GasVar> rGasZ1, rGasZ2;
+
+    boost::mpi::request reqX1[2], reqX2[2];
+    boost::mpi::request reqY1[2], reqY2[2];
+    boost::mpi::request reqZ1[2], reqZ2[2];
+
+    // 1. communication only occurs when there are multiple partitions in a specific direction;
+    //    hereby it is safe to use haloGrid rather than haloGridX, haloGridY, haloGridZ, 
+    //    because "if" condition prevents haloGrid to be zero.
+    // 2. must use boundPrn for findGasInRectangle, NOT boundCup
+
+    // 6 surfaces
+    if (mpi.rankX1 >= 0) { // surface x1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1);
+      reqX1[0] = mpi.boostWorld.isend(mpi.rankX1, mpi.mpiTag,  gasX1);
+      reqX1[1] = mpi.boostWorld.irecv(mpi.rankX1, mpi.mpiTag, rGasX1);
+    }
+    if (mpi.rankX2 >= 0) { // surface x2
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2);
+      reqX2[0] = mpi.boostWorld.isend(mpi.rankX2, mpi.mpiTag,  gasX2);
+      reqX2[1] = mpi.boostWorld.irecv(mpi.rankX2, mpi.mpiTag, rGasX2);
+    }
+    if (mpi.rankY1 >= 0) {  // surface y1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasY1);
+      reqY1[0] = mpi.boostWorld.isend(mpi.rankY1, mpi.mpiTag,  gasY1);
+      reqY1[1] = mpi.boostWorld.irecv(mpi.rankY1, mpi.mpiTag, rGasY1);
+    }
+    if (mpi.rankY2 >= 0) {  // surface y2
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasY2);
+      reqY2[0] = mpi.boostWorld.isend(mpi.rankY2, mpi.mpiTag,  gasY2);
+      reqY2[1] = mpi.boostWorld.irecv(mpi.rankY2, mpi.mpiTag, rGasY2);
+    }
+    if (mpi.rankZ1 >= 0) {  // surface z1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasZ1);
+      reqZ1[0] = mpi.boostWorld.isend(mpi.rankZ1, mpi.mpiTag,  gasZ1);
+      reqZ1[1] = mpi.boostWorld.irecv(mpi.rankZ1, mpi.mpiTag, rGasZ1);
+    }
+    if (mpi.rankZ2 >= 0) {  // surface z2
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasZ2);
+      reqZ2[0] = mpi.boostWorld.isend(mpi.rankZ2, mpi.mpiTag,  gasZ2);
+      reqZ2[1] = mpi.boostWorld.irecv(mpi.rankZ2, mpi.mpiTag, rGasZ2);
+    }
+
+    // 6 surfaces
+    if (mpi.rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
+    if (mpi.rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
+    if (mpi.rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
+    if (mpi.rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
+    if (mpi.rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
+    if (mpi.rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
+
+    // merge using std::map
+    std::vector<GasVar> recvGasVarVec;
+    // 6 surfaces                                                                                          
+    if (mpi.rankX1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1.begin(), rGasX1.end());            
+    if (mpi.rankX2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2.begin(), rGasX2.end());            
+    if (mpi.rankY1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY1.begin(), rGasY1.end());            
+    if (mpi.rankY2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY2.begin(), rGasY2.end());            
+    if (mpi.rankZ1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasZ1.begin(), rGasZ1.end());            
+    if (mpi.rankZ2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasZ2.begin(), rGasZ2.end());            
+
+    //if (iteration == 1) std::cout << "recv,mpiRank=" << mpi.mpiRank << " recvSize=" << recvGasVarVec.size() << std::endl;
+    IJK_GasVar_Map recvGasMap;
+    for (int i = 0; i < recvGasVarVec.size(); ++i) {
+      IJK tri;
+      coordToGlobalIndex(recvGasVarVec[i].coords, tri);
+      recvGasMap.insert(std::make_pair(tri, recvGasVarVec[i]));
+      //recvGasMap[tri] = recvGasVarVec[i]; // equivalent to map::insert.
+      //if (iteration == 1) std::cout << "recv,mpiRank=" << mpi.mpiRank << std::setw(OWID) << recvGasVarVec[i].coords.getX() << std::setw(OWID) << recvGasVarVec[i].coords.getY() << std::setw(OWID) << recvGasVarVec[i].coords.getZ() << std::setw(OWID) << tri.i << std::setw(OWID) << tri.j << std::setw(OWID) << tri.k << std::endl;
+    }
+    //if (iteration == 1) std::cout << "recv,mpiRank=" << mpi.mpiRank << " mapSize=" << recvGasMap.size() << std::endl;
+    
+    // construct gas halo with received info
+    for (std::size_t i = 0; i < arrayU.size(); ++i)
+      for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
+	  if (!(i >= boundPrn.lowX && i <= boundPrn.uppX &&
+		j >= boundPrn.lowY && j <= boundPrn.uppY &&
+		k >= boundPrn.lowZ && k <= boundPrn.uppZ )) {
+
+	    // i, j, k are local
+	    IJK local(i,j,k);
+	    IJK global;
+	    localIndexToGlobal(local, global);
+
+	    if (recvGasMap.count(global)) { // important to judge, otherwise it creates a new map elment!
+	      arrayU[i][j][k][varDen]    = recvGasMap[global].density;
+	      arrayU[i][j][k][varMom[0]] = recvGasMap[global].momentum.getX();
+	      arrayU[i][j][k][varMom[1]] = recvGasMap[global].momentum.getY() ;
+	      arrayU[i][j][k][varMom[2]] = recvGasMap[global].momentum.getZ() ;
+	      arrayU[i][j][k][varEng]    = recvGasMap[global].energy;
+	      arrayU[i][j][k][varVel[0]] = recvGasMap[global].velocity.getX();
+	      arrayU[i][j][k][varVel[1]] = recvGasMap[global].velocity.getY() ;
+	      arrayU[i][j][k][varVel[2]] = recvGasMap[global].velocity.getZ() ;
+	      arrayU[i][j][k][varPrs]    = recvGasMap[global].pressure;
+	      /*
+	      if (iteration == 1 && i==17)
+	      std::cout << "recv,mpiRank=" << mpi.mpiRank << " ijk=" << std::setw(OWID) << i << std::setw(OWID) << j << std::setw(OWID) << k 
+			<< std::setw(OWID) << arrayU[i][j][k][varDen]
+			<< std::setw(OWID) << arrayU[i][j][k][varPrs]
+			<< std::endl;
+	      */
+	    }
+	  } 
+	}
+
+  } // end of Gas::commu6
+
+  void Gas::commu20() {
+    // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
+    std::vector<GasVar> gasX1, gasX2;
+    std::vector<GasVar> gasY1, gasY2;
+    std::vector<GasVar> gasZ1, gasZ2;
+    std::vector<GasVar> gasX1Y1, gasX1Y2, gasX1Z1, gasX1Z2; 
+    std::vector<GasVar> gasX2Y1, gasX2Y2, gasX2Z1, gasX2Z2; 
+    std::vector<GasVar> gasY1Z1, gasY1Z2, gasY2Z1, gasY2Z2; 
+    std::vector<GasVar> gasX1Y1Z1, gasX1Y1Z2, gasX1Y2Z1, gasX1Y2Z2; 
+    std::vector<GasVar> gasX2Y1Z1, gasX2Y1Z2, gasX2Y2Z1, gasX2Y2Z2; 
+
+    std::vector<GasVar> rGasX1, rGasX2;
+    std::vector<GasVar> rGasY1, rGasY2;
+    std::vector<GasVar> rGasZ1, rGasZ2;
+    std::vector<GasVar> rGasX1Y1, rGasX1Y2, rGasX1Z1, rGasX1Z2; 
+    std::vector<GasVar> rGasX2Y1, rGasX2Y2, rGasX2Z1, rGasX2Z2; 
+    std::vector<GasVar> rGasY1Z1, rGasY1Z2, rGasY2Z1, rGasY2Z2; 
+    std::vector<GasVar> rGasX1Y1Z1, rGasX1Y1Z2, rGasX1Y2Z1, rGasX1Y2Z2; 
+    std::vector<GasVar> rGasX2Y1Z1, rGasX2Y1Z2, rGasX2Y2Z1, rGasX2Y2Z2; 
+
+    boost::mpi::request reqX1[2], reqX2[2];
+    boost::mpi::request reqY1[2], reqY2[2];
+    boost::mpi::request reqZ1[2], reqZ2[2];
+    boost::mpi::request reqX1Y1[2], reqX1Y2[2], reqX1Z1[2], reqX1Z2[2];
+    boost::mpi::request reqX2Y1[2], reqX2Y2[2], reqX2Z1[2], reqX2Z2[2];
+    boost::mpi::request reqY1Z1[2], reqY1Z2[2], reqY2Z1[2], reqY2Z2[2];
+    boost::mpi::request reqX1Y1Z1[2], reqX1Y1Z2[2], reqX1Y2Z1[2], reqX1Y2Z2[2];
+    boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
+
+    // 1. communication only occurs when there are multiple partitions in a specific direction;
+    //    hereby it is safe to use haloGrid rather than haloGridX, haloGridY, haloGridZ, 
+    //    because "if" condition prevents haloGrid to be zero.
+    // 2. must use boundPrn for findGasInRectangle, NOT boundCup
+
+    // 6 surfaces
+    if (mpi.rankX1 >= 0) { // surface x1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1);
+      reqX1[0] = mpi.boostWorld.isend(mpi.rankX1, mpi.mpiTag,  gasX1);
+      reqX1[1] = mpi.boostWorld.irecv(mpi.rankX1, mpi.mpiTag, rGasX1);
+    }
+    if (mpi.rankX2 >= 0) { // surface x2
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2);
+      reqX2[0] = mpi.boostWorld.isend(mpi.rankX2, mpi.mpiTag,  gasX2);
+      reqX2[1] = mpi.boostWorld.irecv(mpi.rankX2, mpi.mpiTag, rGasX2);
+    }
+    if (mpi.rankY1 >= 0) {  // surface y1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasY1);
+      reqY1[0] = mpi.boostWorld.isend(mpi.rankY1, mpi.mpiTag,  gasY1);
+      reqY1[1] = mpi.boostWorld.irecv(mpi.rankY1, mpi.mpiTag, rGasY1);
+    }
+    if (mpi.rankY2 >= 0) {  // surface y2
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasY2);
+      reqY2[0] = mpi.boostWorld.isend(mpi.rankY2, mpi.mpiTag,  gasY2);
+      reqY2[1] = mpi.boostWorld.irecv(mpi.rankY2, mpi.mpiTag, rGasY2);
+    }
+    if (mpi.rankZ1 >= 0) {  // surface z1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasZ1);
+      reqZ1[0] = mpi.boostWorld.isend(mpi.rankZ1, mpi.mpiTag,  gasZ1);
+      reqZ1[1] = mpi.boostWorld.irecv(mpi.rankZ1, mpi.mpiTag, rGasZ1);
+    }
+    if (mpi.rankZ2 >= 0) {  // surface z2
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasZ2);
+      reqZ2[0] = mpi.boostWorld.isend(mpi.rankZ2, mpi.mpiTag,  gasZ2);
+      reqZ2[1] = mpi.boostWorld.irecv(mpi.rankZ2, mpi.mpiTag, rGasZ2);
+    }
+    // 12 edges
+    if (mpi.rankX1Y1 >= 0) { // edge x1y1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1Y1);
+      reqX1Y1[0] = mpi.boostWorld.isend(mpi.rankX1Y1, mpi.mpiTag,  gasX1Y1);
+      reqX1Y1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1, mpi.mpiTag, rGasX1Y1);
+    }
+    if (mpi.rankX1Y2 >= 0) { // edge x1y2
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1Y2);
+      reqX1Y2[0] = mpi.boostWorld.isend(mpi.rankX1Y2, mpi.mpiTag,  gasX1Y2);
+      reqX1Y2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2, mpi.mpiTag, rGasX1Y2);
+    }
+    if (mpi.rankX1Z1 >= 0) { // edge x1z1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasX1Z1);
+      reqX1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Z1, mpi.mpiTag,  gasX1Z1);
+      reqX1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Z1, mpi.mpiTag, rGasX1Z1);
+    }
+    if (mpi.rankX1Z2 >= 0) { // edge x1z2
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1Z2);
+      reqX1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Z2, mpi.mpiTag,  gasX1Z2);
+      reqX1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Z2, mpi.mpiTag, rGasX1Z2);
+    }
+    if (mpi.rankX2Y1 >= 0) { // edge x2y1
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2Y1);
+      reqX2Y1[0] = mpi.boostWorld.isend(mpi.rankX2Y1, mpi.mpiTag,  gasX2Y1);
+      reqX2Y1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1, mpi.mpiTag, rGasX2Y1);
+    }
+    if (mpi.rankX2Y2 >= 0) { // edge x2y2
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.uppX+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2Y2);
+      reqX2Y2[0] = mpi.boostWorld.isend(mpi.rankX2Y2, mpi.mpiTag,  gasX2Y2);
+      reqX2Y2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2, mpi.mpiTag, rGasX2Y2);
+    }
+    if (mpi.rankX2Z1 >= 0) { // edge x2z1
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasX2Z1);
+      reqX2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Z1, mpi.mpiTag,  gasX2Z1);
+      reqX2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Z1, mpi.mpiTag, rGasX2Z1);
+    }
+    if (mpi.rankX2Z2 >= 0) { // edge x2z2
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2Z2);
+      reqX2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Z2, mpi.mpiTag,  gasX2Z2);
+      reqX2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Z2, mpi.mpiTag, rGasX2Z2);
+    }
+    if (mpi.rankY1Z1 >= 0) { // edge y1z1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1,boundPrn.lowZ+ haloGrid-1);
+      findGasInRectangle(start, end, gasY1Z1);
+      reqY1Z1[0] = mpi.boostWorld.isend(mpi.rankY1Z1, mpi.mpiTag,  gasY1Z1);
+      reqY1Z1[1] = mpi.boostWorld.irecv(mpi.rankY1Z1, mpi.mpiTag, rGasY1Z1);
+    }
+    if (mpi.rankY1Z2 >= 0) { // edge y1z2
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasY1Z2);
+      reqY1Z2[0] = mpi.boostWorld.isend(mpi.rankY1Z2, mpi.mpiTag,  gasY1Z2);
+      reqY1Z2[1] = mpi.boostWorld.irecv(mpi.rankY1Z2, mpi.mpiTag, rGasY1Z2);
+    }
+    if (mpi.rankY2Z1 >= 0) { // edge y2z1
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasY2Z1);
+      reqY2Z1[0] = mpi.boostWorld.isend(mpi.rankY2Z1, mpi.mpiTag,  gasY2Z1);
+      reqY2Z1[1] = mpi.boostWorld.irecv(mpi.rankY2Z1, mpi.mpiTag, rGasY2Z1);
+    }
+    if (mpi.rankY2Z2 >= 0) { // edge y2z2
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasY2Z2);
+      reqY2Z2[0] = mpi.boostWorld.isend(mpi.rankY2Z2, mpi.mpiTag,  gasY2Z2);
+      reqY2Z2[1] = mpi.boostWorld.irecv(mpi.rankY2Z2, mpi.mpiTag, rGasY2Z2);
+    }
+    // 8 vertices
+    if (mpi.rankX1Y1Z1 >= 0) { // vertice x1y1z1
+      IJK start(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.lowY+haloGrid-1, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasX1Y1Z1);
+      reqX1Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z1, mpi.mpiTag,  gasX1Y1Z1);
+      reqX1Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z1, mpi.mpiTag, rGasX1Y1Z1);
+    }
+    if (mpi.rankX1Y1Z2 >= 0) { // vertice x1y1z2
+      IJK start(boundPrn.lowX, boundPrn.lowY,  boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1Y1Z2);
+      reqX1Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z2, mpi.mpiTag,  gasX1Y1Z2);
+      reqX1Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z2, mpi.mpiTag, rGasX1Y1Z2);
+    }
+    if (mpi.rankX1Y2Z1 >= 0) { // vertice x1y2z1
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasX1Y2Z1);
+      reqX1Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z1, mpi.mpiTag,  gasX1Y2Z1);
+      reqX1Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z1, mpi.mpiTag, rGasX1Y2Z1);
+    }
+    if (mpi.rankX1Y2Z2 >= 0) { // vertice x1y2z2
+      IJK start(boundPrn.lowX, boundPrn.uppY+1-haloGrid, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.lowX+haloGrid-1, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX1Y2Z2);
+      reqX1Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z2, mpi.mpiTag,  gasX1Y2Z2);
+      reqX1Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z2, mpi.mpiTag, rGasX1Y2Z2);
+    }
+    if (mpi.rankX2Y1Z1 >= 0) { // vertice x2y1z1
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasX2Y1Z1);
+      reqX2Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z1, mpi.mpiTag,  gasX2Y1Z1);
+      reqX2Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z1, mpi.mpiTag, rGasX2Y1Z1);
+    }
+    if (mpi.rankX2Y1Z2 >= 0) { // vertice x2y1z2
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.lowY, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.lowY+haloGrid-1, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2Y1Z2);
+      reqX2Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z2, mpi.mpiTag,  gasX2Y1Z2);
+      reqX2Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z2, mpi.mpiTag, rGasX2Y1Z2);
+    }
+    if (mpi.rankX2Y2Z1 >= 0) { // vertice x2y2z1
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.uppY+1-haloGrid, boundPrn.lowZ);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.lowZ+haloGrid-1);
+      findGasInRectangle(start, end, gasX2Y2Z1);
+      reqX2Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z1, mpi.mpiTag,  gasX2Y2Z1);
+      reqX2Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z1, mpi.mpiTag, rGasX2Y2Z1);
+    }
+    if (mpi.rankX2Y2Z2 >= 0) { // vertice x2y2z2
+      IJK start(boundPrn.uppX+1-haloGrid, boundPrn.uppY+1-haloGrid, boundPrn.uppZ+1-haloGrid);
+      IJK end(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+      findGasInRectangle(start, end, gasX2Y2Z2);
+      reqX2Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z2, mpi.mpiTag,  gasX2Y2Z2);
+      reqX2Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z2, mpi.mpiTag, rGasX2Y2Z2);
+    }
+
+    // 6 surfaces
+    if (mpi.rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
+    if (mpi.rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
+    if (mpi.rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
+    if (mpi.rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
+    if (mpi.rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
+    if (mpi.rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
+    // 12 edges
+    if (mpi.rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
+    if (mpi.rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
+    if (mpi.rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
+    if (mpi.rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
+    if (mpi.rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
+    if (mpi.rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
+    if (mpi.rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
+    if (mpi.rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
+    if (mpi.rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
+    if (mpi.rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
+    if (mpi.rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
+    if (mpi.rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
+    // 8 vertices
+    if (mpi.rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
+    if (mpi.rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
+    if (mpi.rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
+    if (mpi.rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
+    if (mpi.rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
+    if (mpi.rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
+    if (mpi.rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
+    if (mpi.rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);
+
+    // merge using std::map
+    std::vector<GasVar> recvGasVarVec;
+    // 6 surfaces                                                                                          
+    if (mpi.rankX1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1.begin(), rGasX1.end());            
+    if (mpi.rankX2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2.begin(), rGasX2.end());            
+    if (mpi.rankY1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY1.begin(), rGasY1.end());            
+    if (mpi.rankY2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY2.begin(), rGasY2.end());            
+    if (mpi.rankZ1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasZ1.begin(), rGasZ1.end());            
+    if (mpi.rankZ2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasZ2.begin(), rGasZ2.end());            
+    // 12 edges                                                                                            
+    if (mpi.rankX1Y1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Y1.begin(), rGasX1Y1.end());      
+    if (mpi.rankX1Y2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Y2.begin(), rGasX1Y2.end());      
+    if (mpi.rankX1Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Z1.begin(), rGasX1Z1.end());      
+    if (mpi.rankX1Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Z2.begin(), rGasX1Z2.end());      
+    if (mpi.rankX2Y1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Y1.begin(), rGasX2Y1.end());      
+    if (mpi.rankX2Y2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Y2.begin(), rGasX2Y2.end());      
+    if (mpi.rankX2Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Z1.begin(), rGasX2Z1.end());      
+    if (mpi.rankX2Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Z2.begin(), rGasX2Z2.end());      
+    if (mpi.rankY1Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY1Z1.begin(), rGasY1Z1.end());      
+    if (mpi.rankY1Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY1Z2.begin(), rGasY1Z2.end());      
+    if (mpi.rankY2Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY2Z1.begin(), rGasY2Z1.end());      
+    if (mpi.rankY2Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasY2Z2.begin(), rGasY2Z2.end());      
+    // 8 vertices                                                                                          
+    if (mpi.rankX1Y1Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Y1Z1.begin(), rGasX1Y1Z1.end());
+    if (mpi.rankX1Y1Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Y1Z2.begin(), rGasX1Y1Z2.end());
+    if (mpi.rankX1Y2Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Y2Z1.begin(), rGasX1Y2Z1.end());
+    if (mpi.rankX1Y2Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX1Y2Z2.begin(), rGasX1Y2Z2.end());
+    if (mpi.rankX2Y1Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Y1Z1.begin(), rGasX2Y1Z1.end());
+    if (mpi.rankX2Y1Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Y1Z2.begin(), rGasX2Y1Z2.end());
+    if (mpi.rankX2Y2Z1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Y2Z1.begin(), rGasX2Y2Z1.end());
+    if (mpi.rankX2Y2Z2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasX2Y2Z2.begin(), rGasX2Y2Z2.end());
+
+    IJK_GasVar_Map recvGasMap;
+    for (int i = 0; i < recvGasVarVec.size(); ++i) {
+      IJK tri;
+      coordToGlobalIndex(recvGasVarVec[i].coords, tri);
+      recvGasMap[tri] = recvGasVarVec[i];
+    }
+    
+    // construct gas halo with received info
+    for (std::size_t i = 0; i < arrayU.size(); ++i)
+      for (std::size_t j = 0; j < arrayU[i].size(); ++j)
+	for (std::size_t k = 0; k < arrayU[i][j].size(); ++k) {
+	  if (!(i >= boundPrn.lowX && i <= boundPrn.uppX &&
+		j >= boundPrn.lowY && j <= boundPrn.uppY &&
+		k >= boundPrn.lowZ && k <= boundPrn.uppZ )) {
+
+	    // i, j, k are local
+	    IJK local(i,j,k);
+	    IJK global;
+	    localIndexToGlobal(local, global);
+
+	    if (recvGasMap.count(global)) { // important to judge, otherwise it creates a new map elment!
+	      arrayU[i][j][k][varDen]    = recvGasMap[global].density;
+	      arrayU[i][j][k][varMom[0]] = recvGasMap[global].momentum.getX();
+	      arrayU[i][j][k][varMom[1]] = recvGasMap[global].momentum.getY() ;
+	      arrayU[i][j][k][varMom[2]] = recvGasMap[global].momentum.getZ() ;
+	      arrayU[i][j][k][varEng]    = recvGasMap[global].energy;
+	      arrayU[i][j][k][varVel[0]] = recvGasMap[global].velocity.getX();
+	      arrayU[i][j][k][varVel[1]] = recvGasMap[global].velocity.getY() ;
+	      arrayU[i][j][k][varVel[2]] = recvGasMap[global].velocity.getZ() ;
+	      arrayU[i][j][k][varPrs]    = recvGasMap[global].pressure;
+	    }
+	  } 
+	}
+
+  } // end of Gas::commu20
+
+  void Gas::backCommu20() {
+    // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
+
+    // in this member function, gas and rGas are used to store arrayPenalForce.
+    std::vector<ValCoord> gasX1, gasX2;
+    std::vector<ValCoord> gasY1, gasY2;
+    std::vector<ValCoord> gasZ1, gasZ2;
+    std::vector<ValCoord> gasX1Y1, gasX1Y2, gasX1Z1, gasX1Z2; 
+    std::vector<ValCoord> gasX2Y1, gasX2Y2, gasX2Z1, gasX2Z2; 
+    std::vector<ValCoord> gasY1Z1, gasY1Z2, gasY2Z1, gasY2Z2; 
+    std::vector<ValCoord> gasX1Y1Z1, gasX1Y1Z2, gasX1Y2Z1, gasX1Y2Z2; 
+    std::vector<ValCoord> gasX2Y1Z1, gasX2Y1Z2, gasX2Y2Z1, gasX2Y2Z2; 
+
+    std::vector<ValCoord> rGasX1, rGasX2;
+    std::vector<ValCoord> rGasY1, rGasY2;
+    std::vector<ValCoord> rGasZ1, rGasZ2;
+    std::vector<ValCoord> rGasX1Y1, rGasX1Y2, rGasX1Z1, rGasX1Z2; 
+    std::vector<ValCoord> rGasX2Y1, rGasX2Y2, rGasX2Z1, rGasX2Z2; 
+    std::vector<ValCoord> rGasY1Z1, rGasY1Z2, rGasY2Z1, rGasY2Z2; 
+    std::vector<ValCoord> rGasX1Y1Z1, rGasX1Y1Z2, rGasX1Y2Z1, rGasX1Y2Z2; 
+    std::vector<ValCoord> rGasX2Y1Z1, rGasX2Y1Z2, rGasX2Y2Z1, rGasX2Y2Z2; 
+
+    boost::mpi::request reqX1[2], reqX2[2];
+    boost::mpi::request reqY1[2], reqY2[2];
+    boost::mpi::request reqZ1[2], reqZ2[2];
+    boost::mpi::request reqX1Y1[2], reqX1Y2[2], reqX1Z1[2], reqX1Z2[2];
+    boost::mpi::request reqX2Y1[2], reqX2Y2[2], reqX2Z1[2], reqX2Z2[2];
+    boost::mpi::request reqY1Z1[2], reqY1Z2[2], reqY2Z1[2], reqY2Z2[2];
+    boost::mpi::request reqX1Y1Z1[2], reqX1Y1Z2[2], reqX1Y2Z1[2], reqX1Y2Z2[2];
+    boost::mpi::request reqX2Y1Z1[2], reqX2Y1Z2[2], reqX2Y2Z1[2], reqX2Y2Z2[2];
+
+    // 1. communication only occurs when there are multiple partitions in a specific direction;
+    //    hereby it is safe to use haloGrid rather than haloGridX, haloGridY, haloGridZ, 
+    //    because "if" condition prevents haloGrid to be zero.
+    // 2. must use boundCup for findPenalInRectangle, NOT boundCup
+
+    // 6 surfaces
+    if (mpi.rankX1 >= 0) { // surface x1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX1);
+      reqX1[0] = mpi.boostWorld.isend(mpi.rankX1, mpi.mpiTag,  gasX1);
+      reqX1[1] = mpi.boostWorld.irecv(mpi.rankX1, mpi.mpiTag, rGasX1);
+    }
+    if (mpi.rankX2 >= 0) { // surface x2
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX2);
+      reqX2[0] = mpi.boostWorld.isend(mpi.rankX2, mpi.mpiTag,  gasX2);
+      reqX2[1] = mpi.boostWorld.irecv(mpi.rankX2, mpi.mpiTag, rGasX2);
+    }
+    if (mpi.rankY1 >= 0) {  // surface y1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.lowY+haloGrid-1, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasY1);
+      reqY1[0] = mpi.boostWorld.isend(mpi.rankY1, mpi.mpiTag,  gasY1);
+      reqY1[1] = mpi.boostWorld.irecv(mpi.rankY1, mpi.mpiTag, rGasY1);
+    }
+    if (mpi.rankY2 >= 0) {  // surface y2
+      IJK start(boundCup.lowX, boundCup.uppY+1-haloGrid, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasY2);
+      reqY2[0] = mpi.boostWorld.isend(mpi.rankY2, mpi.mpiTag,  gasY2);
+      reqY2[1] = mpi.boostWorld.irecv(mpi.rankY2, mpi.mpiTag, rGasY2);
+    }
+    if (mpi.rankZ1 >= 0) {  // surface z1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasZ1);
+      reqZ1[0] = mpi.boostWorld.isend(mpi.rankZ1, mpi.mpiTag,  gasZ1);
+      reqZ1[1] = mpi.boostWorld.irecv(mpi.rankZ1, mpi.mpiTag, rGasZ1);
+    }
+    if (mpi.rankZ2 >= 0) {  // surface z2
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasZ2);
+      reqZ2[0] = mpi.boostWorld.isend(mpi.rankZ2, mpi.mpiTag,  gasZ2);
+      reqZ2[1] = mpi.boostWorld.irecv(mpi.rankZ2, mpi.mpiTag, rGasZ2);
+    }
+    // 12 edges
+    if (mpi.rankX1Y1 >= 0) { // edge x1y1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.lowY+haloGrid-1, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX1Y1);
+      reqX1Y1[0] = mpi.boostWorld.isend(mpi.rankX1Y1, mpi.mpiTag,  gasX1Y1);
+      reqX1Y1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1, mpi.mpiTag, rGasX1Y1);
+    }
+    if (mpi.rankX1Y2 >= 0) { // edge x1y2
+      IJK start(boundCup.lowX, boundCup.uppY+1-haloGrid, boundCup.lowZ);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX1Y2);
+      reqX1Y2[0] = mpi.boostWorld.isend(mpi.rankX1Y2, mpi.mpiTag,  gasX1Y2);
+      reqX1Y2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2, mpi.mpiTag, rGasX1Y2);
+    }
+    if (mpi.rankX1Z1 >= 0) { // edge x1z1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.uppY, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasX1Z1);
+      reqX1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Z1, mpi.mpiTag,  gasX1Z1);
+      reqX1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Z1, mpi.mpiTag, rGasX1Z1);
+    }
+    if (mpi.rankX1Z2 >= 0) { // edge x1z2
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX1Z2);
+      reqX1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Z2, mpi.mpiTag,  gasX1Z2);
+      reqX1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Z2, mpi.mpiTag, rGasX1Z2);
+    }
+    if (mpi.rankX2Y1 >= 0) { // edge x2y1
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.lowY+haloGrid-1, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX2Y1);
+      reqX2Y1[0] = mpi.boostWorld.isend(mpi.rankX2Y1, mpi.mpiTag,  gasX2Y1);
+      reqX2Y1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1, mpi.mpiTag, rGasX2Y1);
+    }
+    if (mpi.rankX2Y2 >= 0) { // edge x2y2
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.uppX+1-haloGrid, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX2Y2);
+      reqX2Y2[0] = mpi.boostWorld.isend(mpi.rankX2Y2, mpi.mpiTag,  gasX2Y2);
+      reqX2Y2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2, mpi.mpiTag, rGasX2Y2);
+    }
+    if (mpi.rankX2Z1 >= 0) { // edge x2z1
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasX2Z1);
+      reqX2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Z1, mpi.mpiTag,  gasX2Z1);
+      reqX2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Z1, mpi.mpiTag, rGasX2Z1);
+    }
+    if (mpi.rankX2Z2 >= 0) { // edge x2z2
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.lowY, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX2Z2);
+      reqX2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Z2, mpi.mpiTag,  gasX2Z2);
+      reqX2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Z2, mpi.mpiTag, rGasX2Z2);
+    }
+    if (mpi.rankY1Z1 >= 0) { // edge y1z1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.lowY+haloGrid-1,boundCup.lowZ+ haloGrid-1);
+      findPenalInRectangle(start, end, gasY1Z1);
+      reqY1Z1[0] = mpi.boostWorld.isend(mpi.rankY1Z1, mpi.mpiTag,  gasY1Z1);
+      reqY1Z1[1] = mpi.boostWorld.irecv(mpi.rankY1Z1, mpi.mpiTag, rGasY1Z1);
+    }
+    if (mpi.rankY1Z2 >= 0) { // edge y1z2
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.uppX, boundCup.lowY+haloGrid-1, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasY1Z2);
+      reqY1Z2[0] = mpi.boostWorld.isend(mpi.rankY1Z2, mpi.mpiTag,  gasY1Z2);
+      reqY1Z2[1] = mpi.boostWorld.irecv(mpi.rankY1Z2, mpi.mpiTag, rGasY1Z2);
+    }
+    if (mpi.rankY2Z1 >= 0) { // edge y2z1
+      IJK start(boundCup.lowX, boundCup.uppY+1-haloGrid, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasY2Z1);
+      reqY2Z1[0] = mpi.boostWorld.isend(mpi.rankY2Z1, mpi.mpiTag,  gasY2Z1);
+      reqY2Z1[1] = mpi.boostWorld.irecv(mpi.rankY2Z1, mpi.mpiTag, rGasY2Z1);
+    }
+    if (mpi.rankY2Z2 >= 0) { // edge y2z2
+      IJK start(boundCup.lowX, boundCup.uppY+1-haloGrid, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasY2Z2);
+      reqY2Z2[0] = mpi.boostWorld.isend(mpi.rankY2Z2, mpi.mpiTag,  gasY2Z2);
+      reqY2Z2[1] = mpi.boostWorld.irecv(mpi.rankY2Z2, mpi.mpiTag, rGasY2Z2);
+    }
+    // 8 vertices
+    if (mpi.rankX1Y1Z1 >= 0) { // vertice x1y1z1
+      IJK start(boundCup.lowX, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.lowY+haloGrid-1, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasX1Y1Z1);
+      reqX1Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z1, mpi.mpiTag,  gasX1Y1Z1);
+      reqX1Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z1, mpi.mpiTag, rGasX1Y1Z1);
+    }
+    if (mpi.rankX1Y1Z2 >= 0) { // vertice x1y1z2
+      IJK start(boundCup.lowX, boundCup.lowY,  boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.lowY+haloGrid-1, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX1Y1Z2);
+      reqX1Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y1Z2, mpi.mpiTag,  gasX1Y1Z2);
+      reqX1Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y1Z2, mpi.mpiTag, rGasX1Y1Z2);
+    }
+    if (mpi.rankX1Y2Z1 >= 0) { // vertice x1y2z1
+      IJK start(boundCup.lowX, boundCup.uppY+1-haloGrid, boundCup.lowZ);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.uppY, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasX1Y2Z1);
+      reqX1Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z1, mpi.mpiTag,  gasX1Y2Z1);
+      reqX1Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z1, mpi.mpiTag, rGasX1Y2Z1);
+    }
+    if (mpi.rankX1Y2Z2 >= 0) { // vertice x1y2z2
+      IJK start(boundCup.lowX, boundCup.uppY+1-haloGrid, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.lowX+haloGrid-1, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX1Y2Z2);
+      reqX1Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX1Y2Z2, mpi.mpiTag,  gasX1Y2Z2);
+      reqX1Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX1Y2Z2, mpi.mpiTag, rGasX1Y2Z2);
+    }
+    if (mpi.rankX2Y1Z1 >= 0) { // vertice x2y1z1
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.lowY, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.lowY+haloGrid-1, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasX2Y1Z1);
+      reqX2Y1Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z1, mpi.mpiTag,  gasX2Y1Z1);
+      reqX2Y1Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z1, mpi.mpiTag, rGasX2Y1Z1);
+    }
+    if (mpi.rankX2Y1Z2 >= 0) { // vertice x2y1z2
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.lowY, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.uppX, boundCup.lowY+haloGrid-1, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX2Y1Z2);
+      reqX2Y1Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y1Z2, mpi.mpiTag,  gasX2Y1Z2);
+      reqX2Y1Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y1Z2, mpi.mpiTag, rGasX2Y1Z2);
+    }
+    if (mpi.rankX2Y2Z1 >= 0) { // vertice x2y2z1
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.uppY+1-haloGrid, boundCup.lowZ);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.lowZ+haloGrid-1);
+      findPenalInRectangle(start, end, gasX2Y2Z1);
+      reqX2Y2Z1[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z1, mpi.mpiTag,  gasX2Y2Z1);
+      reqX2Y2Z1[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z1, mpi.mpiTag, rGasX2Y2Z1);
+    }
+    if (mpi.rankX2Y2Z2 >= 0) { // vertice x2y2z2
+      IJK start(boundCup.uppX+1-haloGrid, boundCup.uppY+1-haloGrid, boundCup.uppZ+1-haloGrid);
+      IJK end(boundCup.uppX, boundCup.uppY, boundCup.uppZ);
+      findPenalInRectangle(start, end, gasX2Y2Z2);
+      reqX2Y2Z2[0] = mpi.boostWorld.isend(mpi.rankX2Y2Z2, mpi.mpiTag,  gasX2Y2Z2);
+      reqX2Y2Z2[1] = mpi.boostWorld.irecv(mpi.rankX2Y2Z2, mpi.mpiTag, rGasX2Y2Z2);
+    }
+
+    // 6 surfaces
+    if (mpi.rankX1 >= 0) boost::mpi::wait_all(reqX1, reqX1 + 2);
+    if (mpi.rankX2 >= 0) boost::mpi::wait_all(reqX2, reqX2 + 2);
+    if (mpi.rankY1 >= 0) boost::mpi::wait_all(reqY1, reqY1 + 2);
+    if (mpi.rankY2 >= 0) boost::mpi::wait_all(reqY2, reqY2 + 2);
+    if (mpi.rankZ1 >= 0) boost::mpi::wait_all(reqZ1, reqZ1 + 2);
+    if (mpi.rankZ2 >= 0) boost::mpi::wait_all(reqZ2, reqZ2 + 2);
+    // 12 edges
+    if (mpi.rankX1Y1 >= 0) boost::mpi::wait_all(reqX1Y1, reqX1Y1 + 2);
+    if (mpi.rankX1Y2 >= 0) boost::mpi::wait_all(reqX1Y2, reqX1Y2 + 2);  
+    if (mpi.rankX1Z1 >= 0) boost::mpi::wait_all(reqX1Z1, reqX1Z1 + 2);
+    if (mpi.rankX1Z2 >= 0) boost::mpi::wait_all(reqX1Z2, reqX1Z2 + 2);
+    if (mpi.rankX2Y1 >= 0) boost::mpi::wait_all(reqX2Y1, reqX2Y1 + 2);
+    if (mpi.rankX2Y2 >= 0) boost::mpi::wait_all(reqX2Y2, reqX2Y2 + 2);  
+    if (mpi.rankX2Z1 >= 0) boost::mpi::wait_all(reqX2Z1, reqX2Z1 + 2);
+    if (mpi.rankX2Z2 >= 0) boost::mpi::wait_all(reqX2Z2, reqX2Z2 + 2); 
+    if (mpi.rankY1Z1 >= 0) boost::mpi::wait_all(reqY1Z1, reqY1Z1 + 2);
+    if (mpi.rankY1Z2 >= 0) boost::mpi::wait_all(reqY1Z2, reqY1Z2 + 2);
+    if (mpi.rankY2Z1 >= 0) boost::mpi::wait_all(reqY2Z1, reqY2Z1 + 2);
+    if (mpi.rankY2Z2 >= 0) boost::mpi::wait_all(reqY2Z2, reqY2Z2 + 2); 
+    // 8 vertices
+    if (mpi.rankX1Y1Z1 >= 0) boost::mpi::wait_all(reqX1Y1Z1, reqX1Y1Z1 + 2);
+    if (mpi.rankX1Y1Z2 >= 0) boost::mpi::wait_all(reqX1Y1Z2, reqX1Y1Z2 + 2);
+    if (mpi.rankX1Y2Z1 >= 0) boost::mpi::wait_all(reqX1Y2Z1, reqX1Y2Z1 + 2);
+    if (mpi.rankX1Y2Z2 >= 0) boost::mpi::wait_all(reqX1Y2Z2, reqX1Y2Z2 + 2);
+    if (mpi.rankX2Y1Z1 >= 0) boost::mpi::wait_all(reqX2Y1Z1, reqX2Y1Z1 + 2);
+    if (mpi.rankX2Y1Z2 >= 0) boost::mpi::wait_all(reqX2Y1Z2, reqX2Y1Z2 + 2);
+    if (mpi.rankX2Y2Z1 >= 0) boost::mpi::wait_all(reqX2Y2Z1, reqX2Y2Z1 + 2);
+    if (mpi.rankX2Y2Z2 >= 0) boost::mpi::wait_all(reqX2Y2Z2, reqX2Y2Z2 + 2);
+
+    // merge using std::map
+    std::vector<ValCoord> recvPenalVec;
+    // 6 surfaces                                                                                          
+    if (mpi.rankX1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1.begin(), rGasX1.end());            
+    if (mpi.rankX2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2.begin(), rGasX2.end());            
+    if (mpi.rankY1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasY1.begin(), rGasY1.end());            
+    if (mpi.rankY2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasY2.begin(), rGasY2.end());            
+    if (mpi.rankZ1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasZ1.begin(), rGasZ1.end());            
+    if (mpi.rankZ2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasZ2.begin(), rGasZ2.end());            
+    // 12 edges                                                                                            
+    if (mpi.rankX1Y1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Y1.begin(), rGasX1Y1.end());      
+    if (mpi.rankX1Y2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Y2.begin(), rGasX1Y2.end());      
+    if (mpi.rankX1Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Z1.begin(), rGasX1Z1.end());      
+    if (mpi.rankX1Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Z2.begin(), rGasX1Z2.end());      
+    if (mpi.rankX2Y1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Y1.begin(), rGasX2Y1.end());      
+    if (mpi.rankX2Y2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Y2.begin(), rGasX2Y2.end());      
+    if (mpi.rankX2Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Z1.begin(), rGasX2Z1.end());      
+    if (mpi.rankX2Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Z2.begin(), rGasX2Z2.end());      
+    if (mpi.rankY1Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasY1Z1.begin(), rGasY1Z1.end());      
+    if (mpi.rankY1Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasY1Z2.begin(), rGasY1Z2.end());      
+    if (mpi.rankY2Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasY2Z1.begin(), rGasY2Z1.end());      
+    if (mpi.rankY2Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasY2Z2.begin(), rGasY2Z2.end());      
+    // 8 vertices                                                                                          
+    if (mpi.rankX1Y1Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Y1Z1.begin(), rGasX1Y1Z1.end());
+    if (mpi.rankX1Y1Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Y1Z2.begin(), rGasX1Y1Z2.end());
+    if (mpi.rankX1Y2Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Y2Z1.begin(), rGasX1Y2Z1.end());
+    if (mpi.rankX1Y2Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX1Y2Z2.begin(), rGasX1Y2Z2.end());
+    if (mpi.rankX2Y1Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Y1Z1.begin(), rGasX2Y1Z1.end());
+    if (mpi.rankX2Y1Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Y1Z2.begin(), rGasX2Y1Z2.end());
+    if (mpi.rankX2Y2Z1 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Y2Z1.begin(), rGasX2Y2Z1.end());
+    if (mpi.rankX2Y2Z2 >= 0) recvPenalVec.insert(recvPenalVec.end(), rGasX2Y2Z2.begin(), rGasX2Y2Z2.end());
+
+    IJK_arrayPenalForce_Map recvGasMap;
+    for (int i = 0; i < recvPenalVec.size(); ++i) {
+      IJK tri;
+      coordToGlobalIndex(recvPenalVec[i].coords, tri);
+      recvGasMap[tri] = recvPenalVec[i];
+    }
+    
+    // construct penalized gas with received info
+    for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
+      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k) {
+	  // i, j, k are local
+	  IJK local(i,j,k);
+	  IJK global;
+	  localIndexToGlobal(local, global);
+
+	  if (recvGasMap.count(global)) { // important to judge, otherwise it creates a new map elment!
+	    arrayPenalForce[i][j][k][0] = recvGasMap[global].coords.getX();
+	    arrayPenalForce[i][j][k][1] = recvGasMap[global].coords.getY();
+	    arrayPenalForce[i][j][k][2] = recvGasMap[global].coords.getZ();
+	  }
+	}
+
+  } // end of Gas::backCommu20
 
 } // name space dem

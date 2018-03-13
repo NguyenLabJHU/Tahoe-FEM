@@ -4,6 +4,7 @@
 //                                  Email: beichuan.yan@colorado.edu                                 //
 //                              Institute: University of Colorado Boulder                            //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+#include "MPIFrame.h"
 #include "realtypes.h"
 #include "const.h"
 #include "Parameter.h"
@@ -29,6 +30,8 @@ BOOST_CLASS_EXPORT_GUID(dem::planeBoundary, "planeBoundary")
 BOOST_IS_MPI_DATATYPE(dem::Vec)
 BOOST_IS_MPI_DATATYPE(dem::Particle)
 BOOST_IS_MPI_DATATYPE(dem::Contact)
+BOOST_IS_MPI_DATATYPE(dem::GasVar)
+
 #ifdef STRESS_STRAIN
 BOOST_IS_MPI_DATATYPE(dem::Stress)
 #endif
@@ -60,10 +63,14 @@ int main(int argc, char* argv[]) {
       abort();
     }
   }
-
   broadcast(boostWorld, dem::Parameter::getSingleton(), 0); // broadcast from root process 0
+
+  dem::MPIFrame mpi;
+  mpi.setCommunicator(boostWorld);
+  mpi.setBdryProcess();
+
   dem::Assembly assemb;
-  assemb.setCommunicator(boostWorld);
+  assemb.setMPI(mpi);
 
   // parallel IO for overlap info
 #ifndef NDEBUG
@@ -150,6 +157,21 @@ int main(int argc, char* argv[]) {
     break;
   case 705: // couple with gas flow, rectangular "left" part with a zone below
     assemb.coupleWithGas();
+    break;
+  case 801: // pure gas flow, bottom "left" part, R-H conditions
+    assemb.pureGas();
+    break;  
+  case 802: // pure gas flow, bottom "left" part
+    assemb.pureGas();
+    break;
+  case 803: // pure gas flow, rectangular "left" part
+    assemb.pureGas();
+    break;
+  case 804: // pure gas flow, spherical "left" part
+    assemb.pureGas();
+    break;
+  case 805: // pure gas flow, rectangular "left" part with a zone below
+    assemb.pureGas();
     break;
   }
   
