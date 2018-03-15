@@ -272,8 +272,8 @@ namespace dem {
   public:  
     void setMPI(MPIFrame &m) {mpi = m;}
     void commu6();
-    void commu20();
-    void backCommu20();
+    void commu26();
+    void backCommu26();
     void findGasInRectangle(IJK &start, IJK &end, std::vector<GasVar> &foundGas);
     void findPenalInRectangle(IJK &start, IJK &end, std::vector<ValCoord> &foundPenal);
 
@@ -312,6 +312,8 @@ namespace dem {
     void coordToGlobalIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k);
     void coordToGlobalIndex(Vec v, IJK &t);
     void localIndexToGlobal(IJK &local, IJK &global);
+    void faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
+    void cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
 
     void getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation);
     void runOneStep(std::vector<Particle *> &ptcls);

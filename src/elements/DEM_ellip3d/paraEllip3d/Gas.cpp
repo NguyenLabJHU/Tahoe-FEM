@@ -555,6 +555,26 @@ namespace dem {
     global.k = K;
   }
 
+  // Godunov to cell
+  void Gas::faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko) {
+    io = i + haloGridX - 1;
+    jo = j + haloGridY - 1;
+    ko = k + haloGridZ - 1;
+    if (mpi.mpiProcX == 1) io = i;
+    if (mpi.mpiProcY == 1) jo = j;
+    if (mpi.mpiProcZ == 1) ko = k;
+  }
+
+  // cell to Godunov
+  void Gas::cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko) {
+    io = i - haloGridX + 1;
+    jo = j - haloGridY + 1;
+    ko = k - haloGridZ + 1;
+    if (mpi.mpiProcX == 1) io = i;
+    if (mpi.mpiProcY == 1) jo = j;
+    if (mpi.mpiProcZ == 1) ko = k;
+  }
+
   void Gas::initializePureGas() {
     negPrsDen = false;
     RankineHugoniot();
@@ -567,6 +587,7 @@ namespace dem {
 	       << std::setw(OWID) << "cfdTimeStep" 
 	       << std::setw(OWID) << "timeStep" 
 	       << std::setw(OWID) << "timeAccrued"
+
 	       << std::setw(OWID) << "cfdCommuTime"
 	       << std::setw(OWID) << "cfdRunTime"
 	       << std::setw(OWID) << "cfdCommu%";
@@ -585,13 +606,18 @@ namespace dem {
 	       << std::setw(OWID) << "cfdTimeStep" 
 	       << std::setw(OWID) << "timeStep" 
 	       << std::setw(OWID) << "timeAccrued"
-	       << std::setw(OWID) << "cfdCommuTime"
-	       << std::setw(OWID) << "cfdGetTime"
-	       << std::setw(OWID) << "cfdRunTime"
-	       << std::setw(OWID) << "cfdForceTime"
-	       << std::setw(OWID) << "cfdBCommuTime"
-	       << std::setw(OWID) << "cfdPenalTime"
-	       << std::setw(OWID) << "cfdTotalTime";
+
+	       << std::setw(OWID) << "cfdCommuT"
+	       << std::setw(OWID) << "getPtclInfoT"
+	       << std::setw(OWID) << "runOneStepT"
+	       << std::setw(OWID) << "calcPtclForceT"
+	       << std::setw(OWID) << "penalizeT"
+	       << std::setw(OWID) << "cfdTotalT"
+	       << std::setw(OWID) << "demCommuT"
+	       << std::setw(OWID) << "demCompuT"
+	       << std::setw(OWID) << "demMigraT"
+	       << std::setw(OWID) << "demTotalT"
+	       << std::setw(OWID) << "totalT";
     }
   }
 
@@ -631,15 +657,11 @@ namespace dem {
 	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
 	  for (m = 0; m < nInteg; ++m) {
 	    // i, j, k must be mapped to arrayGodFlux
-	    int iGod = i - haloGridX + 1;
-	    int jGod = j - haloGridY + 1;
-	    int kGod = k - haloGridZ + 1;
-	    if (mpi.mpiProcX == 1) iGod = i;
-	    if (mpi.mpiProcY == 1) jGod = j;
-	    if (mpi.mpiProcZ == 1) kGod = k;
+	    std::size_t iGod, jGod, kGod;
+	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] -= (   timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
-				      + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
-				      + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
+				    + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
+				    + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
 	  }
 
     UtoW();
@@ -660,16 +682,12 @@ namespace dem {
 	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
 	  for (m = 0; m < nInteg; ++m) {
 	    // i, j, k must be mapped to arrayGodFlux
-	    int iGod = i - haloGridX + 1;
-	    int jGod = j - haloGridY + 1;
-	    int kGod = k - haloGridZ + 1;
-	    if (mpi.mpiProcX == 1) iGod = i;
-	    if (mpi.mpiProcY == 1) jGod = j;
-	    if (mpi.mpiProcZ == 1) kGod = k;
+	    std::size_t iGod, jGod, kGod;
+	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] = 0.5*( arrayUN[i][j][k][m] + arrayU[i][j][k][m] -
 				       (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0]) 
-					  + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1]) 
-					  + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) );
+				        + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1]) 
+					+ timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) );
 	  } 
 
     UtoW();
@@ -690,16 +708,12 @@ namespace dem {
 	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
 	  for (m = 0; m < nInteg; ++m) {
 	    // i, j, k must be mapped to arrayGodFlux
-	    int iGod = i - haloGridX + 1;
-	    int jGod = j - haloGridY + 1;
-	    int kGod = k - haloGridZ + 1;
-	    if (mpi.mpiProcX == 1) iGod = i;
-	    if (mpi.mpiProcY == 1) jGod = j;
-	    if (mpi.mpiProcZ == 1) kGod = k;
+	    std::size_t iGod, jGod, kGod;
+	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] = 0.75*arrayUN[i][j][k][m] + 0.25*arrayUStar[i][j][k][m] - 
 	      0.25* (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
-		       + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
-		       + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
+		     + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
+		     + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
 	  }
 
     UtoW();
@@ -720,16 +734,12 @@ namespace dem {
 	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
 	  for (m = 0; m < nInteg; ++m) {
 	    // i, j, k must be mapped to arrayGodFlux
-	    int iGod = i - haloGridX + 1;
-	    int jGod = j - haloGridY + 1;
-	    int kGod = k - haloGridZ + 1;
-	    if (mpi.mpiProcX == 1) iGod = i;
-	    if (mpi.mpiProcY == 1) jGod = j;
-	    if (mpi.mpiProcZ == 1) kGod = k;
+	    std::size_t iGod, jGod, kGod;
+	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] = ( arrayUN[i][j][k][m] + 2*arrayUStar2[i][j][k][m] - 
                                    2* (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
-					 + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
-					 + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) )/3.0;
+				       + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
+				       + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) )/3.0;
 	  }
 
     UtoW();
@@ -759,16 +769,21 @@ namespace dem {
 
       int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
       // the value of a private variable is undefined when parallel construct is entered, so do not assign value here.
-      std::size_t i, j, k; // defined for arrayGodFlux, no need to map.
+      std::size_t iGod, jGod, kGod; // defined for arrayGodFlux
       std::size_t IL[3], IR[3];
       REAL UL[9], UR[9], FL[5], FR[5], HL, HR, avgH, avgU, avgV, avgW, avgh, pStar;
       int solver;
 
       // for local Riemann problem
-#pragma omp parallel for num_threads(ompThreads) private(i,j,k,IL,IR,UL,UR,FL,FR,HL,HR,avgH,avgU,avgV,avgW,avgh,pStar,solver) schedule(dynamic)
-      for (i = boundGod.lowX; i <= boundGod.uppX; ++i) { // variables defined at cell faces
-	for (j = boundGod.lowY; j <= boundGod.uppY; ++j) {
-	  for (k = boundGod.lowZ; k <= boundGod.uppZ; ++k) {
+#pragma omp parallel for num_threads(ompThreads) private(iGod,jGod,kGod,IL,IR,UL,UR,FL,FR,HL,HR,avgH,avgU,avgV,avgW,avgh,pStar,solver) schedule(dynamic)
+      for (iGod = boundGod.lowX; iGod <= boundGod.uppX; ++iGod) { // variables defined at cell faces
+	for (jGod = boundGod.lowY; jGod <= boundGod.uppY; ++jGod) {
+	  for (kGod = boundGod.lowZ; kGod <= boundGod.uppZ; ++kGod) {
+
+	    // iGod must be mapped to i in arrayU, arrayURota, arrayFlux
+	    std::size_t i, j, k;
+	    faceIndexToCell(iGod, jGod, kGod, i, j, k);
+
 	    IL[0]=i; IL[1]=j; IL[2]=k; 
 	    IR[0]=i; IR[1]=j; IR[2]=k; 
 	    IR[iDim] += 1;    
@@ -794,43 +809,43 @@ namespace dem {
 	    solver = static_cast<int> (dem::Parameter::getSingleton().parameter["solver"]);
 	    switch (solver) {
 	    case 0: 
-	      RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+	      RoeSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      break;
 	    case 1:
-	      HllcSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+	      HllcSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      break;
 	    case 2:
-	      HlleSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+	      HlleSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      break;
 	    case 3:
 	      if (pStar <= UL[varPrs] || pStar <= UR[varPrs] || avgh <= 0 || negPrsDen) // first 2 expressions cover rarefaction and contact waves
-		HllcSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+		HllcSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      else // use Roe solver for shock waves
-		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k); 
+		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod); 
 	      break;
 	    case 4:
 	      if (pStar <= UL[varPrs] || pStar <= UR[varPrs] || avgh <= 0 || negPrsDen) // first 2 expressions cover rarefaction and contact waves
-		HlleSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+		HlleSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      else // use Roe solver for shock waves
-		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      break;
 	    case 5:
 	      if (pStar <= UL[varPrs] || pStar <= UR[varPrs] || avgh <= 0 || negPrsDen) // first 2 expressions cover rarefaction and contact waves
-		exactSolver(UL, UR, 0, iDim, i, j, k);
+		exactSolver(UL, UR, 0, iDim, iGod, jGod, kGod);
 	      else // use Roe solver for shock waves
-		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, i, j, k);
+		RoeSolver(UL, UR, FL, FR, HL, HR, iDim, iGod, jGod, kGod);
 	      break;	
 	    case -1:
 	      // exactSolver itself can provide exact solution to the full domain, if run separately.
 	      // herein exactSolver is used at each discritized face to give exact solution to local Riemann problem, for the purpose 
 	      // of comparing with other solvers.
-	      exactSolver(UL, UR, 0, iDim, i, j, k); // 0 = x/t = s
+	      exactSolver(UL, UR, 0, iDim, iGod, jGod, kGod); // 0 = x/t = s
 	      break;
 	    case -2:
-	      LaxFrieScheme(UL, UR, FL, FR, iDim, i, j, k); // Lax-Friedrichs scheme
+	      LaxFrieScheme(UL, UR, FL, FR, iDim, iGod, jGod, kGod); // Lax-Friedrichs scheme
 	      break;
 	    case -3:
-	      LaxWendScheme(UL, UR, FL, FR, iDim, i, j, k); // Lax-Wendroff scheme (two-step Richtmyer version)
+	      LaxWendScheme(UL, UR, FL, FR, iDim, iGod, jGod, kGod); // Lax-Wendroff scheme (two-step Richtmyer version)
 	      break;
 	    }
 
@@ -866,9 +881,9 @@ namespace dem {
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 
 	// calculate momentum and density quotient before modification
-	bool inGrid = (i >= boundCup.lowX && i <= boundCup.uppX && 
-		       j >= boundCup.lowY && j <= boundCup.uppY && 
-		       k >= boundCup.lowZ && k <= boundCup.uppZ );
+	bool inGrid = (i >= boundPrn.lowX && i <= boundPrn.uppX && 
+		       j >= boundPrn.lowY && j <= boundPrn.uppY && 
+		       k >= boundPrn.lowZ && k <= boundPrn.uppZ );
 	REAL denQuot[3], u0[3];
 	if (inGrid) {
 	  denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
@@ -2472,7 +2487,7 @@ namespace dem {
 
   } // end of Gas::commu6
 
-  void Gas::commu20() {
+  void Gas::commu26() {
     // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
     std::vector<GasVar> gasX1, gasX2;
     std::vector<GasVar> gasY1, gasY2;
@@ -2788,9 +2803,9 @@ namespace dem {
 	  } 
 	}
 
-  } // end of Gas::commu20
+  } // end of Gas::commu26
 
-  void Gas::backCommu20() {
+  void Gas::backCommu26() {
     // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
 
     // in this member function, gas and rGas are used to store arrayPenalForce.
@@ -3097,6 +3112,6 @@ namespace dem {
 	  }
 	}
 
-  } // end of Gas::backCommu20
+  } // end of Gas::backCommu26
 
 } // name space dem
