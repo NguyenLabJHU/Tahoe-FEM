@@ -377,7 +377,7 @@ namespace dem {
       if (toCheckTime) {time2 = MPI_Wtime(); commuT = time2 - time0;}
 #endif
 
-      /**/calcTimeStep(); // use values from last step, must call before findContact (which clears data)
+      /**/calcTimeStep(); // use values from last step, must call before findContact() (which clears data)
       findContact();
       if (mpi.isBdryProcess() || gridUpdate == 1) findBdryContact();
 
@@ -582,7 +582,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findContact
+      calcTimeStep(); // use values from last step, must call before findContact()
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
 
@@ -601,7 +601,7 @@ namespace dem {
 #endif
 
       updateParticle();
-      gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary()
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -767,7 +767,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findContact
+      calcTimeStep(); // use values from last step, must call before findContact()
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
 
@@ -786,7 +786,7 @@ namespace dem {
 #endif
 
       updateParticle();
-      gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary()
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -908,7 +908,7 @@ namespace dem {
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       // displacement control relies on constant time step, so do not call calcTimeStep().
-      //calcTimeStep(); // use values from last step, must call before findContact
+      //calcTimeStep(); // use values from last step, must call before findContact()
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
 
@@ -927,7 +927,7 @@ namespace dem {
 #endif
 
       updateParticle();
-      gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary()
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -1031,7 +1031,7 @@ namespace dem {
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       // displacement control relies on constant time step, so do not call calcTimeStep().
-      //calcTimeStep(); // use values from last step, must call before findContact
+      //calcTimeStep(); // use values from last step, must call before findContact()
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
 
@@ -1050,7 +1050,7 @@ namespace dem {
 #endif
 
       updateParticle();
-      gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary()
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -1174,7 +1174,7 @@ namespace dem {
       commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
-      calcTimeStep(); // use values from last step, must call before findContact
+      calcTimeStep(); // use values from last step, must call before findContact()
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
 
@@ -1193,7 +1193,7 @@ namespace dem {
 #endif
 
       updateParticle();
-      gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary()
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -1341,7 +1341,7 @@ namespace dem {
       commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
 
       // displacement control relies on constant time step, so do not call calcTimeStep().
-      //calcTimeStep(); // use values from last step, must call before findContact
+      //calcTimeStep(); // use values from last step, must call before findContact()
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
 
@@ -1360,7 +1360,7 @@ namespace dem {
 #endif
 
       updateParticle();
-      gatherBdryContact(); // must call before updateBoundary
+      gatherBdryContact(); // must call before updateBoundary()
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
@@ -1495,10 +1495,10 @@ namespace dem {
   void Assembly::pureGas() 
   {
     mpi.findNeighborProcess(); // one-time operation
-    gas.initPureGasParameter();
-    gas.setMPI(mpi);           // must do after mpi.findNeighborProcess().
-    gas.allocArray();
-    gas.initializePureGas();
+    /*01*/ gas.initPureGasParameter();
+    /*02*/ gas.setMPI(mpi);           // must do after mpi.findNeighborProcess().
+    /*03*/ gas.allocArray();
+    /*04*/ gas.initializePureGas();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1515,40 +1515,40 @@ namespace dem {
     REAL timeIncr  = timeStep * netStep;
     REAL timeTotal = timeAccrued + timeIncr;
 
-    gas.plot((combineString("pure_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+    /*05*/ gas.plot((combineString("pure_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
 
-    REAL time_1, time_2, time_3;
+    REAL time_0, time_1, time_2;
     while (timeAccrued < timeTotal) {
 
-      calcTimeStep(); // use values from last step, must call before findContact
+      calcTimeStep(); // use values from last step, must call before findContact().
 
+#ifdef CFD_PROFILE
+      time_0 = MPI_Wtime();
+#endif
+
+      /*06*/ gas.commu6();  // only communicate with 6 surfaces.
 #ifdef CFD_PROFILE
       time_1 = MPI_Wtime();
 #endif
 
-      gas.commu6();
+      /*07*/ gas.runOneStep(particleVec);
 #ifdef CFD_PROFILE
       time_2 = MPI_Wtime();
-#endif
-
-      gas.runOneStep(particleVec);
-#ifdef CFD_PROFILE
-      time_3 = MPI_Wtime();
 #endif
       //gas.checkMomentum(particleVec);
 
       timeCount += timeStep;
       //timeAccrued += timeStep; // note gas.runOneStep() changes timeStep/timeAccrued and print timeAccrued
       if (timeCount >= timeIncr/netSnap) { 
-	gas.plot((combineString("pure_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);     
+	/*08*/ gas.plot((combineString("pure_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);     
 	timeCount = 0;
 	++iterSnap;
       }
 
 #ifdef CFD_PROFILE
-      debugInf << std::setw(OWID) << time_2 - time_1
-	       << std::setw(OWID) << time_3 - time_2
-	       << std::setw(OWID) << (time_2 - time_1) / (time_3 - time_1) * 100;
+      debugInf << std::setw(OWID) << time_1 - time_0
+	       << std::setw(OWID) << time_2 - time_1
+	       << std::setw(OWID) << (time_1 - time_0) / (time_2 - time_0) * 100;
 #endif
       ++iteration;
     } 
@@ -1578,7 +1578,6 @@ namespace dem {
     std::size_t netSnap   = endSnap - startSnap + 1;
     timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
 
-    REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
     iteration = startStep;
     std::size_t iterSnap = startSnap;
     REAL timeCount = 0;
@@ -1599,49 +1598,48 @@ namespace dem {
 	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
     */
 
-    REAL time_1, time_2, time_3, time_4, time_5, time_6, time_7;
+    REAL time_0, time_1, time_2, time_3, time_4, time_5, time_6, time_7, time_8;
     while (timeAccrued < timeTotal) {
 
-      clearContactForce(); // must call before gas.calcPtclForce
-      calcTimeStep(); // use values from last step, must call before findContact
+      clearContactForce(); // must call before gas.calcPtclForce.
+      calcTimeStep(); // use values from last step, must call before findContact().
 
+#ifdef CFD_PROFILE
+      time_0 = MPI_Wtime();
+#endif
+
+      /*06*/ gas.commu26(); // must call before gas.getPtclInfo; and comunicate with 6 surface, 12 edges and 8 vertices.
 #ifdef CFD_PROFILE
       time_1 = MPI_Wtime();
 #endif
 
-      /*06*/ gas.commu20(); // must call before gas.getPtclInfo
+      commuParticle();
 #ifdef CFD_PROFILE
       time_2 = MPI_Wtime();
 #endif
 
-      /*07*/ gas.getPtclInfo(particleVec, gradation); // must call before commuParticle
+      /*07*/ gas.getPtclInfo(mergeParticleVec, gradation); // must call after commuParticle() for intruded external particles.
 #ifdef CFD_PROFILE
       time_3 = MPI_Wtime();
 #endif
 
-      /*08*/ gas.runOneStep(particleVec);
+      /*08*/ gas.runOneStep(mergeParticleVec);
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif
 
-      /*09*/ gas.calcPtclForce(particleVec);
+      /*09*/ gas.calcPtclForce(mergeParticleVec);
 #ifdef CFD_PROFILE
       time_5 = MPI_Wtime();
 #endif
 
-      /*10*/ gas.backCommu20();
+      //gas.backCommu26(); // unnecessary
+
+      /*10*/ gas.penalize(mergeParticleVec);
 #ifdef CFD_PROFILE
       time_6 = MPI_Wtime();
 #endif
-
-      /*11*/ gas.penalize(particleVec);
-#ifdef CFD_PROFILE
-      time_7 = MPI_Wtime();
-#endif
-      //gas.checkMomentum(particleVec);
-
-      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
-      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
+      //gas.checkMomentum(mergeParticleVec);
 
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
@@ -1655,10 +1653,9 @@ namespace dem {
       timeCount += timeStep;
       //timeAccrued += timeStep; // note gas.runOneStep() changes timeStep/timeAccrued and print timeAccrued
       if (timeCount >= timeIncr/netSnap) { 
-	time1 = MPI_Wtime();
 	gatherParticle();
 	gatherBdryContact();
-	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
+	gatherEnergy();
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("couple_bdryplot_", iterSnap, 3) + ".dat").c_str());
@@ -1674,9 +1671,14 @@ namespace dem {
 	++iterSnap;
       }
 
-      releaseRecvParticle(); // late release because printContact refers to received particles
-      time1 = MPI_Wtime();
-      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      releaseRecvParticle(); // late release because printContact refers to received particles; also must call after gas.penalize().
+#ifdef CFD_PROFILE
+      time_7 = MPI_Wtime();
+#endif
+      migrateParticle();
+#ifdef CFD_PROFILE
+      time_8 = MPI_Wtime();
+#endif
       /*
       if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
 	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
@@ -1684,13 +1686,17 @@ namespace dem {
       */
 
 #ifdef CFD_PROFILE
-      debugInf << std::setw(OWID) << time_2-time_1 // commuT
-	       << std::setw(OWID) << time_3-time_2 // getPtclT
-	       << std::setw(OWID) << time_4-time_3 // runT
-	       << std::setw(OWID) << time_5-time_4 // calPtclT
-	       << std::setw(OWID) << time_6-time_5 // bCommuT
-	       << std::setw(OWID) << time_7-time_6 // penalT
-	       << std::setw(OWID) << time_7-time_1;// totalT
+      debugInf << std::setw(OWID) << time_1-time_0 // cfdCommuT
+	       << std::setw(OWID) << time_3-time_2 // getPtclInfoT
+	       << std::setw(OWID) << time_4-time_3 // runOneStepT
+	       << std::setw(OWID) << time_5-time_4 // calPtclForceT
+	       << std::setw(OWID) << time_6-time_5 // penalizeT
+	       << std::setw(OWID) << (time_1-time_0) + (time_6-time_2) // cfdTotalT
+	       << std::setw(OWID) << time_2-time_1 // demCommuT
+	       << std::setw(OWID) << time_7-time_6 // demCompuT
+	       << std::setw(OWID) << time_8-time_7 // demMigraT
+	       << std::setw(OWID) << (time_2-time_1) + (time_8-time_6) // demTotalT
+	       << std::setw(OWID) << time_8-time_0;// totalT
 #endif
 
       ++iteration;
