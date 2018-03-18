@@ -84,7 +84,7 @@ public:
   Vec    velocity;
   double pressure;
   double temperature;
-  int    mask;
+  double mask;
   Vec    penalForce;
   Vec    pressureForce;
 
