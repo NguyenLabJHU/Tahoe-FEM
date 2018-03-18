@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
       double v1, v2, v3;
       double pressure;
       double temperature;
-      int    mask;
+      double mask;
       double pen1, pen2, pen3;
       double pre1, pre2, pre3;
       ss >> x
