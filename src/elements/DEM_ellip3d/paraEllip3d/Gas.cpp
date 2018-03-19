@@ -933,11 +933,11 @@ namespace dem {
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 
 	REAL denQuot[3], u0[3];
- 	//if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
+ 	//if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // no longer necessary in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
 	denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
-	//if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY) // no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
+	//if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY) // no longer necessary in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
 	denQuot[1] = (arrayU[i][j+1][k][varDen] - arrayU[i][j-1][k][varDen]) / (2*gridDy);
-	//if (k >= boundCup.lowZ+1 && k+1 <= boundCup.uppZ) // no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
+	//if (k >= boundCup.lowZ+1 && k+1 <= boundCup.uppZ) // no longer necessary in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
 	denQuot[2] = (arrayU[i][j][k+1][varDen] - arrayU[i][j][k-1][varDen]) / (2*gridDz);
 	REAL coordX = arrayGridCoord[i][j][k][0];
 	REAL coordY = arrayGridCoord[i][j][k][1];
@@ -1741,12 +1741,12 @@ namespace dem {
 
       // ensure each grid is in the valid range
       // never subtract two numbers of type std::size_t
-      int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX); // +1: no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
-      int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY);
-      int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ);
-      int uppX = std::min((int)(local.i + maxGrid), (int)boundCup.uppX);    // -1: no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
-      int uppY = std::min((int)(local.j + maxGrid), (int)boundCup.uppY);
-      int uppZ = std::min((int)(local.k + maxGrid), (int)boundCup.uppZ);
+      int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX + 1); // +1: necessary
+      int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY + 1);
+      int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ + 1);
+      int uppX = std::min((int)(local.i + maxGrid), (int)boundCup.uppX - 1);    // -1: necessary
+      int uppY = std::min((int)(local.j + maxGrid), (int)boundCup.uppY - 1);
+      int uppZ = std::min((int)(local.k + maxGrid), (int)boundCup.uppZ - 1);
       //std::cout << "x, y, z local range=" << lowX << " " << uppX << " " << lowY << " " << uppY << " " << lowZ << " " << uppZ << std::endl;
 
       for (std::size_t i = lowX; i <= uppX ; ++i)
@@ -1860,11 +1860,11 @@ namespace dem {
 	arrayPenalForce[i][j][k][2] += globalPenal.getZ();
 
 	// restrict pressure gradient grids; do not use (i-1) for std::size_t because (i-1) is postive when i=0
- 	//if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
+ 	//if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // no longer necessary in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
 	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][varPrs] - arrayU[i-1][j][k][varPrs])/(2*gridDx);
-	//if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY) // no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
+	//if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY) // no longer necessary in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
 	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][varPrs] - arrayU[i][j-1][k][varPrs])/(2*gridDy);
-	//if (k >= boundCup.lowZ+1 && k+1 <= boundCup.uppZ) // no longer needed in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
+	//if (k >= boundCup.lowZ+1 && k+1 <= boundCup.uppZ) // no longer necessary in parallel computing because haloGrid already adds 1; and not necessary in serial computing.
 	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][varPrs] - arrayU[i][j][k-1][varPrs])/(2*gridDz);
 
 	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
