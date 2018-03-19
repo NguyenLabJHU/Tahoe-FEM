@@ -524,10 +524,11 @@ namespace dem {
 
   void Assembly::isotropic() 
   {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openCompressProg(progressInf, "isotropic_progress");
       openCompressProg(balancedInf, "isotropic_balanced");
     }
@@ -711,10 +712,11 @@ namespace dem {
 
   void Assembly::oedometer() 
   {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     std::size_t oedometerType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["oedometerType"]);
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openCompressProg(progressInf, "oedometer_progress");
       openCompressProg(balancedInf, "oedometer_balanced");
     }
@@ -870,9 +872,10 @@ namespace dem {
 
   void Assembly::triaxial() 
   {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openCompressProg(progressInf, "triaxial_progress");
     }
     scatterParticle();
@@ -993,9 +996,10 @@ namespace dem {
 
   void Assembly::planeStrain() 
   {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openCompressProg(progressInf, "plnstrn_progress");
     }
     scatterParticle();
@@ -1109,10 +1113,11 @@ namespace dem {
 
   void Assembly::trueTriaxial() 
   {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     std::size_t trueTriaxialType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["trueTriaxialType"]);
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openCompressProg(progressInf, "trueTriaxial_progress");
       openCompressProg(balancedInf, "trueTriaxial_balanced");
     }
@@ -1303,9 +1308,10 @@ namespace dem {
 
   void Assembly::oedometerImpact() 
   {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openCompressProg(progressInf, "oedometerImpact_progress");
     }
     scatterParticle();
@@ -1431,7 +1437,7 @@ namespace dem {
 
     std::map<std::string, REAL> normalForce;
     REAL x1, x2, y1, y2, z1, z2;
-    // do not use mergeBoundaryVec because each process calls this function.
+    // do not use mergedBoundaryVec because each process calls this function.
     for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
@@ -1557,9 +1563,11 @@ namespace dem {
 
   void Assembly::coupleWithGas() 
   {
+    int gridUpdate = -10; // do not update DEM grids!
+
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
-      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openDepositProg(progressInf, "couple_progress");
     }
     scatterParticle();
@@ -1602,7 +1610,7 @@ namespace dem {
     while (timeAccrued < timeTotal) {
 
       clearContactForce(); // must call before gas.calcPtclForce.
-      calcTimeStep(); // use values from last step, must call before findContact().
+      calcTimeStep();      // use values from last step, must call before findContact().
 
 #ifdef CFD_PROFILE
       time_0 = MPI_Wtime();
@@ -1618,28 +1626,26 @@ namespace dem {
       time_2 = MPI_Wtime();
 #endif
 
-      /*07*/ gas.getPtclInfo(mergeParticleVec, gradation); // must call after commuParticle() for intruded external particles.
+      /*07*/ gas.getPtclInfo(mergedParticleVec, gradation); // must call after commuParticle() for intruded external particles.
 #ifdef CFD_PROFILE
       time_3 = MPI_Wtime();
 #endif
 
-      /*08*/ gas.runOneStep(mergeParticleVec);
+      /*08*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
+                                                   // must do after gas.commu26() and before gas.runOneStep(), otherwise external and internal gas are not synchronized in time.
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif
 
-      /*09*/ gas.calcPtclForce(mergeParticleVec);
+      /*09*/ gas.penalize(mergedParticleVec);
 #ifdef CFD_PROFILE
       time_5 = MPI_Wtime();
 #endif
 
-      //gas.backCommu26(); // unnecessary
-
-      /*10*/ gas.penalize(mergeParticleVec);
+      /*10*/ gas.runOneStep(mergedParticleVec);    // 1. only update internal gas; 2. must do after gas.penalize() to resume the gas state.
 #ifdef CFD_PROFILE
       time_6 = MPI_Wtime();
 #endif
-      //gas.checkMomentum(mergeParticleVec);
 
       findContact();
       if (mpi.isBdryProcess()) findBdryContact();
@@ -1648,7 +1654,7 @@ namespace dem {
       if (mpi.isBdryProcess()) boundaryForce();
 
       updateParticle();
-      updateGridMaxZ();
+      //updateGridMaxZ();        // dem & cfd have the same space domain, and do not update.
 
       timeCount += timeStep;
       //timeAccrued += timeStep; // note gas.runOneStep() changes timeStep/timeAccrued and print timeAccrued
@@ -1664,7 +1670,7 @@ namespace dem {
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
 	}
-	/*12*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	/*11*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
       
 	timeCount = 0;
@@ -1679,18 +1685,13 @@ namespace dem {
 #ifdef CFD_PROFILE
       time_8 = MPI_Wtime();
 #endif
-      /*
-      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
-	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
-		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
-      */
 
 #ifdef CFD_PROFILE
       debugInf << std::setw(OWID) << time_1-time_0 // cfdCommuT
 	       << std::setw(OWID) << time_3-time_2 // getPtclInfoT
-	       << std::setw(OWID) << time_4-time_3 // runOneStepT
-	       << std::setw(OWID) << time_5-time_4 // calPtclForceT
-	       << std::setw(OWID) << time_6-time_5 // penalizeT
+	       << std::setw(OWID) << time_4-time_3 // calPtclForceT
+	       << std::setw(OWID) << time_5-time_4 // penalizeT
+	       << std::setw(OWID) << time_6-time_5 // runOneStepT
 	       << std::setw(OWID) << (time_1-time_0) + (time_6-time_2) // cfdTotalT
 	       << std::setw(OWID) << time_2-time_1 // demCommuT
 	       << std::setw(OWID) << time_7-time_6 // demCompuT
@@ -2661,9 +2662,9 @@ namespace dem {
     for (std::vector<Particle *>::iterator it = recvParticleVec.begin(); it != recvParticleVec.end(); ++it)
       (*it)->setReceived(true);
 
-    mergeParticleVec.clear();
-    mergeParticleVec = particleVec; // duplicate pointers, pointing to the same memory
-    mergeParticleVec.insert(mergeParticleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
+    mergedParticleVec.clear();
+    mergedParticleVec = particleVec; // duplicate pointers, pointing to the same memory
+    mergedParticleVec.insert(mergedParticleVec.end(), recvParticleVec.begin(), recvParticleVec.end());
 
     /*
       std::vector<Particle *> testParticleVec;
@@ -3297,21 +3298,21 @@ namespace dem {
     }
 
     if (mpi.mpiRank == 0) {
-      mergeBoundaryVec.clear(); // do not delete pointers as shared with boundaryVec in updateBoundary().
-      std::vector<Boundary *>().swap(mergeBoundaryVec);
+      mergedBoundaryVec.clear(); // do not delete pointers as shared with boundaryVec in updateBoundary().
+      std::vector<Boundary *>().swap(mergedBoundaryVec);
 
-      mergeBoundaryVec = boundaryVec; 
+      mergedBoundaryVec = boundaryVec; 
       std::vector<Boundary *> rBoundaryVec; // received BoundaryVec, must release memory after use.
       for (std::size_t it = 0; it < mpi.bdryProcess.size(); ++it) {
 	if (mpi.bdryProcess[it] != 0) {// not root process
 	  rBoundaryVec.clear();  // do not destroy particles
 	  mpi.boostWorld.recv(mpi.bdryProcess[it], mpi.mpiTag, rBoundaryVec);
 
-	  // 1. merge rBoundaryVec into mergeBoundaryVec
-	  assert(rBoundaryVec.size() == mergeBoundaryVec.size());
+	  // 1. merge rBoundaryVec into mergedBoundaryVec
+	  assert(rBoundaryVec.size() == mergedBoundaryVec.size());
 	  for (std::size_t jt = 0; jt < rBoundaryVec.size(); ++jt) {
-	    mergeBoundaryVec[jt]->getContactInfo().insert(   \
-							  mergeBoundaryVec[jt]->getContactInfo().end(), \
+	    mergedBoundaryVec[jt]->getContactInfo().insert(   \
+							  mergedBoundaryVec[jt]->getContactInfo().end(), \
 							  rBoundaryVec[jt]->getContactInfo().begin(), \
 							  rBoundaryVec[jt]->getContactInfo().end() );
 	  }
@@ -3323,7 +3324,7 @@ namespace dem {
       }
 
       // must update after collecting all boundary contact info
-      for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+      for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	(*it)->updateStatForce();
     }
   }
@@ -3335,11 +3336,11 @@ namespace dem {
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
   
-    ofs << std::setw(OWID) << mergeBoundaryVec.size() << std::endl << std::endl;
+    ofs << std::setw(OWID) << mergedBoundaryVec.size() << std::endl << std::endl;
 #ifdef TOTALMOMENT
     Vec totalMoment = 0;
 #endif
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       (*it)->printContactInfo(ofs);
 #ifdef TOTALMOMENT
       totalMoment += (*it)->getMoment();
@@ -5098,7 +5099,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // normalForce
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
       switch (id) {
@@ -5129,7 +5130,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // contactNum
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getContactNum();
     }
@@ -5140,7 +5141,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // avgPenetr
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getAvgPenetr();
     }
@@ -5275,7 +5276,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
   void Assembly::printCompressProg(std::ofstream &ofs, REAL distX, REAL distY, REAL distZ) {
     REAL x1, x2, y1, y2, z1, z2;
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       switch ((*it)->getId()) {
       case 1: 
 	x1 = (*it)->getPoint().getX();
@@ -5309,7 +5310,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       var[i] = 0;
       vel[i] = 0;
     }
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
       Vec veloc  = (*it)->getVeloc();
@@ -5391,7 +5392,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // contactNum
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getContactNum();
     }
@@ -5402,7 +5403,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // avgPenetr
     for (std::size_t i = 0; i < 6; ++i)
       var[i] = 0;
-    for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       var[id - 1] = (*it)->getAvgPenetr();
     }
@@ -5721,34 +5722,45 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 			v2.getX() + 0.5*vspan.getX(),
 			v2.getY() + 0.5*vspan.getY(),
 			v2.getZ() ));
-    } else if (gridUpdate == 0) { // side and bottom fixed on container; top varies.
+    } 
+    else if (gridUpdate == 0) { // side and bottom fixed on container; top varies.
       setGrid(Rectangle(x1,
 			y1,
 			z1, 
 			x2,
 			y2,
 			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
-    } else if (gridUpdate == 2) { // bottom fixed on container; others vary.
+    } 
+    else if (gridUpdate == 2) { // bottom fixed on container; others vary.
       setGrid(Rectangle(getPtclMinX(allParticleVec) - gradation.getPtclMaxRadius(),
 			getPtclMinY(allParticleVec) - gradation.getPtclMaxRadius(),
 			z1,
 			getPtclMaxX(allParticleVec) + gradation.getPtclMaxRadius(),
 			getPtclMaxY(allParticleVec) + gradation.getPtclMaxRadius(),
 			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
-    } else if (gridUpdate == 3) { // none fixed on container; all varies.
+    } 
+    else if (gridUpdate == 3) { // none fixed on container; all varies.
       setGrid(Rectangle(getPtclMinX(allParticleVec) - gradation.getPtclMaxRadius(),
 			getPtclMinY(allParticleVec) - gradation.getPtclMaxRadius(),
 			getPtclMinZ(allParticleVec) - gradation.getPtclMaxRadius(),
 			getPtclMaxX(allParticleVec) + gradation.getPtclMaxRadius(),
 			getPtclMaxY(allParticleVec) + gradation.getPtclMaxRadius(),
 			getPtclMaxZ(allParticleVec) + gradation.getPtclMaxRadius()  ));
-    } else if (gridUpdate == -1) { // for isotroipc, triaxial, etc whereby grid follows boundaries exactly.
+    } 
+    else if (gridUpdate == -1) { // for isotroipc, triaxial, etc whereby grid follows boundaries exactly; here gridUdate is only for generating initial grid.
       setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer
     }
-
+    else if (gridUpdate == -5) { // for proceedFromPreset; here gridUdate is only for generating initial grid.
+      setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer
+    } 
+    else if (gridUpdate == -10) { // for dem-cfd coupling; here gridUpdate is for all-the-time grid since it does not change.
+      setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer
+    }
+    
     boundaryVec.clear();
     Boundary *bptr;
     std::size_t boundaryNum;
+
     std::size_t type;
     ifs >> boundaryNum;
     for(std::size_t i = 0; i < boundaryNum; ++i) {
@@ -5881,16 +5893,16 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 #endif
     
       std::size_t num1 = particleVec.size();      // particles inside container
-      std::size_t num2 = mergeParticleVec.size(); // paticles inside container (at front) + particles from neighboring blocks (at end)
+      std::size_t num2 = mergedParticleVec.size(); // paticles inside container (at front) + particles from neighboring blocks (at end)
       for (std::size_t i = 0; i < num1; ++i) {    // NOT (num1 - 1), in parallel situation where one particle could contact received particles!
 	Vec u = particleVec[i]->getCurrPos();
 	for (std::size_t j = i + 1; j < num2; ++j){
-	  Vec v = mergeParticleVec[j]->getCurrPos();
-	  if ( ( vfabs(v - u) < particleVec[i]->getA() + mergeParticleVec[j]->getA())
-	       && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
-	       && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
-	       && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	    Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
+	  Vec v = mergedParticleVec[j]->getCurrPos();
+	  if ( ( vfabs(v - u) < particleVec[i]->getA() + mergedParticleVec[j]->getA())
+	       && ( particleVec[i]->getType() !=  1 || mergedParticleVec[j]->getType() != 1  )      // not both are fixed particles
+	       && ( particleVec[i]->getType() !=  5 || mergedParticleVec[j]->getType() != 5  )      // not both are free boundary particles
+	       && ( particleVec[i]->getType() != 10 || mergedParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
+	    Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temparory object
 #ifdef DEM_PROFILE
 	    gettimeofday(&time_r1, NULL); 
 #endif
@@ -5921,19 +5933,19 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       std::size_t i, j;
       Vec u, v;
       std::size_t num1 = particleVec.size();
-      std::size_t num2 = mergeParticleVec.size();  
+      std::size_t num2 = mergedParticleVec.size();  
       int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
     
 #pragma omp parallel for num_threads(ompThreads) private(i, j, u, v) shared(num1, num2) schedule(dynamic)
       for (i = 0; i < num1; ++i) { 
 	u = particleVec[i]->getCurrPos();
 	for (j = i + 1; j < num2; ++j) {
-	  v = mergeParticleVec[j]->getCurrPos();
-	  if ( ( vfabs(v - u) < particleVec[i]->getA() + mergeParticleVec[j]->getA() )
-	       && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
-	       && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
-	       && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	    Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
+	  v = mergedParticleVec[j]->getCurrPos();
+	  if ( ( vfabs(v - u) < particleVec[i]->getA() + mergedParticleVec[j]->getA() )
+	       && ( particleVec[i]->getType() !=  1 || mergedParticleVec[j]->getType() != 1  )      // not both are fixed particles
+	       && ( particleVec[i]->getType() !=  5 || mergedParticleVec[j]->getType() != 5  )      // not both are free boundary particles
+	       && ( particleVec[i]->getType() != 10 || mergedParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
+	    Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temparory object
 	    if(tmpContact.isOverlapped())
 #pragma omp critical
 	      contactVec.push_back(tmpContact);    // containers use value semantics, so a "copy" is pushed back.
@@ -5954,9 +5966,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 #else
   void Assembly::findContact() { 
   // 1. Binning methods, cell slightly larger than maximum particle.
-  // 2. To work with parallelization, mergeParticleVec and an expanded/virtual container must be used to account for 
+  // 2. To work with parallelization, mergedParticleVec and an expanded/virtual container must be used to account for 
   //    particles received from other processes.
-  // 3. updateParticle() only updates particleVec, not mergeParticleVec. 
+  // 3. updateParticle() only updates particleVec, not mergedParticleVec. 
     contactVec.clear();
   
 #ifdef DEM_PROFILE
@@ -6013,8 +6025,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     gettimeofday(&time_p11,NULL); 
 #endif
     // assign particles to each cell, this is O(n) algorithm
-    for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
-      Vec center = mergeParticleVec[pt]->getCurrPos();
+    for (int pt = 0; pt < mergedParticleVec.size(); ++pt) {
+      Vec center = mergedParticleVec[pt]->getCurrPos();
       int i = int((center.getX()-x0) / dx); // must use int, NOT floor, because floor at left border may result in -1, e.g. floor(-1.0e-8)
       int j = int((center.getY()-y0) / dy);
       int k = int((center.getZ()-z0) / dz);
@@ -6022,7 +6034,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       if (j > ny - 1) j = ny - 1;
       if (k > nz - 1) k = nz - 1;
       // the above constrains work better than things like (i > -1 && i < nx) because it does not ignore any particles.
-      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] );
+      cellVec[i][j][k].second.push_back( mergedParticleVec[pt] );
     }
     /* ensure no particles are missed
     int totalPtcl = 0;
@@ -6031,7 +6043,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	for (int k = 0; k < nz; ++k) {
 	  totalPtcl += cellVec[i][j][k].second.size();
 	}
-    debugInf << "particle: input = " << mergeParticleVec.size() << " assigned = " << totalPtcl << std::endl;
+    debugInf << "particle: input = " << mergedParticleVec.size() << " assigned = " << totalPtcl << std::endl;
     */
 #ifdef DEM_PROFILE
     static struct timeval time_p22;
@@ -6039,7 +6051,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 #endif
 
     /* this is actually a low efficiency O(n^2) algorithm, not recommended.
-    std::vector<bool> mergeParticleVecFlag(mergeParticleVec.size(), false);
+    std::vector<bool> mergedParticleVecFlag(mergedParticleVec.size(), false);
     REAL x1, x2, y1, y2, z1, z2;
     for (int i = 0; i < nx; ++i)
       for (int j = 0; j < ny; ++j)
@@ -6050,14 +6062,14 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	  y2 = y0 + dy * (j + 1);
 	  z1 = z0 + dz * k;
 	  z2 = z0 + dz * (k + 1);
-	  for (int pt = 0; pt < mergeParticleVec.size(); ++pt) {
-	    Vec center = mergeParticleVec[pt]->getCurrPos();
-	    if (!mergeParticleVecFlag[pt] &&
+	  for (int pt = 0; pt < mergedParticleVec.size(); ++pt) {
+	    Vec center = mergedParticleVec[pt]->getCurrPos();
+	    if (!mergedParticleVecFlag[pt] &&
 		center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
 		center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
 		center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) {
-	      cellVec[i][j][k].second.push_back( mergeParticleVec[pt] );
-	      mergeParticleVecFlag[pt] = true;
+	      cellVec[i][j][k].second.push_back( mergedParticleVec[pt] );
+	      mergedParticleVecFlag[pt] = true;
 	    }
 	  }
 	}
@@ -6205,7 +6217,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   void Assembly::updateBoundary(REAL sigma, std::string type, REAL sigmaX, REAL sigmaY) {
     if (mpi.mpiRank == 0) {
       REAL x1, x2, y1, y2, z1, z2;
-      for(std::vector<Boundary *>::const_iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it) {
+      for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
 	switch ((*it)->getId()) {
 	case 1: 
 	  x1 = (*it)->getPoint().getX();
@@ -6232,27 +6244,27 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       REAL areaZ = (x2 - x1) * (y2 - y1);
 
       if (type.compare("isotropic") == 0) {
-	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updateIsotropic(sigma, areaX, areaY, areaZ);
       } else if (type.compare("oedometer") == 0) {
-	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updateOedometer(sigma, areaX, areaY, areaZ);
       } else if (type.compare("triaxial") == 0) {
-	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updateTriaxial(sigma, areaX, areaY, areaZ);
       } else if (type.compare("plnstrn") == 0) {
-	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updatePlaneStrain(sigma, areaX, areaY, areaZ);
       } else if (type.compare("trueTriaxial") == 0) {
-	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updateTrueTriaxial(sigma, areaX, areaY, areaZ, sigmaX, sigmaY);
       } else if (type.compare("oedometerImpact") == 0) {
-	for(std::vector<Boundary *>::iterator it = mergeBoundaryVec.begin(); it != mergeBoundaryVec.end(); ++it)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updateOedometerImpact(areaX, areaY, areaZ);
       }
 
-      // update boundaryVec from mergeBoundaryVec and remove contactInfo to reduce MPI transmission
-      boundaryVec = mergeBoundaryVec; 
+      // update boundaryVec from mergedBoundaryVec and remove contactInfo to reduce MPI transmission
+      boundaryVec = mergedBoundaryVec; 
       for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
 	(*it)->clearContactInfo();
 
@@ -7538,16 +7550,16 @@ debugfile);         // output file, debug info
    #endif
     
    int num1 = particleVec.size();  // particles inside container
-   int num2 = mergeParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
+   int num2 = mergedParticleVec.size(); // particles inside container (at front) + particles from neighboring blocks (at end)
    for (int i = 0; i < num1 - 1; ++i) {
    Vec u = particleVec[i]->getCurrPos();
    for (int j = i + 1; j < num2; ++j) {
-   Vec v = mergeParticleVec[j]->getCurrPos();
-   if (   ( vfabs(v - u) < particleVec[i]->getA() + mergeParticleVec[j]->getA())
-   && ( particleVec[i]->getType() !=  1 || mergeParticleVec[j]->getType() != 1  )      // not both are fixed particles
-   && ( particleVec[i]->getType() !=  5 || mergeParticleVec[j]->getType() != 5  )      // not both are free boundary particles
-   && ( particleVec[i]->getType() != 10 || mergeParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-   Contact tmpContact(particleVec[i], mergeParticleVec[j]); // a local and temparory object
+   Vec v = mergedParticleVec[j]->getCurrPos();
+   if (   ( vfabs(v - u) < particleVec[i]->getA() + mergedParticleVec[j]->getA())
+   && ( particleVec[i]->getType() !=  1 || mergedParticleVec[j]->getType() != 1  )      // not both are fixed particles
+   && ( particleVec[i]->getType() !=  5 || mergedParticleVec[j]->getType() != 5  )      // not both are free boundary particles
+   && ( particleVec[i]->getType() != 10 || mergedParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
+   Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temparory object
    ++possContactNum;
    #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 

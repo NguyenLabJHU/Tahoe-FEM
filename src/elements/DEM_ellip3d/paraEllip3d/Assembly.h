@@ -65,7 +65,7 @@ namespace dem {
 
     // boundary property
     std::vector<Boundary *> boundaryVec;       // rigid boundaries, broadcast among processes upon changed.
-    std::vector<Boundary *> mergeBoundaryVec;  // rigid boundaries with stats from all processes
+    std::vector<Boundary *> mergedBoundaryVec;  // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
     std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info  
 
@@ -113,7 +113,7 @@ namespace dem {
     std::vector<Particle *> rParticleX1Y1Z1, rParticleX1Y1Z2, rParticleX1Y2Z1, rParticleX1Y2Z2; 
     std::vector<Particle *> rParticleX2Y1Z1, rParticleX2Y1Z2, rParticleX2Y2Z1, rParticleX2Y2Z2; 
     std::vector<Particle *> recvParticleVec;  // received particles per process
-    std::vector<Particle *> mergeParticleVec; // merged particles per process
+    std::vector<Particle *> mergedParticleVec; // merged particles per process
       
     // stream
     std::ofstream progressInf;

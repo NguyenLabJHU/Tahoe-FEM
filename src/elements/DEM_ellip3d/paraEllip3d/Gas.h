@@ -154,7 +154,6 @@ namespace dem {
 
     Bound boundPrn; // CFD printing bound
     Bound boundCup; // DEM-CFD coupling bound
-    Bound boundCfd; // CFD resolving bound
     Bound boundGod; // God resolving bound
 
     std::size_t ptclGrid; // approximate grids accross particle in each dimension
@@ -312,6 +311,7 @@ namespace dem {
     void coordToGlobalIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k);
     void coordToGlobalIndex(Vec v, IJK &t);
     void localIndexToGlobal(IJK &local, IJK &global);
+    void globalIndexToLocal(IJK &global, IJK &local);
     void faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
     void cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
 

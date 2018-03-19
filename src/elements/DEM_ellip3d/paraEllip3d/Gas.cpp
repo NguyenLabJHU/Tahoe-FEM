@@ -30,7 +30,7 @@ namespace dem {
     printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
     REAL minR = gradation.getPtclMinRadius(1);
     gridDz = (minR * 2) / ptclGrid;
-    haloGrid  = static_cast<std::size_t> (ceil((double)ptclGrid/2));
+    haloGrid  = static_cast<std::size_t> (ceil((double)ptclGrid/2)) + 1; // important to add 1 for pressure gradient calculation.
     initSharedParameter();
     debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
     debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
@@ -250,7 +250,7 @@ namespace dem {
     if (mpi.mpiProcZ == 1) haloGridZ = 0;
 
     // step 2: determine gridN
-    gridNx = ceil((double)allGridNx / mpi.mpiProcX) + 2*haloGridX; // min: +haloGrid; max: +haloGrid
+    gridNx = ceil((double)allGridNx / mpi.mpiProcX) + 2*haloGridX;
     gridNy = ceil((double)allGridNy / mpi.mpiProcY) + 2*haloGridY;
     gridNz = ceil((double)allGridNz / mpi.mpiProcZ) + 2*haloGridZ;
  
@@ -277,34 +277,39 @@ namespace dem {
     // step 3: determine bound
     // for both serial and parallel:
     // boundCup: size = gridN
-    boundCup = Bound(0, 0, 0, 
-		     gridNx - 1, gridNy - 1, gridNz - 1);
+    boundCup = Bound(0, 0, 0, gridNx - 1, gridNy - 1, gridNz - 1);
 
     // for parallel:
     // boundPrn: size = gridN - haloGrid*2
-    boundPrn = Bound(haloGridX, haloGridY, haloGridZ, 
-		     gridNx - haloGridX - 1, gridNy - haloGridY - 1, gridNz - haloGridZ - 1);
-    // boundCfd: size = gridN -haloGrid*2 + 2
-    boundCfd = Bound(haloGridX - 1, haloGridY - 1, haloGridZ - 1, 
-		     gridNx - haloGridX, gridNy - haloGridY, gridNz - haloGridZ);
-    // boundGod: size = gridN -haloGrid*2 + 1
-    boundGod = Bound(0, 0, 0, 
-		     gridNx - haloGridX*2, gridNy - haloGridY*2, gridNz - haloGridZ*2);
+    boundPrn = Bound(haloGridX, haloGridY, haloGridZ, gridNx - haloGridX - 1, gridNy - haloGridY - 1, gridNz - haloGridZ - 1);
+    if (mpi.isBdryProcessXMin()) {boundPrn.lowX = 1; boundPrn.sizeX = gridNx - haloGridX - 1;}
+    if (mpi.isBdryProcessYMin()) {boundPrn.lowY = 1; boundPrn.sizeY = gridNy - haloGridY - 1;}
+    if (mpi.isBdryProcessZMin()) {boundPrn.lowZ = 1; boundPrn.sizeZ = gridNz - haloGridZ - 1;}
+    if (mpi.isBdryProcessXMax()) {boundPrn.uppX = gridNx - 2; boundPrn.sizeX = gridNx - haloGridX - 1;}
+    if (mpi.isBdryProcessYMax()) {boundPrn.uppY = gridNy - 2; boundPrn.sizeY = gridNy - haloGridY - 1;}
+    if (mpi.isBdryProcessZMax()) {boundPrn.uppZ = gridNz - 2; boundPrn.sizeZ = gridNz - haloGridZ - 1;}
+
+    // for parallel:
+    // boundGod: size = gridN - haloGrid*2 + 1
+    boundGod = Bound(0, 0, 0, gridNx - haloGridX*2, gridNy - haloGridY*2, gridNz - haloGridZ*2);
+    if (mpi.isBdryProcessXMin()) {boundGod.uppX = gridNx - haloGridX - 1; boundGod.sizeX = gridNx - haloGridX;}
+    if (mpi.isBdryProcessYMin()) {boundGod.uppY = gridNy - haloGridY - 1; boundGod.sizeY = gridNy - haloGridY;}
+    if (mpi.isBdryProcessZMin()) {boundGod.uppZ = gridNz - haloGridZ - 1; boundGod.sizeZ = gridNz - haloGridZ;}
+    if (mpi.isBdryProcessXMax()) {boundGod.uppX = gridNx - haloGridX - 1; boundGod.sizeX = gridNx - haloGridX;}
+    if (mpi.isBdryProcessYMax()) {boundGod.uppY = gridNy - haloGridY - 1; boundGod.sizeY = gridNy - haloGridY;}
+    if (mpi.isBdryProcessZMax()) {boundGod.uppZ = gridNz - haloGridZ - 1; boundGod.sizeZ = gridNz - haloGridZ;}
 
     // for serial in a specific direction:
     if (mpi.mpiProcX == 1) {
       boundPrn.lowX = 1; boundPrn.uppX = gridNx - 2; boundPrn.sizeX = gridNx - 2;
-      boundCfd.lowX = 0; boundCfd.uppX = gridNx - 1; boundCfd.sizeX = gridNx;
       boundGod.lowX = 0; boundGod.uppX = gridNx - 2; boundGod.sizeX = gridNx - 1;
     }
     if (mpi.mpiProcY == 1) {
       boundPrn.lowY = 1; boundPrn.uppY = gridNy - 2; boundPrn.sizeY = gridNy - 2;
-      boundCfd.lowY = 0; boundCfd.uppY = gridNy - 1; boundCfd.sizeY = gridNy;
       boundGod.lowY = 0; boundGod.uppY = gridNy - 2; boundGod.sizeY = gridNy - 1;
     }
     if (mpi.mpiProcZ == 1) {
       boundPrn.lowZ = 1; boundPrn.uppZ = gridNz - 2; boundPrn.sizeZ = gridNz - 2;
-      boundCfd.lowZ = 0; boundCfd.uppZ = gridNz - 1; boundCfd.sizeZ = gridNz;
       boundGod.lowZ = 0; boundGod.uppZ = gridNz - 2; boundGod.sizeZ = gridNz - 1;
     }
 
@@ -320,22 +325,6 @@ namespace dem {
     std::cout << std::setw(OWID) << "boundCupY: size, local[ ], global[ ]" << std::setw(OWID) << boundCup.sizeY << std::setw(OWID) << boundCup.lowY << std::setw(OWID) << boundCup.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
     std::cout << std::setw(OWID) << "boundCupZ: size, local[ ], global[ ]" << std::setw(OWID) << boundCup.sizeZ << std::setw(OWID) << boundCup.lowZ << std::setw(OWID) << boundCup.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
 
-    local = IJK(boundCfd.lowX, boundCfd.lowY, boundCfd.lowZ);
-    localIndexToGlobal(local, globalLow);
-    local = IJK(boundCfd.uppX, boundCfd.uppY, boundCfd.uppZ);
-    localIndexToGlobal(local, globalUpp);
-    std::cout << std::setw(OWID) << "boundCfdX: size, local[ ], global[ ]" << std::setw(OWID) << boundCfd.sizeX << std::setw(OWID) << boundCfd.lowX << std::setw(OWID) << boundCfd.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
-    std::cout << std::setw(OWID) << "boundCfdY: size, local[ ], global[ ]" << std::setw(OWID) << boundCfd.sizeY << std::setw(OWID) << boundCfd.lowY << std::setw(OWID) << boundCfd.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
-    std::cout << std::setw(OWID) << "boundCfdZ: size, local[ ], global[ ]" << std::setw(OWID) << boundCfd.sizeZ << std::setw(OWID) << boundCfd.lowZ << std::setw(OWID) << boundCfd.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;    
-
-    local = IJK(boundGod.lowX, boundGod.lowY, boundGod.lowZ);
-    localIndexToGlobal(local, globalLow);
-    local = IJK(boundGod.uppX, boundGod.uppY, boundGod.uppZ);
-    localIndexToGlobal(local, globalUpp);
-    std::cout << std::setw(OWID) << "boundGodX: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeX << std::setw(OWID) << boundGod.lowX << std::setw(OWID) << boundGod.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
-    std::cout << std::setw(OWID) << "boundGodY: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeY << std::setw(OWID) << boundGod.lowY << std::setw(OWID) << boundGod.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
-    std::cout << std::setw(OWID) << "boundGodZ: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeZ << std::setw(OWID) << boundGod.lowZ << std::setw(OWID) << boundGod.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
-
     local = IJK(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
     localIndexToGlobal(local, globalLow);
     local = IJK(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
@@ -343,6 +332,19 @@ namespace dem {
     std::cout << std::setw(OWID) << "boundPrnX: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeX << std::setw(OWID) << boundPrn.lowX << std::setw(OWID) << boundPrn.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
     std::cout << std::setw(OWID) << "boundPrnY: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeY << std::setw(OWID) << boundPrn.lowY << std::setw(OWID) << boundPrn.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
     std::cout << std::setw(OWID) << "boundPrnZ: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeZ << std::setw(OWID) << boundPrn.lowZ << std::setw(OWID) << boundPrn.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
+
+    local = IJK(boundGod.lowX, boundGod.lowY, boundGod.lowZ);
+    std::size_t ic, jc, kc; faceIndexToCell(local.i, local.j, local.k, ic, jc, kc);
+    local = IJK(ic, jc, kc);
+    localIndexToGlobal(local, globalLow);
+    local = IJK(boundGod.uppX, boundGod.uppY, boundGod.uppZ);
+    faceIndexToCell(local.i, local.j, local.k, ic, jc, kc);
+    local = IJK(ic, jc, kc);
+    localIndexToGlobal(local, globalUpp);
+    std::cout << std::setw(OWID) << "boundGodX: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeX << std::setw(OWID) << boundGod.lowX << std::setw(OWID) << boundGod.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
+    std::cout << std::setw(OWID) << "boundGodY: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeY << std::setw(OWID) << boundGod.lowY << std::setw(OWID) << boundGod.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
+    std::cout << std::setw(OWID) << "boundGodZ: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeZ << std::setw(OWID) << boundGod.lowZ << std::setw(OWID) << boundGod.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
+
     std::cout << std::endl;
     */
 
@@ -361,7 +363,7 @@ namespace dem {
     for (std::size_t i = 0; i < arrayGridCoord.size(); ++i)
       for (std::size_t j = 0; j < arrayGridCoord[i].size(); ++j)
 	for (std::size_t k = 0; k < arrayGridCoord[i][j].size(); ++k) {
-	  // i, j, k are local
+	  // i, j, k are local, must be mapped to global
 	  IJK local(i,j,k);
 	  IJK global;
 	  localIndexToGlobal(local, global);
@@ -528,7 +530,6 @@ namespace dem {
     t.i = static_cast<std::size_t> ( round((v.getX() - (x1F - gridDx/2)) / gridDx ));
     t.j = static_cast<std::size_t> ( round((v.getY() - (y1F - gridDy/2)) / gridDy ));
     t.k = static_cast<std::size_t> ( round((v.getZ() - (z1F - gridDz/2)) / gridDz ));
-    //if (iteration == 1) std::cout << "coordToGlobalIndex=" << std::setw(OWID) << (v.getX() - (x1F - gridDx/2)) / gridDx << std::setw(OWID) << (v.getY() - (y1F - gridDy/2)) / gridDy << std::setw(OWID) << (v.getZ() - (z1F - gridDz/2)) / gridDz << std::endl;
   }
 
   void Gas::localIndexToGlobal(IJK &local, IJK &global) {
@@ -537,9 +538,9 @@ namespace dem {
     int j = local.j;
     int k = local.k;
 
-    int I = ceil((double)allGridNx / mpi.mpiProcX) * mpi.mpiCoords[0] - haloGridX + i;
-    int J = ceil((double)allGridNy / mpi.mpiProcY) * mpi.mpiCoords[1] - haloGridY + j;
-    int K = ceil((double)allGridNz / mpi.mpiProcZ) * mpi.mpiCoords[2] - haloGridZ + k;
+    int I = ceil((double)allGridNx / mpi.mpiProcX) * mpi.mpiCoords[0] - (int)haloGridX + i;
+    int J = ceil((double)allGridNy / mpi.mpiProcY) * mpi.mpiCoords[1] - (int)haloGridY + j;
+    int K = ceil((double)allGridNz / mpi.mpiProcZ) * mpi.mpiCoords[2] - (int)haloGridZ + k;
 
     // ensure starting from 0 for min boundary process
     if (mpi.isBdryProcessXMin()) I = i;
@@ -555,11 +556,57 @@ namespace dem {
     global.k = K;
   }
 
+  void Gas::globalIndexToLocal(IJK &global, IJK &local) {
+    // do no use std::size_t for computing
+    int segX = (int) ceil((double)allGridNx / mpi.mpiProcX);
+    int segY = (int) ceil((double)allGridNy / mpi.mpiProcY);
+    int segZ = (int) ceil((double)allGridNz / mpi.mpiProcZ);
+    int i = (int)global.i % segX;
+    int j = (int)global.j % segY;
+    int k = (int)global.k % segZ;
+
+    // - (int)boundPrn.lowX: special case when a particle on process boundary being scattered to multiple processes.
+    IJK localBound(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+    IJK globalBound;
+    localIndexToGlobal(localBound, globalBound);
+    //std::cout << "globalIndexToLocal: mpiRank=" << mpi.mpiRank << " boundPrn.lowX=" << boundPrn.lowX << " globalBound.i= " << globalBound.i << " i=" << i; 
+
+    if (global.i < globalBound.i)
+      i += -segX + (int)haloGridX;
+    else
+      i += (int)haloGridX;
+
+    if (global.j < globalBound.j)
+      j += -segY + (int)haloGridY;
+    else 
+      j += (int)haloGridY;
+
+    if (global.k < globalBound.k) 
+      k += -segZ + (int)haloGridZ;
+    else
+      k += (int)haloGridZ;
+
+    // ensure starting from 0 for min boundary process
+    if (mpi.isBdryProcessXMin()) i = (int)global.i;
+    if (mpi.isBdryProcessYMin()) j = (int)global.j;
+    if (mpi.isBdryProcessZMin()) k = (int)global.k;
+    // automatically end at (allGrid -1) for max boundary process
+
+    local.i = i;
+    local.j = j;
+    local.k = k;
+  }
+
   // Godunov to cell
   void Gas::faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko) {
     io = i + haloGridX - 1;
     jo = j + haloGridY - 1;
     ko = k + haloGridZ - 1;
+
+    if (mpi.isBdryProcessXMin()) io = i;
+    if (mpi.isBdryProcessYMin()) jo = j;
+    if (mpi.isBdryProcessZMin()) ko = k;
+
     if (mpi.mpiProcX == 1) io = i;
     if (mpi.mpiProcY == 1) jo = j;
     if (mpi.mpiProcZ == 1) ko = k;
@@ -570,6 +617,11 @@ namespace dem {
     io = i - haloGridX + 1;
     jo = j - haloGridY + 1;
     ko = k - haloGridZ + 1;
+
+    if (mpi.isBdryProcessXMin()) io = i;
+    if (mpi.isBdryProcessYMin()) jo = j;
+    if (mpi.isBdryProcessZMin()) ko = k;
+
     if (mpi.mpiProcX == 1) io = i;
     if (mpi.mpiProcY == 1) jo = j;
     if (mpi.mpiProcZ == 1) ko = k;
@@ -609,9 +661,9 @@ namespace dem {
 
 	       << std::setw(OWID) << "cfdCommuT"
 	       << std::setw(OWID) << "getPtclInfoT"
-	       << std::setw(OWID) << "runOneStepT"
 	       << std::setw(OWID) << "calcPtclForceT"
 	       << std::setw(OWID) << "penalizeT"
+	       << std::setw(OWID) << "runOneStepT"
 	       << std::setw(OWID) << "cfdTotalT"
 	       << std::setw(OWID) << "demCommuT"
 	       << std::setw(OWID) << "demCompuT"
@@ -880,25 +932,21 @@ namespace dem {
 	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 
-	// calculate momentum and density quotient before modification
-	bool inGrid = (i >= boundPrn.lowX && i <= boundPrn.uppX && 
-		       j >= boundPrn.lowY && j <= boundPrn.uppY && 
-		       k >= boundPrn.lowZ && k <= boundPrn.uppZ );
 	REAL denQuot[3], u0[3];
-	if (inGrid) {
-	  denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
-	  denQuot[1] = (arrayU[i][j+1][k][varDen] - arrayU[i][j-1][k][varDen]) / (2*gridDy);
-	  denQuot[2] = (arrayU[i][j][k+1][varDen] - arrayU[i][j][k-1][varDen]) / (2*gridDz);
-
-	  REAL coordX = arrayGridCoord[i][j][k][0];
-	  REAL coordY = arrayGridCoord[i][j][k][1];
-	  REAL coordZ = arrayGridCoord[i][j][k][2];
-	  Vec dist = Vec(coordX, coordY, coordZ) - (*it)->getCurrPos();
-	  Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
-	  u0[0] = (*it)->getCurrVeloc().getX() + omgar.getX(); 
-	  u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
-	  u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
-	}
+ 	//if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // no longer necessary because haloGrid already adds 1.
+	denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
+	//if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY) // no longer necessary because haloGrid already adds 1.
+	denQuot[1] = (arrayU[i][j+1][k][varDen] - arrayU[i][j-1][k][varDen]) / (2*gridDy);
+	//if (k >= boundCup.lowZ+1 && k+1 <= boundCup.uppZ) // no longer necessary because haloGrid already adds 1.
+	denQuot[2] = (arrayU[i][j][k+1][varDen] - arrayU[i][j][k-1][varDen]) / (2*gridDz);
+	REAL coordX = arrayGridCoord[i][j][k][0];
+	REAL coordY = arrayGridCoord[i][j][k][1];
+	REAL coordZ = arrayGridCoord[i][j][k][2];
+	Vec dist = Vec(coordX, coordY, coordZ) - (*it)->getCurrPos();
+	Vec omgar = (*it)->getCurrOmga() % dist; // w X r = omga % dist, where % is overloaded as cross product
+	u0[0] = (*it)->getCurrVeloc().getX() + omgar.getX(); 
+	u0[1] = (*it)->getCurrVeloc().getY() + omgar.getY(); 
+	u0[2] = (*it)->getCurrVeloc().getZ() + omgar.getZ();
 
 	// 1. momentum penalization
 	for (std::size_t m = 0; m < nDim; ++m) {
@@ -912,10 +960,8 @@ namespace dem {
 	//   a. mass source term is incorporated by changes in flux(), so it is not computed here.
 
 	//   b. influence of mass source term u0[m]*denQuot[m] on energy, it is approximate to d(rho*u0)/dx.
-	if (inGrid) {
-	  for (std::size_t m = 0; m < nDim; ++m)
-	    arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2)) * (u0[m]*denQuot[m]) * timeStep / porosity;
-	}
+	for (std::size_t m = 0; m < nDim; ++m)
+	  arrayU[i][j][k][varEng]  += arrayU[i][j][k][varMsk] * (-0.5*pow(arrayU[i][j][k][varVel[m]],2)) * (u0[m]*denQuot[m]) * timeStep / porosity;
 
       }
     }
@@ -1683,17 +1729,29 @@ namespace dem {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
-    std::size_t maxGrid = static_cast<std::size_t> (ceil(gradation.getPtclMaxRadius() / gridDx) ) ;
+    std::size_t maxGrid = static_cast<std::size_t> (ceil(gradation.getPtclMaxRadius() / gridDx) );
     std::size_t ip, jp, kp;
 
     for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       coordToGlobalIndex((*it)->getCurrPos(), ip, jp, kp); 
-      // std::cout << std::setw(OWID) << maxGrid  << std::setw(OWID) << ip << std::setw(OWID) << jp << std::setw(OWID) << kp;
-      // ensure each grid is in the valid range 0 ~ (n-1)
+      IJK global(ip, jp, kp);
+      IJK local;
+      globalIndexToLocal(global, local);
+      //std::cout << "getPtclInfo: mpiRank=" << mpi.mpiRank << " ptcl=" << (*it)->getId() << " global=" << ip << " " << jp << " " << kp << " local=" << local.i << " " << local.j << " " << local.k << std::endl; 
+
+      // ensure each grid is in the valid range
       // never subtract two numbers of type std::size_t
-      for (std::size_t i = std::max((int)ip - (int)maxGrid, (int)boundCup.lowX); i <= std::min((int)(ip + maxGrid), (int)boundCup.uppX); ++i)
-	for (std::size_t j = std::max((int)jp - (int)maxGrid, (int)boundCup.lowY); j <= std::min((int)(jp + maxGrid), (int)boundCup.uppY); ++j)
-	  for (std::size_t k = std::max((int)kp - (int)maxGrid, (int)boundCup.lowZ); k <= std::min((int)(kp + maxGrid), (int)boundCup.uppZ); ++k) {
+      int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX+1); // +1: no longer necessary because haloGrid already adds 1.
+      int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY+1);
+      int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ+1);
+      int uppX = std::min((int)(local.i + maxGrid), (int)boundCup.uppX-1);    // -1: no longer necessary because haloGrid already adds 1.
+      int uppY = std::min((int)(local.j + maxGrid), (int)boundCup.uppY-1);
+      int uppZ = std::min((int)(local.k + maxGrid), (int)boundCup.uppZ-1);
+      //std::cout << "x, y, z local range=" << lowX << " " << uppX << " " << lowY << " " << uppY << " " << lowZ << " " << uppZ << std::endl;
+
+      for (std::size_t i = lowX; i <= uppX ; ++i)
+	for (std::size_t j = lowY; j <= uppY; ++j)
+	  for (std::size_t k = lowZ; k <= uppZ; ++k) {
 	    REAL coordX = arrayGridCoord[i][j][k][0];
 	    REAL coordY = arrayGridCoord[i][j][k][1];
 	    REAL coordZ = arrayGridCoord[i][j][k][2];
@@ -1703,12 +1761,14 @@ namespace dem {
 	      (*it)->recordFluidGrid(i, j, k);
 	    }
 	  }
+      //std::cout << "getPtclInfo: mpiRank=" << mpi.mpiRank << " fluidGrid=" << (*it)->getFluidGrid().size() << std::endl;
+
     }
   }
 
 
   /*
-  // an inefficient algorithm
+  // a very inefficient algorithm
   void Gas::getPtclInfo(std::vector<Particle *> &ptcls) {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
@@ -1745,6 +1805,8 @@ namespace dem {
 	  }
 
     for (std::vector<Particle *>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
+      //std::cout << "calcPtclForce: mpiRank=" << mpi.mpiRank << " ptcl=" << (*it)->getId() << std::endl; 
+
       REAL etaBx = 8.0/3.0 * (*it)->getA() / Cd; // local direction x (i.e. a)
       REAL etaBy = 8.0/3.0 * (*it)->getB() / Cd; // local direction y (i.e. b)
       REAL etaBz = 8.0/3.0 * (*it)->getC() / Cd; // local direction z (i.e. c)
@@ -1753,7 +1815,10 @@ namespace dem {
       Vec penalMoment = 0, presMoment = 0;
       REAL avgDen = 0, avgVel = 0, avgPrs = 0, avgVelGap = 0;
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
+      //std::cout << "calcPtclInfo: mpiRank=" << mpi.mpiRank << " fluidGrid=" << (*it)->getFluidGrid().size() << std::endl; 
+
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
+	
 	std::size_t i = static_cast<std::size_t> (fluidGrid[iter][0]);
 	std::size_t j = static_cast<std::size_t> (fluidGrid[iter][1]);
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
@@ -1794,14 +1859,13 @@ namespace dem {
 	arrayPenalForce[i][j][k][1] += globalPenal.getY();
 	arrayPenalForce[i][j][k][2] += globalPenal.getZ();
 
-	// restrict pressure gradient grids
- 	if (i >= boundCup.lowX && i <= boundCup.uppX && 
-	    j >= boundCup.lowY && j <= boundCup.uppY && 
-	    k >= boundCup.lowZ && k <= boundCup.uppZ ) { // do not use (i-1) for std::size_t because (i-1) is postive when i=0
-	  arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][varPrs] - arrayU[i-1][j][k][varPrs])/(2*gridDx);
-	  arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][varPrs] - arrayU[i][j-1][k][varPrs])/(2*gridDy);
-	  arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][varPrs] - arrayU[i][j][k-1][varPrs])/(2*gridDz);
-	}
+	// restrict pressure gradient grids; do not use (i-1) for std::size_t because (i-1) is postive when i=0
+ 	//if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // no longer necessary because haloGrid already adds 1.
+	arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][varPrs] - arrayU[i-1][j][k][varPrs])/(2*gridDx);
+	//if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY) // no longer necessary because haloGrid already adds 1.
+	arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][varPrs] - arrayU[i][j-1][k][varPrs])/(2*gridDy);
+	//if (k >= boundCup.lowZ+1 && k+1 <= boundCup.uppZ) // no longer necessary because haloGrid already adds 1.
+	arrayPressureForce[i][j][k][2] = -(arrayU[i][j][k+1][varPrs] - arrayU[i][j][k-1][varPrs])/(2*gridDz);
 
 	penalForce += Vec(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
 	presForce  += Vec(arrayPressureForce[i][j][k][0], arrayPressureForce[i][j][k][1], arrayPressureForce[i][j][k][2]);
@@ -1826,92 +1890,96 @@ namespace dem {
       (*it)->addMoment(penalMoment*(Cdi/Cd+1));
       (*it)->addMoment(presMoment);
 
-      for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn) {
-	if ((*it)->getId() == printPtcls[iPrn]) {
-	  std::fstream pfs;
-	  pfs.open (dem::combineStr("particle_", printPtcls[iPrn], 7).c_str(), std::fstream::out | std::fstream::app);
-	  if(!pfs) { std::cout << "stream error: Gas::calcPtclForce" << std::endl; exit(-1); }
-	  pfs.setf(std::ios::scientific, std::ios::floatfield);
-	  if (iteration == 1) {
-	    pfs << std::setw(OWID) << "iteration"
-		<< std::setw(OWID) << "accruedTime"
-		<< std::setw(OWID) << "penalFx"
-		<< std::setw(OWID) << "penalFy"
-		<< std::setw(OWID) << "penalFz"
-		<< std::setw(OWID) << "pressureFx"
-		<< std::setw(OWID) << "pressureFy"
-		<< std::setw(OWID) << "pressureFz"
-		<< std::setw(OWID) << "internalFx"
-		<< std::setw(OWID) << "internalFy"
-		<< std::setw(OWID) << "internalFz"
-		<< std::setw(OWID) << "viscousCd"
-		<< std::setw(OWID) << "pressureCd"
-		<< std::setw(OWID) << "internalCd"
-		<< std::setw(OWID) << "totalCd"
-		<< std::setw(OWID) << "penalMx"
-		<< std::setw(OWID) << "penalMy"
-		<< std::setw(OWID) << "penalMz"
-		<< std::setw(OWID) << "pressureMx"
-		<< std::setw(OWID) << "pressureMy"
-		<< std::setw(OWID) << "pressureMz"
-		<< std::setw(OWID) << "accelX"
-		<< std::setw(OWID) << "accelY"
-		<< std::setw(OWID) << "accelZ"
-		<< std::setw(OWID) << "velocX"
-		<< std::setw(OWID) << "velocY"
-		<< std::setw(OWID) << "velocZ"
-		<< std::setw(OWID) << "avgDen"
-		<< std::setw(OWID) << "avgVel"
-		<< std::setw(OWID) << "avgPrs"
-		<< std::setw(OWID) << "avgVelGap"
-		<< std::endl;
-	  }
+      // print particle info
+      if (!(*it)->isReceived()) { // internal particle, not received from adjacent process
+	for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn) {
+	  if ((*it)->getId() == printPtcls[iPrn]) {
+	    std::fstream pfs;
+	    pfs.open (dem::combineStr("particle_", printPtcls[iPrn], 7).c_str(), std::fstream::out | std::fstream::app);
+	    if(!pfs) { std::cout << "stream error: Gas::calcPtclForce" << std::endl; exit(-1); }
+	    pfs.setf(std::ios::scientific, std::ios::floatfield);
+	    if (iteration == 1) {
+	      pfs << std::setw(OWID) << "iteration"
+		  << std::setw(OWID) << "accruedTime"
+		  << std::setw(OWID) << "penalFx"
+		  << std::setw(OWID) << "penalFy"
+		  << std::setw(OWID) << "penalFz"
+		  << std::setw(OWID) << "pressureFx"
+		  << std::setw(OWID) << "pressureFy"
+		  << std::setw(OWID) << "pressureFz"
+		  << std::setw(OWID) << "internalFx"
+		  << std::setw(OWID) << "internalFy"
+		  << std::setw(OWID) << "internalFz"
+		  << std::setw(OWID) << "viscousCd"
+		  << std::setw(OWID) << "pressureCd"
+		  << std::setw(OWID) << "internalCd"
+		  << std::setw(OWID) << "totalCd"
+		  << std::setw(OWID) << "penalMx"
+		  << std::setw(OWID) << "penalMy"
+		  << std::setw(OWID) << "penalMz"
+		  << std::setw(OWID) << "pressureMx"
+		  << std::setw(OWID) << "pressureMy"
+		  << std::setw(OWID) << "pressureMz"
+		  << std::setw(OWID) << "accelX"
+		  << std::setw(OWID) << "accelY"
+		  << std::setw(OWID) << "accelZ"
+		  << std::setw(OWID) << "velocX"
+		  << std::setw(OWID) << "velocY"
+		  << std::setw(OWID) << "velocZ"
+		  << std::setw(OWID) << "avgDen"
+		  << std::setw(OWID) << "avgVel"
+		  << std::setw(OWID) << "avgPrs"
+		  << std::setw(OWID) << "avgVelGap"
+		  << std::endl;
+	    }
 
-	  // refF is only for the case of Rankine-Hugoniot Condition to test drag coefficients
-	  REAL refF = 0.5*rhoL*uL*uL*dem::Pi*(*it)->getA()*(*it)->getB();
-	  pfs << std::setw(OWID) << iteration
-	      << std::setw(OWID) << timeAccrued
+	    // refF is only for the case of Rankine-Hugoniot Condition to test drag coefficients
+	    REAL refF = 0.5*rhoL*uL*uL*dem::Pi*(*it)->getA()*(*it)->getB();
+	    pfs << std::setw(OWID) << iteration
+		<< std::setw(OWID) << timeAccrued
 
-	      << std::setw(OWID) << penalForce.getX()
-	      << std::setw(OWID) << penalForce.getY()
-	      << std::setw(OWID) << penalForce.getZ()
-	      << std::setw(OWID) << presForce.getX()
-	      << std::setw(OWID) << presForce.getY()
-	      << std::setw(OWID) << presForce.getZ()
-	      << std::setw(OWID) << penalForce.getX()*(Cdi/Cd)
-	      << std::setw(OWID) << penalForce.getY()*(Cdi/Cd)
-	      << std::setw(OWID) << penalForce.getZ()*(Cdi/Cd)
+		<< std::setw(OWID) << penalForce.getX()
+		<< std::setw(OWID) << penalForce.getY()
+		<< std::setw(OWID) << penalForce.getZ()
+		<< std::setw(OWID) << presForce.getX()
+		<< std::setw(OWID) << presForce.getY()
+		<< std::setw(OWID) << presForce.getZ()
+		<< std::setw(OWID) << penalForce.getX()*(Cdi/Cd)
+		<< std::setw(OWID) << penalForce.getY()*(Cdi/Cd)
+		<< std::setw(OWID) << penalForce.getZ()*(Cdi/Cd)
 
-	      << std::setw(OWID) << penalForce.getZ()/refF // viscousCd
-	      << std::setw(OWID) << presForce.getZ()/refF  // pressureCd
-	      << std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd))/refF // internalCd
-	      << std::setw(OWID) << ( penalForce.getZ()*(Cdi/Cd+1) + presForce.getZ() )/refF // totalCd
+		<< std::setw(OWID) << penalForce.getZ()/refF // viscousCd
+		<< std::setw(OWID) << presForce.getZ()/refF  // pressureCd
+		<< std::setw(OWID) << (penalForce.getZ()*(Cdi/Cd))/refF // internalCd
+		<< std::setw(OWID) << ( penalForce.getZ()*(Cdi/Cd+1) + presForce.getZ() )/refF // totalCd
 
-	      << std::setw(OWID) << penalMoment.getX()
-	      << std::setw(OWID) << penalMoment.getY()
-	      << std::setw(OWID) << penalMoment.getZ()
-	      << std::setw(OWID) << presMoment.getX()
-	      << std::setw(OWID) << presMoment.getY()
-	      << std::setw(OWID) << presMoment.getZ()
+		<< std::setw(OWID) << penalMoment.getX()
+		<< std::setw(OWID) << penalMoment.getY()
+		<< std::setw(OWID) << penalMoment.getZ()
+		<< std::setw(OWID) << presMoment.getX()
+		<< std::setw(OWID) << presMoment.getY()
+		<< std::setw(OWID) << presMoment.getZ()
 
-	      << std::setw(OWID) << (*it)->getAccel().getX()
-	      << std::setw(OWID) << (*it)->getAccel().getY()
-	      << std::setw(OWID) << (*it)->getAccel().getZ()
+		<< std::setw(OWID) << (*it)->getAccel().getX()
+		<< std::setw(OWID) << (*it)->getAccel().getY()
+		<< std::setw(OWID) << (*it)->getAccel().getZ()
 
-	      << std::setw(OWID) << (*it)->getCurrVeloc().getX()
-	      << std::setw(OWID) << (*it)->getCurrVeloc().getY()
-	      << std::setw(OWID) << (*it)->getCurrVeloc().getZ()
+		<< std::setw(OWID) << (*it)->getCurrVeloc().getX()
+		<< std::setw(OWID) << (*it)->getCurrVeloc().getY()
+		<< std::setw(OWID) << (*it)->getCurrVeloc().getZ()
 
-	      << std::setw(OWID) << avgDen
-	      << std::setw(OWID) << avgVel
-	      << std::setw(OWID) << avgPrs
-	      << std::setw(OWID) << avgVelGap
+		<< std::setw(OWID) << avgDen
+		<< std::setw(OWID) << avgVel
+		<< std::setw(OWID) << avgPrs
+		<< std::setw(OWID) << avgVelGap
 
-	      << std::endl ;
-	  pfs.close();
-	}
-      }
+		<< std::endl ;
+	    pfs.close();
 
+	  } // end of if ((*it)->getId() == printPtcls[iPrn])
+	} // end of for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn)
+      } // end of if (!(*it)->isReceived())
+      
     } // end of particle loop  
   }
 
@@ -2043,7 +2111,6 @@ namespace dem {
       allBoundX /= (mpi.mpiProcY * mpi.mpiProcZ);
       allBoundY /= (mpi.mpiProcZ * mpi.mpiProcX);
       allBoundZ /= (mpi.mpiProcX * mpi.mpiProcY);
-      //std::cout << "allBound="<< " "<< allBoundX<< " " << allBoundY<< " " << allBoundZ<< std::endl;
 
       MPI_Status status;
       MPI_File file;
@@ -2098,7 +2165,7 @@ namespace dem {
       for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
 	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
 	  for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i) {
-	    // i, j, k are local
+	    // i, j, k are local, mapped to global in case.
 	    IJK local(i,j,k);
 	    IJK global;
 	    localIndexToGlobal(local, global);
@@ -2324,8 +2391,7 @@ namespace dem {
     for (std::size_t i = start.i; i <= end.i; ++i)
       for (std::size_t j = start.j; j <= end.j; ++j)
 	for (std::size_t k = start.k; k <= end.k; ++k) {
-	  // i, j, k are local
-	  // i, j, k are local
+
 	  REAL den = arrayU[i][j][k][varDen];
 	  REAL mx  = arrayU[i][j][k][varMom[0]];
 	  REAL my  = arrayU[i][j][k][varMom[1]];
@@ -2337,14 +2403,6 @@ namespace dem {
 	  REAL prs = arrayU[i][j][k][varPrs];
 	  Vec  coords(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]);
 	  foundGas.push_back(GasVar(den, Vec(mx,my,mz), eng, Vec(vx,vy,vz), prs, coords));
-
-	  /*
-	  if (iteration == 1 && i==17)
-	    std::cout << "find,mpiRank=" << mpi.mpiRank << " ijk=" << std::setw(OWID) << i << std::setw(OWID) << j << std::setw(OWID) << k 
-		      << std::setw(OWID) << arrayU[i][j][k][varDen]
-		      << std::setw(OWID) << arrayU[i][j][k][varPrs]
-		      << std::endl;
-	  */
 	}
   }
 
@@ -2352,7 +2410,6 @@ namespace dem {
     for (std::size_t i = start.i; i <= end.i; ++i)
       for (std::size_t j = start.j; j <= end.j; ++j)
 	for (std::size_t k = start.k; k <= end.k; ++k) {
-	  // i, j, k are local
 	  Vec penal(arrayPenalForce[i][j][k][0], arrayPenalForce[i][j][k][1], arrayPenalForce[i][j][k][2]);
 	  Vec coords(arrayGridCoord[i][j][k][0], arrayGridCoord[i][j][k][1], arrayGridCoord[i][j][k][2]);
 	  foundPenal.push_back(ValCoord(penal, coords));
@@ -2440,16 +2497,13 @@ namespace dem {
     if (mpi.rankZ1 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasZ1.begin(), rGasZ1.end());            
     if (mpi.rankZ2 >= 0) recvGasVarVec.insert(recvGasVarVec.end(), rGasZ2.begin(), rGasZ2.end());            
 
-    //if (iteration == 1) std::cout << "recv,mpiRank=" << mpi.mpiRank << " recvSize=" << recvGasVarVec.size() << std::endl;
     IJK_GasVar_Map recvGasMap;
     for (int i = 0; i < recvGasVarVec.size(); ++i) {
       IJK tri;
       coordToGlobalIndex(recvGasVarVec[i].coords, tri);
       recvGasMap.insert(std::make_pair(tri, recvGasVarVec[i]));
       //recvGasMap[tri] = recvGasVarVec[i]; // equivalent to map::insert.
-      //if (iteration == 1) std::cout << "recv,mpiRank=" << mpi.mpiRank << std::setw(OWID) << recvGasVarVec[i].coords.getX() << std::setw(OWID) << recvGasVarVec[i].coords.getY() << std::setw(OWID) << recvGasVarVec[i].coords.getZ() << std::setw(OWID) << tri.i << std::setw(OWID) << tri.j << std::setw(OWID) << tri.k << std::endl;
     }
-    //if (iteration == 1) std::cout << "recv,mpiRank=" << mpi.mpiRank << " mapSize=" << recvGasMap.size() << std::endl;
     
     // construct gas halo with received info
     for (std::size_t i = 0; i < arrayU.size(); ++i)
@@ -2474,13 +2528,6 @@ namespace dem {
 	      arrayU[i][j][k][varVel[1]] = recvGasMap[global].velocity.getY() ;
 	      arrayU[i][j][k][varVel[2]] = recvGasMap[global].velocity.getZ() ;
 	      arrayU[i][j][k][varPrs]    = recvGasMap[global].pressure;
-	      /*
-	      if (iteration == 1 && i==17)
-	      std::cout << "recv,mpiRank=" << mpi.mpiRank << " ijk=" << std::setw(OWID) << i << std::setw(OWID) << j << std::setw(OWID) << k 
-			<< std::setw(OWID) << arrayU[i][j][k][varDen]
-			<< std::setw(OWID) << arrayU[i][j][k][varPrs]
-			<< std::endl;
-	      */
 	    }
 	  } 
 	}
