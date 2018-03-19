@@ -22,7 +22,7 @@ namespace dem {
     MPI_Cart_coords(cartComm, mpiRank, ndim, mpiCoords);
     mpiTag = 0;
     assert(mpiRank == boostWorld.rank());
-    //debugInf << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
+    //std::cout << "mpiRank=" << mpiRank << " " << mpiCoords[0] << " " << mpiCoords[1] << " " << mpiCoords[2] << std::endl;
   }
 
   void MPIFrame::setBdryProcess() {
@@ -199,7 +199,7 @@ namespace dem {
     neighborCoords[2] = mpiCoords[2];
     ++neighborCoords[0]; ++neighborCoords[1]; ++neighborCoords[2];
     MPI_Cart_rank(cartComm, neighborCoords, &rankX2Y2Z2);
-    //debugInf << std::endl << "findMPINeighbor:rankX1=" << rankX1 << std::endl;
+    //std::cout << std::endl << "findMPINeighbor:rankX1=" << rankX1 << std::endl;
   }
 
   bool MPIFrame::isBdryProcess() {
