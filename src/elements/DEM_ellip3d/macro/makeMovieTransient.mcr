@@ -10,7 +10,7 @@ $!Export
   ExportRegion = CurrentFrame
   
 $!ExportSetup ExportFormat = MPEG4
-$!ExportSetup ExportFName = '|NAME|.mpg'
+$!ExportSetup ExportFName = '|NAME|.mp4'
 $!AnimateTime 
   StartTime = 1
   EndTime = 100
