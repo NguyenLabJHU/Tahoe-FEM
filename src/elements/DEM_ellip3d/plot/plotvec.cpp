@@ -59,9 +59,10 @@ int main(int argc, char *argv[])
       strcat(filein, "_");
       strcat(filein, num);
     }
-      
-    strcpy(fileout, filein);
-    strcat(fileout, "_vec.dat");
+
+    strcpy(fileout, "vec_");
+    strcat(fileout, filein);
+    strcat(fileout, ".dat");
     cout << "generating file " << fileout << " ......" <<endl;
 
     ifs.open(filein);
