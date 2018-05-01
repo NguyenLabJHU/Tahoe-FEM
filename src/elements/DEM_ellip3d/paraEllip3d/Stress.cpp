@@ -13,6 +13,9 @@ namespace dem {
   } 
 
   void Stress::setZero() {
+    density = 0;
+    voidRatio = 0;
+
     for (int i = 0; i < 3; ++i) {
       coord[i] = 0;
       spin[i] = 0;
@@ -22,6 +25,7 @@ namespace dem {
     }
 
     for (int i = 0; i < 6; ++i) {
+      fabric[6] = 0;
       stress[i] = 0;
       stressRate[i] = 0;
       stretch[i] = 0;
@@ -65,6 +69,11 @@ namespace dem {
     double eulerShearStrain = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
 
     ofs << std::setw(OWID) << coord[0] << std::setw(OWID) << coord[1] << std::setw(OWID) << coord[2]
+
+	<< std::setw(OWID) << density << std::setw(OWID) << voidRatio
+
+	<< std::setw(OWID) << fabric[0]<< std::setw(OWID) << fabric[1]<< std::setw(OWID) << fabric[2]
+	<< std::setw(OWID) << fabric[3]<< std::setw(OWID) << fabric[4]<< std::setw(OWID) << fabric[5]
 
 	<< std::setw(OWID) << stress[0]<< std::setw(OWID) << stress[1]<< std::setw(OWID) << stress[2]
 	<< std::setw(OWID) << stress[3]<< std::setw(OWID) << stress[4]<< std::setw(OWID) << stress[5]

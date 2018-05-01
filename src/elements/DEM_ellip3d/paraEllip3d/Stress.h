@@ -21,6 +21,10 @@ namespace dem {
     
   public:
     REAL coord[3];
+    REAL density;
+    REAL voidRatio;
+
+    REAL fabric[6];           // symmetric
     REAL stress[6];           // symmetric
     REAL stressRate[6];       // symmetric
 
@@ -50,6 +54,9 @@ namespace dem {
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
       ar & coord;
+      ar & density;
+      ar & voidRatio;
+      ar & fabric;
       ar & stress;
       ar & stressRate;
       ar & OldroStressRate;

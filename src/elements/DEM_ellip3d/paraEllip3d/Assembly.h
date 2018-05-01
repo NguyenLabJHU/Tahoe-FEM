@@ -65,7 +65,7 @@ namespace dem {
 
     // boundary property
     std::vector<Boundary *> boundaryVec;       // rigid boundaries, broadcast among processes upon changed.
-    std::vector<Boundary *> mergedBoundaryVec;  // rigid boundaries with stats from all processes
+    std::vector<Boundary *> mergedBoundaryVec; // rigid boundaries with stats from all processes
     std::vector<Boundary *> cavityBoundaryVec; // rigid cavity boundaries
     std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info  
 
@@ -90,6 +90,9 @@ namespace dem {
     
 #ifdef STRESS_STRAIN
     // continuum property
+    REAL nominalDensity;                // nominal density, per process
+    REAL nominalVoidRatio;              // nominal void ratio, per process
+    Eigen::Matrix3d fabricTensor;       // fabric tensor, per process
     Eigen::Matrix3d prevGranularStress; // granular stress at previous time step, per process
     Eigen::Matrix3d granularStress;     // granular stress, per process
     Eigen::Matrix3d granularStressRate; // granular stress rate, per process
@@ -112,7 +115,7 @@ namespace dem {
     std::vector<Particle *> rParticleY1Z1, rParticleY1Z2, rParticleY2Z1, rParticleY2Z2; 
     std::vector<Particle *> rParticleX1Y1Z1, rParticleX1Y1Z2, rParticleX1Y2Z1, rParticleX1Y2Z2; 
     std::vector<Particle *> rParticleX2Y1Z1, rParticleX2Y1Z2, rParticleX2Y2Z1, rParticleX2Y2Z2; 
-    std::vector<Particle *> recvParticleVec;  // received particles per process
+    std::vector<Particle *> recvParticleVec;   // received particles per process
     std::vector<Particle *> mergedParticleVec; // merged particles per process
       
     // stream
@@ -216,6 +219,8 @@ namespace dem {
     void updateGranularTetraOnBoundary();
     void snapParticlePos();
     REAL getGranularTetraVolume();
+    void calcNominalDensityVoid();
+    void calcFabricTensor();
     void calcPrevGranularStress();
     void calcGranularStress(Eigen::Matrix3d &);
     void calcGranularStrain(REAL timeIncr);
@@ -292,17 +297,17 @@ namespace dem {
     void gatherEnergy();
     
     void setTrimHistoryNum(std::size_t n) { trimHistoryNum = n; }
-    void printParticle(const char *str) const; // print all particles
-    void printBdryContact(const char *str) const; // print all boundary contact info
+    void printParticle(const char *str) const;       // print all particles
+    void printBdryContact(const char *str) const;    // print all boundary contact info
     void printParticle(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info
-    void printMemParticle(const char *str) const; // print membrane particles
-    void plotSpring(const char *str) const;    // print springs in Tecplot format
+    void printMemParticle(const char *str) const;    // print membrane particles
+    void plotSpring(const char *str) const;          // print springs in Tecplot format
     void plotBoundary(const char *str) const;
     void plotGrid(const char *str) const;
     void plotCavity(const char *str) const;
     void checkMembrane(std::vector<REAL> &vx ) const;
     void printContact(const char *str) const;        // print contacts information
-    void printBoundary(const char *str) const; // print rigid boundaries info
+    void printBoundary(const char *str) const;       // print rigid boundaries info
     void printCavityBoundary(const char *str) const; // print cavity boundaries
     void printCavityParticle(std::size_t total, const char *str) const;
     
