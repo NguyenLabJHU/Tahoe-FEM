@@ -61,6 +61,13 @@
 //#define BIGON
 #define TOTALMOMENT
 
+// 0: no initial velocity
+// 1: initial velocity distribution of free fall (default)
+// 2: initial velocity distribution of free fall from 2x height
+// 3: initial velocity distribution of free fall from 3x height
+// ...
+#define INIT_VELOC_DISTR 0
+
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
 static struct timeval time_p1, time_p2; // for internal wall-clock time profiling, can be used on any piece of code
@@ -1715,6 +1722,9 @@ namespace dem {
   void Assembly::generateParticle(std::size_t particleLayers,
 				  const char *genParticle)
   {
+    REAL gravAccel = dem::Parameter::getSingleton().parameter["gravAccel"];
+    REAL gravScale = dem::Parameter::getSingleton().parameter["gravScale"];
+
     int bottomGap= dem::Parameter::getSingleton().parameter["bottomGap"];
     int sideGap  = dem::Parameter::getSingleton().parameter["sideGap"];
     int layerGap = dem::Parameter::getSingleton().parameter["layerGap"];
@@ -1756,6 +1766,7 @@ namespace dem {
 	}
     }
     else if (particleLayers == 2) { // multiple layers of free particles
+
       // small variety of particle sizes
       if (genMode == 0) { // from side to side
 	REAL diaRelax = 5.0E-3;
@@ -1765,6 +1776,7 @@ namespace dem {
 	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum))); // z should not offset
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }
@@ -1779,6 +1791,7 @@ namespace dem {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1788,6 +1801,7 @@ namespace dem {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1797,6 +1811,7 @@ namespace dem {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1806,6 +1821,7 @@ namespace dem {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -3374,6 +3390,7 @@ namespace dem {
   void Assembly::gatherGranularStress(const char *str, REAL timeStep, REAL timeIncr) {
     // no matter how many particles exist in the compute grid, these variables need to be cleared.
     tetraVec.clear();
+    fabricTensor.setZero();
     granularStress.setZero();
     granularStressRate.setZero();
     OldroStressRate.setZero();  
@@ -3382,6 +3399,9 @@ namespace dem {
     printStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
+
+      calcNominalDensityVoid();
+      calcFabricTensor();
       //updateGranularTetra();
       calcGranularStress(granularStress);
       if (timeStep != 0)
@@ -3441,6 +3461,15 @@ namespace dem {
 	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpi.mpiCoords[0] << std::setw(OWID) << mpi.mpiCoords[1] << std::setw(OWID) << mpi.mpiCoords[2] << std::endl;
 
     // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
+    // 0
+    inf << std::setw(OWID) << std::left << "fabric=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << fabricTensor(i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
     // 1
     inf << std::setw(OWID) << std::left << "sigma=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
@@ -3558,7 +3587,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    int length = 121 * 1 + 157 * 11;
+    int length = 121 * 1 + 157 * 12;
     MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
     MPI_File_close(&tensorFile); // end of parallel IO
 
@@ -3815,6 +3844,16 @@ namespace dem {
 	<< " " << "y"
 	<< " " << "z"
 
+	<< " " << "nomin_den"
+	<< " " << "nomin_voidr"
+
+	<< " " << "fabric_xx"
+	<< " " << "fabric_yy"
+	<< " " << "fabric_zz"
+	<< " " << "fabric_xy"
+	<< " " << "fabric_xz"
+	<< " " << "fabric_yz"
+
 	<< " " << "sigma_xx"
 	<< " " << "sigma_yy"
 	<< " " << "sigma_zz"
@@ -3974,7 +4013,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,\
 61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
-116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
+116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,\
+139,140,141,142,143,144,145,146]=CELLCENTERED), ZONETYPE=FEBRICK" << std::endl;
 
     int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
@@ -4019,7 +4059,31 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     // The order of MPI gather agrees with (int iRank = 0; iRank < mpi.mpiSize; ++iRank) below.
     // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
+
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].density;
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].voidRatio;
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
     int numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].fabric[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
     for (int j = 0; j < numCompo; ++j) {
       k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
@@ -4438,6 +4502,16 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "y"
 	<< std::setw(OWID) << "z"
 
+	<< std::setw(OWID) << "nomin_den"
+	<< std::setw(OWID) << "nomin_voidr"
+
+	<< std::setw(OWID) << "fabric_xx"
+	<< std::setw(OWID) << "fabric_yy"
+	<< std::setw(OWID) << "fabric_zz"
+	<< std::setw(OWID) << "fabric_xy"
+	<< std::setw(OWID) << "fabric_xz"
+	<< std::setw(OWID) << "fabric_yz"
+
 	<< std::setw(OWID) << "sigma_xx"
 	<< std::setw(OWID) << "sigma_yy"
 	<< std::setw(OWID) << "sigma_zz"
@@ -4612,6 +4686,16 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.coord[0]  = container.getCenter().getX();
     printStress.coord[1]  = container.getCenter().getY();
     printStress.coord[2]  = container.getCenter().getZ();
+
+    printStress.density   = nominalDensity;
+    printStress.voidRatio = nominalVoidRatio;
+
+    printStress.fabric[0] = fabricTensor(0,0);
+    printStress.fabric[1] = fabricTensor(1,1);
+    printStress.fabric[2] = fabricTensor(2,2);
+    printStress.fabric[3] = fabricTensor(0,1);
+    printStress.fabric[4] = fabricTensor(0,2);
+    printStress.fabric[5] = fabricTensor(1,2);
 
     printStress.stress[0] = granularStress(0,0);
     printStress.stress[1] = granularStress(1,1);
@@ -4791,11 +4875,55 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 
 
+  void Assembly::calcNominalDensityVoid() {
+    nominalDensity = 0;
+    nominalVoidRatio = 0;
+    REAL volume = 0;
+    for (int it = 0; it < particleVec.size(); ++it) {
+      nominalDensity += particleVec[it]->getMass();
+      volume += particleVec[it]->getVolume();
+    }
+    nominalDensity /= container.getVolume();
+    nominalVoidRatio = (container.getVolume() - volume) / volume;
+  }
+
+
+  void Assembly::calcFabricTensor() {
+    Eigen::Vector3d nc;
+    nc.setZero();
+    for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
+      Vec unit = normalize(it->getPoint1() - it->getPoint2());
+      nc(0) = unit.getX();
+      nc(1) = unit.getY();
+      nc(2) = unit.getZ();
+      fabricTensor += nc * nc.transpose();
+    }
+
+    int bdryContact = 0;
+    if (mpi.isBdryProcess()) {
+      Eigen::Vector3d ne;	
+      ne.setZero();
+      for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+	for (std::vector<BdryContact>::iterator jt = (*it)->getContactInfo().begin(); jt != (*it)->getContactInfo().end(); ++jt) {
+	  ne(0) = jt->centerToPoint.getX();
+	  ne(1) = jt->centerToPoint.getY();
+	  ne(2) = jt->centerToPoint.getZ();
+	  fabricTensor += ne * ne.transpose();
+	  ++bdryContact;
+	}
+      }
+    }
+
+    fabricTensor /= (contactVec.size() + bdryContact);
+    
+  }
+
+
   void Assembly::calcGranularStress(Eigen::Matrix3d &stress) { // sigma(i,j) = 1/V sum(fi lj)
     // formula
     // 0 - Bagi formula
     // 1 - Saxce formula
-    // 2 - Nicot formula
+    // 2 - Nicot formula (default)
     // 3 - Weber formula
     // 4 - Drescher formula
     int formula = 2;
