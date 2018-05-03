@@ -62,7 +62,7 @@
 #define TOTALMOMENT
 
 // 0: no initial velocity
-// 1: initial velocity distribution of free fall (default)
+// 1: initial velocity distribution of free fall
 // 2: initial velocity distribution of free fall from 2x height
 // 3: initial velocity distribution of free fall from 3x height
 // ...
@@ -4914,8 +4914,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       }
     }
 
-    fabricTensor /= (contactVec.size() + bdryContact);
-    
+    if (contactVec.size() + bdryContact != 0)
+      fabricTensor /= (contactVec.size() + bdryContact); 
   }
 
 
