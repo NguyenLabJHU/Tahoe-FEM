@@ -94,6 +94,15 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "moment_x"
 	<< setw(OWID) << "moment_y"
 	<< setw(OWID) << "moment_z"
+	<< setw(OWID) << "axis_a_x"
+	<< setw(OWID) << "axis_a_y"
+	<< setw(OWID) << "axis_a_z"
+	<< setw(OWID) << "axis_b_x"
+	<< setw(OWID) << "axis_b_y"
+	<< setw(OWID) << "axis_b_z"
+	<< setw(OWID) << "axis_c_x"
+	<< setw(OWID) << "axis_c_y"
+	<< setw(OWID) << "axis_c_z"
 	<< endl;
 
     ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT" << endl;
@@ -127,6 +136,15 @@ int main(int argc, char *argv[])
 	  << setw(OWID) << mt1
 	  << setw(OWID) << mt2
 	  << setw(OWID) << mt3
+	  << setw(OWID) << cos(l1)
+	  << setw(OWID) << cos(m1)
+	  << setw(OWID) << cos(n1)
+	  << setw(OWID) << cos(l2)
+	  << setw(OWID) << cos(m2)
+	  << setw(OWID) << cos(n2)
+	  << setw(OWID) << cos(l3)
+	  << setw(OWID) << cos(m3)
+	  << setw(OWID) << cos(n3)
 	  << endl;   
     }
 	
