@@ -1776,8 +1776,8 @@ namespace dem {
 	  for (x = x1; x - x2 < EPS; x += diaMax * (diaRelax + 1)) {
 	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum))); // z should not offset
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }
@@ -1792,7 +1792,7 @@ namespace dem {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1802,7 +1802,7 @@ namespace dem {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1812,7 +1812,7 @@ namespace dem {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1822,7 +1822,7 @@ namespace dem {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
