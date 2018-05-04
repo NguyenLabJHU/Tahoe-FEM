@@ -253,6 +253,7 @@ namespace dem {
       generateParticle(particleLayers, "float_particle_ini"); 
     }
 
+    dem::Parameter::getSingleton().parameter["toInitParticle"] = 1;
     deposit("deposit_boundary_ini",
 	    "float_particle_ini");
 
