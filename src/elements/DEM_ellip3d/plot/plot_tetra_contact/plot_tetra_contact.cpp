@@ -116,11 +116,15 @@ int main(int argc, char *argv[])
       strcat(filein, "_");
       strcat(filein, num);
     }
-    strcpy(fileout, filein);
-    strcpy(fileout2, filein);
+    strcpy(fileout, "tetra_block_");
+    strcat(fileout, filein);
+    strcat(fileout, ".dat");
+
+    strcpy(fileout2, "tetra_point_");
+    strcat(fileout2, filein);
+    strcat(fileout2, ".dat");
+
     strcat(filein, ".dat");
-    strcat(fileout, "_tetra_block.dat");      
-    strcat(fileout2, "_tetra_point.dat");      
 
     ifs.open(filein);
     if(!ifs)  { cout<<"stream error 1!"<<endl; exit(-1);}
