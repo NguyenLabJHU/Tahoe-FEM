@@ -52,7 +52,7 @@ bool value_comparer(M::value_type &i1, M::value_type &i2) {
   return i1.second.getZ() < i2.second.getZ();
 }
 
-std::vector<REAL> Tetra::getAngles() {
+std::vector<REAL> Tetra::getInfo() {
   M::iterator iter = std::max_element(ptclMap.begin(), ptclMap.end(), value_comparer);
   //std::cout << i << " " << j << " " << k << " " << l << ", " << iter->first << ":" << iter->second.getZ() << std::endl << std::endl;
   // now iter->first is the top vertex, then ensure i is the top vertex to use the equation of top solid angle
@@ -91,13 +91,14 @@ std::vector<REAL> Tetra::getAngles() {
     phi = 2 * atan(sqrt(D/2) / Ni); // solid angle in sr
     theta = acos(1 - phi/(2*PI)) *2 *180/PI; // theta x2 (not theta) or total angle of a cone in degree
   }
-  std::vector<REAL> angles;
-  angles.push_back((eij + eik + eil + ejk + ekl + ejl)/6);
-  angles.push_back((eij + eik + eil)/3);
-  angles.push_back((ejk + ekl + ejl)/3);
-  angles.push_back((eij + eik + eil)/(ejk + ekl + ejl));
-  angles.push_back(phi);
-  angles.push_back(theta);
+  std::vector<REAL> info;
+  info.push_back((eij + eik + eil + ejk + ekl + ejl)/6);
+  info.push_back((eij + eik + eil)/3);
+  info.push_back((ejk + ekl + ejl)/3);
+  info.push_back((eij + eik + eil)/(ejk + ekl + ejl));
+  info.push_back(phi);
+  info.push_back(theta);
+  info.push_back(getVolume());
  
-  return angles;
+  return info;
 }

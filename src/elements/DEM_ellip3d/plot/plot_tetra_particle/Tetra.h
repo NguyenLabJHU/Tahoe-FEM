@@ -40,7 +40,7 @@ class Tetra {
 
   REAL getVolume();
   void setNodeOrder();
-  std::vector<REAL> getAngles();
+  std::vector<REAL> getInfo();
 
 };
 

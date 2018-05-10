@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
   double impact_t_step;
 
   ofstream ofs3;
-  ofs3.open("tetra_particle_stats");
+  ofs3.open("tetra_contact_stats");
   if(!ofs3)  { cout<<"stream error 4!"<<endl; exit(-1);}
   ofs3.setf(ios::scientific, ios::floatfield);
   ofs3 << setw(OWID) << "snap"
@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
        << setw(OWID) << "sideBottRatio"
        << setw(OWID) << "topSolidAng_sr"
        << setw(OWID) << "topConeAng_deg"
+       << setw(OWID) << "avgVolume"
        << std::endl;
 
   for(int step=first; step<=last; step+=incre) {
@@ -204,13 +205,15 @@ int main(int argc, char *argv[])
       double sideBottRatio = 0;
       double topSolidAng_sr = 0;
       double topConeAng_deg = 0;
+      double avgVolume = 0;
       for (int i = 0; i < tetraVec.size(); ++i) {
-	avgLength += tetraVec[i].getAngles()[0];
-	avgSideLen += tetraVec[i].getAngles()[1];
-	avgBottLen += tetraVec[i].getAngles()[2];
-	sideBottRatio += tetraVec[i].getAngles()[3];
-	topSolidAng_sr += tetraVec[i].getAngles()[4];
-	topConeAng_deg += tetraVec[i].getAngles()[5];
+	avgLength += tetraVec[i].getInfo()[0];
+	avgSideLen += tetraVec[i].getInfo()[1];
+	avgBottLen += tetraVec[i].getInfo()[2];
+	sideBottRatio += tetraVec[i].getInfo()[3];
+	topSolidAng_sr += tetraVec[i].getInfo()[4];
+	topConeAng_deg += tetraVec[i].getInfo()[5];
+	avgVolume += tetraVec[i].getInfo()[6];
       }
       avgLength /= tetraVec.size();
       avgSideLen /= tetraVec.size();
@@ -218,6 +221,7 @@ int main(int argc, char *argv[])
       sideBottRatio /= tetraVec.size();
       topSolidAng_sr /= tetraVec.size();
       topConeAng_deg /= tetraVec.size();
+      avgVolume /= tetraVec.size();
       ofs3 << setw(OWID) << step
 	   << setw(OWID) << avgLength
 	   << setw(OWID) << avgSideLen
@@ -225,6 +229,7 @@ int main(int argc, char *argv[])
 	   << setw(OWID) << sideBottRatio
 	   << setw(OWID) << topSolidAng_sr
 	   << setw(OWID) << topConeAng_deg
+	   << setw(OWID) << avgVolume
 	   << std::endl;
 
       // print Tecplot Block format
@@ -238,9 +243,10 @@ int main(int argc, char *argv[])
 	  << setw(OWID) << "sideBottRatio"
 	  << setw(OWID) << "topSolidAng_sr"
 	  << setw(OWID) << "topConeAng_deg"
+	  << setw(OWID) << "avgVolume"
 	  << endl;
       ofs << "ZONE N=" << totalContact << ", E=" << tetraVec.size()  <<", DATAPACKING=BLOCK, \
-VARLOCATION=([4,5,6,7,8,9]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
+VARLOCATION=([4,5,6,7,8,9,10]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
 
       // Tecplot: 
       // BLOCK format must be used for cell-centered data.
@@ -278,42 +284,49 @@ VARLOCATION=([4,5,6,7,8,9]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
       // variables
       kut = 0;
       for (std::size_t i = 0; i < tetraVec.size(); ++i) {
-	ofs << std::setw(OWID) << tetraVec[i].getAngles()[0];
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[0];
 	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
       ofs << std::endl;
 
       kut = 0;
       for (std::size_t i = 0; i < tetraVec.size(); ++i) {
-	ofs << std::setw(OWID) << tetraVec[i].getAngles()[1];
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[1];
 	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
       ofs << std::endl;
 
       kut = 0;
       for (std::size_t i = 0; i < tetraVec.size(); ++i) {
-	ofs << std::setw(OWID) << tetraVec[i].getAngles()[2];
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[2];
 	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
       ofs << std::endl;
 
       kut = 0;
       for (std::size_t i = 0; i < tetraVec.size(); ++i) {
-	ofs << std::setw(OWID) << tetraVec[i].getAngles()[3];
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[3];
 	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
       ofs << std::endl;
 
       kut = 0;
       for (std::size_t i = 0; i < tetraVec.size(); ++i) {
-	ofs << std::setw(OWID) << tetraVec[i].getAngles()[4];
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[4];
 	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
       ofs << std::endl;
 
       kut = 0;
       for (std::size_t i = 0; i < tetraVec.size(); ++i) {
-	ofs << std::setw(OWID) << tetraVec[i].getAngles()[5];
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[5];
+	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
+      }
+      ofs << std::endl;
+
+      kut = 0;
+      for (std::size_t i = 0; i < tetraVec.size(); ++i) {
+	ofs << std::setw(OWID) << tetraVec[i].getInfo()[6];
 	++kut; if (kut >= valNum) {ofs << std::endl; kut = 0;}
       }
       ofs << std::endl;
