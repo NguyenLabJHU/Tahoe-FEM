@@ -25,7 +25,8 @@ public:
 	  double cx, double cy, double cz,
 	  double nx, double ny, double nz,
 	  double tx, double ty, double tz,
-	  double vs, double is)
+	  double vs, double is,
+	  double dx, double dy, double dz)
     :ptcl_1(p1), ptcl_2(p2), 
      point1_x(p1x), point1_y(p1y), point1_z(p1z), 
      point2_x(p2x), point2_y(p2y), point2_z(p2z), 
@@ -38,7 +39,8 @@ public:
      contact_x(cx), contact_y(cy), contact_z(cz), 
      normal_x(nx), normal_y(ny), normal_z(nz), 
      tangt_x(tx), tangt_y(ty), tangt_z(tz), 
-     vibra_t_step(vs), impact_t_step(is) {}
+     vibra_t_step(vs), impact_t_step(is),
+     dir_x(dx), dir_y(dy), dir_z(dz) {}
 
   bool operator==(const Contact &other) const {
     return ( (ptcl_2 == other.ptcl_1 && ptcl_1 == other.ptcl_2) || (ptcl_1 == other.ptcl_1 && ptcl_2 == other.ptcl_2) );
@@ -79,6 +81,9 @@ public:
   double tangt_z;
   double vibra_t_step;
   double impact_t_step;
+  double dir_x;
+  double dir_y;
+  double dir_z;
 };
 
 int main(int argc, char *argv[])
@@ -142,6 +147,9 @@ int main(int argc, char *argv[])
     double tangt_z;
     double vibra_t_step;
     double impact_t_step;
+    double dir_x;
+    double dir_y;
+    double dir_z;
     std::string line, word;
  
     ///////////////////////////////////////////////////////////
@@ -175,14 +183,17 @@ int main(int argc, char *argv[])
 	 >> tangt_y
 	 >> tangt_z
 	 >> vibra_t_step
-	 >> impact_t_step;
+	 >> impact_t_step
+	 >> dir_x
+	 >> dir_y
+	 >> dir_z;
 
       allContact.insert(Contact(ptcl_1,ptcl_2,point1_x,point1_y,point1_z,point2_x,point2_y,point2_z,
 				radius_1,radius_2,penetration,tangt_disp,contact_radius,R0,E0,
 				normal_force,tangt_force,normal_all,
 				contact_x,contact_y,contact_z,
 				normal_x,normal_y,normal_z,
-				tangt_x,tangt_y,tangt_z,vibra_t_step,impact_t_step));
+				tangt_x,tangt_y,tangt_z,vibra_t_step,impact_t_step,dir_x,dir_y,dir_z));
     }
     ifs.close();
     remove(str); // remove file
@@ -223,6 +234,9 @@ int main(int argc, char *argv[])
 	<< std::setw(OWID) << "tangt_z"
 	<< std::setw(OWID) << "vibra_t_step"
 	<< std::setw(OWID) << "impact_t_step"
+	<< std::setw(OWID) << "dir_x"
+	<< std::setw(OWID) << "dir_y"
+	<< std::setw(OWID) << "dir_z"
 	<< std::endl;
     
     boost::unordered_set<Contact>::const_iterator it;    
@@ -256,6 +270,9 @@ int main(int argc, char *argv[])
 	  << std::setw(OWID) << it->tangt_z      
 	  << std::setw(OWID) << it->vibra_t_step 
 	  << std::setw(OWID) << it->impact_t_step
+	  << std::setw(OWID) << it->dir_x
+	  << std::setw(OWID) << it->dir_y
+	  << std::setw(OWID) << it->dir_z
 	  << std::endl;
 
     ofs.close();
