@@ -4893,7 +4893,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     Eigen::Vector3d nc;
     nc.setZero();
     for (std::vector<Contact>::const_iterator it=contactVec.begin();it!=contactVec.end();++it) {
-      Vec unit = normalize(it->getPoint1() - it->getPoint2());
+      Vec unit = normalize(it->getPoint2() - it->getPoint1());
       nc(0) = unit.getX();
       nc(1) = unit.getY();
       nc(2) = unit.getZ();
@@ -4906,9 +4906,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ne.setZero();
       for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
 	for (std::vector<BdryContact>::iterator jt = (*it)->getContactInfo().begin(); jt != (*it)->getContactInfo().end(); ++jt) {
-	  ne(0) = jt->centerToPoint.getX();
-	  ne(1) = jt->centerToPoint.getY();
-	  ne(2) = jt->centerToPoint.getZ();
+	  Vec unit = normalize(jt->centerToPoint);
+	  ne(0) = unit.getX();
+	  ne(1) = unit.getY();
+	  ne(2) = unit.getZ();
 	  fabricTensor += ne * ne.transpose();
 	  ++bdryContact;
 	}
@@ -6491,9 +6492,12 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	  << std::setw(OWID) << it->tgtForceVec().getZ()
 	  << std::setw(OWID) << it->getVibraTimeStep()
 	  << std::setw(OWID) << it->getImpactTimeStep()
+	  << std::setw(OWID) << normalize(it->getPoint2() - it->getPoint1()).getX()
+	  << std::setw(OWID) << normalize(it->getPoint2() - it->getPoint1()).getY()
+	  << std::setw(OWID) << normalize(it->getPoint2() - it->getPoint1()).getZ()
 	  << std::endl;
 
-    int length = (OWID*29 + 1) * contactVec.size();
+    int length = (OWID*32 + 1) * contactVec.size();
     // write a file at a location specified by a shared file pointer (blocking, collective)
     // note MPI_File_write_shared is non-collective
     MPI_File_write_ordered(contactFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
