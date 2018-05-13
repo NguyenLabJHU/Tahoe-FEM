@@ -176,7 +176,6 @@ int main(int argc, char *argv[])
     double avgBottLen = 0;
     double sideBottRatio = 0;
     double topSolidAng_sr = 0;
-    double topConeAng_deg = 0;
     double avgVolume = 0;
     for (int i = 0; i < tetraVec.size(); ++i) {
       avgLength += tetraVec[i].getInfo()[0];
@@ -184,7 +183,6 @@ int main(int argc, char *argv[])
       avgBottLen += tetraVec[i].getInfo()[2];
       sideBottRatio += tetraVec[i].getInfo()[3];
       topSolidAng_sr += tetraVec[i].getInfo()[4];
-      topConeAng_deg += tetraVec[i].getInfo()[5];
       avgVolume += tetraVec[i].getInfo()[6];
     }
     avgLength /= tetraVec.size();
@@ -192,7 +190,6 @@ int main(int argc, char *argv[])
     avgBottLen /= tetraVec.size();
     sideBottRatio /= tetraVec.size();
     topSolidAng_sr /= tetraVec.size();
-    topConeAng_deg /= tetraVec.size();
     avgVolume /= tetraVec.size();
     ofs3 << setw(OWID) << step
          << setw(OWID) << avgLength
@@ -200,7 +197,7 @@ int main(int argc, char *argv[])
 	 << setw(OWID) << avgBottLen
 	 << setw(OWID) << sideBottRatio
 	 << setw(OWID) << topSolidAng_sr
-	 << setw(OWID) << topConeAng_deg
+	 << setw(OWID) << acos(1 - topSolidAng_sr/(2*PI)) *2 *180/PI
 	 << setw(OWID) << avgVolume
 	 << std::endl;
 
