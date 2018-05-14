@@ -73,6 +73,9 @@ int main(int argc, char *argv[])
   double tangt_z;
   double vibra_t_step;
   double impact_t_step;
+  double dir_x;
+  double dir_y;
+  double dir_z;
 
   for(int snapshot = first; snapshot <= last; snapshot += incre) {
     if(argc == 2)
@@ -97,7 +100,8 @@ int main(int argc, char *argv[])
     int totalNum;
     ifs >> totalNum;
     ifs>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
-       >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s;
+       >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
+       >>s>>s>>s; // add dir_x, dir_y, dir_z
 
     ofs << "VARIABLES=" << endl
 	<< setw(OWID) << "x"
@@ -116,13 +120,16 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "shear"
 	<< setw(OWID) << "total"
 	<< setw(OWID) << "penetration"
+	<< std::setw(OWID) << "dir_x"
+	<< std::setw(OWID) << "dir_y"
+	<< std::setw(OWID) << "dir_z"
 	<< endl;
 
     ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT" << endl;
     for(int it = 0; it < totalNum; ++it) {
       ifs >> ptcl_1 >> ptcl_2 >> point1_x >> point1_y >> point1_z >> point2_x >> point2_y >> point2_z 
 	  >> radius_1 >> radius_2 >> penetration >> tangt_disp >> contact_radius >> R0 >> E0 >> normal_force >> tangt_force >> normal_all
-	  >> contact_x >> contact_y >> contact_z >> normal_x >> normal_y >> normal_z >> tangt_x >> tangt_y >> tangt_z >> vibra_t_step >> impact_t_step;
+	  >> contact_x >> contact_y >> contact_z >> normal_x >> normal_y >> normal_z >> tangt_x >> tangt_y >> tangt_z >> vibra_t_step >> impact_t_step >> dir_x >> dir_y >> dir_z;
   
       ofs << setw(OWID) << contact_x
 	  << setw(OWID) << contact_y
@@ -142,6 +149,9 @@ int main(int argc, char *argv[])
 	  << setw(OWID) << sqrt( (normal_x+tangt_x)*(normal_x+tangt_x) + (normal_y+tangt_y)*(normal_y+tangt_y) + (normal_z+tangt_z)*(normal_z+tangt_z) )
 
 	  << setw(OWID) << penetration
+	  << std::setw(OWID) << dir_x
+	  << std::setw(OWID) << dir_y
+	  << std::setw(OWID) << dir_z
 	  << endl;   
     }
 	

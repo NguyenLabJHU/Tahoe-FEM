@@ -93,6 +93,9 @@ int main(int argc, char *argv[])
   double total;
   double vibra_t_step;
   double impact_t_step;
+  double dir_x;
+  double dir_y;
+  double dir_z;
 
   ofstream ofs3;
   ofs3.open("tetra_contact_stats");
@@ -132,6 +135,7 @@ int main(int argc, char *argv[])
 
     // read data and obtain lines, snum reads "I=1216252," from "ZONE I=1216252, DATAPACKING=POINT"
     ifs >>s>>s>>s>>s>>s>>s>>s>>s>>s>>s
+	>>s>>s>>s // add dir_x, dir_y, dir_z
         >>s>>s>>s>>s>>s>>s>>s>>s>>snum>>s;
     std::string strall(snum);
     strall.erase(strall.end()-1);
@@ -161,7 +165,8 @@ int main(int argc, char *argv[])
 	    >> normal_x >> normal_y >> normal_z
 	    >> tangt_x >> tangt_y >> tangt_z
 	    >> total_x >> total_y >> total_z
-	    >> normal >> shear >> total >> penetration;
+	    >> normal >> shear >> total >> penetration
+	    >> dir_x >> dir_y >> dir_z;
 
 	coordStream << x << " "
 		    << y << " "
