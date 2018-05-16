@@ -266,9 +266,35 @@ namespace dem {
 			     dem::Parameter::getSingleton().parameter["trimHeight"]));
       buildBoundary(6, "trim_boundary_ini");
       std::size_t endSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
+
+      readBoundary("trim_boundary_ini"); // previous boundaryVec cleared.
       trim(false,
 	   combineString("deposit_particle_", endSnap - 1, 3).c_str(),
 	   "trim_particle_ini");
+
+      // print density, void ratio, etc 
+      REAL distX, distY, distZ;
+      getStartDimension(distX, distY, distZ);
+      REAL bulkVolume = distX * distY * distZ;
+      REAL voidRatio = bulkVolume / getParticleVolume() - 1;
+      REAL density = getMass() / bulkVolume;
+      REAL porosity = voidRatio / (1 + voidRatio);
+      std::ofstream ofs;
+      ofs.open("trim_stats");
+      if(!ofs) { debugInf << "stream error: trim_stats" << std::endl; exit(-1); }
+      ofs.setf(std::ios::scientific, std::ios::floatfield);
+      ofs.precision(OPREC);
+      ofs << std::setw(OWID) << "bulk_volume"
+	  << std::setw(OWID) << "density"
+	  << std::setw(OWID) << "void_ratio"
+	  << std::setw(OWID) << "porosity"
+	  << std::endl
+	  << std::setw(OWID) << bulkVolume 
+	  << std::setw(OWID) << density 
+	  << std::setw(OWID) << voidRatio
+	  << std::setw(OWID) << porosity
+	  << std::endl;
+      ofs.close();
     }
   }
 
@@ -1980,9 +2006,26 @@ namespace dem {
       // print density, void ratio, etc 
       REAL distX, distY, distZ;
       getStartDimension(distX, distY, distZ);
-      openCompressProg(progressInf, "trim_stats");
-      gatherBdryContact();
-      printCompressProg(progressInf, distX, distY, distZ);
+      REAL bulkVolume = distX * distY * distZ;
+      REAL voidRatio = bulkVolume / getParticleVolume() - 1;
+      REAL density = getMass() / bulkVolume;
+      REAL porosity = voidRatio / (1 + voidRatio);
+      std::ofstream ofs;
+      ofs.open("trim_stats");
+      if(!ofs) { debugInf << "stream error: trim_stats" << std::endl; exit(-1); }
+      ofs.setf(std::ios::scientific, std::ios::floatfield);
+      ofs.precision(OPREC);
+      ofs << std::setw(OWID) << "bulk_volume"
+	  << std::setw(OWID) << "density"
+	  << std::setw(OWID) << "void_ratio"
+	  << std::setw(OWID) << "porosity"
+	  << std::endl
+	  << std::setw(OWID) << bulkVolume 
+	  << std::setw(OWID) << density 
+	  << std::setw(OWID) << voidRatio
+	  << std::setw(OWID) << porosity
+	  << std::endl;
+      ofs.close();
     }
   }
 
