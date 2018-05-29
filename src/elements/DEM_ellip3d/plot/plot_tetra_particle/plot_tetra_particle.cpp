@@ -206,13 +206,13 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "x"
 	<< setw(OWID) << "y"
 	<< setw(OWID) << "z"
-	<< setw(OWID) << "avgLength"
-	<< setw(OWID) << "avgSideLen"
-	<< setw(OWID) << "avgBottLen"
+	<< setw(OWID) << "length"
+	<< setw(OWID) << "sideLen"
+	<< setw(OWID) << "bottLen"
 	<< setw(OWID) << "sideBottRatio"
 	<< setw(OWID) << "topSolidAng_sr"
 	<< setw(OWID) << "topConeAng_deg"
-	<< setw(OWID) << "avgVolume"
+	<< setw(OWID) << "volume"
 	<< endl;
     ofs << "ZONE N=" << totalParticle << ", E=" << tetraVec.size()  <<", DATAPACKING=BLOCK, \
 VARLOCATION=([4,5,6,7,8,9,10]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
