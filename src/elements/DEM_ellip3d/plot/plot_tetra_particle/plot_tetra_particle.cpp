@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 	 << "Usage:" << endl
 	 << "1) process a single file:  plot_tetra_particle particle_file" << endl
 	 << "   --example: plot_tetra_particle triaxial_particle_008" << endl
-	 << "2) process multiple files: plot_tetra_particle contact_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
-	 << "   --example: plot_tetra_particle triaxial_particle  1  100  5" << endl << endl;
+	 << "2) process multiple files: plot_tetra_particle particle_file_prefix first_suffix last_suffix suffix_increment" << endl
+	 << "   --example: plot_tetra_particle triaxial_particle 1 100 5" << endl << endl;
     return -1;
   }	
 

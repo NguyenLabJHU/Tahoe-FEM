@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 	 << "Usage:" << endl
 	 << "1) process a single file:  plot_tetra_contact contact_file" << endl
 	 << "   --example: plot_tetra_contact triaxial_contact_008 (not triaxial_contact_008.dat)" << endl
-	 << "2) process multiple files: plot_tetra_contact contact_file_prefix  first_suffix  last_suffix  suffix_increment" << endl
-	 << "   --example: plot_tetra_contact triaxial_contact  1  100  5" << endl << endl;
+	 << "2) process multiple files: plot_tetra_contact contact_file_prefix first_suffix last_suffix suffix_increment" << endl
+	 << "   --example: plot_tetra_contact triaxial_contact 1 100 5" << endl << endl;
     return -1;
   }	
 
