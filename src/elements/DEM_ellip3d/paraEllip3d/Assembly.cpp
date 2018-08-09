@@ -1535,8 +1535,8 @@ namespace dem {
   void Assembly::pureGas() 
   {
     mpi.findNeighborProcess(); // one-time operation
-    /*01*/ gas.initPureGasParameter();
-    /*02*/ gas.setMPI(mpi);           // must do after mpi.findNeighborProcess().
+    /*01*/ gas.setMPI(mpi);    // must call after mpi.findNeighborProcess().
+    /*02*/ gas.initPureGasParameter(); // must call after gas.setMPI()
     /*03*/ gas.allocArray();
     /*04*/ gas.initializePureGas();
 
@@ -1560,7 +1560,7 @@ namespace dem {
     REAL time_0, time_1, time_2;
     while (timeAccrued < timeTotal) {
 
-      calcTimeStep(); // use values from last step, must call before findContact().
+      calcTimeStep();
 
 #ifdef CFD_PROFILE
       time_0 = MPI_Wtime();
@@ -1607,8 +1607,8 @@ namespace dem {
     scatterParticle();
 
     mpi.findNeighborProcess(); // one-time operation
-    /*01*/ gas.initParameter(gradation);
-    /*02*/ gas.setMPI(mpi);    // must do after mpi.findNeighborProcess().
+    /*01*/ gas.setMPI(mpi);    // must call after mpi.findNeighborProcess().
+    /*02*/ gas.initParameter(gradation); // must call after gas.setMPI()
     /*03*/ gas.allocArray();
     /*04*/ gas.initialize();
 
@@ -1666,7 +1666,7 @@ namespace dem {
 #endif
 
       /*08*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
-                                                   // must do after gas.commu26() and before gas.runOneStep(), otherwise external and internal gas are not synchronized in time.
+                                                   // must call after gas.commu26() and before gas.runOneStep(), otherwise external and internal gas are not synchronized in time.
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif
@@ -1676,7 +1676,7 @@ namespace dem {
       time_5 = MPI_Wtime();
 #endif
 
-      /*10*/ gas.runOneStep(mergedParticleVec);    // 1. only update internal gas; 2. must do after gas.penalize() to resume the gas state.
+      /*10*/ gas.runOneStep(mergedParticleVec);    // 1. only update internal gas; 2. must call after gas.penalize() to resume the gas state.
 #ifdef CFD_PROFILE
       time_6 = MPI_Wtime();
 #endif
