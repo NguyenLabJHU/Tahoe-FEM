@@ -157,15 +157,15 @@ namespace dem {
     Bound boundGod; // God resolving bound
 
     std::size_t ptclGrid; // approximate grids accross particle in each dimension
-    std::size_t haloGrid;// ghost layer thickness for DEM particles
+    std::size_t haloGrid; // ghost layer thickness for DEM particles
 
     std::size_t haloGridX;
     std::size_t haloGridY;
     std::size_t haloGridZ;
 
-    REAL gridDx;          // grid size in x direction
-    REAL gridDy;          // grid size in y direction
-    REAL gridDz;          // grid size in z direction
+    REAL gridDx;       // grid size in x direction
+    REAL gridDy;       // grid size in y direction
+    REAL gridDz;       // grid size in z direction
     REAL x1F, x2F, y1F, y2F, z1F, z2F; // fluid domain
 
     REAL Cd;           // drag coefficient
