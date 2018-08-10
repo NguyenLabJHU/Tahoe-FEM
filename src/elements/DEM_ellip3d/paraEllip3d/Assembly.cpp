@@ -2116,7 +2116,7 @@ namespace dem {
     REAL z2 = v2.getZ();
     for (std::size_t pt = 0; pt < inputParticle.size(); ++pt) {
       Vec center = inputParticle[pt]->getCurrPos();
-      // it is critical to use EPS
+      // it is critical to use EPS, note it makes [}, left-closed right-open interval.
       if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
 	  center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
 	  center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS)
