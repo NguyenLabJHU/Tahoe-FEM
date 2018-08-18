@@ -47,7 +47,7 @@ struct cmpIJK {
     }
 
     */
-    // compare in k,j,i order, only in this order does Tecplot plots correctly.
+    // compare in k,j,i order, only in this order does Tecplot plot correctly (Tecplot requires I vary fastest for IJK-ordered data).
     if (v1.k < v2.k) {
       return true;
     } else if (v1.k == v2.k) {
