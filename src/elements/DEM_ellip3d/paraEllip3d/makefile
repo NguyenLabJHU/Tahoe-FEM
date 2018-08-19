@@ -162,12 +162,12 @@ endif
 
 ifeq ($(PLATFORM), centennial)
  ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.15_intel-2017.1.132
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.17_intel-18.0.1.163
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-2017.1.132
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-18.0.1.163
   endif
  endif
 endif
