@@ -2061,14 +2061,14 @@ namespace dem {
 	  << std::setw(OWID) << "pressureFz"
 	  << std::endl;
 
-      ofs << "ZONE I=" << allGridNx -2
-	  << ", J=" << allGridNy -2
-	  << ", K=" << allGridNz -2
+      ofs << "ZONE I=" << std::setw(OWID) << allGridNx -2
+	  << ", J="    << std::setw(OWID) << allGridNy -2
+	  << ", K="    << std::setw(OWID) << allGridNz -2
 	  << ", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME="
-	  << snap
+	  << std::setw(OWID) << snap
 	  << std::endl;
 
-      // write in k,j,i order, only in this order does Tecplot plots correctly.
+      // write in k,j,i order, only in this order does Tecplot plot correctly (Tecplot requires I vary fastest for IJK-ordered data).
       for (std::size_t k = 1; k < allGridNz - 1; ++k)
 	for (std::size_t j = 1; j < allGridNy - 1; ++j)
 	  for (std::size_t i = 1; i < allGridNx -1; ++i) {
@@ -2119,7 +2119,7 @@ namespace dem {
       std::stringstream inf;
       inf.setf(std::ios::scientific, std::ios::floatfield);
 
-      int length = 0;
+      int length = 0; // unsigned long long int length = 0; // it does not help because MPI_File_write_ordered only accepts int.
 
       // for MPI_File_write_ordered, each process can write different amount of data!
       if (mpi.mpiRank == 0) { // root process
@@ -2150,15 +2150,17 @@ namespace dem {
 	    << std::setw(OWID) << "pressureFz"
 	    << std::endl;
 
-	// OWID*4 + 7 + 4 + 4 + 46 + std::endl = 122
+	std::string vac(239, ' '); // 239 = 361 -122 
+	// OWID*4 + 7 + 4 + 4 + 46 + std::endl + 239 = 361
 	inf << "ZONE I=" << std::setw(OWID) << allBoundX
-	    << ", J=" << std::setw(OWID) << allBoundY
-	    << ", K=" << std::setw(OWID) << allBoundZ
+	    << ", J="    << std::setw(OWID) << allBoundY
+	    << ", K="    << std::setw(OWID) << allBoundZ
 	    << ", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME="
 	    << std::setw(OWID) << snap
+	    << vac
 	    << std::endl;
       
-	length += 483;
+	length += 2; // make two records, each containing 361 chars
       }
 
       // (OWID*24 + std::endl) * ( boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ )
@@ -2196,8 +2198,14 @@ namespace dem {
 		<< std::setw(OWID) << arrayPressureForce[i][j][k][2] 
 		<< std::endl;
 	  }
-      length += (OWID*24 + 1) * (boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ);
-      MPI_File_write_ordered(file, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
+
+      MPI_Datatype record;
+      MPI_Type_contiguous(361, MPI_CHAR, &record);
+      MPI_Type_commit(&record);
+
+      length += (boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ); // * (OWID*24 + 1);
+      std::cout << "mpiRank=" << mpi.mpiRank << " length=" << length << std::endl;
+      MPI_File_write_ordered(file, const_cast<char*> (inf.str().c_str()), length, record, &status); // in this way length is 361 times smaller
       MPI_File_close(&file);
 
     } // end of parallel IO
@@ -2852,6 +2860,8 @@ namespace dem {
 
   } // end of Gas::commu26
 
+  // This function is useless because inverse communication is not needed in the algorithm.
+  // Leave it here for demonstration.
   void Gas::backCommu26() {
     // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
 
