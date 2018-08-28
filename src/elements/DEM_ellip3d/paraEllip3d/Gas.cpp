@@ -2205,7 +2205,7 @@ namespace dem {
       MPI_Type_commit(&record);
 
       length += (boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ); // * (OWID*24 + 1);
-      std::cout << "mpiRank=" << mpi.mpiRank << " length=" << length << std::endl;
+      //std::cout << "mpiRank=" << mpi.mpiRank << " length=" << length << std::endl;
       MPI_File_write_ordered(file, const_cast<char*> (inf.str().c_str()), length, record, &status); // in this way length is 361 times smaller
       MPI_File_close(&file);
 
