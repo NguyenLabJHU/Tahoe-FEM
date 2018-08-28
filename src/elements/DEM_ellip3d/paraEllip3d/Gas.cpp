@@ -1113,19 +1113,20 @@ namespace dem {
     dtMin[1] = gridDy / ( *std::max_element(valY.begin(), valY.end()) ); 
     dtMin[2] = gridDz / ( *std::max_element(valZ.begin(), valZ.end()) ); 
     
-    REAL ptclTimeStep = timeStep;
-    REAL fluidTimeStep = CFL * (*std::min_element(dtMin.begin(), dtMin.end()));
+    REAL demTimeStep = timeStep; // minimum across all processes
+    REAL pCFDTimeStep = CFL * (*std::min_element(dtMin.begin(), dtMin.end()));
+    REAL cfdTimeStep; // mininum across all processes
 
     // this guarantees that all processes use the same timeStep
-    REAL pTimeStep = std::min(ptclTimeStep, fluidTimeStep);
-    MPI_Allreduce(&pTimeStep, &timeStep, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
+    MPI_Allreduce(&pCFDTimeStep, &cfdTimeStep, 1, MPI_DOUBLE, MPI_MIN, mpi.mpiWorld);
+    timeStep = std::min(demTimeStep, cfdTimeStep);
     timeAccrued += timeStep;
 
     if (mpi.mpiRank == 0) {
       debugInf << std::endl
 	       << std::setw(OWID) << iteration 
-	       << std::setw(OWID) << ptclTimeStep 
-	       << std::setw(OWID) << fluidTimeStep 
+	       << std::setw(OWID) << demTimeStep 
+	       << std::setw(OWID) << cfdTimeStep 
 	       << std::setw(OWID) << timeStep
 	       << std::setw(OWID) << timeAccrued;
     }
