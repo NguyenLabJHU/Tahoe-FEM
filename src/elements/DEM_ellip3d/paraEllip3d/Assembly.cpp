@@ -2117,6 +2117,7 @@ namespace dem {
     for (std::size_t pt = 0; pt < inputParticle.size(); ++pt) {
       Vec center = inputParticle[pt]->getCurrPos();
       // it is critical to use EPS, note it makes [}, left-closed right-open interval.
+      // i.e, a particle located on a face belongs to the "right" cell.
       if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
 	  center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
 	  center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS)
