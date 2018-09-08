@@ -30,7 +30,7 @@ namespace dem {
     printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
     REAL minR = gradation.getPtclMinRadius(1);
     gridDz = (minR * 2) / ptclGrid;
-    haloGrid  = static_cast<std::size_t> (ceil((double)ptclGrid/2)) + 1; // important to add 1 for pressure gradient calculation.
+    haloGrid = static_cast<std::size_t> (round(gradation.getPtclMaxRadius() / gridDz) ) + 1; // round or ceil? round is more accurate here; necessary to add 1 for pressure gradient calculation.
     initSharedParameter();
     debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
     debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
@@ -933,7 +933,7 @@ namespace dem {
 	std::size_t k = static_cast<std::size_t> (fluidGrid[iter][2]);
 
 	REAL denQuot[3], u0[3];
- 	if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // necessary, external/received particles could extrude outside of merged gas.
+ 	if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // necessary: external/received particles could extrude outside of merged gas.
 	  denQuot[0] = (arrayU[i+1][j][k][varDen] - arrayU[i-1][j][k][varDen]) / (2*gridDx);
 	if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY)
 	  denQuot[1] = (arrayU[i][j+1][k][varDen] - arrayU[i][j-1][k][varDen]) / (2*gridDy);
@@ -1742,10 +1742,10 @@ namespace dem {
 
       // ensure each grid is in the valid range
       // never subtract two numbers of type std::size_t
-      int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX); // lowX should not +1
+      int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX); // unnecessary to + 1, which may result in different volume grids for a particle by neighoring MPI processes.
       int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY);
       int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ);
-      int uppX = std::min((int)(local.i + maxGrid), (int)boundCup.uppX);    // uppX should not -1
+      int uppX = std::min((int)(local.i + maxGrid), (int)boundCup.uppX);    // unnecessary to - 1
       int uppY = std::min((int)(local.j + maxGrid), (int)boundCup.uppY);
       int uppZ = std::min((int)(local.k + maxGrid), (int)boundCup.uppZ);
       //std::cout << "x, y, z local range=" << lowX << " " << uppX << " " << lowY << " " << uppY << " " << lowZ << " " << uppZ << std::endl;
@@ -1861,7 +1861,7 @@ namespace dem {
 	arrayPenalForce[i][j][k][2] += globalPenal.getZ();
 
 	// restrict pressure gradient grids; do not use (i-1) for std::size_t because (i-1) is postive when i=0
- 	if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // necessary, external/received particles could extrude outside of merged gas.
+ 	if (i >= boundCup.lowX+1 && i+1 <= boundCup.uppX) // necessary: external/received particles could extrude outside of merged gas.
 	  arrayPressureForce[i][j][k][0] = -(arrayU[i+1][j][k][varPrs] - arrayU[i-1][j][k][varPrs])/(2*gridDx);
 	if (j >= boundCup.lowY+1 && j+1 <= boundCup.uppY)
 	  arrayPressureForce[i][j][k][1] = -(arrayU[i][j+1][k][varPrs] - arrayU[i][j-1][k][varPrs])/(2*gridDy);
