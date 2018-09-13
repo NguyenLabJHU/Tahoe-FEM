@@ -62,11 +62,11 @@
 #define TOTALMOMENT
 
 // 0: no initial velocity
-// 1: initial velocity distribution of free fall
+// 1: initial velocity distribution of free fall (default)
 // 2: initial velocity distribution of free fall from 2x height
 // 3: initial velocity distribution of free fall from 3x height
 // ...
-#define INIT_VELOC_DISTR 0
+#define INIT_VELOC_DISTR 1
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
