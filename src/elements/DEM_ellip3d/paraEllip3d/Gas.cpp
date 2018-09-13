@@ -1816,7 +1816,7 @@ namespace dem {
       Vec penalMoment = 0, presMoment = 0;
       REAL avgDen = 0, avgVel = 0, avgPrs = 0, avgVelGap = 0;
       std::vector< std::vector<REAL> > fluidGrid = (*it)->getFluidGrid();
-      //std::cout << "calcPtclInfo: mpiRank=" << mpi.mpiRank << " fluidGrid=" << (*it)->getFluidGrid().size() << std::endl; 
+      //std::cout << "iter=" << iteration << " calcPtclInfo: mpiRank=" << mpi.mpiRank << " fluidGrid=" << (*it)->getFluidGrid().size() << std::endl; 
 
       for (std::size_t iter = 0; iter < fluidGrid.size(); ++iter) {
 	
