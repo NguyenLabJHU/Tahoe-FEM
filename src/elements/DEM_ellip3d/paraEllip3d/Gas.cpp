@@ -17,21 +17,25 @@ namespace dem {
   const REAL Gas::Rs = 287.06; // specific gas constant
 
   void Gas::initPureGasParameter() {
-    gridDz = dem::Parameter::getSingleton().parameter["gridSize"];;
-    haloGrid = 1;
     initSharedParameter();
+    gridDz = dem::Parameter::getSingleton().parameter["gridSize"];;
+    calcGrid();
+    haloGrid = 1;
     printSharedParameter();
   }
 
   void Gas::initParameter(Gradation &gradation) {
+    initSharedParameter();
     ptclGrid = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["ptclGrid"]);
     porosity = dem::Parameter::getSingleton().parameter["porosity"];
     Cdi = dem::Parameter::getSingleton().parameter["Cdi"];
     printPtcls = dem::Parameter::getSingleton().cfdPrintPtcls;
-    REAL minR = gradation.getPtclMinRadius(1);
-    gridDz = (minR * 2) / ptclGrid;
+
+    gridDz = (gradation.getPtclMinRadius(1) * 2) / ptclGrid; // estimate
+    calcGrid(); // re-calculate gridDz
     haloGrid = static_cast<std::size_t> (round(gradation.getPtclMaxRadius() / gridDz) ) + 1; // round or ceil? round is more accurate here; necessary to add 1 for pressure gradient calculation.
-    initSharedParameter();
+
+    debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
     debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
     debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
     printSharedParameter();
@@ -105,17 +109,6 @@ namespace dem {
       uBL  = dem::Parameter::getSingleton().parameter["belowLeftVelocity"];
     }    
 
-    allGridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
-    gridDz = (z2F - z1F) / allGridNz;
-    gridDx = gridDz;
-    gridDy = gridDz;
-    allGridNx = static_cast<std::size_t> (ceil((x2F - x1F) / gridDx));
-    allGridNy = static_cast<std::size_t> (ceil((y2F - y1F) / gridDy));
-
-    allGridNx += 2; // add two boundary cells
-    allGridNy += 2;
-    allGridNz += 2;
-
     // fixed
     nDim = 3;
     nVar = 0; 
@@ -134,6 +127,19 @@ namespace dem {
 
     // extended
     varMsk = nVar++;
+  }
+
+  void Gas::calcGrid() {
+    allGridNz = static_cast<std::size_t> (ceil((z2F - z1F) / gridDz));
+    gridDz = (z2F - z1F) / allGridNz; // re-calculate
+    gridDx = gridDz;
+    gridDy = gridDz;
+    allGridNx = static_cast<std::size_t> (round((x2F - x1F) / gridDx)); // better than ceil
+    allGridNy = static_cast<std::size_t> (round((y2F - y1F) / gridDy));
+
+    allGridNx += 2; // add two boundary cells
+    allGridNy += 2;
+    allGridNz += 2;
   }
 
   void Gas::printSharedParameter() {
@@ -250,23 +256,23 @@ namespace dem {
     if (mpi.mpiProcZ == 1) haloGridZ = 0;
 
     // step 2: determine gridN
-    gridNx = ceil((double)allGridNx / mpi.mpiProcX) + 2*haloGridX;
-    gridNy = ceil((double)allGridNy / mpi.mpiProcY) + 2*haloGridY;
-    gridNz = ceil((double)allGridNz / mpi.mpiProcZ) + 2*haloGridZ;
+    gridNx = (int) ceil((double) allGridNx / mpi.mpiProcX) + 2*haloGridX;
+    gridNy = (int) ceil((double) allGridNy / mpi.mpiProcY) + 2*haloGridY;
+    gridNz = (int) ceil((double) allGridNz / mpi.mpiProcZ) + 2*haloGridZ;
  
     if (mpi.isBdryProcessXMin())
-      gridNx = ceil((double)allGridNx / mpi.mpiProcX) + haloGridX;
+      gridNx = (int) ceil((double) allGridNx / mpi.mpiProcX) + haloGridX;
     if (mpi.isBdryProcessYMin())
-      gridNy = ceil((double)allGridNy / mpi.mpiProcY) + haloGridY;
+      gridNy = (int) ceil((double) allGridNy / mpi.mpiProcY) + haloGridY;
     if (mpi.isBdryProcessZMin())
-      gridNz = ceil((double)allGridNz / mpi.mpiProcZ) + haloGridZ;
+      gridNz = (int) ceil((double) allGridNz / mpi.mpiProcZ) + haloGridZ;
 
     if (mpi.isBdryProcessXMax())
-      gridNx = allGridNx - ceil((double)allGridNx / mpi.mpiProcX) * (mpi.mpiProcX-1) + haloGridX;
+      gridNx = allGridNx - (int) ceil((double) allGridNx / mpi.mpiProcX) * (mpi.mpiProcX-1) + haloGridX;
     if (mpi.isBdryProcessYMax())
-      gridNy = allGridNy - ceil((double)allGridNy / mpi.mpiProcY) * (mpi.mpiProcY-1) + haloGridY;
+      gridNy = allGridNy - (int) ceil((double) allGridNy / mpi.mpiProcY) * (mpi.mpiProcY-1) + haloGridY;
     if (mpi.isBdryProcessZMax())
-      gridNz = allGridNz - ceil((double)allGridNz / mpi.mpiProcZ) * (mpi.mpiProcZ-1) + haloGridZ;
+      gridNz = allGridNz - (int) ceil((double) allGridNz / mpi.mpiProcZ) * (mpi.mpiProcZ-1) + haloGridZ;
 
     if (mpi.mpiRank == 0) {
       debugInf << std::setw(OWID) << "haloGridX=" << std::setw(OWID) << haloGridX << std::endl;
@@ -538,9 +544,9 @@ namespace dem {
     int j = local.j;
     int k = local.k;
 
-    int I = ceil((double)allGridNx / mpi.mpiProcX) * mpi.mpiCoords[0] - (int)haloGridX + i;
-    int J = ceil((double)allGridNy / mpi.mpiProcY) * mpi.mpiCoords[1] - (int)haloGridY + j;
-    int K = ceil((double)allGridNz / mpi.mpiProcZ) * mpi.mpiCoords[2] - (int)haloGridZ + k;
+    int I = (int) ceil((double) allGridNx / mpi.mpiProcX) * mpi.mpiCoords[0] - (int) haloGridX + i;
+    int J = (int) ceil((double) allGridNy / mpi.mpiProcY) * mpi.mpiCoords[1] - (int) haloGridY + j;
+    int K = (int) ceil((double) allGridNz / mpi.mpiProcZ) * mpi.mpiCoords[2] - (int) haloGridZ + k;
 
     // ensure starting from 0 for min boundary process
     if (mpi.isBdryProcessXMin()) I = i;
@@ -558,38 +564,43 @@ namespace dem {
 
   void Gas::globalIndexToLocal(IJK &global, IJK &local) {
     // do no use std::size_t for computing
-    int segX = (int) ceil((double)allGridNx / mpi.mpiProcX);
-    int segY = (int) ceil((double)allGridNy / mpi.mpiProcY);
-    int segZ = (int) ceil((double)allGridNz / mpi.mpiProcZ);
-    int i = (int)global.i % segX;
-    int j = (int)global.j % segY;
-    int k = (int)global.k % segZ;
+    int segX = (int) ceil((double) allGridNx / mpi.mpiProcX);
+    int segY = (int) ceil((double) allGridNy / mpi.mpiProcY);
+    int segZ = (int) ceil((double) allGridNz / mpi.mpiProcZ);
+    int i = (int) global.i % segX + (int) haloGridX;
+    int j = (int) global.j % segY + (int) haloGridY;
+    int k = (int) global.k % segZ + (int) haloGridZ;
 
-    // - (int)boundPrn.lowX: special case when a particle on process boundary being scattered to multiple processes.
-    IJK localBound(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
-    IJK globalBound;
-    localIndexToGlobal(localBound, globalBound);
-    //std::cout << "globalIndexToLocal: mpiRank=" << mpi.mpiRank << " boundPrn.lowX=" << boundPrn.lowX << " globalBound.i= " << globalBound.i << " i=" << i; 
+    // when it nears process boundary, a particle is duplicated to multiple processes by MPI communication,
+    // the local indexes of the particle center in different MPI processes are different and must be handled.
+    IJK localLowBound(boundPrn.lowX, boundPrn.lowY, boundPrn.lowZ);
+    IJK localUppBound(boundPrn.uppX, boundPrn.uppY, boundPrn.uppZ);
+    IJK globalLowBound;
+    IJK globalUppBound;
+    localIndexToGlobal(localLowBound, globalLowBound);
+    localIndexToGlobal(localUppBound, globalUppBound);
+    //std::cout << "globalIndexToLocal: mpiRank=" << mpi.mpiRank << " boundPrn.lowX=" << boundPrn.lowX << " globalLowBound.i= " << globalLowBound.i << " i=" << i; 
 
-    if (global.i < globalBound.i)
-      i += -segX + (int)haloGridX;
-    else
-      i += (int)haloGridX;
+    if (global.i > globalUppBound.i) // particle center is located in the "right" process.
+      i += segX;
+    if (global.i < globalLowBound.i) // particle center is located in the "left" process.
+      i -= segX;
 
-    if (global.j < globalBound.j)
-      j += -segY + (int)haloGridY;
-    else 
-      j += (int)haloGridY;
+    if (global.j > globalUppBound.j)
+      j += segY;
+    if (global.j < globalLowBound.j)
+      j -= segY;
 
-    if (global.k < globalBound.k) 
-      k += -segZ + (int)haloGridZ;
-    else
-      k += (int)haloGridZ;
+    if (global.k > globalUppBound.k)
+      k += segZ;
+    if (global.k < globalLowBound.k)
+      k -= segZ;
+    // end of dealing with a particle nearing process boundary.
 
     // ensure starting from 0 for min boundary process
-    if (mpi.isBdryProcessXMin()) i = (int)global.i;
-    if (mpi.isBdryProcessYMin()) j = (int)global.j;
-    if (mpi.isBdryProcessZMin()) k = (int)global.k;
+    if (mpi.isBdryProcessXMin()) i = (int) global.i;
+    if (mpi.isBdryProcessYMin()) j = (int) global.j;
+    if (mpi.isBdryProcessZMin()) k = (int) global.k;
     // automatically end at (allGrid -1) for max boundary process
 
     local.i = i;
@@ -614,9 +625,9 @@ namespace dem {
 
   // cell to Godunov
   void Gas::cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko) {
-    io = i - haloGridX + 1;
-    jo = j - haloGridY + 1;
-    ko = k - haloGridZ + 1;
+    io = i + 1 - haloGridX;
+    jo = j + 1 - haloGridY;
+    ko = k + 1 - haloGridZ;
 
     if (mpi.isBdryProcessXMin()) io = i;
     if (mpi.isBdryProcessYMin()) jo = j;
@@ -1719,7 +1730,7 @@ namespace dem {
 	}
   }
 
-  void Gas::getPtclInfo(std::vector<Particle *> &ptcls, Gradation &gradation) {
+  void Gas::getPtclInfo(std::vector<Particle *> &ptcls) {
     // two particles could have overlapping fluid grids in the following algorithm using maxGrid in 
     // all 3 directions, so do not clear masks inside the loops, instead, clear masks here.
     for (std::size_t i = 0; i < arrayU.size(); ++i)
@@ -1730,7 +1741,7 @@ namespace dem {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
-    std::size_t maxGrid = static_cast<std::size_t> (round(gradation.getPtclMaxRadius() / gridDx) ); // round or ceil? round is more accurate here.
+    std::size_t maxGrid = haloGrid - 1;
     std::size_t ip, jp, kp;
 
     for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
@@ -1745,9 +1756,9 @@ namespace dem {
       int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX + 1); // necessary or unnecessary? Using +/- 1 or not determines whether calcPtclForce and penalize need "if" conditions.
       int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY + 1);
       int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ + 1);
-      int uppX = std::min((int)(local.i + maxGrid), (int)boundCup.uppX - 1);
-      int uppY = std::min((int)(local.j + maxGrid), (int)boundCup.uppY - 1);
-      int uppZ = std::min((int)(local.k + maxGrid), (int)boundCup.uppZ - 1);
+      int uppX = std::min((int)local.i + (int)maxGrid, (int)boundCup.uppX - 1);
+      int uppY = std::min((int)local.j + (int)maxGrid, (int)boundCup.uppY - 1);
+      int uppZ = std::min((int)local.k + (int)maxGrid, (int)boundCup.uppZ - 1);
       //std::cout << "x, y, z local range=" << lowX << " " << uppX << " " << lowY << " " << uppY << " " << lowZ << " " << uppZ << std::endl;
 
       for (std::size_t i = lowX; i <= uppX ; ++i)
@@ -1902,6 +1913,9 @@ namespace dem {
 	    if (iteration == 1) {
 	      pfs << std::setw(OWID) << "iteration"
 		  << std::setw(OWID) << "accruedTime"
+		  << std::setw(OWID) << "x"
+		  << std::setw(OWID) << "y"
+		  << std::setw(OWID) << "z"
 		  << std::setw(OWID) << "penalFx"
 		  << std::setw(OWID) << "penalFy"
 		  << std::setw(OWID) << "penalFz"
@@ -1931,6 +1945,7 @@ namespace dem {
 		  << std::setw(OWID) << "avgVel"
 		  << std::setw(OWID) << "avgPrs"
 		  << std::setw(OWID) << "avgVelGap"
+		  << std::setw(OWID) << "process"
 		  << std::endl;
 	    }
 
@@ -1938,6 +1953,9 @@ namespace dem {
 	    REAL refF = 0.5*rhoL*uL*uL*dem::Pi*(*it)->getA()*(*it)->getB();
 	    pfs << std::setw(OWID) << iteration
 		<< std::setw(OWID) << timeAccrued
+		<< std::setw(OWID) << (*it)->getCurrPos().getX()
+		<< std::setw(OWID) << (*it)->getCurrPos().getY()
+		<< std::setw(OWID) << (*it)->getCurrPos().getZ()
 
 		<< std::setw(OWID) << penalForce.getX()
 		<< std::setw(OWID) << penalForce.getY()
@@ -1973,6 +1991,7 @@ namespace dem {
 		<< std::setw(OWID) << avgVel
 		<< std::setw(OWID) << avgPrs
 		<< std::setw(OWID) << avgVelGap
+		<< std::setw(OWID) << mpi.mpiRank
 
 		<< std::endl ;
 	    pfs.close();
