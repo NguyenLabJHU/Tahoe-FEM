@@ -287,6 +287,7 @@ namespace dem {
     void allocArray();
     void initializePureGas();
     void initialize();
+    void passGrid(std::size_t &, std::size_t &, std::size_t &, REAL &, REAL &, REAL &);
     void initialCondition();
     void calcTimeStep();
     void RankineHugoniot();
@@ -312,7 +313,7 @@ namespace dem {
     void coordToGlobalIndex(Vec v, std::size_t &i, std::size_t &j, std::size_t &k);
     void coordToGlobalIndex(Vec v, IJK &t);
     void localIndexToGlobal(IJK &local, IJK &global);
-    void globalIndexToLocal(IJK &global, IJK &local);
+    bool globalIndexToLocal(IJK &global, IJK &local);
     void faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
     void cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
 

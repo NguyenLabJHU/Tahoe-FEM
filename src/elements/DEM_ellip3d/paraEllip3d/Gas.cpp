@@ -33,8 +33,8 @@ namespace dem {
 
     gridDz = (gradation.getPtclMinRadius(1) * 2) / ptclGrid; // estimate
     calcGrid(); // re-calculate gridDz
-    haloGrid = static_cast<std::size_t> (round(gradation.getPtclMaxRadius() / gridDz) ) + 1; // round or ceil? round is more accurate here; necessary to add 1 for pressure gradient calculation.
-
+    haloGrid = static_cast<std::size_t> (round(gradation.getPtclMaxRadius() / gridDz) ) + 1; // round or ceil? round is more accurate; necessary + 1 for pressure gradient calculation.
+  
     debugInf << std::setw(OWID) << "ptclGrid" << std::setw(OWID) << ptclGrid << std::endl;
     debugInf << std::setw(OWID) << "porosity" << std::setw(OWID) << porosity << std::endl;
     debugInf << std::setw(OWID) << "Cdi" << std::setw(OWID) << Cdi << std::endl;
@@ -134,12 +134,22 @@ namespace dem {
     gridDz = (z2F - z1F) / allGridNz; // re-calculate
     gridDx = gridDz;
     gridDy = gridDz;
-    allGridNx = static_cast<std::size_t> (round((x2F - x1F) / gridDx)); // better than ceil
-    allGridNy = static_cast<std::size_t> (round((y2F - y1F) / gridDy));
+    allGridNx = static_cast<std::size_t> (ceil((x2F - x1F) / gridDx)); // ceil rather than round to cover particle domain.
+    allGridNy = static_cast<std::size_t> (ceil((y2F - y1F) / gridDy));
 
     allGridNx += 2; // add two boundary cells
     allGridNy += 2;
     allGridNz += 2;
+  }
+
+  void Gas::passGrid(std::size_t &allGasGridNx, std::size_t &allGasGridNy, std::size_t &allGasGridNz, REAL &gasGridDx, REAL &gasGridDy, REAL &gasGridDz) {
+    allGasGridNx = allGridNx;
+    allGasGridNy = allGridNy;
+    allGasGridNz = allGridNz;
+
+    gasGridDx = gridDx;
+    gasGridDy = gridDy;
+    gasGridDz = gridDz;
   }
 
   void Gas::printSharedParameter() {
@@ -562,7 +572,7 @@ namespace dem {
     global.k = K;
   }
 
-  void Gas::globalIndexToLocal(IJK &global, IJK &local) {
+  bool Gas::globalIndexToLocal(IJK &global, IJK &local) {
     // do no use std::size_t for computing
     int segX = (int) ceil((double) allGridNx / mpi.mpiProcX);
     int segY = (int) ceil((double) allGridNy / mpi.mpiProcY);
@@ -581,9 +591,9 @@ namespace dem {
     localIndexToGlobal(localUppBound, globalUppBound);
     //std::cout << "globalIndexToLocal: mpiRank=" << mpi.mpiRank << " boundPrn.lowX=" << boundPrn.lowX << " globalLowBound.i= " << globalLowBound.i << " i=" << i; 
 
-    if (global.i > globalUppBound.i) // particle center is located in the "right" process.
+    if (global.i > globalUppBound.i) // particle center is located in the "right" or "upper"process.
       i += segX;
-    if (global.i < globalLowBound.i) // particle center is located in the "left" process.
+    if (global.i < globalLowBound.i) // particle center is located in the "left" or "lower" process.
       i -= segX;
 
     if (global.j > globalUppBound.j)
@@ -606,6 +616,13 @@ namespace dem {
     local.i = i;
     local.j = j;
     local.k = k;
+    
+    if (i < boundCup.lowX || i > boundCup.uppX ||
+	j < boundCup.lowY || j > boundCup.uppY ||
+	k < boundCup.lowZ || k > boundCup.uppZ) // outside of halo
+      return false;
+
+    return true; // inside of halo
   }
 
   // Godunov to cell
@@ -1741,40 +1758,48 @@ namespace dem {
     for (std::vector<Particle*>::const_iterator it = ptcls.begin(); it != ptcls.end(); ++it)
       (*it)->clearFluidGrid();
 
-    std::size_t maxGrid = haloGrid - 1;
+    std::size_t maxGrid = (int) haloGrid - 1; // because haloGrid already increases by 1.
     std::size_t ip, jp, kp;
 
     for (std::vector<Particle*>::iterator it = ptcls.begin(); it != ptcls.end(); ++it) {
       coordToGlobalIndex((*it)->getCurrPos(), ip, jp, kp); 
       IJK global(ip, jp, kp);
       IJK local;
-      globalIndexToLocal(global, local);
-      //std::cout << "getPtclInfo: mpiRank=" << mpi.mpiRank << " ptcl=" << (*it)->getId() << " global=" << ip << " " << jp << " " << kp << " local=" << local.i << " " << local.j << " " << local.k << std::endl; 
+      bool isInHalo = globalIndexToLocal(global, local);
+      
+      // Note:
+      // 1. local.ijk could be infinite (i.e., < 0) if printed out, which implies a particle is duplicated by adjacent processses, but is still located outside of halo zone.
+      // 2. In that case, the particle has no DEM-CFD coupling effect, so it is filtered out by isInhalo condition. 
+      // 3. In particular, if it is not filtered out, it causes out-of-bound memory error, of course. That is, it must be filtered out.
+      // 4. However, the particle has pure DEM effect, which is accounted for by commuParticle(1) and migrateParticle(1).
+      // 5. the following the std::cout line is kept for purpose of demonstrating this situation.
+      //std::cout << "iter=" << iteration << " getPtclInfo: mpiRank=" << mpi.mpiRank << " ptcl=" << (*it)->getId() << " global=" << ip << " " << jp << " " << kp << " local=" << local.i << " " << local.j << " " << local.k << std::endl; 
 
-      // ensure each grid is in the valid range
-      // never subtract two numbers of type std::size_t
-      int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX + 1); // necessary or unnecessary? Using +/- 1 or not determines whether calcPtclForce and penalize need "if" conditions.
-      int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY + 1);
-      int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ + 1);
-      int uppX = std::min((int)local.i + (int)maxGrid, (int)boundCup.uppX - 1);
-      int uppY = std::min((int)local.j + (int)maxGrid, (int)boundCup.uppY - 1);
-      int uppZ = std::min((int)local.k + (int)maxGrid, (int)boundCup.uppZ - 1);
-      //std::cout << "x, y, z local range=" << lowX << " " << uppX << " " << lowY << " " << uppY << " " << lowZ << " " << uppZ << std::endl;
+      if (isInHalo) {
+	// ensure each grid is in the valid range
+	// never subtract two numbers of type std::size_t
+	int lowX = std::max((int)local.i - (int)maxGrid, (int)boundCup.lowX + 1); // necessary or unnecessary? Using +/- 1 or not determines whether calcPtclForce and penalize need "if" conditions.
+	int lowY = std::max((int)local.j - (int)maxGrid, (int)boundCup.lowY + 1);
+	int lowZ = std::max((int)local.k - (int)maxGrid, (int)boundCup.lowZ + 1);
+	int uppX = std::min((int)local.i + (int)maxGrid, (int)boundCup.uppX - 1);
+	int uppY = std::min((int)local.j + (int)maxGrid, (int)boundCup.uppY - 1);
+	int uppZ = std::min((int)local.k + (int)maxGrid, (int)boundCup.uppZ - 1);
+	//std::cout << "x, y, z local range=" << lowX << " " << uppX << " " << lowY << " " << uppY << " " << lowZ << " " << uppZ << std::endl;
 
-      for (std::size_t i = lowX; i <= uppX ; ++i)
-	for (std::size_t j = lowY; j <= uppY; ++j)
-	  for (std::size_t k = lowZ; k <= uppZ; ++k) {
-	    REAL coordX = arrayGridCoord[i][j][k][0];
-	    REAL coordY = arrayGridCoord[i][j][k][1];
-	    REAL coordZ = arrayGridCoord[i][j][k][2];
+	for (std::size_t i = lowX; i <= uppX ; ++i)
+	  for (std::size_t j = lowY; j <= uppY; ++j)
+	    for (std::size_t k = lowZ; k <= uppZ; ++k) {
+	      REAL coordX = arrayGridCoord[i][j][k][0];
+	      REAL coordY = arrayGridCoord[i][j][k][1];
+	      REAL coordZ = arrayGridCoord[i][j][k][2];
 
-	    if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= -EPS ) { // inside particle surface; -EPS is better than 0.
-	      arrayU[i][j][k][varMsk] = 1; 
-	      (*it)->recordFluidGrid(i, j, k);
+	      if ( (*it)->surfaceError(Vec(coordX, coordY, coordZ)) <= -EPS ) { // inside particle surface; -EPS is better than 0.
+		arrayU[i][j][k][varMsk] = 1; 
+		(*it)->recordFluidGrid(i, j, k);
+	      }
 	    }
-	  }
-      //std::cout << "getPtclInfo: mpiRank=" << mpi.mpiRank << " fluidGrid=" << (*it)->getFluidGrid().size() << " maxGrid= " << maxGrid << std::endl;
-
+	//std::cout << "getPtclInfo: mpiRank=" << mpi.mpiRank << " fluidGrid=" << (*it)->getFluidGrid().size() << " maxGrid= " << maxGrid << std::endl;
+      }
     }
   }
 
