@@ -70,7 +70,15 @@ namespace dem {
     std::map<std::size_t,std::vector<BoundaryTgt> > boundaryTgtMap; // particle-boundary contact tangential info  
 
     // gas property
-    Gas gas; // correspond to particleVec
+    Gas  gas;                 // correspond to particleVec
+
+    // the following six parameters are used by DEM to align its MPI boundary with CFD.
+    std::size_t allGasGridNx; // allGridNx = total cell centers = parts + two boundary points in x direction
+    std::size_t allGasGridNy; // allGridNy = total cell centers = parts + two boundary points in y direction
+    std::size_t allGasGridNz; // allGridNz = total cell centers = parts + two boundary points in z direction
+    REAL gasGridDx;           // gas grid size in x direction
+    REAL gasGridDy;           // gas grid size in y direction
+    REAL gasGridDz;           // gas grid size in z direction
 
     // average data
     REAL avgNormal;        // only meaningful to root process
@@ -203,11 +211,13 @@ namespace dem {
     void readParticle(const char *str);
     void readBoundary(const char *str, const int gridUpdate=0);
     void scatterParticle();
-    void commuParticle();
+    void scatterParticleByCFD();
+    void broadcastInfo();
+    void commuParticle(const int coupled=0);
     void releaseRecvParticle();
     void releaseGatheredParticle();
     void releaseGatheredContact();
-    void migrateParticle();
+    void migrateParticle(const int coupled=0);
     void removeParticleOutRectangle();
     void gatherParticle();
     void gatherBdryContact();

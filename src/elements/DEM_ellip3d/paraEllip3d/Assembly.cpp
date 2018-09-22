@@ -61,12 +61,12 @@
 //#define BIGON
 #define TOTALMOMENT
 
+#define FREE_FALL_HEIGHT 1
 // 0: no initial velocity
-// 1: initial velocity distribution of free fall (default)
-// 2: initial velocity distribution of free fall from 2x height
-// 3: initial velocity distribution of free fall from 3x height
+// 1: 1x free fall height (default)
+// 2: 2x free fall height
+// 3: 3x free fall height
 // ...
-#define INIT_VELOC_DISTR 1
 
 static time_t timeStamp; // for file timestamping
 static struct timeval time_w1, time_w2; // for wall-clock time record
@@ -1595,7 +1595,7 @@ namespace dem {
   }
 
 
-  void Assembly::coupleWithGas() 
+  void Assembly::coupleWithGas()
   {
     int gridUpdate = -10; // do not update DEM grids!
 
@@ -1604,13 +1604,16 @@ namespace dem {
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openDepositProg(progressInf, "couple_progress");
     }
-    scatterParticle();
+    broadcastInfo(); // must call before gas.initParameter().
 
-    mpi.findNeighborProcess(); // one-time operation
+    mpi.findNeighborProcess(); // one-time operation.
     /*01*/ gas.setMPI(mpi);    // must call after mpi.findNeighborProcess().
-    /*02*/ gas.initParameter(gradation); // must call after gas.setMPI()
+    /*02*/ gas.initParameter(gradation); // must call after gas.setMPI().
     /*03*/ gas.allocArray();
     /*04*/ gas.initialize();
+    /*05*/ gas.passGrid(allGasGridNx, allGasGridNy, allGasGridNz, gasGridDx, gasGridDy, gasGridDz);
+
+    scatterParticleByCFD(); // must call after gas.passGrid().
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1632,7 +1635,7 @@ namespace dem {
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
     }
-    /*05*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+    /*06*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
 
     /*
     if (mpi.mpiRank == 0)
@@ -1650,33 +1653,33 @@ namespace dem {
       time_0 = MPI_Wtime();
 #endif
 
-      /*06*/ gas.commu26(); // must call before gas.getPtclInfo; and comunicate with 6 surface, 12 edges and 8 vertices.
+      /*07*/ gas.commu26(); // must call before gas.getPtclInfo; and comunicate with 6 surface, 12 edges and 8 vertices.
 #ifdef CFD_PROFILE
       time_1 = MPI_Wtime();
 #endif
 
-      commuParticle();
+      commuParticle(1); // 1 for CFD
 #ifdef CFD_PROFILE
       time_2 = MPI_Wtime();
 #endif
 
-      /*07*/ gas.getPtclInfo(mergedParticleVec, gradation); // must call after commuParticle() for intruded external particles.
+      /*08*/ gas.getPtclInfo(mergedParticleVec); // must call after commuParticle() for intruded external particles.
 #ifdef CFD_PROFILE
       time_3 = MPI_Wtime();
 #endif
 
-      /*08*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
+      /*09*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
                                                    // must call after gas.commu26() and before gas.runOneStep(), otherwise external and internal gas are not synchronized in time.
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif
 
-      /*09*/ gas.penalize(mergedParticleVec);
+      /*10*/ gas.penalize(mergedParticleVec);
 #ifdef CFD_PROFILE
       time_5 = MPI_Wtime();
 #endif
 
-      /*10*/ gas.runOneStep(mergedParticleVec);    // 1. only update internal gas; 2. must call after gas.penalize() to resume the gas state.
+      /*11*/ gas.runOneStep(mergedParticleVec);    // 1. only update internal gas; 2. must call after gas.penalize() to resume the gas state.
 #ifdef CFD_PROFILE
       time_6 = MPI_Wtime();
 #endif
@@ -1704,7 +1707,7 @@ namespace dem {
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
 	}
-	/*11*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	/*12*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
       
 	timeCount = 0;
@@ -1715,7 +1718,7 @@ namespace dem {
 #ifdef CFD_PROFILE
       time_7 = MPI_Wtime();
 #endif
-      migrateParticle();
+      migrateParticle(1); // 1 for CFD
 #ifdef CFD_PROFILE
       time_8 = MPI_Wtime();
 #endif
@@ -1774,10 +1777,15 @@ namespace dem {
     REAL z1 = allContainer.getMinCorner().getZ() + diaMax*bottomGap;
     REAL x2 = allContainer.getMaxCorner().getX() - edge;
     REAL y2 = allContainer.getMaxCorner().getY() - edge;
-    REAL z2 = dem::Parameter::getSingleton().parameter["floatMaxZ"] - diaMax;
+    REAL z2 = allContainer.getMaxCorner().getZ() - diaMax;
+    //REAL z2 = dem::Parameter::getSingleton().parameter["floatMaxZ"] - diaMax;
     REAL x0 = allContainer.getCenter().getX();
     REAL y0 = allContainer.getCenter().getY();
     REAL z0 = allContainer.getCenter().getZ();
+
+    REAL z1Container = allContainer.getMinCorner().getZ();
+    REAL z2Container = allContainer.getMaxCorner().getZ();
+    REAL hContainer  = z2Container - z1Container;
 
     if (particleLayers == 0) {      // just one free particle
       newptcl = new Particle(particleNum+1, 0, false, Vec(x0,y0,z0), gradation, young, poisson);
@@ -1803,7 +1811,10 @@ namespace dem {
 	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      if (FREE_FALL_HEIGHT == 0) 
+		newptcl->setCurrVeloc(Vec(0, 0, 0));
+	      else
+		newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2Container - z + hContainer*(FREE_FALL_HEIGHT - 1))) ));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }
@@ -1818,7 +1829,10 @@ namespace dem {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      if (FREE_FALL_HEIGHT == 0) 
+		newptcl->setCurrVeloc(Vec(0, 0, 0));
+	      else
+		newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2Container - z + hContainer*(FREE_FALL_HEIGHT - 1))) ));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1828,7 +1842,10 @@ namespace dem {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      if (FREE_FALL_HEIGHT == 0) 
+		newptcl->setCurrVeloc(Vec(0, 0, 0));
+	      else
+		newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2Container - z + hContainer*(FREE_FALL_HEIGHT - 1))) ));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1838,7 +1855,10 @@ namespace dem {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      if (FREE_FALL_HEIGHT == 0) 
+		newptcl->setCurrVeloc(Vec(0, 0, 0));
+	      else
+		newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2Container - z + hContainer*(FREE_FALL_HEIGHT - 1))) ));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -1848,7 +1868,10 @@ namespace dem {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
 	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
-	      newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * fabs(z2 - z) * INIT_VELOC_DISTR) )); // z2 - z: free fall distance
+	      if (FREE_FALL_HEIGHT == 0) 
+		newptcl->setCurrVeloc(Vec(0, 0, 0));
+	      else
+		newptcl->setCurrVeloc(Vec(0, 0, -sqrt(2 * gravAccel * (z2Container - z + hContainer*(FREE_FALL_HEIGHT - 1))) ));
 	      allParticleVec.push_back(newptcl);
 	      ++particleNum;
 	    }	
@@ -2436,18 +2459,132 @@ namespace dem {
   }
 
 
-  void Assembly::commuParticle() 
+  void Assembly::scatterParticleByCFD() {
+    // partition particles and send to each process
+    if (mpi.mpiRank == 0) { // process 0
+
+      // grid initialized in readBoundary()
+      Vec v1 = grid.getMinCorner();
+      Vec v2 = grid.getMaxCorner();
+      Vec vspan = v2 - v1;
+
+      boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
+      std::vector<Particle *> tmpParticleVec;
+      for (int iRank = mpi.mpiSize - 1; iRank >= 0; --iRank) {
+	tmpParticleVec.clear(); // do not release memory!
+	int ndim = 3;
+	int coords[3];
+	MPI_Cart_coords(mpi.cartComm, iRank, ndim, coords);
+	
+	int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
+	int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
+	int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
+
+	REAL lowX = v1.getX() - gasGridDx + gasGridDx * segX * coords[0];
+	REAL lowY = v1.getY() - gasGridDy + gasGridDy * segY * coords[1];
+	REAL lowZ = v1.getZ() - gasGridDz + gasGridDz * segZ * coords[2];
+	REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (coords[0] + 1);
+	REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (coords[1] + 1);
+	REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (coords[2] + 1);
+
+	if (coords[0] == 0)
+	  lowX = v1.getX();
+	if (coords[1] == 0)
+	  lowY = v1.getY();
+	if (coords[2] == 0)
+	  lowZ = v1.getZ();
+
+	if (coords[0] == mpi.mpiProcX - 1)
+	  uppX = v2.getX();
+	if (coords[1] == mpi.mpiProcY - 1)
+	  uppY = v2.getY();
+	if (coords[2] == mpi.mpiProcZ - 1)
+	  uppZ = v2.getZ();
+
+	Rectangle container(lowX, lowY, lowZ, uppX, uppY, uppZ);
+	/*
+	std::cout << "scatterP: iRank=" << std::setw(OWID) << iRank 
+	  //<< " segXYZ=" << std::setw(OWID) << segX << std::setw(OWID) << segY << std::setw(OWID) << segZ 	  
+	  //<< " gridXYZ="<< std::setw(OWID) << gasGridDx << std::setw(OWID) << gasGridDy << std::setw(OWID) << gasGridDz
+		  << " lowXYZ=" << std::setw(OWID) << lowX << std::setw(OWID) << lowY << std::setw(OWID) << lowZ 
+		  << " uppXYZ=" << std::setw(OWID) << uppX << std::setw(OWID) << uppY << std::setw(OWID) << uppZ << std::endl;
+	*/
+
+	findParticleInRectangle(container, allParticleVec, tmpParticleVec);
+	if (iRank != 0)
+	  reqs[iRank - 1] = mpi.boostWorld.isend(iRank, mpi.mpiTag, tmpParticleVec); // non-blocking send
+	if (iRank == 0) {
+	  particleVec.resize(tmpParticleVec.size());
+	  for (int i = 0; i < particleVec.size(); ++i)
+	    particleVec[i] = new Particle(*tmpParticleVec[i]); // default synthesized copy constructor
+	} // now particleVec do not share memeory with allParticleVec
+      }
+      boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
+      delete [] reqs;
+
+    } else { // other processes except 0
+      mpi.boostWorld.recv(0, mpi.mpiTag, particleVec);
+    }
+
+    // content of allParticleVec may need to be printed, so do not clear it. 
+    //if (mpi.mpiRank == 0) releaseGatheredParticle();
+  }
+
+
+  void Assembly::broadcastInfo() {
+    // broadcast necessary info
+    broadcast(mpi.boostWorld, gradation, 0);
+    broadcast(mpi.boostWorld, boundaryVec, 0);
+    broadcast(mpi.boostWorld, allContainer, 0);
+    broadcast(mpi.boostWorld, grid, 0);
+  }
+
+
+  void Assembly::commuParticle(const int coupled) 
   {
     // determine container of each process
     Vec v1 = grid.getMinCorner();
     Vec v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
-    container = Rectangle(v1.getX() + vspan.getX() / mpi.mpiProcX * mpi.mpiCoords[0],
-			  v1.getY() + vspan.getY() / mpi.mpiProcY * mpi.mpiCoords[1],
-			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * mpi.mpiCoords[2],
-			  v1.getX() + vspan.getX() / mpi.mpiProcX * (mpi.mpiCoords[0] + 1),
-			  v1.getY() + vspan.getY() / mpi.mpiProcY * (mpi.mpiCoords[1] + 1),
-			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (mpi.mpiCoords[2] + 1));
+
+    if (coupled == 0) { // no coupling with CFD
+
+      container = Rectangle(v1.getX() + vspan.getX() / mpi.mpiProcX * mpi.mpiCoords[0],
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * mpi.mpiCoords[1],
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * mpi.mpiCoords[2],
+			    v1.getX() + vspan.getX() / mpi.mpiProcX * (mpi.mpiCoords[0] + 1),
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * (mpi.mpiCoords[1] + 1),
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (mpi.mpiCoords[2] + 1));
+
+    } else if (coupled == 1) { // coupled with CFD
+
+      int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
+      int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
+      int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
+
+      REAL lowX = v1.getX() - gasGridDx + gasGridDx * segX * mpi.mpiCoords[0];
+      REAL lowY = v1.getY() - gasGridDy + gasGridDy * segY * mpi.mpiCoords[1];
+      REAL lowZ = v1.getZ() - gasGridDz + gasGridDz * segZ * mpi.mpiCoords[2];
+      REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (mpi.mpiCoords[0] + 1);
+      REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (mpi.mpiCoords[1] + 1);
+      REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (mpi.mpiCoords[2] + 1);
+
+      if (mpi.isBdryProcessXMin())
+	lowX = v1.getX();
+      if (mpi.isBdryProcessYMin())
+	lowY = v1.getY();
+      if (mpi.isBdryProcessZMin())
+	lowZ = v1.getZ();
+
+      if (mpi.isBdryProcessXMax())
+	uppX = v2.getX();
+      if (mpi.isBdryProcessYMax())
+	uppY = v2.getY();
+      if (mpi.isBdryProcessZMax())
+	uppZ = v2.getZ();
+
+      container = Rectangle(lowX, lowY, lowZ, uppX, uppY, uppZ);
+    }
 
     // if a neighbor exists (by findMPINeighbor), communicate with neighboring blocks.
     std::vector<Particle *> particleX1, particleX2;
@@ -2967,7 +3104,7 @@ namespace dem {
   }
 
 
-  void Assembly::migrateParticle() 
+  void Assembly::migrateParticle(const int coupled) 
   {
     // now use updated grid to determine the new container of each process
     Vec    v1 = grid.getMinCorner();
@@ -2978,12 +3115,45 @@ namespace dem {
     REAL segZ = vspan.getZ() / mpi.mpiProcZ;
 
     // new container
-    container = Rectangle(v1.getX() + vspan.getX() / mpi.mpiProcX * mpi.mpiCoords[0],
-			  v1.getY() + vspan.getY() / mpi.mpiProcY * mpi.mpiCoords[1],
-			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * mpi.mpiCoords[2],
-			  v1.getX() + vspan.getX() / mpi.mpiProcX * (mpi.mpiCoords[0] + 1),
-			  v1.getY() + vspan.getY() / mpi.mpiProcY * (mpi.mpiCoords[1] + 1),
-			  v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (mpi.mpiCoords[2] + 1));
+
+    if (coupled == 0) { // no coupling with CFD
+
+      container = Rectangle(v1.getX() + vspan.getX() / mpi.mpiProcX * mpi.mpiCoords[0],
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * mpi.mpiCoords[1],
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * mpi.mpiCoords[2],
+			    v1.getX() + vspan.getX() / mpi.mpiProcX * (mpi.mpiCoords[0] + 1),
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * (mpi.mpiCoords[1] + 1),
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (mpi.mpiCoords[2] + 1));
+
+    } else if (coupled == 1) { // coupled with CFD
+
+      int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
+      int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
+      int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
+
+      REAL lowX = v1.getX() - gasGridDx + gasGridDx * segX * mpi.mpiCoords[0];
+      REAL lowY = v1.getY() - gasGridDy + gasGridDy * segY * mpi.mpiCoords[1];
+      REAL lowZ = v1.getZ() - gasGridDz + gasGridDz * segZ * mpi.mpiCoords[2];
+      REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (mpi.mpiCoords[0] + 1);
+      REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (mpi.mpiCoords[1] + 1);
+      REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (mpi.mpiCoords[2] + 1);
+
+      if (mpi.isBdryProcessXMin())
+	lowX = v1.getX();
+      if (mpi.isBdryProcessYMin())
+	lowY = v1.getY();
+      if (mpi.isBdryProcessZMin())
+	lowZ = v1.getZ();
+
+      if (mpi.isBdryProcessXMax())
+	uppX = v2.getX();
+      if (mpi.isBdryProcessYMax())
+	uppY = v2.getY();
+      if (mpi.isBdryProcessZMax())
+	uppZ = v2.getZ();
+
+      container = Rectangle(lowX, lowY, lowZ, uppX, uppY, uppZ);
+    }
 
     v1 = container.getMinCorner(); // redefine v1, v2 in terms of process
     v2 = container.getMaxCorner();  
