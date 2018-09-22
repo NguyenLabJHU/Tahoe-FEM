@@ -126,7 +126,7 @@ namespace dem {
 
     case 101: { // depositIntoContainer  
       std::size_t i;
-      int typeNum = 12;
+      int typeNum = 11;
       for (i = 0; i < typeNum; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	if (ifs.eof()) break;
