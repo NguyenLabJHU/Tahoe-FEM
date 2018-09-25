@@ -1970,7 +1970,7 @@ namespace dem {
 		  << std::setw(OWID) << "avgVel"
 		  << std::setw(OWID) << "avgPrs"
 		  << std::setw(OWID) << "avgVelGap"
-		  << std::setw(OWID) << "process"
+		//<< std::setw(OWID) << "process"
 		  << std::endl;
 	    }
 
@@ -2016,7 +2016,7 @@ namespace dem {
 		<< std::setw(OWID) << avgVel
 		<< std::setw(OWID) << avgPrs
 		<< std::setw(OWID) << avgVelGap
-		<< std::setw(OWID) << mpi.mpiRank
+	      //<< std::setw(OWID) << mpi.mpiRank
 
 		<< std::endl ;
 	    pfs.close();
