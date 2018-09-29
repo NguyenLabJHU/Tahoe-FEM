@@ -1663,23 +1663,22 @@ namespace dem {
       time_2 = MPI_Wtime();
 #endif
 
-      /*08*/ gas.getPtclInfo(mergedParticleVec); // must call after commuParticle() for intruded external particles.
+      /*08*/ gas.getPtclInfo(mergedParticleVec);   // must call after commuParticle() for intruded external particles.
 #ifdef CFD_PROFILE
       time_3 = MPI_Wtime();
 #endif
 
-      /*09*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
-                                                   // must call after gas.commu26() and before gas.runOneStep(), otherwise external and internal gas are not synchronized in time.
+      /*09*/ gas.runOneStep(mergedParticleVec);    // only update internal gas.
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif
 
-      /*10*/ gas.penalize(mergedParticleVec);
+      /*10*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
 #ifdef CFD_PROFILE
       time_5 = MPI_Wtime();
 #endif
 
-      /*11*/ gas.runOneStep(mergedParticleVec);    // 1. only update internal gas; 2. must call after gas.penalize() to resume the gas state.
+      /*11*/ gas.penalize(mergedParticleVec);
 #ifdef CFD_PROFILE
       time_6 = MPI_Wtime();
 #endif
@@ -1726,9 +1725,9 @@ namespace dem {
 #ifdef CFD_PROFILE
       debugInf << std::setw(OWID) << time_1-time_0 // cfdCommuT
 	       << std::setw(OWID) << time_3-time_2 // getPtclInfoT
-	       << std::setw(OWID) << time_4-time_3 // calPtclForceT
-	       << std::setw(OWID) << time_5-time_4 // penalizeT
-	       << std::setw(OWID) << time_6-time_5 // runOneStepT
+	       << std::setw(OWID) << time_4-time_3 // runOneStepT
+	       << std::setw(OWID) << time_5-time_4 // calcPtclForceT
+	       << std::setw(OWID) << time_6-time_5 // penalizeT
 	       << std::setw(OWID) << (time_1-time_0) + (time_6-time_2) // cfdTotalT
 	       << std::setw(OWID) << time_2-time_1 // demCommuT
 	       << std::setw(OWID) << time_7-time_6 // demCompuT

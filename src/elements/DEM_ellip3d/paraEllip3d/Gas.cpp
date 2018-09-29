@@ -689,9 +689,9 @@ namespace dem {
 
 	       << std::setw(OWID) << "cfdCommuT"
 	       << std::setw(OWID) << "getPtclInfoT"
+	       << std::setw(OWID) << "runOneStepT"
 	       << std::setw(OWID) << "calcPtclForceT"
 	       << std::setw(OWID) << "penalizeT"
-	       << std::setw(OWID) << "runOneStepT"
 	       << std::setw(OWID) << "cfdTotalT"
 	       << std::setw(OWID) << "demCommuT"
 	       << std::setw(OWID) << "demCompuT"
