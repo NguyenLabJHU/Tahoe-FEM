@@ -291,12 +291,10 @@ namespace dem {
     }
 
     // step 3: determine bound
-    // for both serial and parallel:
-    // boundCup: size = gridN
+    // boundCup: size = gridN, for both serial and parallel.
     boundCup = Bound(0, 0, 0, gridNx - 1, gridNy - 1, gridNz - 1);
 
-    // for parallel:
-    // boundPrn: size = gridN - haloGrid*2
+    // boundPrn: size = gridN - haloGrid*2, for parallel.
     boundPrn = Bound(haloGridX, haloGridY, haloGridZ, gridNx - haloGridX - 1, gridNy - haloGridY - 1, gridNz - haloGridZ - 1);
     if (mpi.isBdryProcessXMin()) {boundPrn.lowX = 1; boundPrn.sizeX = gridNx - haloGridX - 1;}
     if (mpi.isBdryProcessYMin()) {boundPrn.lowY = 1; boundPrn.sizeY = gridNy - haloGridY - 1;}
@@ -305,29 +303,19 @@ namespace dem {
     if (mpi.isBdryProcessYMax()) {boundPrn.uppY = gridNy - 2; boundPrn.sizeY = gridNy - haloGridY - 1;}
     if (mpi.isBdryProcessZMax()) {boundPrn.uppZ = gridNz - 2; boundPrn.sizeZ = gridNz - haloGridZ - 1;}
 
-    // for parallel:
-    // boundGod: size = gridN - haloGrid*2 + 1
-    boundGod = Bound(0, 0, 0, gridNx - haloGridX*2, gridNy - haloGridY*2, gridNz - haloGridZ*2);
-    if (mpi.isBdryProcessXMin()) {boundGod.uppX = gridNx - haloGridX - 1; boundGod.sizeX = gridNx - haloGridX;}
-    if (mpi.isBdryProcessYMin()) {boundGod.uppY = gridNy - haloGridY - 1; boundGod.sizeY = gridNy - haloGridY;}
-    if (mpi.isBdryProcessZMin()) {boundGod.uppZ = gridNz - haloGridZ - 1; boundGod.sizeZ = gridNz - haloGridZ;}
-    if (mpi.isBdryProcessXMax()) {boundGod.uppX = gridNx - haloGridX - 1; boundGod.sizeX = gridNx - haloGridX;}
-    if (mpi.isBdryProcessYMax()) {boundGod.uppY = gridNy - haloGridY - 1; boundGod.sizeY = gridNy - haloGridY;}
-    if (mpi.isBdryProcessZMax()) {boundGod.uppZ = gridNz - haloGridZ - 1; boundGod.sizeZ = gridNz - haloGridZ;}
-
-    // for serial in a specific direction:
+    // boundPrn: for serial in a specific direction.
     if (mpi.mpiProcX == 1) {
       boundPrn.lowX = 1; boundPrn.uppX = gridNx - 2; boundPrn.sizeX = gridNx - 2;
-      boundGod.lowX = 0; boundGod.uppX = gridNx - 2; boundGod.sizeX = gridNx - 1;
     }
     if (mpi.mpiProcY == 1) {
       boundPrn.lowY = 1; boundPrn.uppY = gridNy - 2; boundPrn.sizeY = gridNy - 2;
-      boundGod.lowY = 0; boundGod.uppY = gridNy - 2; boundGod.sizeY = gridNy - 1;
     }
     if (mpi.mpiProcZ == 1) {
       boundPrn.lowZ = 1; boundPrn.uppZ = gridNz - 2; boundPrn.sizeZ = gridNz - 2;
-      boundGod.lowZ = 0; boundGod.uppZ = gridNz - 2; boundGod.sizeZ = gridNz - 1;
     }
+
+    // boundGod: size = gridN -1, for both serial and parallel.
+    boundGod = Bound(0, 0, 0, gridNx - 2, gridNy - 2, gridNz - 2);
 
     /*
     std::cout << std::endl << "mpiRank = " << mpi.mpiRank << std::endl;
@@ -348,18 +336,6 @@ namespace dem {
     std::cout << std::setw(OWID) << "boundPrnX: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeX << std::setw(OWID) << boundPrn.lowX << std::setw(OWID) << boundPrn.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
     std::cout << std::setw(OWID) << "boundPrnY: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeY << std::setw(OWID) << boundPrn.lowY << std::setw(OWID) << boundPrn.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
     std::cout << std::setw(OWID) << "boundPrnZ: size, local[ ], global[ ]" << std::setw(OWID) << boundPrn.sizeZ << std::setw(OWID) << boundPrn.lowZ << std::setw(OWID) << boundPrn.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
-
-    local = IJK(boundGod.lowX, boundGod.lowY, boundGod.lowZ);
-    std::size_t ic, jc, kc; faceIndexToCell(local.i, local.j, local.k, ic, jc, kc);
-    local = IJK(ic, jc, kc);
-    localIndexToGlobal(local, globalLow);
-    local = IJK(boundGod.uppX, boundGod.uppY, boundGod.uppZ);
-    faceIndexToCell(local.i, local.j, local.k, ic, jc, kc);
-    local = IJK(ic, jc, kc);
-    localIndexToGlobal(local, globalUpp);
-    std::cout << std::setw(OWID) << "boundGodX: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeX << std::setw(OWID) << boundGod.lowX << std::setw(OWID) << boundGod.uppX << std::setw(OWID) << globalLow.i << std::setw(OWID) << globalUpp.i << std::endl;
-    std::cout << std::setw(OWID) << "boundGodY: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeY << std::setw(OWID) << boundGod.lowY << std::setw(OWID) << boundGod.uppY << std::setw(OWID) << globalLow.j << std::setw(OWID) << globalUpp.j << std::endl;
-    std::cout << std::setw(OWID) << "boundGodZ: size, local[ ], global[ ]" << std::setw(OWID) << boundGod.sizeZ << std::setw(OWID) << boundGod.lowZ << std::setw(OWID) << boundGod.uppZ << std::setw(OWID) << globalLow.k << std::setw(OWID) << globalUpp.k << std::endl;
 
     std::cout << std::endl;
     */
@@ -625,36 +601,6 @@ namespace dem {
     return true; // inside of halo
   }
 
-  // Godunov to cell
-  void Gas::faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko) {
-    io = i + haloGridX - 1;
-    jo = j + haloGridY - 1;
-    ko = k + haloGridZ - 1;
-
-    if (mpi.isBdryProcessXMin()) io = i;
-    if (mpi.isBdryProcessYMin()) jo = j;
-    if (mpi.isBdryProcessZMin()) ko = k;
-
-    if (mpi.mpiProcX == 1) io = i;
-    if (mpi.mpiProcY == 1) jo = j;
-    if (mpi.mpiProcZ == 1) ko = k;
-  }
-
-  // cell to Godunov
-  void Gas::cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko) {
-    io = i + 1 - haloGridX;
-    jo = j + 1 - haloGridY;
-    ko = k + 1 - haloGridZ;
-
-    if (mpi.isBdryProcessXMin()) io = i;
-    if (mpi.isBdryProcessYMin()) jo = j;
-    if (mpi.isBdryProcessZMin()) ko = k;
-
-    if (mpi.mpiProcX == 1) io = i;
-    if (mpi.mpiProcY == 1) jo = j;
-    if (mpi.mpiProcZ == 1) ko = k;
-  }
-
   void Gas::initializePureGas() {
     negPrsDen = false;
     RankineHugoniot();
@@ -731,17 +677,13 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-
-    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+    for (i = boundCup.lowX + 1; i <= boundCup.uppX - 1; ++i)
+      for (j = boundCup.lowY + 1; j <= boundCup.uppY - 1; ++j)
+	for (k = boundCup.lowZ + 1; k <= boundCup.uppZ - 1; ++k)
 	  for (m = 0; m < nInteg; ++m) {
-	    // i, j, k must be mapped to arrayGodFlux
-	    std::size_t iGod, jGod, kGod;
-	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
-	    arrayU[i][j][k][m] -= (   timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
-				    + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
-				    + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
+	    arrayU[i][j][k][m] -= (   timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
+				    + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
+				    + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) );
 	  }
 
     UtoW();
@@ -757,17 +699,14 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+    for (i = boundCup.lowX + 1; i <= boundCup.uppX - 1; ++i)
+      for (j = boundCup.lowY + 1; j <= boundCup.uppY - 1; ++j)
+	for (k = boundCup.lowZ + 1; k <= boundCup.uppZ -1; ++k)
 	  for (m = 0; m < nInteg; ++m) {
-	    // i, j, k must be mapped to arrayGodFlux
-	    std::size_t iGod, jGod, kGod;
-	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] = 0.5*( arrayUN[i][j][k][m] + arrayU[i][j][k][m] -
-				       (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0]) 
-				        + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1]) 
-					+ timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) );
+				       (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0]) 
+				        + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1]) 
+					+ timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) ) );
 	  } 
 
     UtoW();
@@ -783,17 +722,14 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+    for (i = boundCup.lowX + 1; i <= boundCup.uppX - 1; ++i)
+      for (j = boundCup.lowY + 1; j <= boundCup.uppY - 1; ++j)
+	for (k = boundCup.lowZ + 1; k <= boundCup.uppZ - 1; ++k)
 	  for (m = 0; m < nInteg; ++m) {
-	    // i, j, k must be mapped to arrayGodFlux
-	    std::size_t iGod, jGod, kGod;
-	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] = 0.75*arrayUN[i][j][k][m] + 0.25*arrayUStar[i][j][k][m] - 
-	      0.25* (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
-		     + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
-		     + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) );
+	      0.25* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
+		     + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
+		     + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) );
 	  }
 
     UtoW();
@@ -809,17 +745,14 @@ namespace dem {
     std::size_t i, j, k, m;
     int ompThreads = dem::Parameter::getSingleton().parameter["ompThreads"];
 #pragma omp parallel for num_threads(ompThreads) private(i, j, k, m) schedule(dynamic)
-    for (i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-      for (j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	for (k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+    for (i = boundCup.lowX + 1; i <= boundCup.uppX - 1; ++i)
+      for (j = boundCup.lowY + 1; j <= boundCup.uppY - 1; ++j)
+	for (k = boundCup.lowZ + 1; k <= boundCup.uppZ - 1; ++k)
 	  for (m = 0; m < nInteg; ++m) {
-	    // i, j, k must be mapped to arrayGodFlux
-	    std::size_t iGod, jGod, kGod;
-	    cellIndexToFace(i, j, k, iGod, jGod, kGod);
 	    arrayU[i][j][k][m] = ( arrayUN[i][j][k][m] + 2*arrayUStar2[i][j][k][m] - 
-                                   2* (  timeStep / gridDx * (arrayGodFlux[iGod][jGod][kGod][m][0] - arrayGodFlux[iGod-1][jGod][kGod][m][0])
-				       + timeStep / gridDy * (arrayGodFlux[iGod][jGod][kGod][m][1] - arrayGodFlux[iGod][jGod-1][kGod][m][1])
-				       + timeStep / gridDz * (arrayGodFlux[iGod][jGod][kGod][m][2] - arrayGodFlux[iGod][jGod][kGod-1][m][2]) ) )/3.0;
+                                   2* (  timeStep / gridDx * (arrayGodFlux[i][j][k][m][0] - arrayGodFlux[i-1][j][k][m][0])
+				       + timeStep / gridDy * (arrayGodFlux[i][j][k][m][1] - arrayGodFlux[i][j-1][k][m][1])
+				       + timeStep / gridDz * (arrayGodFlux[i][j][k][m][2] - arrayGodFlux[i][j][k-1][m][2]) ) )/3.0;
 	  }
 
     UtoW();
@@ -860,12 +793,8 @@ namespace dem {
 	for (jGod = boundGod.lowY; jGod <= boundGod.uppY; ++jGod) {
 	  for (kGod = boundGod.lowZ; kGod <= boundGod.uppZ; ++kGod) {
 
-	    // iGod must be mapped to i in arrayU, arrayURota, arrayFlux
-	    std::size_t i, j, k;
-	    faceIndexToCell(iGod, jGod, kGod, i, j, k);
-
-	    IL[0]=i; IL[1]=j; IL[2]=k; 
-	    IR[0]=i; IR[1]=j; IR[2]=k; 
+	    IL[0]=iGod; IL[1]=jGod; IL[2]=kGod; 
+	    IR[0]=iGod; IR[1]=jGod; IR[2]=kGod; 
 	    IR[iDim] += 1;    
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
@@ -999,51 +928,51 @@ namespace dem {
     // non-reflecting BCs
     // -x
     if (mpi.isBdryProcessXMin()) {
-      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+      for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
+	for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	  for (std::size_t m = 0; m < nVar; ++m) {
-	    arrayU[boundPrn.lowX-1][j][k][m] = arrayU[boundPrn.lowX][j][k][m]; 
+	    arrayU[boundCup.lowX][j][k][m] = arrayU[boundCup.lowX+1][j][k][m]; 
 	  }
     }
 
     // +x
     if (mpi.isBdryProcessXMax()) {
-      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+      for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
+	for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	  for (std::size_t m = 0; m < nVar; ++m) {
-	    arrayU[boundPrn.uppX+1][j][k][m] = arrayU[boundPrn.uppX][j][k][m]; 
+	    arrayU[boundCup.uppX][j][k][m] = arrayU[boundCup.uppX-1][j][k][m]; 
 	  }
     }
     // -y
     if (mpi.isBdryProcessYMin()) {
-      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+      for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	  for (std::size_t m = 0; m < nVar; ++m) {
-	    arrayU[i][boundPrn.lowY-1][k][m] = arrayU[i][boundPrn.lowY][k][m]; 
+	    arrayU[i][boundCup.lowY][k][m] = arrayU[i][boundCup.lowY+1][k][m]; 
 	  }
     }
     // +y
     if (mpi.isBdryProcessYMax()) {
-      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+      for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	  for (std::size_t m = 0; m < nVar; ++m) {
-	    arrayU[i][boundPrn.uppY+1][k][m] = arrayU[i][boundPrn.uppY][k][m]; 
+	    arrayU[i][boundCup.uppY][k][m] = arrayU[i][boundCup.uppY-1][k][m]; 
 	  }
     }
     // -z
     if (mpi.isBdryProcessZMin()) {
-      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+      for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
 	  for (std::size_t m = 0; m < nVar; ++m) {
-	    arrayU[i][j][boundPrn.lowZ-1][m] = arrayU[i][j][boundPrn.lowZ][m]; 
+	    arrayU[i][j][boundCup.lowZ][m] = arrayU[i][j][boundCup.lowZ+1][m]; 
 	  }
     }
     // +z
     if (mpi.isBdryProcessZMax()) {
-      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+      for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
 	  for (std::size_t m = 0; m < nVar; ++m) {
-	    arrayU[i][j][boundPrn.uppZ+1][m] = arrayU[i][j][boundPrn.uppZ][m]; 
+	    arrayU[i][j][boundCup.uppZ][m] = arrayU[i][j][boundCup.uppZ-1][m]; 
 	  }
     }
 
@@ -1059,56 +988,56 @@ namespace dem {
     if (reflecting) {
       // -x
       if (mpi.isBdryProcessXMin()) {
-	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
+	  for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	    for (std::size_t m = 0; m < 1; ++m) {
-	      arrayU[boundPrn.lowX-1][j][k][varMom[m]]    *= (1-2*arrayBC[0]); 
-	      arrayU[boundPrn.lowX-1][j][k][varVel[m]]    *= (1-2*arrayBC[0]); 
+	      arrayU[boundCup.lowX][j][k][varMom[m]]    *= (1-2*arrayBC[0]); 
+	      arrayU[boundCup.lowX][j][k][varVel[m]]    *= (1-2*arrayBC[0]); 
 	    }
       }
       // +x
       if (mpi.isBdryProcessXMax()) {
-	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
+	  for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	    for (std::size_t m = 0; m < 1; ++m) {
-	      arrayU[boundPrn.uppX+1][j][k][varMom[m]] *= (1-2*arrayBC[1]); 
-	      arrayU[boundPrn.uppX+1][j][k][varVel[m]] *= (1-2*arrayBC[1]); 
+	      arrayU[boundCup.uppX][j][k][varMom[m]] *= (1-2*arrayBC[1]); 
+	      arrayU[boundCup.uppX][j][k][varVel[m]] *= (1-2*arrayBC[1]); 
 	    }
       }
       // -y
       if (mpi.isBdryProcessYMin()) {
-	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	  for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	    for (std::size_t m = 1; m < 2; ++m) {
-	      arrayU[i][boundPrn.lowY-1][k][varMom[m]]    *= (1-2*arrayBC[2]); 
-	      arrayU[i][boundPrn.lowY-1][k][varVel[m]]    *= (1-2*arrayBC[2]); 
+	      arrayU[i][boundCup.lowY][k][varMom[m]]    *= (1-2*arrayBC[2]); 
+	      arrayU[i][boundCup.lowY][k][varVel[m]]    *= (1-2*arrayBC[2]); 
 	    }
       }
       // +y
       if (mpi.isBdryProcessYMax()) {
-	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	  for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
+	for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	  for (std::size_t k = boundCup.lowZ; k <= boundCup.uppZ; ++k)
 	    for (std::size_t m = 1; m < 2; ++m) {
-	      arrayU[i][boundPrn.uppY+1][k][varMom[m]] *= (1-2*arrayBC[3]);
-	      arrayU[i][boundPrn.uppY+1][k][varVel[m]] *= (1-2*arrayBC[3]);  
+	      arrayU[i][boundCup.uppY][k][varMom[m]] *= (1-2*arrayBC[3]);
+	      arrayU[i][boundCup.uppY][k][varVel[m]] *= (1-2*arrayBC[3]);  
 	    }
       }
       // -z
       if (mpi.isBdryProcessZMin()) {
-	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	  for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	  for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
 	    for (std::size_t m = 2; m < 3; ++m) {
-	      arrayU[i][j][boundPrn.lowZ-1][varMom[m]]    *= (1-2*arrayBC[4]); 
-	      arrayU[i][j][boundPrn.lowZ-1][varVel[m]]    *= (1-2*arrayBC[4]); 
+	      arrayU[i][j][boundCup.lowZ][varMom[m]]    *= (1-2*arrayBC[4]); 
+	      arrayU[i][j][boundCup.lowZ][varVel[m]]    *= (1-2*arrayBC[4]); 
 	    }
       }
       // +z
       if (mpi.isBdryProcessZMax()) {
-	for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i)
-	  for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
+	for (std::size_t i = boundCup.lowX; i <= boundCup.uppX; ++i)
+	  for (std::size_t j = boundCup.lowY; j <= boundCup.uppY; ++j)
 	    for (std::size_t m = 2; m < 3; ++m) {
-	      arrayU[i][j][boundPrn.uppZ+1][varMom[m]] *= (1-2*arrayBC[5]); 
-	      arrayU[i][j][boundPrn.uppZ+1][varVel[m]] *= (1-2*arrayBC[5]); 
+	      arrayU[i][j][boundCup.uppZ][varMom[m]] *= (1-2*arrayBC[5]); 
+	      arrayU[i][j][boundCup.uppZ][varVel[m]] *= (1-2*arrayBC[5]); 
 	    }
       }
 
@@ -1690,17 +1619,10 @@ namespace dem {
 
   void Gas::UtoW() { // converting conserved variables into primitive
     negPrsDen = false;
-    
-    // unnecessary to tranverse the full boundCup domain, because only boundPrn is useful.
-    /*
+
     for (std::size_t i = 0; i < arrayU.size() && !negPrsDen; ++i)  // stop if negPrsDen
       for (std::size_t j = 0; j < arrayU[i].size() && !negPrsDen; ++j)  // stop if negPrsDen
 	for (std::size_t k = 0; k <  arrayU[i][j].size() && !negPrsDen; ++k) {  // stop if negPrsDen
-    */
-
-    for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX && !negPrsDen; ++i)  // stop if negPrsDen
-      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY && !negPrsDen; ++j)  // stop if negPrsDen
-	for (std::size_t k = boundPrn.lowZ; k <=  boundPrn.uppZ && !negPrsDen; ++k) {  // stop if negPrsDen
 
 	  for (std::size_t m = 0; m < nDim; ++m)
 	    arrayU[i][j][k][varVel[m]] = arrayU[i][j][k][varMom[m]] / arrayU[i][j][k][varDen];

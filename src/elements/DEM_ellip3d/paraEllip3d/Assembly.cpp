@@ -1668,7 +1668,7 @@ namespace dem {
       time_3 = MPI_Wtime();
 #endif
 
-      /*09*/ gas.runOneStep(mergedParticleVec);    // only update internal gas.
+      /*09*/ gas.runOneStep(mergedParticleVec);    // update both internal and external gases such that they are synchronized in state.
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif

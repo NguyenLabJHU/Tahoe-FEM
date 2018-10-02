@@ -314,8 +314,6 @@ namespace dem {
     void coordToGlobalIndex(Vec v, IJK &t);
     void localIndexToGlobal(IJK &local, IJK &global);
     bool globalIndexToLocal(IJK &global, IJK &local);
-    void faceIndexToCell(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
-    void cellIndexToFace(std::size_t i, std::size_t j, std::size_t k, std::size_t &io, std::size_t &jo, std::size_t &ko);
 
     void getPtclInfo(std::vector<Particle *> &ptcls);
     void runOneStep(std::vector<Particle *> &ptcls);
