@@ -287,7 +287,8 @@ namespace dem {
     void allocArray();
     void initializePureGas();
     void initialize();
-    void passGrid(std::size_t &, std::size_t &, std::size_t &, REAL &, REAL &, REAL &);
+    void passDomainToDEM(Rectangle &);
+    void passGridToDEM(std::size_t &, std::size_t &, std::size_t &, REAL &, REAL &, REAL &);
     void initialCondition();
     void calcTimeStep();
     void RankineHugoniot();

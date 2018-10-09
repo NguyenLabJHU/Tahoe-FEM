@@ -1607,13 +1607,14 @@ namespace dem {
     broadcastInfo(); // must call before gas.initParameter().
 
     mpi.findNeighborProcess(); // one-time operation.
-    /*01*/ gas.setMPI(mpi);    // must call after mpi.findNeighborProcess().
-    /*02*/ gas.initParameter(gradation); // must call after gas.setMPI().
-    /*03*/ gas.allocArray();
-    /*04*/ gas.initialize();
-    /*05*/ gas.passGrid(allGasGridNx, allGasGridNy, allGasGridNz, gasGridDx, gasGridDy, gasGridDz);
+    /*pre01*/ gas.setMPI(mpi); // must call after mpi.findNeighborProcess().
+    /*pre02*/ gas.initParameter(gradation); // must call after gas.setMPI().
+    /*pre03*/ gas.allocArray();
+    /*pre04*/ gas.initialize();
+    /*pre05*/ gas.passDomainToDEM(grid); // redefine DEM grid after readBoundary
+    /*pre06*/ gas.passGridToDEM(allGasGridNx, allGasGridNy, allGasGridNz, gasGridDx, gasGridDy, gasGridDz);
 
-    scatterParticleByCFD(); // must call after gas.passGrid().
+    scatterParticleByCFD(); // must call after gas.passGridToDEM
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1635,7 +1636,7 @@ namespace dem {
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
     }
-    /*06*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+    /*pre07*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
 
     /*
     if (mpi.mpiRank == 0)
@@ -1653,7 +1654,7 @@ namespace dem {
       time_0 = MPI_Wtime();
 #endif
 
-      /*07*/ gas.commu26(); // must call before gas.getPtclInfo; and comunicate with 6 surface, 12 edges and 8 vertices.
+      /*01*/ gas.commu26(); // must call before gas.getPtclInfo; and comunicate with 6 surface, 12 edges and 8 vertices.
 #ifdef CFD_PROFILE
       time_1 = MPI_Wtime();
 #endif
@@ -1663,22 +1664,22 @@ namespace dem {
       time_2 = MPI_Wtime();
 #endif
 
-      /*08*/ gas.getPtclInfo(mergedParticleVec);   // must call after commuParticle() for intruded external particles.
+      /*02*/ gas.getPtclInfo(mergedParticleVec);   // must call after commuParticle() for intruded external particles.
 #ifdef CFD_PROFILE
       time_3 = MPI_Wtime();
 #endif
 
-      /*09*/ gas.runOneStep(mergedParticleVec);    // update both internal and external gases such that they are synchronized in state.
+      /*03*/ gas.runOneStep(mergedParticleVec);    // update both internal and external gases such that they are synchronized in state.
 #ifdef CFD_PROFILE
       time_4 = MPI_Wtime();
 #endif
 
-      /*10*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
+      /*04*/ gas.calcPtclForce(mergedParticleVec); // must use mergeParticle, otherwise gas.penalize() do not have values of arrayPenalForce and arrayPressureForce to use.
 #ifdef CFD_PROFILE
       time_5 = MPI_Wtime();
 #endif
 
-      /*11*/ gas.penalize(mergedParticleVec);
+      /*05*/ gas.penalize(mergedParticleVec);
 #ifdef CFD_PROFILE
       time_6 = MPI_Wtime();
 #endif
@@ -1706,7 +1707,7 @@ namespace dem {
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
 	}
-	/*12*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	/*06*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
       
 	timeCount = 0;
@@ -2461,7 +2462,7 @@ namespace dem {
     // partition particles and send to each process
     if (mpi.mpiRank == 0) { // process 0
 
-      // grid initialized in readBoundary()
+      // grid initialized in readBoundary() and overwritten in gas.passDomainToDEM
       Vec v1 = grid.getMinCorner();
       Vec v2 = grid.getMaxCorner();
       Vec vspan = v2 - v1;
@@ -6096,7 +6097,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer
     } 
     else if (gridUpdate == -10) { // for dem-cfd coupling; here gridUpdate is for all-the-time grid since it does not change.
-      setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer
+      setGrid(Rectangle(x1, y1, z1, x2, y2, z2));  // the same as allContainer, but overwritten by gas.passDomainToDEM
     }
     
     boundaryVec.clear();

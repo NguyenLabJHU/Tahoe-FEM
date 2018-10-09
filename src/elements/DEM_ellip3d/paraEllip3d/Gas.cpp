@@ -142,7 +142,11 @@ namespace dem {
     allGridNz += 2;
   }
 
-  void Gas::passGrid(std::size_t &allGasGridNx, std::size_t &allGasGridNy, std::size_t &allGasGridNz, REAL &gasGridDx, REAL &gasGridDy, REAL &gasGridDz) {
+  void Gas::passDomainToDEM(Rectangle &grid) {
+    grid = Rectangle(x1F, y1F, z1F, x2F, y2F, z2F);
+  }
+
+  void Gas::passGridToDEM(std::size_t &allGasGridNx, std::size_t &allGasGridNy, std::size_t &allGasGridNz, REAL &gasGridDx, REAL &gasGridDy, REAL &gasGridDz) {
     allGasGridNx = allGridNx;
     allGasGridNy = allGridNy;
     allGasGridNz = allGridNz;
