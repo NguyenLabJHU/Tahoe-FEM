@@ -1555,7 +1555,7 @@ namespace dem {
     REAL timeIncr  = timeStep * netStep;
     REAL timeTotal = timeAccrued + timeIncr;
 
-    /*05*/ gas.plot((combineString("pure_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+    /*05*/ gas.plot((combineString("pure_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
 
     REAL time_0, time_1, time_2;
     while (timeAccrued < timeTotal) {
@@ -1636,7 +1636,7 @@ namespace dem {
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
     }
-    /*pre07*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap); 
+    /*pre07*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
 
     /*
     if (mpi.mpiRank == 0)
