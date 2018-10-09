@@ -1762,7 +1762,8 @@ namespace dem {
 
     REAL young   = dem::Parameter::getSingleton().parameter["young"];
     REAL poisson = dem::Parameter::getSingleton().parameter["poisson"];
-    REAL diaMax  = gradation.getPtclMaxRadius() * 2.0;
+    REAL diaMax  = dem::Parameter::getSingleton().parameter["ptclBoxSize"] * 2.0;
+    //REAL diaMax  = gradation.getPtclMaxRadius() * 2.0;
     REAL diaMin  = gradation.getPtclMinRadius(0) * 2.0;
     std::size_t particleNum = 0;   
     REAL x,y,z;

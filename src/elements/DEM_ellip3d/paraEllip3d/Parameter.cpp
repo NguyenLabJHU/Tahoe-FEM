@@ -147,7 +147,7 @@ namespace dem {
       }
       if (i != typeNum) {std::cout << "type parameters part (2) missing ..." << std::endl; exit(-1);}
 
-      typeNum = 7;
+      typeNum = 8;
       for (i = 0; i < typeNum; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	if (ifs.eof()) break;
