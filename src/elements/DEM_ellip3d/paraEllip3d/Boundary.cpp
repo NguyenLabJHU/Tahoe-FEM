@@ -144,7 +144,7 @@ namespace dem {
   }
   
   void planeBoundary::boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap) {
-    // for each plane boundary, define a temparory variable vtmp to use,
+    // for each plane boundary, define a temporary variable vtmp to use,
     // better than define a member variable which needs to be cleared.
     // and vtmp is initialized as empty in each iteration.
     std::vector<BoundaryTgt> vtmp;
@@ -546,7 +546,7 @@ namespace dem {
   }
   
   void cylinderBoundary::boundaryForce(std::map<std::size_t,std::vector<BoundaryTgt> > &boundaryTgtMap) {
-    // for each plane boundary, define a temparory variable vtmp to use,
+    // for each plane boundary, define a temporary variable vtmp to use,
     // better than define a member variable which needs to be cleared.
     // and vtmp is initialized as empty in each iteration.
     std::vector<BoundaryTgt> vtmp;

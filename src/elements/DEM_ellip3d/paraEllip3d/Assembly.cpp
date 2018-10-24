@@ -2452,10 +2452,7 @@ namespace dem {
     //if (mpi.mpiRank == 0) releaseGatheredParticle();
 
     // broadcast necessary info
-    broadcast(mpi.boostWorld, gradation, 0);
-    broadcast(mpi.boostWorld, boundaryVec, 0);
-    broadcast(mpi.boostWorld, allContainer, 0);
-    broadcast(mpi.boostWorld, grid, 0);
+    broadcastInfo();
   }
 
 
@@ -2532,7 +2529,6 @@ namespace dem {
 
 
   void Assembly::broadcastInfo() {
-    // broadcast necessary info
     broadcast(mpi.boostWorld, gradation, 0);
     broadcast(mpi.boostWorld, boundaryVec, 0);
     broadcast(mpi.boostWorld, allContainer, 0);
@@ -6246,7 +6242,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	       && ( particleVec[i]->getType() !=  1 || mergedParticleVec[j]->getType() != 1  )      // not both are fixed particles
 	       && ( particleVec[i]->getType() !=  5 || mergedParticleVec[j]->getType() != 5  )      // not both are free boundary particles
 	       && ( particleVec[i]->getType() != 10 || mergedParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	    Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temparory object
+	    Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temporary object
 #ifdef DEM_PROFILE
 	    gettimeofday(&time_r1, NULL); 
 #endif
@@ -6289,7 +6285,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	       && ( particleVec[i]->getType() !=  1 || mergedParticleVec[j]->getType() != 1  )      // not both are fixed particles
 	       && ( particleVec[i]->getType() !=  5 || mergedParticleVec[j]->getType() != 5  )      // not both are free boundary particles
 	       && ( particleVec[i]->getType() != 10 || mergedParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-	    Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temparory object
+	    Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temporary object
 	    if(tmpContact.isOverlapped())
 #pragma omp critical
 	      contactVec.push_back(tmpContact);    // containers use value semantics, so a "copy" is pushed back.
@@ -6440,7 +6436,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 		   ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
 		   ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
 		   ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
-		Contact tmpContact(it, pt); // a local and temparory object
+		Contact tmpContact(it, pt); // a local and temporary object
 #ifdef DEM_PROFILE
 		gettimeofday(&time_r1,NULL); 
 #endif
@@ -6468,7 +6464,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 		       ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
 		       ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
 		       ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
-		    Contact tmpContact(it, pt); // a local and temparory object
+		    Contact tmpContact(it, pt); // a local and temporary object
 #ifdef DEM_PROFILE
 		    gettimeofday(&time_r1,NULL); 
 #endif
@@ -6640,8 +6636,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     }
 
     broadcast(mpi.boostWorld, boundaryVec, 0);
-    broadcast(mpi.boostWorld, allContainer, 0); // not necessary, because only root process uses it.
-    broadcast(mpi.boostWorld, grid, 0); // must do
+    broadcast(mpi.boostWorld, allContainer, 0);
+    broadcast(mpi.boostWorld, grid, 0);
   }
 
 
@@ -7668,7 +7664,7 @@ debugfile);         // output file, debug info
    && ( (*it)->getType() !=  1 || (*pt)->getType() != 1  )      // not both are fixed particles
    && ( (*it)->getType() !=  5 || (*pt)->getType() != 5  )      // not both are free boundary particles
    && ( (*it)->getType() != 10 || (*pt)->getType() != 10 )  ) { // not both are ghost particles
-   contact<Particle> tmpContact(*it, *pt); // a local and temparory object
+   contact<Particle> tmpContact(*it, *pt); // a local and temporary object
    ++possContact;
    if(tmpContact.isOverlapped())
    #pragma omp critical
@@ -7721,7 +7717,7 @@ debugfile);         // output file, debug info
    && ( particleVec[i]->getType() !=  1 || particleVec[j]->getType() != 1  )      // not both are fixed particles
    && ( particleVec[i]->getType() !=  5 || particleVec[j]->getType() != 5  )      // not both are free boundary particles
    && ( particleVec[i]->getType() != 10 || particleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-   contact<Particle> tmpContact(particleVec[i], particleVec[j]); // a local and temparory object
+   contact<Particle> tmpContact(particleVec[i], particleVec[j]); // a local and temporary object
    ++possContact;
    if(tmpContact.isOverlapped())
    #pragma omp critical
@@ -7769,7 +7765,7 @@ debugfile);         // output file, debug info
    && ( particleVec[i]->getType() !=  1 || particleVec[j]->getType() != 1  )      // not both are fixed particles
    && ( particleVec[i]->getType() !=  5 || particleVec[j]->getType() != 5  )      // not both are free boundary particles
    && ( particleVec[i]->getType() != 10 || particleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-   contact<Particle> tmpContact(particleVec[i], particleVec[j]); // a local and temparory object
+   contact<Particle> tmpContact(particleVec[i], particleVec[j]); // a local and temporary object
    ++possContact;
    if(tmpContact.isOverlapped())
    #pragma omp critical
@@ -7820,7 +7816,7 @@ debugfile);         // output file, debug info
    && ( particleVec[k]->getType() !=  1 || particleVec[j]->getType() != 1  )      // not both are fixed particles
    && ( particleVec[k]->getType() !=  5 || particleVec[j]->getType() != 5  )      // not both are free boundary particles
    && ( particleVec[k]->getType() != 10 || particleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-   contact<Particle> tmpContact(particleVec[k], particleVec[j]); // a local and temparory object
+   contact<Particle> tmpContact(particleVec[k], particleVec[j]); // a local and temporary object
    ++possContact;
    if(tmpContact.isOverlapped())
    #pragma omp critical
@@ -7863,7 +7859,7 @@ debugfile);         // output file, debug info
    && ( particleVec[i]->getType() !=  1 || particleVec[j]->getType() != 1  )      // not both are fixed particles
    && ( particleVec[i]->getType() !=  5 || particleVec[j]->getType() != 5  )      // not both are free boundary particles
    && ( particleVec[i]->getType() != 10 || particleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-   contact<Particle> tmpContact(particleVec[i], particleVec[j]); // a local and temparory object
+   contact<Particle> tmpContact(particleVec[i], particleVec[j]); // a local and temporary object
    ++possContact;
    if(tmpContact.isOverlapped())
    #pragma omp critical
@@ -7906,7 +7902,7 @@ debugfile);         // output file, debug info
    && ( particleVec[i]->getType() !=  1 || mergedParticleVec[j]->getType() != 1  )      // not both are fixed particles
    && ( particleVec[i]->getType() !=  5 || mergedParticleVec[j]->getType() != 5  )      // not both are free boundary particles
    && ( particleVec[i]->getType() != 10 || mergedParticleVec[j]->getType() != 10 )  ) { // not both are ghost particles
-   Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temparory object
+   Contact tmpContact(particleVec[i], mergedParticleVec[j]); // a local and temporary object
    ++possContactNum;
    #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 
@@ -8021,7 +8017,7 @@ debugfile);         // output file, debug info
    ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
    ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
    ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
-   contact<Particle> tmpContact(it, pt); // a local and temparory object
+   contact<Particle> tmpContact(it, pt); // a local and temporary object
    ++possContactNum;
    #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 
@@ -8050,7 +8046,7 @@ debugfile);         // output file, debug info
    ( it->getType() !=  1 || pt->getType() != 1 ) &&   // not both are fixed particles
    ( it->getType() !=  5 || pt->getType() != 5 ) &&   // not both are free boundary particles
    ( it->getType() != 10 || pt->getType() != 10)  ) { // not both are ghost particles
-   contact<Particle> tmpContact(it, pt); // a local and temparory object
+   contact<Particle> tmpContact(it, pt); // a local and temporary object
    ++possContactNum;
    #ifdef DEM_PROFILE
    gettimeofday(&time_r1,NULL); 
