@@ -427,7 +427,7 @@ namespace dem {
 
       if (timeCount + timeStep >= timeIncr/netSnap) {
 	gatherGranularStress(combineString("deposit_tensor_", iterSnap, 3).c_str(),timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -631,7 +631,7 @@ namespace dem {
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
 	gatherGranularStress(combineString("isotropic_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -817,7 +817,7 @@ namespace dem {
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
 	gatherGranularStress(combineString("oedometer_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -959,7 +959,7 @@ namespace dem {
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
 	gatherGranularStress(combineString("triaxial_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -1083,7 +1083,7 @@ namespace dem {
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
 	gatherGranularStress(combineString("plnstrn_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -1227,7 +1227,7 @@ namespace dem {
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
 	gatherGranularStress(combineString("trueTriaxial_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -1395,7 +1395,7 @@ namespace dem {
 
       if ((iteration + 1) % (netStep / netSnap) == 0) {
 	gatherGranularStress(combineString("oedometerImpact_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
-        snapParticlePos(); // snapshort particle positions
+        snapParticlePos(); // snapshot particle positions
       }
 #endif
 
@@ -3594,7 +3594,7 @@ namespace dem {
     prevGranularStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
-      //updateGranularTetra();
+      //updateGranularTetra(); // unnecessary if using container volume for stress.
       calcGranularStress(prevGranularStress);
     }
   }
@@ -3615,13 +3615,13 @@ namespace dem {
 
       calcNominalDensityVoid();
       calcFabricTensor();
-      //updateGranularTetra();
+      //updateGranularTetra(); // unnecessary if using container volume for stress.
       calcGranularStress(granularStress);
       if (timeStep != 0)
 	granularStressRate = (granularStress - prevGranularStress) / timeStep;
 
-      // compute granular strain based on boundary particles, not all of the particles.
-      updateGranularTetraOnBoundary();
+      //updateGranularTetraOnBoundary(); // compute granular strain through constructed tetrahedra using selected boundary particles.
+      updateGranularTetra(); // compute granular strain through qhull-generated tetrahedra.
       calcGranularStrain(timeIncr);
 
       // objective stress rate (using l and d), must be after calcGranularStrain(timeIncr)
@@ -3807,7 +3807,7 @@ namespace dem {
   }
 
 
-  void Assembly::calcGranularStrain(REAL timeIncr) {
+  void Assembly::calcGranularStrain(REAL timeIncr) { // epsilon = 1/V (sum(epsilon)*v)
     /*
     Eigen::Matrix3d  matrixF;   // deformation gradient
     Eigen::Matrix3d  matrixFdot;// rate of deformation gradient
@@ -5372,6 +5372,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 #endif
 // end of #ifdef STRESS_STRAIN
+
 
   void Assembly::gatherEnergy() {
     calcTransEnergy();
