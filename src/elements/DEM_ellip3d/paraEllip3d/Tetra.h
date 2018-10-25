@@ -57,7 +57,7 @@ namespace dem {
     int getI() const {return i;}
     int getJ() const {return j;}
 
-    // need a const version version?
+    // need a const version?
     Particle* getParticleM() {return ptclMap[m];}
     Particle* getParticleN() {return ptclMap[n];}
     Particle* getParticleI() {return ptclMap[i];}

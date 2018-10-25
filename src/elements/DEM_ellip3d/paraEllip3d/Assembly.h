@@ -110,7 +110,7 @@ namespace dem {
     std::map<std::string, Eigen::Matrix3d> granularStrain; // granular strains, per process
     Stress printStress;                 // only for printing, per process
     std::vector<Stress> printStressVec; // only meaningful to root process
-    std::vector<Tetra> tetraVec;        // tetrahedrons per process
+    std::vector<Tetra> tetraVec;        // tetrahedra per process
 #endif
 
     MPIFrame mpi;
