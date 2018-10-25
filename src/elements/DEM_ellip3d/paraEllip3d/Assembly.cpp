@@ -28,7 +28,7 @@
 
 #ifdef STRESS_STRAIN
 // The Qhull path of header files may cause "No such file or directory" error by "g++ -MM", but it does not actually affect compiling or linking.
-// It may affect compile file dependency, it that case do "make clean" before "make"
+// It may affect compile file dependency, it that case do "make clean" before "make".
 #include "libqhullcpp/RboxPoints.h"
 #include "libqhullcpp/QhullError.h"
 #include "libqhullcpp/QhullQh.h"
@@ -37,6 +37,7 @@
 #include "libqhullcpp/QhullLinkedList.h"
 #include "libqhullcpp/QhullVertex.h"
 #include "libqhullcpp/Qhull.h"
+#define USE_TETRA_VOL_FOR_STRESS
 #endif
 
 #include "Assembly.h"
@@ -3594,7 +3595,9 @@ namespace dem {
     prevGranularStress.setZero();
 
     if (particleVec.size() >= stressMinPtcl) {
-      //updateGranularTetra(); // unnecessary if using container volume for stress.
+#ifdef USE_TETRA_VOL_FOR_STRESS
+      updateGranularTetra();
+#endif
       calcGranularStress(prevGranularStress);
     }
   }
@@ -3615,13 +3618,17 @@ namespace dem {
 
       calcNominalDensityVoid();
       calcFabricTensor();
-      //updateGranularTetra(); // unnecessary if using container volume for stress.
+#ifdef USE_TETRA_VOL_FOR_STRESS
+      updateGranularTetra();
+#endif
       calcGranularStress(granularStress);
       if (timeStep != 0)
 	granularStressRate = (granularStress - prevGranularStress) / timeStep;
 
       //updateGranularTetraOnBoundary(); // compute granular strain through constructed tetrahedra using selected boundary particles.
+#ifndef USE_TETRA_VOL_FOR_STRESS
       updateGranularTetra(); // compute granular strain through qhull-generated tetrahedra.
+#endif
       calcGranularStrain(timeIncr);
 
       // objective stress rate (using l and d), must be after calcGranularStrain(timeIncr)
@@ -5362,13 +5369,16 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     } // end of if else
 
     //std::cout << mpi.mpiRank << std::endl << sress << std::endl << std::endl;
-    /*
+
+#ifdef USE_TETRA_VOL_FOR_STRESS
     if (getGranularTetraVolume() == 0) 
       stress.setZero();
     else
       stress /= getGranularTetraVolume();
-    */
+#else
     stress /= container.getVolume();
+#endif
+
   }
 #endif
 // end of #ifdef STRESS_STRAIN
