@@ -663,7 +663,7 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
+      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break iterations or stop.
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
 #ifdef STRESS_STRAIN
@@ -849,7 +849,7 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
+      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break iterations or stop.
       if (oedometerType == 1) {
 	if (tractionErrorTol(sigmaVar, "oedometer")) {
 	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
@@ -1259,7 +1259,7 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break
+      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break iterations or stop.
       if (trueTriaxialType == 1) {
 	if (tractionErrorTol(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY)) {
 	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
@@ -1471,7 +1471,9 @@ namespace dem {
 
     std::map<std::string, REAL> normalForce;
     REAL x1, x2, y1, y2, z1, z2;
-    // do not use mergedBoundaryVec because each process calls this function.
+    // each process calls this function to break iterations or stop.
+    // do not use mergedBoundaryVec, which is not broadcast.
+    // boundaryVec is broadcast, and shares the same pointers with mergedBoundaryVec in gatherBdryContact.
     for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
