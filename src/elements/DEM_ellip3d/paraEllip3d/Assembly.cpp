@@ -664,7 +664,12 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break iterations or stop.
+
+      // must delete previous pointers before broadcasting to create new pointers, otherwise cause large memory leak
+      if (mpi.mpiRank != 0)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
+	  delete (*it);
+      broadcast(mpi.boostWorld, mergedBoundaryVec, 0); // each process needs mergedBoundaryVec to break iterations or stop.
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
 #ifdef STRESS_STRAIN
@@ -850,7 +855,12 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break iterations or stop.
+
+      // must delete previous pointers before broadcasting to create new pointers, otherwise cause large memory leak
+      if (mpi.mpiRank != 0)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
+	  delete (*it);
+      broadcast(mpi.boostWorld, mergedBoundaryVec, 0); // each process needs mergedBoundaryVec to break iterations or stop.
       if (oedometerType == 1) {
 	if (tractionErrorTol(sigmaVar, "oedometer")) {
 	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
@@ -1260,7 +1270,12 @@ namespace dem {
       // 1. it must be prior to updateBoundary(), otherwise it could updateBoundary() once more than needed.
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
-      broadcast(mpi.boostWorld, boundaryVec, 0); // each process needs boundaryVec to break iterations or stop.
+
+      // must delete previous pointers before broadcasting to create new pointers, otherwise cause large memory leak
+      if (mpi.mpiRank != 0)
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
+	  delete (*it);
+      broadcast(mpi.boostWorld, mergedBoundaryVec, 0); // each process needs mergedBoundaryVec to break iterations or stop.
       if (trueTriaxialType == 1) {
 	if (tractionErrorTol(sigmaVarZ, "trueTriaxial", sigmaVarX, sigmaVarY)) {
 	  if (mpi.mpiRank == 0) printCompressProg(balancedInf, distX, distY, distZ);
@@ -1473,9 +1488,7 @@ namespace dem {
     std::map<std::string, REAL> normalForce;
     REAL x1, x2, y1, y2, z1, z2;
     // each process calls this function to break iterations or stop.
-    // do not use mergedBoundaryVec, which is not broadcast.
-    // boundaryVec is broadcast, and shares the same pointers with mergedBoundaryVec in gatherBdryContact.
-    for(std::vector<Boundary *>::const_iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it) {
+    for(std::vector<Boundary *>::const_iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it) {
       std::size_t id = (*it)->getId();
       Vec normal = (*it)->getNormalForce();
       Vec point  = (*it)->getPoint();
@@ -2532,6 +2545,11 @@ namespace dem {
 
 
   void Assembly::broadcastInfo() {
+    // must delete previous pointers before broadcasting to create new pointers, otherwise cause large memory leak
+    if (mpi.mpiRank != 0)
+      for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+	delete (*it);
+
     broadcast(mpi.boostWorld, gradation, 0);
     broadcast(mpi.boostWorld, boundaryVec, 0);
     broadcast(mpi.boostWorld, allContainer, 0);
@@ -6648,6 +6666,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       setGrid(Rectangle(x1, y1, z1, x2, y2, z2)); // the same as allContainer
     }
 
+    // must delete previous pointers before broadcasting to create new pointers, otherwise cause large memory leak
+    if (mpi.mpiRank != 0)
+      for(std::vector<Boundary *>::iterator it = boundaryVec.begin(); it != boundaryVec.end(); ++it)
+	delete (*it);
     broadcast(mpi.boostWorld, boundaryVec, 0);
     broadcast(mpi.boostWorld, allContainer, 0);
     broadcast(mpi.boostWorld, grid, 0);
