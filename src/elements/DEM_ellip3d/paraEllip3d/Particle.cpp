@@ -535,11 +535,11 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = inContact*forceDamp*timeStep; 
-      REAL atm = inContact*momentDamp*timeStep; 
+      REAL atf = inContact*forceDamp; 
+      REAL atm = inContact*momentDamp; 
     
       // force: translational kinetics equations are in global frame
-      currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
+      currVeloc = prevVeloc * (1-atf) / (1+atf) + force / (mass * massScale) * timeStep / (1+atf);
       currPos = prevPos + currVeloc * timeStep;
     
       // moment: angular kinetics (rotational) equations are in local frame,
@@ -547,9 +547,9 @@ namespace dem {
       localMoment = globalToLocal(moment);
       prevLocalOmga = globalToLocal(prevOmga);
     
-      currLocalOmga.setX( prevLocalOmga.getX() * (2-atm) / (2+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep * 2 / (2+atm) ); 
-      currLocalOmga.setY( prevLocalOmga.getY() * (2-atm) / (2+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep * 2 / (2+atm) );
-      currLocalOmga.setZ( prevLocalOmga.getZ() * (2-atm) / (2+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep * 2 / (2+atm) );
+      currLocalOmga.setX( prevLocalOmga.getX() * (1-atm) / (1+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep / (1+atm) ); 
+      currLocalOmga.setY( prevLocalOmga.getY() * (1-atm) / (1+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep / (1+atm) );
+      currLocalOmga.setZ( prevLocalOmga.getZ() * (1-atm) / (1+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep / (1+atm) );
     
       // convert local angular velocities to those in global frame in order to rotate a particle in global space
       currOmga = localToGlobal(currLocalOmga);
@@ -563,18 +563,18 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = inContact*forceDamp*timeStep; 
-      REAL atm = inContact*momentDamp*timeStep; 
-      currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
+      REAL atf = inContact*forceDamp; 
+      REAL atm = inContact*momentDamp; 
+      currVeloc = prevVeloc * (1-atf) / (1+atf) + force / (mass * massScale) * timeStep / (1+atf);
       if (iteration < START)
 	currPos = prevPos + currVeloc * timeStep;
 	
       localMoment = globalToLocal(moment);
       prevLocalOmga = globalToLocal(prevOmga);
     
-      currLocalOmga.setX( prevLocalOmga.getX() * (2-atm) / (2+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep * 2 / (2+atm) ); 
-      currLocalOmga.setY( prevLocalOmga.getY() * (2-atm) / (2+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep * 2 / (2+atm) );
-      currLocalOmga.setZ( prevLocalOmga.getZ() * (2-atm) / (2+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep * 2 / (2+atm) );
+      currLocalOmga.setX( prevLocalOmga.getX() * (1-atm) / (1+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep / (1+atm) ); 
+      currLocalOmga.setY( prevLocalOmga.getY() * (1-atm) / (1+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep / (1+atm) );
+      currLocalOmga.setZ( prevLocalOmga.getZ() * (1-atm) / (1+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep / (1+atm) );
     
       if (iteration >= START) {	
 	currOmga = localToGlobal(currLocalOmga);
@@ -592,15 +592,15 @@ namespace dem {
       currPos = prevPos + currVeloc * timeStep;
     }
     else if (getType() == 4) { // special case 4 (impacting ellipsoidal penetrator): impact with inital velocity in vertical direction only 
-      REAL atf = inContact*forceDamp*timeStep; 
-      currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
+      REAL atf = inContact*forceDamp; 
+      currVeloc = prevVeloc * (1-atf) / (1+atf) + force / (mass * massScale) * timeStep / (1+atf);
       currVeloc.setX(0);	
       currVeloc.setY(0);
       currPos = prevPos + currVeloc * timeStep;
     }
     else if (getType() == 6) { // translation only, no rotation
-      REAL atf = inContact*forceDamp*timeStep; 
-      currVeloc = prevVeloc * (2-atf) / (2+atf) + force / (mass * massScale) * timeStep * 2 / (2+atf);
+      REAL atf = inContact*forceDamp; 
+      currVeloc = prevVeloc * (1-atf) / (1+atf) + force / (mass * massScale) * timeStep / (1+atf);
       currPos = prevPos + currVeloc * timeStep;
     }
   
