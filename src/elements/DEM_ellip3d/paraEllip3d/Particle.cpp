@@ -4,6 +4,7 @@
 #include "root6.h"
 #include <iostream>
 
+//#define CUNDALL_DAMPING
 //#define WIDE_SIZES_PLUV
 //#define MOMENT
 #ifdef MOMENT
@@ -535,8 +536,11 @@ namespace dem {
       Vec prevLocalOmga;
       Vec currLocalOmga;
       Vec localMoment;
-      REAL atf = inContact*forceDamp; 
-      REAL atm = inContact*momentDamp; 
+#ifndef CUNDALL_DAMPING
+      // use mass proportional damping for quasi-static simulations.
+
+      REAL atf = inContact * forceDamp; 
+      REAL atm = inContact * momentDamp; 
     
       // force: translational kinetics equations are in global frame
       currVeloc = prevVeloc * (1-atf) / (1+atf) + force / (mass * massScale) * timeStep / (1+atf);
@@ -550,7 +554,34 @@ namespace dem {
       currLocalOmga.setX( prevLocalOmga.getX() * (1-atm) / (1+atm) + localMoment.getX() / (momentJ.getX() * mntScale) * timeStep / (1+atm) ); 
       currLocalOmga.setY( prevLocalOmga.getY() * (1-atm) / (1+atm) + localMoment.getY() / (momentJ.getY() * mntScale) * timeStep / (1+atm) );
       currLocalOmga.setZ( prevLocalOmga.getZ() * (1-atm) / (1+atm) + localMoment.getZ() / (momentJ.getZ() * mntScale) * timeStep / (1+atm) );
+#else
+      // use Cundall's damping model for quasi-static simulations.
+      REAL atf = 0; // block mass proportional damping for quasi-static simulations.
+      REAL atm = 0;
     
+      // force: translational kinetics equations are in global frame
+      Vec dampForce = 0;
+      dampForce.setX(- inContact * forceDamp * fabs(force.getX()) * (prevVeloc.getX() > 0 ? 1:-1));
+      dampForce.setY(- inContact * forceDamp * fabs(force.getY()) * (prevVeloc.getY() > 0 ? 1:-1));
+      dampForce.setZ(- inContact * forceDamp * fabs(force.getZ()) * (prevVeloc.getZ() > 0 ? 1:-1));
+      currVeloc = prevVeloc * (1-atf) / (1+atf) + (force + dampForce ) / (mass * massScale) * timeStep / (1+atf);
+      currPos = prevPos + currVeloc * timeStep;
+    
+      // moment: angular kinetics (rotational) equations are in local frame,
+      // so global values need to be converted to those in local frame when applying equations
+      localMoment = globalToLocal(moment);
+      prevLocalOmga = globalToLocal(prevOmga);
+    
+      Vec dampMoment = 0;
+      dampMoment.setX(- inContact * momentDamp * fabs(localMoment.getX()) * (prevLocalOmga.getX() > 0 ? 1:-1));
+      dampMoment.setY(- inContact * momentDamp * fabs(localMoment.getY()) * (prevLocalOmga.getY() > 0 ? 1:-1));
+      dampMoment.setZ(- inContact * momentDamp * fabs(localMoment.getZ()) * (prevLocalOmga.getZ() > 0 ? 1:-1));
+
+      currLocalOmga.setX( prevLocalOmga.getX() * (1-atm) / (1+atm) + (localMoment.getX() + dampMoment.getX() ) / (momentJ.getX() * mntScale) * timeStep / (1+atm) ); 
+      currLocalOmga.setY( prevLocalOmga.getY() * (1-atm) / (1+atm) + (localMoment.getY() + dampMoment.getY() ) / (momentJ.getY() * mntScale) * timeStep / (1+atm) );
+      currLocalOmga.setZ( prevLocalOmga.getZ() * (1-atm) / (1+atm) + (localMoment.getZ() + dampMoment.getZ() ) / (momentJ.getZ() * mntScale) * timeStep / (1+atm) );
+#endif
+
       // convert local angular velocities to those in global frame in order to rotate a particle in global space
       currOmga = localToGlobal(currLocalOmga);
     
