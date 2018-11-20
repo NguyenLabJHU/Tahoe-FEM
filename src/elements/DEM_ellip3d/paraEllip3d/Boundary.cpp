@@ -260,12 +260,16 @@ namespace dem {
   }
 
   // Normally it works well for boundary walls to displace outwards or inwards at at constant boundary rate,
-  // depending on the difference of internal and external resultant forces. However, for a small number of 
-  // particles (which implies more inhomogeneous fabric), boundary walls should follow the same equation of 
-  // motion as particles, in order to sustain a constant confining pressure in triaxial tests:
-  // 1. use the same massScale.
+  // depending on the difference of internal and external resultant forces. However, 
+  // 1. for a smaller number of particles (which implies more inhomogeneous boundary contact), boundary walls 
+  //    should follow the same equation of motion as particles, in order to sustain a constant confining pressure 
+  //    in triaxial tests.
+  // 2. for extremely-shaped particles (which implies an instable particle system), boundary walls should follow 
+  //    the same equation of motion as particles, for the same reason.
+  // How to use equation of motion for boundary walls?
+  // 1. apply the same massScale as particles.
   // 2. let atf = 1 (critial background damping, usually leading to equilibrium) or atf = 0 (no background damping, often leading to zero tractions).
-  // 3. virtualMass = 1.0E-7
+  // 3. virtualMass = 1.0E-7 for inhomogeneous case; = 1.0E-5 for extremely-shaped particles. These values need trial and error tests.
   void planeBoundary::updateTriaxial(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
     std::size_t triaxialType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["triaxialType"]);
     std::size_t unloadStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["unloadStep"]);
