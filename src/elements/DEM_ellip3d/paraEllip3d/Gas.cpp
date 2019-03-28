@@ -281,12 +281,30 @@ namespace dem {
     if (mpi.isBdryProcessZMin())
       gridNz = (int) ceil((double) allGridNz / mpi.mpiProcZ) + haloGridZ;
 
-    if (mpi.isBdryProcessXMax())
-      gridNx = allGridNx - (int) ceil((double) allGridNx / mpi.mpiProcX) * (mpi.mpiProcX-1) + haloGridX;
-    if (mpi.isBdryProcessYMax())
-      gridNy = allGridNy - (int) ceil((double) allGridNy / mpi.mpiProcY) * (mpi.mpiProcY-1) + haloGridY;
-    if (mpi.isBdryProcessZMax())
-      gridNz = allGridNz - (int) ceil((double) allGridNz / mpi.mpiProcZ) * (mpi.mpiProcZ-1) + haloGridZ;
+    if (mpi.isBdryProcessXMax()) {
+      gridNx = allGridNx - (int) ceil((double) allGridNx / mpi.mpiProcX) * (mpi.mpiProcX-1);
+      if (gridNx < haloGridX) {
+	std::cout << "Error! mpiRank=" << mpi.mpiRank << ", gridNx=" << gridNx << " smaller than haloGridX=" << haloGridX << ", use smaller mpiProcX!" << std::endl;
+	abort();
+      }
+      gridNx += haloGridX;
+    }
+    if (mpi.isBdryProcessYMax()) {
+      gridNy = allGridNy - (int) ceil((double) allGridNy / mpi.mpiProcY) * (mpi.mpiProcY-1);
+      if (gridNy < haloGridY) {
+	std::cout << "Error! mpiRank=" << mpi.mpiRank << ", gridNy=" << gridNy << " smaller than haloGridY=" << haloGridY << ", use smaller mpiProcY!" << std::endl;
+	abort();
+      }
+      gridNy += haloGridY;
+    }
+    if (mpi.isBdryProcessZMax()) {
+      gridNz = allGridNz - (int) ceil((double) allGridNz / mpi.mpiProcZ) * (mpi.mpiProcZ-1);
+      if (gridNz < haloGridZ) {
+	std::cout << "Error! mpiRank=" << mpi.mpiRank << ", gridNz=" << gridNz << " smaller than haloGridZ=" << haloGridZ << ", use smaller mpiProcZ!" << std::endl;
+	abort();
+      }
+      gridNz += haloGridZ;
+    }
 
     if (mpi.mpiRank == 0) {
       debugInf << std::setw(OWID) << "haloGridX=" << std::setw(OWID) << haloGridX << std::endl;
@@ -544,8 +562,10 @@ namespace dem {
     if (mpi.isBdryProcessZMin()) K = k;
     // automatically end at (allGrid -1) for max boundary process
 
+    /*
     if (I < 0 || I > allGridNx -1 || J < 0 || J > allGridNy -1 || K < 0 || K > allGridNz -1) 
-      std::cout << "Gas::localIndexToGlobal: global IJK out of range!" << std::endl;
+      std::cout << "Gas::localIndexToGlobal: global IJK out of range, IJK= " << I << " " << J << " " << K << std::endl;
+    */
 
     global.i = I;
     global.j = J;
