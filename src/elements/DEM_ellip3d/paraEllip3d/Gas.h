@@ -136,16 +136,22 @@ namespace dem {
     typedef std::vector< std::vector< std::vector <std::vector<REAL> > > > Array4D;
     typedef std::vector< std::vector< std::vector <std::vector< std::vector<REAL>  > > > > Array5D;
 
+  public:
+    // only for all gas domain
+    std::size_t allGridNx;// allGridNx = total cell centers = parts + two boundary points in x direction
+    std::size_t allGridNy;// allGridNy = total cell centers = parts + two boundary points in y direction
+    std::size_t allGridNz;// allGridNz = total cell centers = parts + two boundary points in z direction
+
+    REAL gridDx; // grid size in x direction
+    REAL gridDy; // grid size in y direction
+    REAL gridDz; // grid size in z direction
+    REAL x1F, x2F, y1F, y2F, z1F, z2F; // fluid domain
+
   private:
 
     MPIFrame mpi;
     
     static const REAL Rs; // specific gas constant
-
-    // only for all gas domain
-    std::size_t allGridNx;// allGridNx = total cell centers = parts + two boundary points in x direction
-    std::size_t allGridNy;// allGridNy = total cell centers = parts + two boundary points in y direction
-    std::size_t allGridNz;// allGridNz = total cell centers = parts + two boundary points in z direction
 
     // for each gas partition
     std::size_t gridNx;   // gridNx = cell centers = parts + ghost boundary points
@@ -162,11 +168,6 @@ namespace dem {
     std::size_t haloGridX;
     std::size_t haloGridY;
     std::size_t haloGridZ;
-
-    REAL gridDx;       // grid size in x direction
-    REAL gridDy;       // grid size in y direction
-    REAL gridDz;       // grid size in z direction
-    REAL x1F, x2F, y1F, y2F, z1F, z2F; // fluid domain
 
     REAL Cd;           // drag coefficient
     REAL porosity;     // particle porosity as porous media
@@ -287,8 +288,6 @@ namespace dem {
     void allocArray();
     void initializePureGas();
     void initialize();
-    void passDomainToDEM(Rectangle &);
-    void passGridToDEM(std::size_t &, std::size_t &, std::size_t &, REAL &, REAL &, REAL &);
     void initialCondition();
     void calcTimeStep();
     void RankineHugoniot();

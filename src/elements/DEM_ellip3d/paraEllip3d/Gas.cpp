@@ -1,5 +1,6 @@
 #include "Gas.h"
 #include "const.h"
+#include "block.h"
 #include <cmath>
 #include <string>
 #include <algorithm>
@@ -142,20 +143,6 @@ namespace dem {
     allGridNz += 2;
   }
 
-  void Gas::passDomainToDEM(Rectangle &grid) {
-    grid = Rectangle(x1F, y1F, z1F, x2F, y2F, z2F);
-  }
-
-  void Gas::passGridToDEM(std::size_t &allGasGridNx, std::size_t &allGasGridNy, std::size_t &allGasGridNz, REAL &gasGridDx, REAL &gasGridDy, REAL &gasGridDz) {
-    allGasGridNx = allGridNx;
-    allGasGridNy = allGridNy;
-    allGasGridNz = allGridNz;
-
-    gasGridDx = gridDx;
-    gasGridDy = gridDy;
-    gasGridDz = gridDz;
-  }
-
   void Gas::printSharedParameter() {
     if (mpi.mpiRank == 0) {
       debugInf << std::setw(OWID) << "nVar" << std::setw(OWID) << nVar << std::endl;
@@ -270,6 +257,19 @@ namespace dem {
     if (mpi.mpiProcZ == 1) haloGridZ = 0;
 
     // step 2: determine gridN
+    gridNx = BLOCK_SIZE(mpi.mpiCoords[0], mpi.mpiProcX, allGridNx) + 2*haloGridX;
+    gridNy = BLOCK_SIZE(mpi.mpiCoords[1], mpi.mpiProcY, allGridNy) + 2*haloGridY;
+    gridNz = BLOCK_SIZE(mpi.mpiCoords[2], mpi.mpiProcZ, allGridNz) + 2*haloGridZ;
+ 
+    if (mpi.isBdryProcessXMin() || mpi.isBdryProcessXMax())
+      gridNx = BLOCK_SIZE(mpi.mpiCoords[0], mpi.mpiProcX, allGridNx) + haloGridX;
+    if (mpi.isBdryProcessYMin() || mpi.isBdryProcessYMax())
+      gridNy = BLOCK_SIZE(mpi.mpiCoords[1], mpi.mpiProcY, allGridNy) + haloGridY;
+    if (mpi.isBdryProcessZMin() || mpi.isBdryProcessZMax())
+      gridNz = BLOCK_SIZE(mpi.mpiCoords[2], mpi.mpiProcZ, allGridNz) + haloGridZ;
+
+    /*
+    // for ceil/floor method, no longer needed, but keep here for record.
     gridNx = (int) ceil((double) allGridNx / mpi.mpiProcX) + 2*haloGridX;
     gridNy = (int) ceil((double) allGridNy / mpi.mpiProcY) + 2*haloGridY;
     gridNz = (int) ceil((double) allGridNz / mpi.mpiProcZ) + 2*haloGridZ;
@@ -305,6 +305,7 @@ namespace dem {
       }
       gridNz += haloGridZ;
     }
+    */
 
     if (mpi.mpiRank == 0) {
       debugInf << std::setw(OWID) << "haloGridX=" << std::setw(OWID) << haloGridX << std::endl;
@@ -552,9 +553,16 @@ namespace dem {
     int j = local.j;
     int k = local.k;
 
+    int I = BLOCK_LOW(mpi.mpiCoords[0], mpi.mpiProcX, allGridNx) - (int) haloGridX + i;
+    int J = BLOCK_LOW(mpi.mpiCoords[1], mpi.mpiProcY, allGridNy) - (int) haloGridY + j;
+    int K = BLOCK_LOW(mpi.mpiCoords[2], mpi.mpiProcZ, allGridNz) - (int) haloGridZ + k;
+
+    /*
+    // for ceil/floor method, no longer needed, but keep here for record.
     int I = (int) ceil((double) allGridNx / mpi.mpiProcX) * mpi.mpiCoords[0] - (int) haloGridX + i;
     int J = (int) ceil((double) allGridNy / mpi.mpiProcY) * mpi.mpiCoords[1] - (int) haloGridY + j;
     int K = (int) ceil((double) allGridNz / mpi.mpiProcZ) * mpi.mpiCoords[2] - (int) haloGridZ + k;
+    */
 
     // ensure starting from 0 for min boundary process
     if (mpi.isBdryProcessXMin()) I = i;
@@ -574,6 +582,12 @@ namespace dem {
 
   bool Gas::globalIndexToLocal(IJK &global, IJK &local) {
     // do no use std::size_t for computing
+    int i = (int) global.i - BLOCK_LOW(mpi.mpiCoords[0], mpi.mpiProcX, allGridNx) + (int) haloGridX;
+    int j = (int) global.j - BLOCK_LOW(mpi.mpiCoords[1], mpi.mpiProcY, allGridNy) + (int) haloGridY;
+    int k = (int) global.k - BLOCK_LOW(mpi.mpiCoords[2], mpi.mpiProcZ, allGridNz) + (int) haloGridZ;
+
+    /*
+    // for ceil/floor method, no longer needed, but keep here for record. The BLOCK method uses BLOCK_LOW! 
     int segX = (int) ceil((double) allGridNx / mpi.mpiProcX);
     int segY = (int) ceil((double) allGridNy / mpi.mpiProcY);
     int segZ = (int) ceil((double) allGridNz / mpi.mpiProcZ);
@@ -606,6 +620,7 @@ namespace dem {
     if (global.k < globalLowBound.k)
       k -= segZ;
     // end of dealing with a particle nearing process boundary.
+    */
 
     // ensure starting from 0 for min boundary process
     if (mpi.isBdryProcessXMin()) i = (int) global.i;

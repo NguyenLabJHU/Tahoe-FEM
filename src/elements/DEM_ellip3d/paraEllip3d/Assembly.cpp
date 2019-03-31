@@ -42,6 +42,7 @@
 
 #include "Assembly.h"
 #include "const.h"
+#include "block.h"
 #include "ran.h"
 #include <iostream>
 #include <sstream>
@@ -1627,10 +1628,9 @@ namespace dem {
     /*pre02*/ gas.initParameter(gradation); // must call after gas.setMPI().
     /*pre03*/ gas.allocArray();
     /*pre04*/ gas.initialize();
-    /*pre05*/ gas.passDomainToDEM(grid); // redefine DEM grid after readBoundary
-    /*pre06*/ gas.passGridToDEM(allGasGridNx, allGasGridNy, allGasGridNz, gasGridDx, gasGridDy, gasGridDz);
+    /*pre05*/ grid = Rectangle(gas.x1F, gas.y1F, gas.z1F, gas.x2F, gas.y2F, gas.z2F); // redefine DEM grid.   
 
-    scatterParticleByCFD(); // must call after gas.passGridToDEM
+    scatterParticleByCFD(); // must call after grid is redefined.
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1652,7 +1652,7 @@ namespace dem {
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
     }
-    /*pre07*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
+    /*pre06*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
 
     /*
     if (mpi.mpiRank == 0)
@@ -2476,7 +2476,7 @@ namespace dem {
     // partition particles and send to each process
     if (mpi.mpiRank == 0) { // process 0
 
-      // grid initialized in readBoundary() and overwritten in gas.passDomainToDEM
+      // grid initialized in readBoundary(), but already overwritten later.
       Vec v1 = grid.getMinCorner();
       Vec v2 = grid.getMaxCorner();
       Vec vspan = v2 - v1;
@@ -2488,7 +2488,23 @@ namespace dem {
 	int ndim = 3;
 	int coords[3];
 	MPI_Cart_coords(mpi.cartComm, iRank, ndim, coords);
-	
+
+	int lowGridX  =  BLOCK_LOW(coords[0], mpi.mpiProcX, gas.allGridNx);
+	int lowGridY  =  BLOCK_LOW(coords[1], mpi.mpiProcY, gas.allGridNy);
+	int lowGridZ  =  BLOCK_LOW(coords[2], mpi.mpiProcZ, gas.allGridNz);
+	int highGridX = BLOCK_HIGH(coords[0], mpi.mpiProcX, gas.allGridNx);
+	int highGridY = BLOCK_HIGH(coords[1], mpi.mpiProcY, gas.allGridNy);
+	int highGridZ = BLOCK_HIGH(coords[2], mpi.mpiProcZ, gas.allGridNz);
+
+	REAL lowX = v1.getX() - gas.gridDx + gas.gridDx * lowGridX;
+	REAL lowY = v1.getY() - gas.gridDy + gas.gridDy * lowGridY;
+	REAL lowZ = v1.getZ() - gas.gridDz + gas.gridDz * lowGridZ;
+	REAL uppX = v1.getX() - gas.gridDx + gas.gridDx * (highGridX + 1);
+	REAL uppY = v1.getY() - gas.gridDy + gas.gridDy * (highGridY + 1);
+	REAL uppZ = v1.getZ() - gas.gridDz + gas.gridDz * (highGridZ + 1);
+
+	/*
+	// for ceil/floor method, no longer needed, but keep here for record.
 	int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
 	int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
 	int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
@@ -2499,6 +2515,7 @@ namespace dem {
 	REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (coords[0] + 1);
 	REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (coords[1] + 1);
 	REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (coords[2] + 1);
+	*/
 
 	if (coords[0] == 0)
 	  lowX = v1.getX();
@@ -2575,6 +2592,22 @@ namespace dem {
 
     } else if (coupled == 1) { // coupled with CFD
 
+      int lowGridX  =  BLOCK_LOW(mpi.mpiCoords[0], mpi.mpiProcX, gas.allGridNx);
+      int lowGridY  =  BLOCK_LOW(mpi.mpiCoords[1], mpi.mpiProcY, gas.allGridNy);
+      int lowGridZ  =  BLOCK_LOW(mpi.mpiCoords[2], mpi.mpiProcZ, gas.allGridNz);
+      int highGridX = BLOCK_HIGH(mpi.mpiCoords[0], mpi.mpiProcX, gas.allGridNx);
+      int highGridY = BLOCK_HIGH(mpi.mpiCoords[1], mpi.mpiProcY, gas.allGridNy);
+      int highGridZ = BLOCK_HIGH(mpi.mpiCoords[2], mpi.mpiProcZ, gas.allGridNz);
+
+      REAL lowX = v1.getX() - gas.gridDx + gas.gridDx * lowGridX;
+      REAL lowY = v1.getY() - gas.gridDy + gas.gridDy * lowGridY;
+      REAL lowZ = v1.getZ() - gas.gridDz + gas.gridDz * lowGridZ;
+      REAL uppX = v1.getX() - gas.gridDx + gas.gridDx * (highGridX + 1);
+      REAL uppY = v1.getY() - gas.gridDy + gas.gridDy * (highGridY + 1);
+      REAL uppZ = v1.getZ() - gas.gridDz + gas.gridDz * (highGridZ + 1);
+
+      /*
+      // for ceil/floor method, no longer needed, but keep here for record.
       int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
       int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
       int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
@@ -2585,6 +2618,7 @@ namespace dem {
       REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (mpi.mpiCoords[0] + 1);
       REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (mpi.mpiCoords[1] + 1);
       REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (mpi.mpiCoords[2] + 1);
+      */
 
       if (mpi.isBdryProcessXMin())
 	lowX = v1.getX();
@@ -3144,6 +3178,22 @@ namespace dem {
 
     } else if (coupled == 1) { // coupled with CFD
 
+      int lowGridX  =  BLOCK_LOW(mpi.mpiCoords[0], mpi.mpiProcX, gas.allGridNx);
+      int lowGridY  =  BLOCK_LOW(mpi.mpiCoords[1], mpi.mpiProcY, gas.allGridNy);
+      int lowGridZ  =  BLOCK_LOW(mpi.mpiCoords[2], mpi.mpiProcZ, gas.allGridNz);
+      int highGridX = BLOCK_HIGH(mpi.mpiCoords[0], mpi.mpiProcX, gas.allGridNx);
+      int highGridY = BLOCK_HIGH(mpi.mpiCoords[1], mpi.mpiProcY, gas.allGridNy);
+      int highGridZ = BLOCK_HIGH(mpi.mpiCoords[2], mpi.mpiProcZ, gas.allGridNz);
+
+      REAL lowX = v1.getX() - gas.gridDx + gas.gridDx * lowGridX;
+      REAL lowY = v1.getY() - gas.gridDy + gas.gridDy * lowGridY;
+      REAL lowZ = v1.getZ() - gas.gridDz + gas.gridDz * lowGridZ;
+      REAL uppX = v1.getX() - gas.gridDx + gas.gridDx * (highGridX + 1);
+      REAL uppY = v1.getY() - gas.gridDy + gas.gridDy * (highGridY + 1);
+      REAL uppZ = v1.getZ() - gas.gridDz + gas.gridDz * (highGridZ + 1);
+
+      /*
+      // for ceil/floor method, no longer needed, but keep here for record.
       int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
       int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
       int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
@@ -3154,6 +3204,7 @@ namespace dem {
       REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (mpi.mpiCoords[0] + 1);
       REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (mpi.mpiCoords[1] + 1);
       REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (mpi.mpiCoords[2] + 1);
+      */
 
       if (mpi.isBdryProcessXMin())
 	lowX = v1.getX();
