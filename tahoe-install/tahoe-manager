@@ -7,6 +7,8 @@
 #    for TAHOE
 # written by: 
 #    Reese Jones (rjones@sandia.gov) and Patrick Klein (patrickklein@mac.com)
+# edited by:
+#    Richard Regueiro (richard.regueiro@colorado.edu) for svn
 #------------------------------------------------------------------------------
 
 use Cwd; # $home = cwd();
@@ -15,7 +17,8 @@ use Cwd; # $home = cwd();
 #$tahoe = "tahoe.ca.sandia.gov"; 
 
 # Sourceforge server
-$tahoe_sf = "tahoe.cvs.sourceforge.net"; 
+#$tahoe_sf = "tahoe.cvs.sourceforge.net"; 
+$tahoe_sf = "svn.code.sf.net";
 
 # Colorado server
 #$tahoe_co = "tahoe.colorado.edu"; 
@@ -84,26 +87,26 @@ Trilinos TRILINOS_
 
 # location of module on the server
 %module2repo = qw(
-expat		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-toolbox		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-tahoe		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-macros		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-spooles		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-spoolesMPI	tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-spoolesMT	tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-metis		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-aztec		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-f2c		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-CBLAS		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-access		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
+expat		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+toolbox		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+tahoe		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+macros		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+spooles		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+spoolesMPI	https://svn.code.sf.net/p/tahoe/codesvn/trunk
+spoolesMT	https://svn.code.sf.net/p/tahoe/codesvn/trunk
+metis		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+aztec		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+f2c		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+CBLAS		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+access		https://svn.code.sf.net/p/tahoe/codesvn/trunk
 development	tahoe.cvs.cvsdude.com:/tahoe 
-benchmark_XML	tahoe.cvs.sourceforge.net:/cvsroot/tahoe
+benchmark_XML	https://svn.code.sf.net/p/tahoe/codesvn/trunk
 development_benchmark_xml tahoe.cvs.cvsdude.com:/tahoe
-contrib		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-bravais		tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-SuperLU_CBLAS tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-SuperLU       tahoe.cvs.sourceforge.net:/cvsroot/tahoe
-SuperLU_DIST  tahoe.cvs.sourceforge.net:/cvsroot/tahoe
+contrib		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+bravais		https://svn.code.sf.net/p/tahoe/codesvn/trunk
+SuperLU_CBLAS 	https://svn.code.sf.net/p/tahoe/codesvn/trunk
+SuperLU       	https://svn.code.sf.net/p/tahoe/codesvn/trunk
+SuperLU_DIST  	https://svn.code.sf.net/p/tahoe/codesvn/trunk
 );
 
 # "touch" targets
@@ -209,10 +212,10 @@ ARG: while (@ARGV) {
 	OPT: for (shift@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
-		if (/^u|^update/i)          { update(); next ARG; }
+		if (/^u|^update/i)         { update(); next ARG; }
 		if (/^co|config/i)         { config(); next ARG; }
 		if (/^i|init/i)            { init(); next ARG; }
-		if (/^b|^build/i)           { build(); next ARG; }
+		if (/^b|^build/i)          { build(); next ARG; }
 		if (/^r|rebuild/i)         { rebuild(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
 		if (/^cl|clean/i)          { clean(); next ARG; }
@@ -293,7 +296,7 @@ print "*--------------------------------------------------\n";
 print "* Sourceforge username: $tahoe_sf_name\@$tahoe_sf\n";
 #print "* Tahoe server name: $tahoe_name\@$tahoe\n";
 #print "* Colorado server name: $tahoe_co_name\@$tahoe_co\n";
-print "* Cloudforge server tahoe.username: $tahoe_cld_name\@$tahoe_cld\n";
+print "* Cloudforge username: $tahoe_cld_name\@$tahoe_cld\n";
 #print "*   connection: $connection\n";
 if ($proxy !~ "NONE") {
 	print "*             proxy: $proxy\n";
@@ -322,6 +325,19 @@ if ($connection =~ "cvs") {
 		exit;
 	}
 }
+
+# check svn settings
+if ($connection =~ "svn") {
+	my $svn_OK = 0;
+	foreach my $key (sort(keys %ENV)) {
+		if ($key =~ "SVN_RSH" && $ENV{$key} =~ "ssh") { $svn_OK = 1; }
+	}
+	if ($svn_OK != 1) {
+		print "ERROR: SVN_RSH must be set to ssh\n";
+		exit;
+	}
+}
+
 }
 
 ##############################################################################
@@ -419,6 +435,7 @@ print "* creating default config file $config_file\n";
 
 # look for environmental settings
 my $cvs_rsh;
+my $svn_rsh;
 $verbose = "false";
 $use_default_arch = "true";
 $tahoe_name = "nobody";
@@ -433,6 +450,9 @@ foreach my $key (sort(keys %ENV)) {
 	if ($key =~ "CVS_RSH") { 
 		print "* found CVS_RSH env var, using cvs connection\n"; 
 		$cvs_rsh = $value; }
+	if ($key =~ "SVN_RSH") { 
+		print "* found SVN_RSH env var, using svn connection\n"; 
+		$svn_rsh = $value; }
 	
 	# get user name on local machine
 	if ($key eq USER) {
@@ -461,6 +481,69 @@ unless(defined($connection)) {
 #		$i = $connect_default;
 #	}
 #	$connection = $connections[$i];
+
+	$connection = "cvs";
+
+	if ($connection =~ "http") { # ask for proxy
+		print "http proxy (proxyhost:port) [NONE]:";
+		$proxy = <STDIN>;
+		chomp($proxy);
+		if (length($proxy) == 0) { # default
+			$proxy = "NONE";
+		}
+	}
+	else {
+        my $cvs_OK = 0;
+        foreach $key (sort(keys %ENV)) {
+                if ($key =~ "CVS_RSH" && $ENV{$key} =~ "ssh") { $cvs_OK = 1; }
+        }
+        if ($cvs_OK != 1) {
+                print "ERROR: CVS_RSH must be set to ssh\n";
+                exit;
+        }
+	}
+}
+
+# server login names
+if ($connection =~ "svn") {
+
+	# Sourceforge 
+	$tahoe_sf_name = "anonymous";
+	print "Sourceforge username [$tahoe_sf_name]: ";
+	my $name = <STDIN>; chomp($name);
+	if (length($name) > 0) {
+		$tahoe_sf_name = $name;
+	}
+	if ($tahoe_sf_name eq "anonymous") { # do anonymous login once now
+		print "\nAccess as \"anonymous\" to Sourceforge requires you to login once.\n";
+		print "Press [ENTER] at the prompt to login using an empty password.\n";
+#		do_system("cvs -d :pserver:$tahoe_sf_name\@$tahoe_sf:/cvsroot/tahoe login");
+		do_system("svn login --username=$tahoe_sf_name https://svn.code.sf.net/p/tahoe/codesvn/trunk");
+		print "\n";
+	}
+
+	# tahoe server
+#	$tahoe_name = "NONE";
+#	print "Tahoe server username [NONE]: ";
+#	$name = <STDIN>; chomp($name);
+#	if (length($name) > 0) {
+#		$tahoe_name = $name;
+#	}
+
+	# colorado server
+#	$tahoe_co_name = "NONE";
+#	print "Colorado server username [NONE]: ";
+#	$name = <STDIN>; chomp($name);
+#	if (length($name) > 0) {
+#		$tahoe_co_name = $name;
+#	}
+
+}
+
+# connection type
+$proxy = "NONE";
+unless(defined($connection)) { 
+
 	$connection = "cvs";
 
 	if ($connection =~ "http") { # ask for proxy
@@ -486,39 +569,9 @@ unless(defined($connection)) {
 # server login names
 if ($connection =~ "cvs") {
 
-	# Sourceforge 
-	$tahoe_sf_name = "anonymous";
-	print "Sourceforge server username [$tahoe_sf_name]: ";
-	my $name = <STDIN>; chomp($name);
-	if (length($name) > 0) {
-		$tahoe_sf_name = $name;
-	}
-	if ($tahoe_sf_name eq "anonymous") { # do anonymous login once now
-		print "\nAccess as \"anonymous\" to Sourceforge requires you to login once.\n";
-		print "Press [ENTER] at the prompt to login using an empty password.\n";
-		do_system("cvs -d :pserver:$tahoe_sf_name\@$tahoe_sf:/cvsroot/tahoe login");
-		print "\n";
-	}
-
-	# tahoe server
-#	$tahoe_name = "NONE";
-#	print "Tahoe server username [NONE]: ";
-#	$name = <STDIN>; chomp($name);
-#	if (length($name) > 0) {
-#		$tahoe_name = $name;
-#	}
-
-	# colorado server
-#	$tahoe_co_name = "NONE";
-#	print "Colorado server username [NONE]: ";
-#	$name = <STDIN>; chomp($name);
-#	if (length($name) > 0) {
-#		$tahoe_co_name = $name;
-#	}
-
 	# cloudforge server
 	$tahoe_cld_name = "NONE";
-	print "Cloudforge server tahoe.username [NONE]: ";
+	print "Cloudforge username [NONE]: ";
 	$name = <STDIN>; chomp($name);
 	if (length($name) > 0) {
 		$tahoe_cld_name = $name;
@@ -574,9 +627,24 @@ sub update{
 	print "($count) updating: @run_modules, at $time\n";
 
 	# connection type
-	if ($connection =~ "cvs") {
+#	if ($connection =~ "cvs") {
+#
+#		# check if tahoe-manager is out of date
+#		if (-e "CVS/Root") {
+#			unlink("cvs.log");
+#			do_system("cvs -q -n update tahoe-manager > cvs.log");
+#			open(IN, "cvs.log"); my @lines = <IN>; my $file = "@lines"; close(IN);
+#			if ($file =~ /tahoe-manager/) {
+#				print STDOUT "*\n* NOTE: \"tahoe-manager\" has changed. Run \"selfupdate\" to update.\n*\n";
+#			}
+#		}
+#
+#		# update
+#		update_cvs(@run_modules);
+	if ($connection =~ "svn") {
 
 		# check if tahoe-manager is out of date
+###this needs to be EDITED
 		if (-e "CVS/Root") {
 			unlink("cvs.log");
 			do_system("cvs -q -n update tahoe-manager > cvs.log");
@@ -587,7 +655,7 @@ sub update{
 		}
 
 		# update
-		update_cvs(@run_modules);
+		update_svn(@run_modules);
 	} elsif ($connection =~ "http") {
 		update_http(@run_modules);	
 	}
