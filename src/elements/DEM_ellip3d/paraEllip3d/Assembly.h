@@ -228,7 +228,7 @@ namespace dem {
     void calcGranularStrain(REAL timeIncr);
     void convertGranularStressForPrint();
     void printGranularStressOrdered(const char *str) const;
-    void printGranularStressFEM(const char *str) const;
+    void printGranularStressFEM(const char *str, const int coupled=0) const;
 #endif
 
     void updateGrid();
