@@ -1706,6 +1706,16 @@ namespace dem {
       internalForce();
       if (mpi.isBdryProcess()) boundaryForce();
 
+#ifdef STRESS_STRAIN
+      if (timeCount + timeStep*2 >= timeIncr/netSnap && timeCount + timeStep <= timeIncr/netSnap )
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if (timeCount + timeStep >= timeIncr/netSnap) {
+	gatherGranularStress(combineString("couple_tensor_", iterSnap, 3).c_str(),timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshot particle positions
+      }
+#endif
+
       updateParticle();
       //updateGridMaxZ();        // dem & cfd have the same space domain, and do not update.
 
@@ -1722,6 +1732,10 @@ namespace dem {
 	  printParticle(combineString("couple_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM((combineString("couple_stress_plot_", iterSnap, 3) + ".dat").c_str(), 1); // 1 for CFD
+	  printGranularStressOrdered((combineString("couple_stress_data_", iterSnap, 3) + ".dat").c_str());
+#endif
 	}
 	/*06*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
@@ -3683,6 +3697,11 @@ namespace dem {
     granularStrain.clear(); // clear() does not setZero().
     printStress.setZero();
 
+    // print coordinates even without computing stress/strain.
+    printStress.coord[0]  = container.getCenter().getX();
+    printStress.coord[1]  = container.getCenter().getY();
+    printStress.coord[2]  = container.getCenter().getZ();
+
     if (particleVec.size() >= stressMinPtcl) {
 
       calcNominalDensityVoid();
@@ -3745,9 +3764,12 @@ namespace dem {
     std::stringstream inf;
     inf.setf(std::ios::scientific, std::ios::floatfield);
 
-    // OWID*8 + std::endl = 121
+    // OWID*14 + std::endl = 211
     inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpi.mpiRank 
-	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpi.mpiCoords[0] << std::setw(OWID) << mpi.mpiCoords[1] << std::setw(OWID) << mpi.mpiCoords[2] << std::endl;
+	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpi.mpiCoords[0] << std::setw(OWID) << mpi.mpiCoords[1] << std::setw(OWID) << mpi.mpiCoords[2] 
+	<< std::setw(OWID) << "(x,y,z)=" << std::setw(OWID) << container.getCenter().getX() << std::setw(OWID) << container.getCenter().getY() << std::setw(OWID) << container.getCenter().getZ() 
+	<< std::setw(OWID) << "particles=" << std::setw(OWID) << particleVec.size()
+	<< std::endl;
 
     // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
     // 0
@@ -3876,7 +3898,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    int length = 121 * 1 + 157 * 12;
+    int length = 211 * 1 + 157 * 12;
     MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
     MPI_File_close(&tensorFile); // end of parallel IO
 
@@ -4118,7 +4140,7 @@ namespace dem {
   }
 
 
-  void Assembly::printGranularStressFEM(const char *str) const {
+  void Assembly::printGranularStressFEM(const char *str, const int coupled) const {
     std::ofstream ofs(str);
     if(!ofs) { debugInf << "stream error: printGranularStressFEM" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
@@ -4307,13 +4329,66 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
-    std::size_t index = 0;
-    for (std::size_t i = 0; i < mpi.mpiProcX + 1; ++i)
-      for (std::size_t j = 0; j < mpi.mpiProcY + 1; ++j)
-	for (std::size_t k = 0; k < mpi.mpiProcZ + 1; ++k)
-	  spaceCoords[index++] = Vec(v1.getX() + vspan.getX() / mpi.mpiProcX * i,
-				     v1.getY() + vspan.getY() / mpi.mpiProcY * j,
-				     v1.getZ() + vspan.getZ() / mpi.mpiProcZ * k);
+    if (coupled == 0) { // no coupling with CFD
+      std::size_t index = 0;
+      for (std::size_t i = 0; i < mpi.mpiProcX + 1; ++i)
+	for (std::size_t j = 0; j < mpi.mpiProcY + 1; ++j)
+	  for (std::size_t k = 0; k < mpi.mpiProcZ + 1; ++k)
+	    spaceCoords[index++] = Vec(v1.getX() + vspan.getX() / mpi.mpiProcX * i,
+				       v1.getY() + vspan.getY() / mpi.mpiProcY * j,
+				       v1.getZ() + vspan.getZ() / mpi.mpiProcZ * k);
+    } else if (coupled == 1) { // coupled with CFD
+
+      std::vector<double> spaceCoordX(mpi.mpiProcX + 1);
+      std::vector<double> spaceCoordY(mpi.mpiProcY + 1);
+      std::vector<double> spaceCoordZ(mpi.mpiProcZ + 1);
+
+      for (std::size_t i = 0; i < mpi.mpiProcX; ++i) {
+	int  lowGridX =  BLOCK_LOW(i, mpi.mpiProcX, gas.allGridNx);
+	int highGridX = BLOCK_HIGH(i, mpi.mpiProcX, gas.allGridNx);
+	REAL     lowX = v1.getX() - gas.gridDx + gas.gridDx * lowGridX;
+	REAL     uppX = v1.getX() - gas.gridDx + gas.gridDx * (highGridX + 1);
+	if (i == 0) lowX = v1.getX();
+	spaceCoordX[i] = lowX;
+	if (i == mpi.mpiProcX - 1) {
+	  uppX = v2.getX();
+	  spaceCoordX[i+1] = uppX;
+	}
+      }
+
+      for (std::size_t i = 0; i < mpi.mpiProcY; ++i) {
+	int  lowGridY =  BLOCK_LOW(i, mpi.mpiProcY, gas.allGridNy);
+	int highGridY = BLOCK_HIGH(i, mpi.mpiProcY, gas.allGridNy);
+	REAL     lowY = v1.getY() - gas.gridDy + gas.gridDy * lowGridY;
+	REAL     uppY = v1.getY() - gas.gridDy + gas.gridDy * (highGridY + 1);
+	if (i == 0) lowY = v1.getY();
+	spaceCoordY[i] = lowY;
+	if (i == mpi.mpiProcY - 1) {
+	  uppY = v2.getY();
+	  spaceCoordY[i+1] = uppY;
+	}
+      }
+
+      for (std::size_t i = 0; i < mpi.mpiProcZ; ++i) {
+	int  lowGridZ =  BLOCK_LOW(i, mpi.mpiProcZ, gas.allGridNz);
+	int highGridZ = BLOCK_HIGH(i, mpi.mpiProcZ, gas.allGridNz);
+	REAL     lowZ = v1.getZ() - gas.gridDz + gas.gridDz * lowGridZ;
+	REAL     uppZ = v1.getZ() - gas.gridDz + gas.gridDz * (highGridZ + 1);
+	if (i == 0) lowZ = v1.getZ();
+	spaceCoordZ[i] = lowZ;
+	if (i == mpi.mpiProcZ - 1) {
+	  uppZ = v2.getZ();
+	  spaceCoordZ[i+1] = uppZ;
+	}
+      }
+
+      std::size_t index = 0;
+      for (std::size_t i = 0; i < mpi.mpiProcX + 1; ++i)
+	for (std::size_t j = 0; j < mpi.mpiProcY + 1; ++j)
+	  for (std::size_t k = 0; k < mpi.mpiProcZ + 1; ++k)
+	    spaceCoords[index++] = Vec(spaceCoordX[i],spaceCoordY[j],spaceCoordZ[k]);
+
+    } // end of CFD
 
     // Tecplot: 
     // BLOCK format must be used for cell-centered data.
@@ -5203,6 +5278,15 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	}
       }
     }
+
+    /*
+    std::cout << std::endl
+	      << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpi.mpiRank 
+	      << std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpi.mpiCoords[0] << std::setw(OWID) << mpi.mpiCoords[1] << std::setw(OWID) << mpi.mpiCoords[2] 
+	      << std::setw(OWID) << "intnContact=" << std::setw(OWID) << contactVec.size() << std::setw(OWID) << "bdryContact=" << std::setw(OWID) << bdryContact
+	      << std::setw(OWID) << "totalContact=" << std::setw(OWID) << contactVec.size() + bdryContact
+	      << std::endl;
+    */
 
     if (contactVec.size() + bdryContact != 0)
       fabricTensor /= (contactVec.size() + bdryContact); 
