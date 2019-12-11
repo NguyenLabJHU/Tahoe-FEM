@@ -25,7 +25,7 @@ namespace dem {
     }
 
     for (int i = 0; i < 6; ++i) {
-      fabric[6] = 0;
+      fabric[i] = 0;
       stress[i] = 0;
       stressRate[i] = 0;
       stretch[i] = 0;
