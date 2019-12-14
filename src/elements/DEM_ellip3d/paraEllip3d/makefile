@@ -4,10 +4,10 @@
 ###1. system platform
 PLATFORM = soilblast
 #PLATFORM = thunder
-#PLATFORM = topaz
+#PLATFORM = centennial
 #PLATFORM = onyx
 #PLATFORM = excalibur
-#PLATFORM = centennial
+#PLATFORM = topaz
 #PLATFORM = lightning
 
 ###2. compiler combinations (c++ and mpi)
@@ -31,24 +31,25 @@ endif
 
 ###5. boost location
 ifeq ($(PLATFORM), soilblast)
-
  ifeq ($(COMPILERS), gcc-openmpi)
+#module load openmpi-3.0.0-gcc-6.4.0
   #BOOST_ROOT = default
-  BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
-  #BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0
+  #BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
+  BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0
   #BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-5.5.0
   #BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-1.10.6-gcc-4.9.4
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
+   #PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
+   PAPI_ROOT = /usr/local/papi-5.5.1-openmpi-3.0.0-gcc-6.4.0
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /usr/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /usr/local/qhull-2015.2-gcc-4.6.4
+   #QHULL_ROOT = /usr/local/qhull-2015.2-gcc-4.6.4
+   QHULL_ROOT = /usr/local/qhull-2015.2-gcc-6.4.0
   endif
  endif
- 
  ifeq ($(COMPILERS), intel-intel)
   BOOST_ROOT = /usr/local/boost-1.66.0-intel-psxe-2018
   ifeq ($(PAPI), yes)
@@ -61,11 +62,57 @@ ifeq ($(PLATFORM), soilblast)
    QHULL_ROOT = /usr/local/qhull-2015.2-intel-psxe-2018
   endif
  endif
- 
+endif
+
+ifeq ($(PLATFORM), centennial)
+ ifeq ($(COMPILERS), intel-sgi)
+#module swap compiler/intel compiler/intel/18.0.1.163
+#module swap mpi/sgimpt mpi/sgimpt/2.17
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.17_intel-18.0.1.163
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-18.0.1.163
+  endif
+ endif
+endif
+
+ifeq ($(PLATFORM), onyx)
+ ifeq ($(COMPILERS), intel-cray)
+#module swap PrgEnv-cray PrgEnv-intel/6.0.5
+#automatically load cray-mpich/7.6.3
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.6.3_PrgEnv-intel6.0.5
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel6.0.5
+  endif
+ endif
+ ifeq ($(COMPILERS), gcc-cray)
+#module swap PrgEnv-cray PrgEnv-gnu/6.0.4
+#automatically load cray-mpich/7.6.2
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.6.2_PrgEnv-gnu6.0.4
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-gnu6.0.4
+  endif
+ endif
+ ifeq ($(COMPILERS), gcc-openmpi)
+  BOOST_ROOT = 
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = 
+  endif
+ endif
 endif
 
 ifeq ($(PLATFORM), excalibur)
  ifeq ($(COMPILERS), intel-cray)
+#module swap PrgEnv-intel/5.2.82 PrgEnv-intel/5.2.40
+#module swap cray-mpich/7.2.4 cray-mpich/7.1.0
   BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
   ifeq ($(PAPI), yes)
    PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
@@ -78,6 +125,8 @@ ifeq ($(PLATFORM), excalibur)
   endif
  endif
  ifeq ($(COMPILERS), gcc-cray)
+#module swap PrgEnv-intel/5.2.82 PrgEnv-gnu/5.2.40
+#module swap cray-mpich/7.2.4 cray-mpich/7.1.0
   BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.1.0_PrgEnv-gnu5.2.40
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
@@ -100,30 +149,34 @@ ifeq ($(PLATFORM), excalibur)
  endif
 endif
 
-ifeq ($(PLATFORM), onyx)
- ifeq ($(COMPILERS), intel-cray)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.6.2_PrgEnv-intel6.0.4
-  ifeq ($(EIGEN), yes)
-   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
-  endif
-  ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel6.0.4
-  endif
- endif
- ifeq ($(COMPILERS), gcc-cray)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.6.2_PrgEnv-gnu6.0.4
-  ifeq ($(EIGEN), yes)
-   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
-  endif
-  ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-gnu6.0.4
-  endif
- endif
- ifeq ($(COMPILERS), gcc-openmpi)
-  BOOST_ROOT = 
+ifeq ($(PLATFORM), thunder)
+ ifeq ($(COMPILERS), intel-sgi)
+#intel-compilers/2019_update1(default)
+#mpt/2.20(default)
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.20_intel-compilers-2019_update1
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = 
+   PAPI_ROOT = /p/home/yanb/local/papi-5.7.0_mpt-2.20_intel-compilers-2019_update1
   endif
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-compilers-2019_update1
+  endif
+ endif
+ ifeq ($(COMPILERS), gcc-sgi)
+#module swap intel-compilers/2019_update1 gcc-compilers/7.3.0
+#mpt/2.20(default)
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.20_gcc-compilers-7.3.0
+  ifeq ($(PAPI), yes)
+   PAPI_ROOT = /p/home/yanb/local/papi-5.7.0_mpt-2.20_gcc-compilers-7.3.0
+  endif
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-gcc-compilers-7.3.0
+  endif  
  endif
 endif
 
@@ -138,36 +191,6 @@ ifeq ($(PLATFORM), topaz)
   endif
   ifeq ($(QHULL), yes)
    QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-18.0.1
-  endif
- endif
-endif
-
-ifeq ($(PLATFORM), thunder)
- ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.19_intel-compilers-2019_update1
-  ifeq ($(PAPI), yes)
-   PAPI_ROOT = /p/home/yanb/local/papi-5.7.0_mpt-2.19_intel-compilers-2019_update1
-  endif
-  ifeq ($(EIGEN), yes)
-   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
-  endif
-  ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-compilers-2019_update1
-  endif
- endif
- ifeq ($(COMPILERS), gcc-sgi)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.57.0_mpt-2.12_gcc-compilers-4.4.6
- endif
-endif
-
-ifeq ($(PLATFORM), centennial)
- ifeq ($(COMPILERS), intel-sgi)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.17_intel-18.0.1.163
-  ifeq ($(EIGEN), yes)
-   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
-  endif
-  ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-18.0.1.163
   endif
  endif
 endif
@@ -236,6 +259,10 @@ endif
 ###2 standard, optimize or debug
 #C++11 or not?
 #C++11 = -std=c++11
+
+# 1. for debug with Boost, do not use -D_GLIBCXX_DEBUG because it builds into __debug namespace and cannot link Boost.
+# 2. -fsanitize=bounds may require newer GCC like 6.3.0 for debugging
+#OPTIMIZE = -g -fsanitize=bounds -fstack-protector-all
 
 OPTIMIZE = -O3 -DNDEBUG $(C++11)
 #OPTIMIZE = -O -Wall -g $(C++11) -D_GLIBCXX_DEBUG
