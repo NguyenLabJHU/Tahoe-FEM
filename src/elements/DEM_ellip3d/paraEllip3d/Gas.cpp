@@ -838,7 +838,7 @@ namespace dem {
 	    HL = arrayH[IL[0]] [IL[1]] [IL[2]];
 	    HR = arrayH[IR[0]] [IR[1]] [IR[2]];
 
-	    for (std::size_t m = 0; m < nVar; ++m) {
+	    for (std::size_t m = 0; m < nVar - 1; ++m) { // NOT nVar, because varMsk is not needed; using nVar(=10) goes out of bound.
 	      UL[m] = arrayURota[IL[0]] [IL[1]] [IL[2]] [m];
 	      UR[m] = arrayURota[IR[0]] [IR[1]] [IR[2]] [m];
 	    }	
