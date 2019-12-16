@@ -80,6 +80,19 @@ endif
 
 ifeq ($(PLATFORM), onyx)
  ifeq ($(COMPILERS), intel-cray)
+#module swap PrgEnv-cray PrgEnv-intel/6.0.4
+#module swap intel intel/19.0.1.144
+#module swap cray-mpich cray-mpich/7.7.8
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.7.8_intel19.0.1.144
+  ifeq ($(EIGEN), yes)
+   EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
+  endif
+  ifeq ($(QHULL), yes)
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel19.0.1.144
+  endif
+ endif
+ ifeq ($(COMPILERS), intel-cray-XXX)
+#this one works, but slower.
 #module swap PrgEnv-cray PrgEnv-intel/6.0.5
 #automatically load cray-mpich/7.6.3
   BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.6.3_PrgEnv-intel6.0.5
@@ -151,17 +164,17 @@ endif
 
 ifeq ($(PLATFORM), thunder)
  ifeq ($(COMPILERS), intel-sgi)
-#intel-compilers/2019_update1(default)
+#module swap intel-compilers intel-compilers/17.0.2
 #mpt/2.20(default)
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.20_intel-compilers-2019_update1
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_mpt-2.20_intel-compilers-17.0.2
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /p/home/yanb/local/papi-5.7.0_mpt-2.20_intel-compilers-2019_update1
+   PAPI_ROOT = /p/home/yanb/local/papi-5.7.0_mpt-2.20_intel-compilers-17.0.2
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-compilers-2019_update1
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel-compilers-17.0.2
   endif
  endif
  ifeq ($(COMPILERS), gcc-sgi)
@@ -260,16 +273,24 @@ endif
 #C++11 or not?
 #C++11 = -std=c++11
 
-# 1. for debug with Boost, do not use -D_GLIBCXX_DEBUG because it builds into __debug namespace and cannot link Boost.
-# 2. -fsanitize=bounds may require newer GCC like 6.3.0 for debugging
-#OPTIMIZE = -g -fsanitize=bounds -fstack-protector-all
-
-OPTIMIZE = -O3 -DNDEBUG $(C++11)
-#OPTIMIZE = -O -Wall -g $(C++11) -D_GLIBCXX_DEBUG
-#gcc: full level of IEEE 754 compliance
-#OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans $(C++11)
+#########################################
+#optimization options
+OPTIMIZE = -O3 -DNDEBUG $(C++11)                                   
+#gcc: full level of IEEE 754 compliance                             
+#OPTIMIZE = -O3 -DNDEBUG -frounding-math -fsignaling-nans $(C++11)  
 #intel: -fp-model source also implies keyword precise; and it is nearly as twice slow as default -fp-model fast=1
-#OPTIMIZE = -O3 -DNDEBUG -fp-model source $(C++11)
+#OPTIMIZE = -O3 -DNDEBUG -fp-model source $(C++11)   
+
+#########################################
+# debug options
+# (a) for GCC
+# 1. for debug with Boost, do not use -D_GLIBCXX_DEBUG because it builds into __debug namespace and cannot link Boost.
+# 2. -fsanitize=bounds may require newer GCC like 6.3.0
+#OPTIMIZE = -g -fsanitize=bounds -fstack-protector-all
+#OPTIMIZE = -g -D_GLIBCXX_DEBUG
+# (b) for Intel compilers
+#OPTIMIZE = -O0 -g -traceback -debug all
+#OPTIMIZE = -O0 -g -traceback -fstack-security-check -check-pointers=rw
 
 # GCC quadmath, default off
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
