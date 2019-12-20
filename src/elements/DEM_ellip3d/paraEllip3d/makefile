@@ -124,17 +124,18 @@ endif
 
 ifeq ($(PLATFORM), excalibur)
  ifeq ($(COMPILERS), intel-cray)
-#module swap PrgEnv-intel/5.2.82 PrgEnv-intel/5.2.40
-#module swap cray-mpich/7.2.4 cray-mpich/7.1.0
-  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
+#PrgEnv-intel/5.2.82(default)
+#module swap intel intel/18.0.1.163
+#module swap cray-mpich cray-mpich/7.7.4
+  BOOST_ROOT = /p/home/yanb/local/boost-1.65.1_cray-mpich7.7.4_intel18.0.1.163
   ifeq ($(PAPI), yes)
-   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_cray-mpich7.1.0_PrgEnv-intel5.2.40
+   PAPI_ROOT = /p/home/yanb/local/papi-5.4.1_cray-mpich7.7.4_intel18.0.1.163
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /p/home/yanb/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
-   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel5.2.40
+   QHULL_ROOT = /p/home/yanb/local/qhull-2015.2-intel18.0.1.163
   endif
  endif
  ifeq ($(COMPILERS), gcc-cray)
