@@ -272,7 +272,7 @@ endif
 
 ###2 standard, optimize or debug
 #C++11 or not?
-#C++11 = -std=c++11
+C++11 = -std=c++11
 
 #########################################
 #optimization options
