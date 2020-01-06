@@ -1532,28 +1532,31 @@ namespace dem {
     REAL areaY = (z2 - z1) * (x2 - x1);
     REAL areaZ = (x2 - x1) * (y2 - y1);
 
+    bool val = false;
     if (type.compare("isotropic") == 0)
-      return (    fabs(normalForce["x1"]/areaX - sigma) / sigma <= tol
-		  && fabs(normalForce["x2"]/areaX - sigma) / sigma <= tol
-		  && fabs(normalForce["y1"]/areaY - sigma) / sigma <= tol
-		  && fabs(normalForce["y2"]/areaY - sigma) / sigma <= tol
-		  && fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
-		  && fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol );
+      val = fabs(normalForce["x1"]/areaX - sigma) / sigma <= tol
+	 && fabs(normalForce["x2"]/areaX - sigma) / sigma <= tol
+	 && fabs(normalForce["y1"]/areaY - sigma) / sigma <= tol
+	 && fabs(normalForce["y2"]/areaY - sigma) / sigma <= tol
+	 && fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
+	 && fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol;
 
     else if (type.compare("oedometer") == 0)
-      return ( fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
-	       && fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol );
+      val = fabs(normalForce["z1"]/areaZ - sigma) / sigma <= tol
+	 && fabs(normalForce["z2"]/areaZ - sigma) / sigma <= tol;
 
     else if (type.compare("triaxial") == 0)
-      return true; // always near equilibrium
+      val = true; // always near equilibrium
 
     else if (type.compare("trueTriaxial") == 0)
-      return (    fabs(normalForce["x1"]/areaX - sigmaX) / sigmaX <= tol
-		  && fabs(normalForce["x2"]/areaX - sigmaX) / sigmaX <= tol
-		  && fabs(normalForce["y1"]/areaY - sigmaY) / sigmaY <= tol
-		  && fabs(normalForce["y2"]/areaY - sigmaY) / sigmaY <= tol
-		  && fabs(normalForce["z1"]/areaZ - sigma)  / sigma  <= tol
-		  && fabs(normalForce["z2"]/areaZ - sigma)  / sigma  <= tol );
+      val = fabs(normalForce["x1"]/areaX - sigmaX) / sigmaX <= tol
+	 && fabs(normalForce["x2"]/areaX - sigmaX) / sigmaX <= tol
+	 && fabs(normalForce["y1"]/areaY - sigmaY) / sigmaY <= tol
+	 && fabs(normalForce["y2"]/areaY - sigmaY) / sigmaY <= tol
+	 && fabs(normalForce["z1"]/areaZ - sigma)  / sigma  <= tol
+	 && fabs(normalForce["z2"]/areaZ - sigma)  / sigma  <= tol;
+
+    return val;
   }
 
 
