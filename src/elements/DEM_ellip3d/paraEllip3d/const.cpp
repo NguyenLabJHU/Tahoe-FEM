@@ -17,6 +17,10 @@ namespace dem {
   // random number seed (Not a constant)
   long idum       = -1;
 
+  // definition
+  std::default_random_engine engine;
+  std::uniform_real_distribution<double> ran11(0.0, 1.0);
+
   // output field width and precision
   const std::size_t OWID  = 15;   // output width
   const std::size_t OPREC = 6;    // output precision, number of digits after decimal dot

@@ -12,9 +12,9 @@ namespace dem {
   }
 
   Vec Cylinder::randomPoint() const{
-    REAL rand1 = ran(&idum);
-    REAL rand2 = ran(&idum);
-    REAL rand3 = ran(&idum);
+    REAL rand1 = ran11(engine);
+    REAL rand2 = ran11(engine);
+    REAL rand3 = ran11(engine);
     REAL z = (center.getZ() + height/2)*rand1 + (center.getZ() - height/2)*(1 - rand1);
     REAL theta = 2*Pi*rand2;
     REAL r = radius*rand3;

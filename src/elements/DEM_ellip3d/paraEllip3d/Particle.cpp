@@ -44,8 +44,8 @@ namespace dem {
     REAL l1, m1, n1, l2, m2, n2, l3, m3, n3;
     if (method == 0) {
       REAL r1, r2, theta, phi, x, y, z;
-      r1 = ran(&idum);
-      r2 = ran(&idum);
+      r1 = ran11(engine);
+      r2 = ran11(engine);
       theta = acos(1-2*r1); // polar angle; (2*r1-1) also works.
       phi   = 2*Pi*r2;      // azimuthal angle
       x = sin(theta) * cos(phi);
@@ -56,8 +56,8 @@ namespace dem {
       Vec v1(l1, m1, n1);
       Vec v2;
       do {
-	r1 = ran(&idum);
-	r2 = ran(&idum);
+	r1 = ran11(engine);
+	r2 = ran11(engine);
 	theta = acos(1-2*r1); // polar angle; (2*r1-1) also works.
 	phi   = 2*Pi*r2;      // azimuthal angle
 	x = sin(theta) * cos(phi);
@@ -79,9 +79,9 @@ namespace dem {
       // angle2: \varphi
       // angle3: \psi
       REAL angle1, angle2, angle3; // angle1=[0,Pi], angle2=[0,2*Pi), angle3=[0,2*Pi]
-      angle1 = acos(1-2*ran(&idum));
-      angle2 = ran(&idum)*Pi*2;
-      angle3 = ran(&idum)*Pi*2;
+      angle1 = acos(1-2*ran11(engine));
+      angle2 = ran11(engine)*Pi*2;
+      angle3 = ran11(engine)*Pi*2;
 
       REAL c1, c2, c3, s1, s2, s3;
       c1 = cos(angle1);
@@ -102,9 +102,9 @@ namespace dem {
       // angle2: \psi
       // angle3: \varphi
       REAL angle1, angle2, angle3; // angle1=[0,Pi], angle2=[0,2*Pi), angle3=[0,2*Pi]
-      angle1 = ran(&idum)*Pi;
-      angle2 = ran(&idum)*Pi*2;
-      angle3 = ran(&idum)*Pi*2;
+      angle1 = ran11(engine)*Pi;
+      angle2 = ran11(engine)*Pi*2;
+      angle3 = ran11(engine)*Pi*2;
 
       REAL c1, c2, c3, s1, s2, s3;
       c1 = cos(angle1);
@@ -161,7 +161,7 @@ namespace dem {
     :id(n), type(tp), received(bv), young(yng), poisson(poi), currPos(center)  {
     // generate particle size in terms of gradation distribution
     REAL sieveNum = grad.getSieveNum();
-    REAL randNum = ran(&idum);
+    REAL randNum = ran11(engine);
     for (std::size_t k = 0; k < sieveNum; ++k) {
       if ( randNum <= grad.getPercent()[sieveNum - 1 - k]) {
 	// select randomly from sizes that are smaller than grad.getSize()[sieveNum - 1 - k]
@@ -174,8 +174,8 @@ namespace dem {
     }
   
 #ifdef RANDOM_SHAPE
-    grad.setPtclRatioBA(ran(&idum));
-    grad.setPtclRatioCA(ran(&idum));
+    grad.setPtclRatioBA(ran11(engine));
+    grad.setPtclRatioCA(ran11(engine));
 #endif
   
     b = a * grad.getPtclRatioBA();

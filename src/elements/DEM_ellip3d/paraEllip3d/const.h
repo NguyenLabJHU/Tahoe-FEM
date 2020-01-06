@@ -4,6 +4,7 @@
 #include "realtypes.h"
 #include <cstddef>
 #include <fstream>
+#include <random>
 
 namespace dem { 
 
@@ -21,6 +22,10 @@ namespace dem {
 
   // random number seed (NOT a constant)
   extern long idum;
+
+  // declaration
+  extern std::default_random_engine engine;
+  extern std::uniform_real_distribution<double> ran11;
 
   // output field width and precision
   extern const std::size_t OWID;

@@ -1801,7 +1801,7 @@ namespace dem {
 
     REAL edge   = diaMax * sideGap;
     REAL offset = diaMax * 0.25; // +- makes 0.5
-    REAL perturb= 1.0E-6; // absolute perturbation of particle centroids: 1.0E-6 * ran(&idum);
+    REAL perturb= 1.0E-6; // absolute perturbation of particle centroids: 1.0E-6 * ran11(engine);
 
     REAL x1 = allContainer.getMinCorner().getX() + edge;
     REAL y1 = allContainer.getMinCorner().getY() + edge;
@@ -1840,7 +1840,7 @@ namespace dem {
 	  for (x = x1; x - x2 < EPS; x += diaMax * (diaRelax + 1)) {
 	    for (y = y1; y - y2 < EPS; y += diaMax * (diaRelax + 1)) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + offset + perturb*ran(&idum), y + offset + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrPos(Vec(x + offset + perturb*ran11(engine), y + offset + perturb*ran11(engine), z + perturb*ran11(engine)));
 	      if (FREE_FALL_HEIGHT == 0) 
 		newptcl->setCurrVeloc(Vec(0, 0, 0));
 	      else
@@ -1858,7 +1858,7 @@ namespace dem {
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrPos(Vec(x + perturb*ran11(engine), y + perturb*ran11(engine), z + perturb*ran11(engine)));
 	      if (FREE_FALL_HEIGHT == 0) 
 		newptcl->setCurrVeloc(Vec(0, 0, 0));
 	      else
@@ -1871,7 +1871,7 @@ namespace dem {
 	  for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
 	    for (y = y0 + diaMax/2 + fabs(offset) + offset; y - (y2 + ref(offset)) < EPS; y += diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrPos(Vec(x + perturb*ran11(engine), y + perturb*ran11(engine), z + perturb*ran11(engine)));
 	      if (FREE_FALL_HEIGHT == 0) 
 		newptcl->setCurrVeloc(Vec(0, 0, 0));
 	      else
@@ -1884,7 +1884,7 @@ namespace dem {
 	  for (x = x0 + diaMax/2 + fabs(offset) + offset; x - (x2 + ref(offset)) < EPS; x += diaMax) {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrPos(Vec(x + perturb*ran11(engine), y + perturb*ran11(engine), z + perturb*ran11(engine)));
 	      if (FREE_FALL_HEIGHT == 0) 
 		newptcl->setCurrVeloc(Vec(0, 0, 0));
 	      else
@@ -1897,7 +1897,7 @@ namespace dem {
 	  for (x = x0 - diaMax/2 - fabs(offset) - offset; x - x1 > EPS; x -= diaMax) {
 	    for (y = y0 - diaMax/2 - fabs(offset) - offset; y - y1 > EPS; y -= diaMax) {
 	      newptcl = new Particle(particleNum+1, 0, false, Vec(x,y,z), gradation, young, poisson);
-	      newptcl->setCurrPos(Vec(x + perturb*ran(&idum), y + perturb*ran(&idum), z + perturb*ran(&idum)));
+	      newptcl->setCurrPos(Vec(x + perturb*ran11(engine), y + perturb*ran11(engine), z + perturb*ran11(engine)));
 	      if (FREE_FALL_HEIGHT == 0) 
 		newptcl->setCurrVeloc(Vec(0, 0, 0));
 	      else
@@ -2177,7 +2177,7 @@ namespace dem {
 	foundParticle.push_back(inputParticle[pt]);
     }
   }
-
+  
 
   void Assembly::findBdryParticle(std::vector<Particle *> &foundParticle) {
     // container: last update in commuParticle(); next update in migrateParticle() 

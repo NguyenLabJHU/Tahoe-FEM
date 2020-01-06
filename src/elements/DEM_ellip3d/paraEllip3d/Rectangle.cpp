@@ -11,9 +11,9 @@ namespace dem {
   }
   
   Vec Rectangle::randomPoint() const {
-    REAL rand1 = ran(&idum);
-    REAL rand2 = ran(&idum);
-    REAL rand3 = ran(&idum);
+    REAL rand1 = ran11(engine);
+    REAL rand2 = ran11(engine);
+    REAL rand3 = ran11(engine);
     REAL x = rand1*(center.getX() - dimX/2) + (1-rand1)*(center.getX() + dimX/2);
     REAL y = rand2*(center.getY() - dimY/2) + (1-rand2)*(center.getY() + dimY/2);
     REAL z = rand3*(center.getZ() - dimZ/2) + (1-rand3)*(center.getZ() + dimZ/2);
