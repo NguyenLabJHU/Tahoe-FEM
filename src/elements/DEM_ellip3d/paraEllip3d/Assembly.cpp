@@ -2526,7 +2526,7 @@ namespace dem {
   }
   */
 
-
+  /*
   // version 2: copy allParticleVec to allParticleList for efficient erase after search.
   void Assembly::scatterParticle() {
     // partition particles and send to each process
@@ -2575,6 +2575,62 @@ namespace dem {
     // broadcast necessary info
     broadcastInfo();
   }
+  */
+
+
+  // version 3: use BigO(1) search algorithm to determine to which process a particle should be sent.
+  void Assembly::scatterParticle() {
+    // partition particles and send to each process
+    if (mpi.mpiRank == 0) { // process 0
+
+      // grid initialized in readBoundary()
+      Vec v1 = grid.getMinCorner();
+      Vec v2 = grid.getMaxCorner();
+      Vec vspan = v2 - v1;
+
+      // particle partition 
+      std::vector<std::vector<Particle *>> particleByProcess(mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ); // -1? no need.
+      std::vector<Particle *>::const_iterator  it;
+      for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)  {
+	int ix = ((*it)->getCurrPos().getX() - v1.getX()) / vspan.getX() * mpi.mpiProcX;
+	int iy = ((*it)->getCurrPos().getY() - v1.getY()) / vspan.getY() * mpi.mpiProcY;
+	int iz = ((*it)->getCurrPos().getZ() - v1.getZ()) / vspan.getZ() * mpi.mpiProcZ;
+	int rank = ix * mpi.mpiProcY * mpi.mpiProcZ + iy * mpi.mpiProcZ + iz;
+	particleByProcess[rank].push_back(*it);
+      }
+
+      debugInf << std::setw(OWID) << "process ID" << std::setw(OWID) << "particle #" << std::endl;
+      for (int i = 0; i < particleByProcess.size(); ++i)
+	debugInf << std::setw(OWID) << i << std::setw(OWID) << particleByProcess[i].size() << std::endl;
+      debugInf << std::endl;
+
+      // for root process only
+      particleVec.resize(particleByProcess[0].size());
+      for (int i = 0; i < particleVec.size(); ++i)
+	particleVec[i] = new Particle(*particleByProcess[0][i]); // default synthesized copy constructor
+      // now particleVec do not share memeory with allParticleVec in root process.
+
+      // do not send to root process itself
+      boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
+      for (int iRank = mpi.mpiSize - 1; iRank >= 1; --iRank) // until 1, not 0
+	reqs[iRank - 1] = mpi.boostWorld.isend(iRank, mpi.mpiTag, particleByProcess[iRank]); // non-blocking send
+
+      boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
+      delete [] reqs;
+      particleByProcess.clear();
+      particleByProcess.shrink_to_fit();
+
+    } else { // other processes except 0
+      mpi.boostWorld.recv(0, mpi.mpiTag, particleVec);
+    }
+
+    // content of allParticleVec may need to be printed, so do not clear it. 
+    //if (mpi.mpiRank == 0) releaseGatheredParticle();
+
+    // broadcast necessary info
+    broadcastInfo();
+  }
+
 
   void Assembly::scatterParticleByCFD() {
     // partition particles and send to each process
