@@ -22,6 +22,7 @@
 #include "Gas.h"
 #include <cstddef>
 #include <map>
+#include <list>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -558,6 +559,10 @@ namespace dem {
 				 const std::vector<Particle *> &allParticle,
 				 std::vector<Particle *> &foundParticle);
 
+    void findParticleInRectangleListErase(const Rectangle &container,
+					  std::list<Particle *> &inputParticle,
+					  std::vector<Particle *> &foundParticle);
+    
     void findBdryParticle(std::vector<Particle *> &foundParticle);
     void findSixBdryParticle(std::vector<Particle *> &foundParticle);
     void findEightVerticeParticle(std::vector<Particle *> &foundParticle);

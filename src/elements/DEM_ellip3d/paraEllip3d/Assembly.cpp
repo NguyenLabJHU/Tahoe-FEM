@@ -2188,6 +2188,35 @@ namespace dem {
   }
 
 
+  void Assembly::findParticleInRectangleListErase(const Rectangle &container,
+						  std::list<Particle *> &inputParticle,
+						  std::vector<Particle *> &foundParticle) {
+    Vec  v1 = container.getMinCorner();
+    Vec  v2 = container.getMaxCorner();
+    REAL x1 = v1.getX();
+    REAL y1 = v1.getY();
+    REAL z1 = v1.getZ();
+    REAL x2 = v2.getX();
+    REAL y2 = v2.getY();
+    REAL z2 = v2.getZ();
+
+    std::list<Particle *>::iterator itr;
+    for (itr = inputParticle.begin(); itr != inputParticle.end(); ) {
+      Vec center = (*itr)->getCurrPos();
+      // it is critical to use EPS, note it makes [}, left-closed right-open interval.
+      // i.e, a particle located on a face belongs to the "right" cell.
+      if (center.getX() - x1 >= -EPS && center.getX() - x2 < -EPS &&
+	  center.getY() - y1 >= -EPS && center.getY() - y2 < -EPS &&
+	  center.getZ() - z1 >= -EPS && center.getZ() - z2 < -EPS) {
+	foundParticle.push_back(*itr);
+	itr = inputParticle.erase(itr); 
+      }
+      else
+	++itr;
+    }
+  }
+
+
   void Assembly::findBdryParticle(std::vector<Particle *> &foundParticle) {
     // container: last update in commuParticle(); next update in migrateParticle() 
     Vec v1 = container.getMinCorner();
@@ -2449,6 +2478,8 @@ namespace dem {
   }
 
 
+  /*
+  // version 1: using allParticleVec to store all particle info.
   void Assembly::scatterParticle() {
     // partition particles and send to each process
     if (mpi.mpiRank == 0) { // process 0
@@ -2493,7 +2524,57 @@ namespace dem {
     // broadcast necessary info
     broadcastInfo();
   }
+  */
 
+
+  // version 2: copy allParticleVec to allParticleList for efficient erase after search.
+  void Assembly::scatterParticle() {
+    // partition particles and send to each process
+    if (mpi.mpiRank == 0) { // process 0
+
+      // grid initialized in readBoundary()
+      Vec v1 = grid.getMinCorner();
+      Vec v2 = grid.getMaxCorner();
+      Vec vspan = v2 - v1;
+
+      std::list<Particle *> allParticleList(allParticleVec.begin(), allParticleVec.end());
+      boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
+      std::vector<Particle *> tmpParticleVec;
+      for (int iRank = mpi.mpiSize - 1; iRank >= 0; --iRank) {
+	tmpParticleVec.clear(); // do not release memory!
+	int ndim = 3;
+	int coords[3];
+	MPI_Cart_coords(mpi.cartComm, iRank, ndim, coords);
+	Rectangle container(v1.getX() + vspan.getX() / mpi.mpiProcX * coords[0],
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * coords[1],
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * coords[2],
+			    v1.getX() + vspan.getX() / mpi.mpiProcX * (coords[0] + 1),
+			    v1.getY() + vspan.getY() / mpi.mpiProcY * (coords[1] + 1),
+			    v1.getZ() + vspan.getZ() / mpi.mpiProcZ * (coords[2] + 1));
+	findParticleInRectangleListErase(container, allParticleList, tmpParticleVec);
+	if (iRank != 0)
+	  reqs[iRank - 1] = mpi.boostWorld.isend(iRank, mpi.mpiTag, tmpParticleVec); // non-blocking send
+	if (iRank == 0) {
+	  particleVec.resize(tmpParticleVec.size());
+	  for (int i = 0; i < particleVec.size(); ++i)
+	    particleVec[i] = new Particle(*tmpParticleVec[i]); // default synthesized copy constructor
+	} // now particleVec do not share memeory with allParticleVec
+      }
+      boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
+      delete [] reqs;
+
+      allParticleList.clear();
+
+    } else { // other processes except 0
+      mpi.boostWorld.recv(0, mpi.mpiTag, particleVec);
+    }
+
+    // content of allParticleVec may need to be printed, so do not clear it. 
+    //if (mpi.mpiRank == 0) releaseGatheredParticle();
+
+    // broadcast necessary info
+    broadcastInfo();
+  }
 
   void Assembly::scatterParticleByCFD() {
     // partition particles and send to each process
