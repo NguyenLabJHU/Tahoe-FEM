@@ -33,21 +33,23 @@ endif
 ifeq ($(PLATFORM), soilblast)
  ifeq ($(COMPILERS), gcc-openmpi)
 #module load openmpi-3.0.0-gcc-6.4.0
+#module load openmpi-4.0.2-gcc-9.2.0
   #BOOST_ROOT = default
   #BOOST_ROOT = /usr/local/boost-1.53.0-openmpi-1.6.4-gcc-4.6.4
-  BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0
-  #BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-5.5.0
-  #BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-1.10.6-gcc-4.9.4
+  #BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0
+  BOOST_ROOT = /usr/local/boost-1.70.0-openmpi-4.0.2-gcc-9.2.0
   ifeq ($(PAPI), yes)
    #PAPI_ROOT = /usr/local/papi-5.4.1-openmpi-1.6.4-gcc-4.6.4
-   PAPI_ROOT = /usr/local/papi-5.5.1-openmpi-3.0.0-gcc-6.4.0
+   #PAPI_ROOT = /usr/local/papi-5.5.1-openmpi-3.0.0-gcc-6.4.0
+   PAPI_ROOT = /usr/local/papi-5.7.0-openmpi-4.0.2-gcc-9.2.0
   endif
   ifeq ($(EIGEN), yes)
    EIGEN_ROOT = /usr/local/eigen-3.3.4
   endif
   ifeq ($(QHULL), yes)
    #QHULL_ROOT = /usr/local/qhull-2015.2-gcc-4.6.4
-   QHULL_ROOT = /usr/local/qhull-2015.2-gcc-6.4.0
+   #QHULL_ROOT = /usr/local/qhull-2015.2-gcc-6.4.0
+   QHULL_ROOT = /usr/local/qhull-2015.2-gcc-9.2.0
   endif
  endif
  ifeq ($(COMPILERS), intel-intel)
