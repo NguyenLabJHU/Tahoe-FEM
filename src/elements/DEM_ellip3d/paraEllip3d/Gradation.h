@@ -33,10 +33,12 @@ namespace dem {
     REAL getPtclMaxRadius() const {return size[0];}
     REAL getPtclMeanRadius() const {return size[sieveNum/2];}
     REAL getPtclMinRadius(const int i = 0) const {
+      REAL val;
       if (i == 0)
-	return size[sieveNum-1];
+	val = size[sieveNum-1];
       else if (i == 1)
-	return size[sieveNum-1] * ratioCA;
+	val = size[sieveNum-1] * ratioCA;
+      return val;
     }
 
   private:
