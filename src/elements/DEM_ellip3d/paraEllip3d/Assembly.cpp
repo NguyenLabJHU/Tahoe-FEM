@@ -350,8 +350,9 @@ namespace dem {
     scatterParticle(); // scatter particles only once
 #ifdef MODULE_TIME
     pretime2=MPI_Wtime();
-    debugInf << std::setw(OWID) << "readFile" << std::setw(OWID) << pretime1-pretime0
-	     << std::setw(OWID) << "scatterPtcl" << std::setw(OWID) << pretime2-pretime1 << std::endl;
+    if (mpi.mpiRank == 0)
+      debugInf << std::setw(OWID) << "readFile" << std::setw(OWID) << pretime1-pretime0
+	       << std::setw(OWID) << "scatterPtcl" << std::setw(OWID) << pretime2-pretime1 << std::endl;
 #endif
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
@@ -374,6 +375,7 @@ namespace dem {
       plotGrid((combineString("deposit_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("deposit_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("deposit_bdrycntc_", iterSnap -1, 3).c_str());
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "gridT" << std::setw(OWID) << "migraT"
@@ -609,6 +611,7 @@ namespace dem {
       printBdryContact(combineString("isotropic_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("isotropic_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
@@ -800,6 +803,7 @@ namespace dem {
       printBdryContact(combineString("oedometer_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("oedometer_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
@@ -946,6 +950,7 @@ namespace dem {
       printBdryContact(combineString("triaxial_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("triaxial_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
@@ -1070,6 +1075,7 @@ namespace dem {
       printBdryContact(combineString("plnstrn_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("plnstrn_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
@@ -1215,6 +1221,7 @@ namespace dem {
       printBdryContact(combineString("trueTriaxial_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("trueTriaxial_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
@@ -1387,6 +1394,7 @@ namespace dem {
       printBdryContact(combineString("oedometerImpact_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("oedometerImpact_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
     }
     if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
@@ -1651,6 +1659,7 @@ namespace dem {
       plotGrid((combineString("couple_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
       printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
+      releaseGatheredParticle(); // release memory after printing
     }
     /*pre06*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
 
@@ -2177,7 +2186,7 @@ namespace dem {
 	foundParticle.push_back(inputParticle[pt]);
     }
   }
-  
+
 
   void Assembly::findBdryParticle(std::vector<Particle *> &foundParticle) {
     // container: last update in commuParticle(); next update in migrateParticle() 
