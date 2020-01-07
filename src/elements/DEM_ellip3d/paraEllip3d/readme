@@ -3,22 +3,26 @@ How to use paraEllip3d
 1. compile
 
    1) setup compile environment, e.g.:
-      module load openmpi-3.0.0-gcc-6.4.0
+      module load openmpi-4.0.2-gcc-9.2.0
 
    2) select a platform and corresponding compilers, setup paths to 
       boost and other libraries in makefile, e.g.:
-      BOOST_ROOT = /usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0
-      PAPI_ROOT  = /usr/local/papi-5.5.1-openmpi-3.0.0-gcc-6.4.0      
+      BOOST_ROOT = /usr/local/boost-1.70.0-openmpi-4.0.2-gcc-9.2.0
+      PAPI_ROOT = /usr/local/papi-5.7.0-openmpi-4.0.2-gcc-9.2.0      
       EIGEN_ROOT = /usr/local/eigen-3.3.4      
-      QHULL_ROOT = /usr/local/qhull-2015.2-gcc-6.4.0
+      QHULL_ROOT = /usr/local/qhull-2015.2-gcc-9.2.0
   
-      Note: run environment must conform, for example, 
-            Torque/PBS qsub script should have the line:
-            module load openmpi-3.0.0-gcc-6.4.0
+      Note: 
+      Execution environment must conform, for example, Torque/PBS script 
+      should have the modules and LD_LIBRARY_PATH:
+      module load openmpi-4.0.2-gcc-9.2.0
+      ...
+      export LD_LIBRARY_PATH=/usr/local/boost-1.70.0-openmpi-4.0.2-gcc-9.2.0/lib:$LD_LIBRARY_PATH
+      export LD_LIBRARY_PATH=/usr/local/qhull-2015.2-gcc-9.2.0/lib:$LD_LIBRARY_PATH
 
    3) make
 
-   4) copy paraEllip3d to your simulation directory.
+   4) copy paraEllip3d to the simulation directory.
 
 2. run
 
@@ -92,10 +96,10 @@ How to use paraEllip3d
 
 module purge
 #module load openmpi-x86_64
-module load openmpi-3.0.0-gcc-6.4.0
+module load openmpi-4.0.2-gcc-9.2.0
 
-export LD_LIBRARY_PATH=/usr/local/boost-1.65.1-openmpi-3.0.0-gcc-6.4.0/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/local/qhull-2015.2-gcc-6.4.0/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/boost-1.70.0-openmpi-4.0.2-gcc-9.2.0/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/qhull-2015.2-gcc-9.2.0/lib:$LD_LIBRARY_PATH
 
 cd $PBS_O_WORKDIR
 mpirun -np 8 ./paraEllip3d input.txt
@@ -111,20 +115,22 @@ mpirun -np 8 ./paraEllip3d input.txt
 #PBS -N run
 
 ## required
-#PBS -l select=1:ncpus=40:mpiprocs=8
-#PBS -l walltime=24:00:00
-#PBS -q standard
-#PBS -A ONRDC34502393
+#PBS -l select=1600:ncpus=40:mpiprocs=40
+#PBS -l walltime=48:00:00
+##PBS -q standard
+##PBS -A ONRDC34502393
+#PBS -q frontier
+#PBS -A ARLAP01001YF6
 
 ## load modules
-#default compiler/intel/2017.1.132   
-#default mpi/sgimpt/2.15
+module swap compiler/intel compiler/intel/18.0.1.163
+module swap mpi/sgimpt mpi/sgimpt/2.17
 
 ## cd to work dir
 cd $PBS_O_WORKDIR
 
 ## export additional environment variables
-export LD_LIBRARY_PATH=/p/home/yanb/local/boost-1.65.1_mpt-2.15_intel-2017.1.132/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/p/home/yanb/local/qhull-2015.2-intel-2017.1.132/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/p/home/yanb/local/boost-1.65.1_mpt-2.17_intel-18.0.1.163/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/p/home/yanb/local/qhull-2015.2-intel-18.0.1.163/lib:$LD_LIBRARY_PATH
 
-mpiexec_mpt -np 8 ./paraEllip3d input.txt
+mpiexec_mpt -np 64000 ./paraEllip3d input.txt
