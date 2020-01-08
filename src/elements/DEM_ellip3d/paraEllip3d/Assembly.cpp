@@ -61,7 +61,7 @@
 //#define DEM_PROFILE
 #define CFD_PROFILE
 //#define BIGON
-#define TOTALMOMENT
+//#define TOTALMOMENT
 
 #define FREE_FALL_HEIGHT 1
 // 0: no initial velocity
