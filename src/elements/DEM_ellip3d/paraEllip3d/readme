@@ -104,13 +104,14 @@ export LD_LIBRARY_PATH=/usr/local/qhull-2015.2-gcc-9.2.0/lib:$LD_LIBRARY_PATH
 cd $PBS_O_WORKDIR
 mpirun -np 8 ./paraEllip3d input.txt
     
-   2) On DoD supercomputers, e.g., centennial.arl.hpc.mil
+   2) On DoD supercomputers
+An example for centennial.arl.hpc.mil:
 
 #!/bin/bash
 
 ## optional
 #PBS -m abe
-#PBS -M your_email_address
+#PBS -M beichuan.yan@colorado.edu
 #PBS -j oe
 #PBS -N run
 
@@ -134,3 +135,34 @@ export LD_LIBRARY_PATH=/p/home/yanb/local/boost-1.65.1_mpt-2.17_intel-18.0.1.163
 export LD_LIBRARY_PATH=/p/home/yanb/local/qhull-2015.2-intel-18.0.1.163/lib:$LD_LIBRARY_PATH
 
 mpiexec_mpt -np 64000 ./paraEllip3d input.txt
+
+An example for onyx.erdc.hpc.mil:
+#!/bin/bash
+
+## optional
+#PBS -m abe
+#PBS -M beichuan.yan@colorado.edu
+#PBS -j oe
+#PBS -N run
+
+## required
+#PBS -l select=1936:ncpus=44:mpiprocs=44
+#PBS -l walltime=24:00:00
+##PBS -q standard
+##PBS -A ONRDC34502393
+#PBS -q frontier
+#PBS -A ARLAP01001YF6
+
+## load modules
+module swap PrgEnv-cray PrgEnv-intel/6.0.4
+module swap intel intel/19.0.1.144
+module swap cray-mpich cray-mpich/7.7.8
+
+## cd to work dir
+cd $PBS_O_WORKDIR
+
+## export additional environment variables
+export LD_LIBRARY_PATH=/p/home/yanb/local/boost-1.65.1_cray-mpich7.7.8_intel19.0.1.144/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/p/home/yanb/local/qhull-2015.2-intel19.0.1.144/lib:$LD_LIBRARY_PATH
+
+aprun -n 85184 -N 44 ./paraEllip3d input.txt
