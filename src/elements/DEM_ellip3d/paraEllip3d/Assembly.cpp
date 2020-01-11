@@ -61,6 +61,10 @@
 //#define DEM_PROFILE
 #define CFD_PROFILE
 //#define BIGON
+
+//To use TOTALMOMENT in printParticleByRoot(), the following combination must be used:
+// (1) gatherParticle()
+// (2) printParticleByRoot()
 //#define TOTALMOMENT
 
 #define FREE_FALL_HEIGHT 1
@@ -373,7 +377,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("deposit_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("deposit_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("deposit_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("deposit_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("deposit_bdrycntc_", iterSnap -1, 3).c_str());
       releaseGatheredParticle(); // release memory after printing
     }
@@ -459,7 +463,7 @@ namespace dem {
 #ifdef MODULE_TIME
 	if (toCheckTime) time1 = MPI_Wtime();
 #endif
-	gatherParticle();
+	//gatherParticle();
 	gatherBdryContact();
 	gatherEnergy(); 
 #ifdef MODULE_TIME
@@ -469,7 +473,6 @@ namespace dem {
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("deposit_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("deposit_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("deposit_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("deposit_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
 #ifdef STRESS_STRAIN
@@ -477,6 +480,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("deposit_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("deposit_particle_", iterSnap, 3).c_str());
 	printContact(combineString("deposit_contact_", iterSnap, 3).c_str());
       
 	/**/timeCount = 0;
@@ -544,8 +548,8 @@ namespace dem {
 	}
       }
     
-      printParticle("cavity_particle_ini", cavityParticleVec);
-      printParticle("expand_particle_ini");
+      printParticleByRoot("cavity_particle_ini", cavityParticleVec);
+      printParticleByRoot("expand_particle_ini");
     }
   
     deposit(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(),
@@ -607,7 +611,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("isotropic_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("isotropic_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("isotropic_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("isotropic_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("isotropic_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("isotropic_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
@@ -645,13 +649,12 @@ namespace dem {
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
-	gatherParticle();
+	//gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("isotropic_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("isotropic_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("isotropic_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("isotropic_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("isotropic_boundary_", iterSnap, 3).c_str());
 	  printCompressProg(progressInf, distX, distY, distZ);
@@ -660,6 +663,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("isotropic_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("isotropic_particle_", iterSnap, 3).c_str());
 	printContact(combineString("isotropic_contact_", iterSnap, 3).c_str());      
 	++iterSnap;
       }
@@ -680,7 +684,6 @@ namespace dem {
 	  gatherGranularStress("isotropic_tensor_end");
 #endif
 	  if (mpi.mpiRank == 0) {
-	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
@@ -689,6 +692,7 @@ namespace dem {
 	    printGranularStressOrdered("isotropic_stress_data_end.dat");
 #endif
 	  }
+	  printParticle("isotropic_particle_end");
 	  releaseRecvParticle(); break;
 	}
       } else if (isotropicType == 2) {
@@ -701,7 +705,6 @@ namespace dem {
 	  gatherGranularStress("isotropic_tensor_end");
 #endif
 	  if (mpi.mpiRank == 0) {
-	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
@@ -710,6 +713,7 @@ namespace dem {
 	    printGranularStressOrdered("isotropic_stress_data_end.dat");
 #endif
 	  }
+	  printParticle("isotropic_particle_end");
 	  releaseRecvParticle(); break;
 	}
       }
@@ -725,11 +729,11 @@ namespace dem {
 	}
 	if (tractionErrorTol(sigmaEnd, "isotropic")) {
 	  if (mpi.mpiRank == 0) {
-	    printParticle("isotropic_particle_end");
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
+	  printParticle("isotropic_particle_end");
 	  releaseRecvParticle(); break;
 	}
       }
@@ -799,7 +803,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("oedometer_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("oedometer_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("oedometer_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("oedometer_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("oedometer_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("oedometer_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
@@ -837,13 +841,12 @@ namespace dem {
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
-	gatherParticle();
+	//gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("oedometer_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("oedometer_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("oedometer_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("oedometer_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("oedometer_boundary_", iterSnap, 3).c_str());
 	  printCompressProg(progressInf, distX, distY, distZ);
@@ -852,6 +855,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("oedometer_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("oedometer_particle_", iterSnap, 3).c_str());
 	printContact(combineString("oedometer_contact_", iterSnap, 3).c_str());      
 	++iterSnap;
       }
@@ -873,11 +877,11 @@ namespace dem {
 	}
 	if (tractionErrorTol(sigmaEnd, "oedometer")) {
 	  if (mpi.mpiRank == 0) {
-	    printParticle("oedometer_particle_end");
 	    printBdryContact("oedometer_bdrycntc_end");
 	    printBoundary("oedometer_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
+	  printParticle("oedometer_particle_end");
 	  releaseRecvParticle(); break;
 	}
       } else if (oedometerType == 2) {
@@ -891,11 +895,11 @@ namespace dem {
 	}
 	if (tractionErrorTol(sigmaEnd, "oedometer")) {
 	  if (mpi.mpiRank == 0) {
-	    printParticle("oedometer_particle_end");
 	    printBdryContact("oedometer_bdrycntc_end");
 	    printBoundary("oedometer_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
+	  printParticle("oedometer_particle_end");
 	  releaseRecvParticle(); break;
 	}
       }
@@ -946,7 +950,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("triaxial_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("triaxial_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("triaxial_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("triaxial_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("triaxial_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("triaxial_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
@@ -985,13 +989,12 @@ namespace dem {
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
-	gatherParticle();
+	//gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("triaxial_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("triaxial_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("triaxial_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("triaxial_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("triaxial_boundary_", iterSnap, 3).c_str());
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
@@ -1000,6 +1003,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("triaxial_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("triaxial_particle_", iterSnap, 3).c_str());
 	printContact(combineString("triaxial_contact_", iterSnap, 3).c_str());      
 	++iterSnap;
       }
@@ -1013,7 +1017,6 @@ namespace dem {
 	gatherGranularStress("triaxial_tensor_end");
 #endif
 	if (mpi.mpiRank == 0) {
-	  printParticle("triaxial_particle_end");
 	  printBdryContact("triaxial_bdrycntc_end");
 	  printBoundary("triaxial_boundary_end");
 	  printCompressProg(progressInf, distX, distY, distZ);
@@ -1022,6 +1025,7 @@ namespace dem {
 	  printGranularStressOrdered("triaxial_stress_data_end.dat");
 #endif
 	}
+	printParticle("triaxial_particle_end");
       }
       // end of print final state
 
@@ -1071,7 +1075,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("plnstrn_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("plnstrn_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("plnstrn_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("plnstrn_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("plnstrn_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("plnstrn_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
@@ -1110,13 +1114,12 @@ namespace dem {
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
-	gatherParticle();
+	//gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("plnstrn_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("plnstrn_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("plnstrn_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("plnstrn_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("plnstrn_boundary_", iterSnap, 3).c_str());
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
@@ -1125,6 +1128,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("plnstrn_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("plnstrn_particle_", iterSnap, 3).c_str());
 	printContact(combineString("plnstrn_contact_", iterSnap, 3).c_str());      
 	++iterSnap;
       }
@@ -1135,11 +1139,11 @@ namespace dem {
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
 	if (mpi.mpiRank == 0) {
-	  printParticle("plnstrn_particle_end");
 	  printBdryContact("plnstrn_bdrycntc_end");
 	  printBoundary("plnstrn_boundary_end");
 	  printCompressProg(progressInf, distX, distY, distZ);
 	}
+	printParticle("plnstrn_particle_end");
       }
       // end of print final state
 
@@ -1217,7 +1221,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("trueTriaxial_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("trueTriaxial_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("trueTriaxial_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("trueTriaxial_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("trueTriaxial_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
@@ -1255,13 +1259,12 @@ namespace dem {
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
-	gatherParticle();
+	//gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("trueTriaxial_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("trueTriaxial_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("trueTriaxial_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("trueTriaxial_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("trueTriaxial_boundary_", iterSnap, 3).c_str());
 	  printCompressProg(progressInf, distX, distY, distZ);
@@ -1270,6 +1273,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("trueTriaxial_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("trueTriaxial_particle_", iterSnap, 3).c_str());
 	printContact(combineString("trueTriaxial_contact_", iterSnap, 3).c_str());      
 	++iterSnap;
       }
@@ -1293,11 +1297,11 @@ namespace dem {
 	}
 	if (tractionErrorTol(sigmaEndZ, "trueTriaxial", sigmaEndX, sigmaEndY)) {
 	  if (mpi.mpiRank == 0) {
-	    printParticle("trueTriaxial_particle_end");
 	    printBdryContact("trueTriaxial_bdrycntc_end");
 	    printBoundary("trueTriaxial_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
+	  printParticle("trueTriaxial_particle_end");
 	  releaseRecvParticle(); break;
 	}
       } else if (trueTriaxialType == 2) {
@@ -1323,11 +1327,11 @@ namespace dem {
 	}
 	if (tractionErrorTol(sigmaZ, "trueTriaxial", sigmaX, sigmaY)) {
 	  if (mpi.mpiRank == 0) {
-	    printParticle("trueTriaxial_particle_end");
 	    printBdryContact("trueTriaxial_bdrycntc_end");
 	    printBoundary("trueTriaxial_boundary_end");
 	    printCompressProg(balancedInf, distX, distY, distZ);
 	  }
+	  printParticle("trueTriaxial_particle_end");
 	  releaseRecvParticle(); break;
 	}
       }
@@ -1390,7 +1394,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("oedometerImpact_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("oedometerImpact_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("oedometerImpact_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("oedometerImpact_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("oedometerImpact_bdrycntc_", iterSnap -1, 3).c_str());
       printBoundary(combineString("oedometerImpact_boundary_", iterSnap - 1, 3).c_str());
       getStartDimension(distX, distY, distZ);
@@ -1429,13 +1433,12 @@ namespace dem {
    
       if (iteration % (netStep / netSnap) == 0) {
 	time1 = MPI_Wtime();
-	gatherParticle();
+	//gatherParticle();
 	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("oedometerImpact_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("oedometerImpact_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("oedometerImpact_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("oedometerImpact_bdrycntc_", iterSnap, 3).c_str());
 	  printBoundary(combineString("oedometerImpact_boundary_", iterSnap, 3).c_str());
 	  //printCompressProg(progressInf, distX, distY, distZ); // redundant
@@ -1444,6 +1447,7 @@ namespace dem {
 	  printGranularStressOrdered((combineString("oedometerImpact_stress_data_", iterSnap, 3) + ".dat").c_str());
 #endif
 	}
+	printParticle(combineString("oedometerImpact_particle_", iterSnap, 3).c_str());
 	printContact(combineString("oedometerImpact_contact_", iterSnap, 3).c_str());      
 	++iterSnap;
       }
@@ -1457,7 +1461,6 @@ namespace dem {
 	gatherGranularStress("oedometerImpact_tensor_end");
 #endif
 	if (mpi.mpiRank == 0) {
-	  printParticle("oedometerImpact_particle_end");
 	  printBdryContact("oedometerImpact_bdrycntc_end");
 	  printBoundary("oedometerImpact_boundary_end");
 	  printCompressProg(progressInf, distX, distY, distZ);
@@ -1466,6 +1469,7 @@ namespace dem {
 	  printGranularStressOrdered("oedometerImpact_stress_data_end.dat");
 #endif
 	}
+	printParticle("oedometerImpact_particle_end");
       }
       // end of print final state
 
@@ -1660,7 +1664,7 @@ namespace dem {
     if (mpi.mpiRank == 0) {
       plotBoundary((combineString("couple_bdryplot_", iterSnap - 1, 3) + ".dat").c_str());
       plotGrid((combineString("couple_gridplot_", iterSnap - 1, 3) + ".dat").c_str());
-      printParticle(combineString("couple_particle_", iterSnap - 1, 3).c_str());
+      printParticleByRoot(combineString("couple_particle_", iterSnap - 1, 3).c_str());
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
       releaseGatheredParticle(); // release memory after printing
     }
@@ -1734,14 +1738,13 @@ namespace dem {
       timeCount += timeStep;
       //timeAccrued += timeStep; // note gas.runOneStep() changes timeStep/timeAccrued and print timeAccrued
       if (timeCount >= timeIncr/netSnap) { 
-	gatherParticle();
+	//gatherParticle();
 	gatherBdryContact();
 	gatherEnergy();
 
 	if (mpi.mpiRank == 0) {
 	  plotBoundary((combineString("couple_bdryplot_", iterSnap, 3) + ".dat").c_str());
 	  plotGrid((combineString("couple_gridplot_", iterSnap, 3) + ".dat").c_str());
-	  printParticle(combineString("couple_particle_", iterSnap, 3).c_str());
 	  printBdryContact(combineString("couple_bdrycntc_", iterSnap, 3).c_str());
 	  printDepositProg(progressInf);
 #ifdef STRESS_STRAIN
@@ -1750,6 +1753,7 @@ namespace dem {
 #endif
 	}
 	/*06*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	printParticle(combineString("couple_particle_", iterSnap, 3).c_str());
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
       
 	timeCount = 0;
@@ -2056,7 +2060,7 @@ namespace dem {
       } // end of genMode == 2
     } // end of particleLayers == 2
     
-    printParticle(genParticle); 
+    printParticleByRoot(genParticle); 
   }
   
 
@@ -2130,7 +2134,7 @@ namespace dem {
 	++itr;
     }
   
-    printParticle(trmParticle);
+    printParticleByRoot(trmParticle);
   }
 
 
@@ -2163,7 +2167,7 @@ namespace dem {
 	++itr;
     }
   
-    printParticle("remove_particle_end");
+    printParticleByRoot("remove_particle_end");
    }
   }
 
@@ -6141,9 +6145,128 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 
 
+  // parallel IO.
   void Assembly::printParticle(const char *str) const {
+    MPI_Status status;
+    MPI_File particleFile;
+    MPI_File_open(mpi.mpiWorld, const_cast<char *>(str), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &particleFile);
+    if(mpi.mpiRank == 0 && !particleFile) { debugInf << "stream error: printParticle" << std::endl; MPI_Abort(mpi.mpiWorld, -1);}
+
+    std::stringstream inf;
+    inf.setf(std::ios::scientific, std::ios::floatfield);
+    inf.precision(OPREC);
+
+    std::size_t allParticleNum = 0;
+    std::size_t particleNum = particleVec.size();
+    MPI_Reduce(&particleNum, &allParticleNum, 1, MPI_INT, MPI_SUM, 0, mpi.mpiWorld);
+
+    int length = 0;
+    if (mpi.mpiRank == 0) {
+      inf << std::setw(OWID) << allParticleNum << std::endl
+	  << std::setw(OWID) << "id"
+	  << std::setw(OWID) << "type"
+	  << std::setw(OWID) << "radius_a"
+	  << std::setw(OWID) << "radius_b"
+	  << std::setw(OWID) << "radius_c"
+	  << std::setw(OWID) << "position_x"
+	  << std::setw(OWID) << "position_y"
+	  << std::setw(OWID) << "position_z"
+	  << std::setw(OWID) << "axis_a_x"
+	  << std::setw(OWID) << "axis_a_y"
+	  << std::setw(OWID) << "axis_a_z"
+	  << std::setw(OWID) << "axis_b_x"
+	  << std::setw(OWID) << "axis_b_y"
+	  << std::setw(OWID) << "axis_b_z"
+	  << std::setw(OWID) << "axis_c_x"
+	  << std::setw(OWID) << "axis_c_y"
+	  << std::setw(OWID) << "axis_c_z"
+	  << std::setw(OWID) << "velocity_x"
+	  << std::setw(OWID) << "velocity_y"
+	  << std::setw(OWID) << "velocity_z"
+	  << std::setw(OWID) << "omga_x"
+	  << std::setw(OWID) << "omga_y"
+	  << std::setw(OWID) << "omga_z"
+	  << std::setw(OWID) << "force_x"
+	  << std::setw(OWID) << "force_y"
+	  << std::setw(OWID) << "force_z"
+	  << std::setw(OWID) << "moment_x"
+	  << std::setw(OWID) << "moment_y"
+	  << std::setw(OWID) << "moment_z"
+	  << std::endl;
+      length += OWID * 30 + 2;
+    }
+
+    Vec vObj;
+    for (std::vector<Particle *>::const_iterator it = particleVec.begin(); it != particleVec.end(); ++it) {
+      inf << std::setw(OWID) << (*it)->getId()
+	  << std::setw(OWID) << (*it)->getType()
+	  << std::setw(OWID) << (*it)->getA()
+	  << std::setw(OWID) << (*it)->getB()
+	  << std::setw(OWID) << (*it)->getC();
+    
+      vObj=(*it)->getCurrPos();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrDirecA();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrDirecB();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrDirecC();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrVeloc();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrOmga();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getForce();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getMoment();
+      inf << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ() << std::endl;
+    }
+    length += (OWID * 29 + 1) * particleVec.size();
+
+    if (mpi.mpiRank == mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ - 1) {
+      std::size_t sieveNum = gradation.getSieveNum();
+      std::vector<REAL> percent = gradation.getPercent();
+      std::vector<REAL> size    = gradation.getSize();
+      inf << std::endl << std::setw(OWID) << sieveNum << std::endl;
+      for (std::size_t i = 0; i < sieveNum; ++i)
+	inf << std::setw(OWID) << percent[i] << std::setw(OWID) << size[i] << std::endl;
+      inf << std::endl << std::setw(OWID) << gradation.getPtclRatioBA() << std::setw(OWID) << gradation.getPtclRatioCA() << std::endl;
+      length += 1 + OWID + 1 + sieveNum * (OWID *2 + 1) + 1 + OWID *2 + 1;
+    }
+
+    MPI_File_write_ordered(particleFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
+    MPI_File_close(&particleFile);
+
+  }
+
+
+  // printParticle in serial (need to gatherParticle through MPI first).
+  void Assembly::printParticleByRoot(const char *str) const {
     std::ofstream ofs(str);
-    if(!ofs) { debugInf << "stream error: printParticle" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printParticleByRoot" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     ofs << std::setw(OWID) << allParticleVec.size() << std::endl;
@@ -6267,9 +6390,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
   }
 
 
-  void Assembly::printParticle(const char *str, std::vector<Particle *>  &particleVec) const {
+  void Assembly::printParticleByRoot(const char *str, std::vector<Particle *>  &particleVec) const {
     std::ofstream ofs(str);
-    if(!ofs) { debugInf << "stream error: printParticle" << std::endl; exit(-1); }
+    if(!ofs) { debugInf << "stream error: printParticleByRoot" << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
     ofs << std::setw(OWID) << particleVec.size() << std::endl;

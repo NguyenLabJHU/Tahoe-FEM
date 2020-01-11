@@ -300,9 +300,10 @@ namespace dem {
     void gatherEnergy();
     
     void setTrimHistoryNum(std::size_t n) { trimHistoryNum = n; }
-    void printParticle(const char *str) const;       // print all particles
+    void printParticle(const char *str) const;       // print all particles by parallel IO
+    void printParticleByRoot(const char *str) const; // print all particles by root process
+    void printParticleByRoot(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info
     void printBdryContact(const char *str) const;    // print all boundary contact info
-    void printParticle(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info
     void printMemParticle(const char *str) const;    // print membrane particles
     void plotSpring(const char *str) const;          // print springs in Tecplot format
     void plotBoundary(const char *str) const;
