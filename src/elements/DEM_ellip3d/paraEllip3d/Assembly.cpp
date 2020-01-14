@@ -4182,7 +4182,7 @@ namespace dem {
     rbox.appendPoints(ptclCoordStream); 
 
     orgQhull::Qhull qhull;
-    qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; note qdelaunay == qhull d Qbb 
+    qhull.runQhull(rbox, "d Qbb Qt QJ i"); // "d Qbb Qt Qz Qs i"; qdelaunay == qhull d Qbb; QJ: joggles the input.
 
     std::stringstream tetraConnectStream;
     qhull.setOutputStream(&tetraConnectStream);
