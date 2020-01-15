@@ -481,8 +481,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("deposit_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("deposit_contact_", iterSnap, 3).c_str());
-      
+#endif      
 	/**/timeCount = 0;
 	++iterSnap;
       }
@@ -664,7 +665,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("isotropic_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("isotropic_contact_", iterSnap, 3).c_str());      
+#endif
 	++iterSnap;
       }
 
@@ -856,7 +859,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("oedometer_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("oedometer_contact_", iterSnap, 3).c_str());      
+#endif
 	++iterSnap;
       }
 
@@ -1004,7 +1009,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("triaxial_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("triaxial_contact_", iterSnap, 3).c_str());      
+#endif
 	++iterSnap;
       }
 
@@ -1129,7 +1136,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("plnstrn_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("plnstrn_contact_", iterSnap, 3).c_str());      
+#endif
 	++iterSnap;
       }
 
@@ -1274,7 +1283,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("trueTriaxial_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("trueTriaxial_contact_", iterSnap, 3).c_str());      
+#endif
 	++iterSnap;
       }
 
@@ -1448,7 +1459,9 @@ namespace dem {
 #endif
 	}
 	printParticle(combineString("oedometerImpact_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("oedometerImpact_contact_", iterSnap, 3).c_str());      
+#endif
 	++iterSnap;
       }
 
@@ -1754,7 +1767,9 @@ namespace dem {
 	}
 	/*06*/ gas.plot((combineString("couple_fluidplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
 	printParticle(combineString("couple_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
 	printContact(combineString("couple_contact_", iterSnap, 3).c_str());
+#endif
       
 	timeCount = 0;
 	++iterSnap;
@@ -4258,7 +4273,7 @@ namespace dem {
     rbox.appendPoints(ptclCoordStream); 
 
     orgQhull::Qhull qhull;
-    qhull.runQhull(rbox, "d Qbb Qt i"); // "d Qbb Qt Qz Qs i"; note qdelaunay == qhull d Qbb 
+    qhull.runQhull(rbox, "d Qbb Qt QJ i"); // "d Qbb Qt Qz Qs i"; qdelaunay == qhull d Qbb; QJ: joggles the input.
 
     std::stringstream tetraConnectStream;
     qhull.setOutputStream(&tetraConnectStream);

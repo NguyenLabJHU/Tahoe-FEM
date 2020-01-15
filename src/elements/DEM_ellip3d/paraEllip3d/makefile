@@ -23,13 +23,19 @@ STRESS_STRAIN = yes
 ifeq ($(STRESS_STRAIN), yes)
  EIGEN = yes
  QHULL = yes
- STRESS_STRAIN_MACRO = -DSTRESS_STRAIN
+ MACRO_STRESS_STRAIN = -DSTRESS_STRAIN
 endif
 
-###4. use papi or not?
+###4. print contact info or not?
+PRINT_CONTACT = yes
+ifeq ($(PRINT_CONTACT), yes)
+ MACRO_PRINT_CONTACT = -DPRINT_CONTACT
+endif
+
+###5. use papi or not?
 #PAPI = yes
 
-###5. boost location
+###6. boost location
 ifeq ($(PLATFORM), soilblast)
  ifeq ($(COMPILERS), gcc-openmpi)
 #module load openmpi-3.0.0-gcc-6.4.0
@@ -299,7 +305,7 @@ OPTIMIZE = -O3 -DNDEBUG $(C++11)
 #QUADMATH = -DQUADMATH -L/usr/local/gcc-4.6.2/lib64 -lquadmath
 
 # CXXFLAGS
-CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH) $(STRESS_STRAIN_MACRO)
+CXXFLAGS = $(OPTIMIZE) $(OPENMP) $(QUADMATH) $(MACRO_STRESS_STRAIN) $(MACRO_PRINT_CONTACT)
 
 ###3. configurations of BOOST, PAPI, Eigen and Qhull
 ifeq ($(PLATFORM), soilblast)
