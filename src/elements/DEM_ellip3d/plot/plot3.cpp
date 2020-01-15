@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 
 #ifdef BLOCK
     // DATAPACKING=BLOCK
-    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=BLOCK, ZONETYPE=FEQUADRILATERAL" << std::endl;
+    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=BLOCK, ZONETYPE=FEQUADRILATERAL, STRANDID=1, SOLUTIONTIME=" << snapshot << std::endl;
     std::vector<std::vector<long double> > coords;
     for (int numParticle = 0; numParticle < totalParticle; ++numParticle) {
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 
 #else
     // DATAPACKING=POINT
-    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL" << std::endl;
+    ofs << "ZONE T=\"ptcl\" N=" << NODE*totalParticle << ", E=" << ELEM*totalParticle << ", DATAPACKING=POINT, ZONETYPE=FEQUADRILATERAL, STRANDID=1, SOLUTIONTIME=" << snapshot << std::endl;
     for (int numParticle = 0; numParticle < totalParticle; ++numParticle) {
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
 	  >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp;

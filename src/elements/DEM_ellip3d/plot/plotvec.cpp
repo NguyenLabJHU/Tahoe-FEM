@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "axis_c_z"
 	<< endl;
 
-    ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT" << endl;
+    ofs << "ZONE I=" << totalNum << ", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME=" << snapshot << endl;
     for(int it = 0; it < totalNum; ++it) {
       ifs >> id >> type >> a >> b >> c >> x0 >> y0 >> z0 >> l1 >> m1 >> n1 >> l2 >> m2 >> n2 >> l3 >> m3 >> n3
 	  >>v1>>v2>>v3>>w1>>w2>>w3>>f1>>f2>>f3>>mt1>>mt2>>mt3;
