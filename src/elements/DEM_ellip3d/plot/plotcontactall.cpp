@@ -78,17 +78,17 @@ int main(int argc, char *argv[])
     std::string strall(snum);
     strall.erase(strall.end()-1);
     strall.erase(0,2);
-    std::cout << strall << std::endl;
     int internalContact = atol(strall.c_str());
-    std::cout << "internalContact=" << internalContact << std::endl;
+    //std::cout << strall << std::endl;
+    //std::cout << "internalContact=" << internalContact << std::endl;
 
     ifs2 >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s >> s >> s;
     std::string strall2(snum);
     strall2.erase(strall2.end()-1);
     strall2.erase(0,2);
-    std::cout << strall2 << std::endl;
     int bdryContact = atol(strall2.c_str());
-    std::cout << "bdryContact=" << bdryContact << std::endl;
+    //std::cout << strall2 << std::endl;
+    //std::cout << "bdryContact=" << bdryContact << std::endl;
 
     ofs << "VARIABLES=" << endl
 	<< setw(OWID) << "x"
