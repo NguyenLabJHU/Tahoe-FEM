@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 	<< std::setw(OWID) << "dir_z"
 	<< endl;
 
-    ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT" << endl;
+    ofs << "ZONE I=" << totalNum <<", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME=" << snapshot << endl;
     for(int it = 0; it < totalNum; ++it) {
       ifs >> ptcl_1 >> ptcl_2 >> point1_x >> point1_y >> point1_z >> point2_x >> point2_y >> point2_z 
 	  >> radius_1 >> radius_2 >> penetration >> tangt_disp >> contact_radius >> R0 >> E0 >> normal_force >> tangt_force >> normal_all

@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     ofs.setf(ios::scientific, ios::floatfield);
 
     ifs >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s 
-        >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s;
+        >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s >> s >> s;
     std::string strall(snum);
     strall.erase(strall.end()-1);
     strall.erase(0,2);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     int internalContact = atol(strall.c_str());
     //std::cout << internalContact << std::endl;
 
-    ifs2 >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s;
+    ifs2 >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s >> s >> s;
     std::string strall2(snum);
     strall2.erase(strall2.end()-1);
     strall2.erase(0,2);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	<< setw(OWID) << "penetration"
 	<< endl;
 
-    ofs << "ZONE I=" << internalContact + bdryContact <<", DATAPACKING=POINT" << endl;
+    ofs << "ZONE I=" << internalContact + bdryContact <<", DATAPACKING=POINT, STRANDID=3, SOLUTIONTIME=" << snapshot << endl;
 
     double x, y, z, normal_x, normal_y, normal_z, tangt_x, tangt_y, tangt_z, total_x, total_y, total_z, normal, shear, total, penetration;
     for(int it = 0; it < internalContact; ++it) {

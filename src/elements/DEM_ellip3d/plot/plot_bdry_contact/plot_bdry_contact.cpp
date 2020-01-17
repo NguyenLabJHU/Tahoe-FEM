@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	<< std::setw(OWID) << "tangt_z"
 	<< std::setw(OWID) << "pentr" << std::endl;
 
-    ofs << "ZONE I=" << contactInfo.size() <<", DATAPACKING=POINT" << std::endl;
+    ofs << "ZONE I=" << contactInfo.size() <<", DATAPACKING=POINT, STRANDID=2, SOLUTIONTIME=" << snapshot << endl;
     for (std::vector<BdryContact>::iterator it = contactInfo.begin(); it != contactInfo.end(); ++it)
       it->print(ofs);
 

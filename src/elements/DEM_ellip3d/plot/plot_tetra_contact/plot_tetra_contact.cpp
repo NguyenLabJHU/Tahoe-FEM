@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 	  << setw(OWID) << "avgVolume"
 	  << endl;
       ofs << "ZONE N=" << totalContact << ", E=" << tetraVec.size()  <<", DATAPACKING=BLOCK, \
-VARLOCATION=([4,5,6,7,8,9,10]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
+VARLOCATION=([4,5,6,7,8,9,10]=CELLCENTERED), ZONETYPE=FETETRAHEDRON, STRANDID=1, SOLUTIONTIME=" << step << endl;
 
       // Tecplot: 
       // BLOCK format must be used for cell-centered data.
@@ -348,7 +348,7 @@ VARLOCATION=([4,5,6,7,8,9,10]=CELLCENTERED), ZONETYPE=FETETRAHEDRON" << endl;
 	  << setw(OWID) << "y"
 	  << setw(OWID) << "z"
 	  << endl;
-      ofs2<< "ZONE N=" << totalContact << ", E=" << tetraVec.size()  <<", DATAPACKING=POINT, ZONETYPE=FETETRAHEDRON" << endl;
+      ofs2<< "ZONE N=" << totalContact << ", E=" << tetraVec.size()  <<", DATAPACKING=POINT, ZONETYPE=FETETRAHEDRON, STRANDID=1, SOLUTIONTIME=" << step << endl;
       for (int i = 0; i < spaceCoords.size(); ++i)
 	ofs2 << std::setw(OWID) << spaceCoords[i].getX() << std::setw(OWID) << spaceCoords[i].getY() << std::setw(OWID) << spaceCoords[i].getZ() << std::endl;
       for (std::size_t i = 0; i < tetraVec.size(); ++i)
