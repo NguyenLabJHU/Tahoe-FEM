@@ -73,14 +73,14 @@ int main(int argc, char *argv[])
     if(!ofs)  { cout<<"stream error!"<<endl; exit(-1);}
     ofs.setf(ios::scientific, ios::floatfield);
 
-    ifs >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s 
+    ifs >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s
         >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s >> s >> s;
     std::string strall(snum);
     strall.erase(strall.end()-1);
     strall.erase(0,2);
-    //std::cout << strall << std::endl;
+    std::cout << strall << std::endl;
     int internalContact = atol(strall.c_str());
-    //std::cout << internalContact << std::endl;
+    std::cout << "internalContact=" << internalContact << std::endl;
 
     ifs2 >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> s >> snum >> s >> s >> s;
     std::string strall2(snum);
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     strall2.erase(0,2);
     std::cout << strall2 << std::endl;
     int bdryContact = atol(strall2.c_str());
-    std::cout << bdryContact << std::endl;
+    std::cout << "bdryContact=" << bdryContact << std::endl;
 
     ofs << "VARIABLES=" << endl
 	<< setw(OWID) << "x"
@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 
     ofs << "ZONE I=" << internalContact + bdryContact <<", DATAPACKING=POINT, STRANDID=3, SOLUTIONTIME=" << snapshot << endl;
 
-    double x, y, z, normal_x, normal_y, normal_z, tangt_x, tangt_y, tangt_z, total_x, total_y, total_z, normal, shear, total, penetration;
+    double x, y, z, normal_x, normal_y, normal_z, tangt_x, tangt_y, tangt_z, total_x, total_y, total_z, normal, shear, total, penetration, dir_x, dir_y, dir_z;
     for(int it = 0; it < internalContact; ++it) {
-      ifs >> x >> y >> z >> normal_x >> normal_y >> normal_z >> tangt_x >> tangt_y >> tangt_z >> total_x >> total_y >> total_z >> normal >> shear >> total >> penetration;
+      ifs >> x >> y >> z >> normal_x >> normal_y >> normal_z >> tangt_x >> tangt_y >> tangt_z >> total_x >> total_y >> total_z >> normal >> shear >> total >> penetration >> dir_x >> dir_y >> dir_z;
       ofs << setw(OWID) << x
 	  << setw(OWID) << y
 	  << setw(OWID) << z
@@ -140,15 +140,15 @@ int main(int argc, char *argv[])
       ofs << setw(OWID) << x
 	  << setw(OWID) << y
 	  << setw(OWID) << z
-	  << setw(OWID) << -normal_x
-	  << setw(OWID) << -normal_y
-	  << setw(OWID) << -normal_z
-	  << setw(OWID) << -tangt_x
-	  << setw(OWID) << -tangt_y
-	  << setw(OWID) << -tangt_z
-	  << setw(OWID) << -normal_x - tangt_x
-	  << setw(OWID) << -normal_y - tangt_y
-	  << setw(OWID) << -normal_z - tangt_z
+	  << setw(OWID) << normal_x
+	  << setw(OWID) << normal_y
+	  << setw(OWID) << normal_z
+	  << setw(OWID) << tangt_x
+	  << setw(OWID) << tangt_y
+	  << setw(OWID) << tangt_z
+	  << setw(OWID) << normal_x + tangt_x
+	  << setw(OWID) << normal_y + tangt_y
+	  << setw(OWID) << normal_z + tangt_z
 	  << setw(OWID) << normal
 	  << setw(OWID) << shear
 	  << setw(OWID) << sqrt(normal*normal + shear*shear)
