@@ -228,8 +228,8 @@ namespace dem {
     void calcGranularStress(Eigen::Matrix3d &);
     void calcGranularStrain(REAL timeIncr);
     void convertGranularStressForPrint();
-    void printGranularStressOrdered(const char *str) const;
-    void printGranularStressFEM(const char *str, const int coupled=0) const;
+    void printGranularStressOrdered(const char *str, const int snap=0) const;
+    void printGranularStressFEM(const char *str, const int snap=0, const int coupled=0) const;
 #endif
 
     void updateGrid();
@@ -306,8 +306,8 @@ namespace dem {
     void printBdryContact(const char *str) const;    // print all boundary contact info
     void printMemParticle(const char *str) const;    // print membrane particles
     void plotSpring(const char *str) const;          // print springs in Tecplot format
-    void plotBoundary(const char *str) const;
-    void plotGrid(const char *str) const;
+    void plotBoundary(const char *str, const int snap=0) const;
+    void plotGrid(const char *str, const int snap=0) const;
     void plotCavity(const char *str) const;
     void checkMembrane(std::vector<REAL> &vx ) const;
     void printContact(const char *str) const;        // print contacts information
