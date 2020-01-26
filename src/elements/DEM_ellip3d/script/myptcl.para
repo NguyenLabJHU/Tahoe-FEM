@@ -1,5 +1,5 @@
 if (($# != 5)); then
-echo "purpose: convert ellipsoid to Tecpmlot format in parallel"
+echo "purpose: convert ellipsoid to Tecplot format in parallel"
 echo "  usage: myptcl.para prefix start_snap end_snap increment number_of_process"
 echo "example: myptcl.para deposit 1 100 5 10"
 exit
