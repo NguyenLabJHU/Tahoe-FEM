@@ -2079,6 +2079,7 @@ namespace dem {
   }
   
 
+  // for small-scale data
   void Assembly::trimOnly() {
     if (mpi.mpiRank == 0) {
       trim(true,
@@ -2150,6 +2151,80 @@ namespace dem {
     }
   
     printParticleByRoot(trmParticle);
+  }
+
+
+  // for large-scale data
+  void Assembly::trimOnlyByList() {
+    if (mpi.mpiRank == 0) {
+
+      readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      std::list<Particle *> allParticleList(allParticleVec.begin(), allParticleVec.end());
+      allParticleVec.clear(); // to avoid double free error.
+
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+      trimHistoryNum = allParticleVec.size();
+
+      Vec  v1 = allContainer.getMinCorner();
+      Vec  v2 = allContainer.getMaxCorner();
+      REAL x1 = v1.getX();
+      REAL y1 = v1.getY();
+      REAL z1 = v1.getZ();
+      REAL x2 = v2.getX();
+      REAL y2 = v2.getY();
+      REAL z2 = v2.getZ();
+      REAL maxR = gradation.getPtclMaxRadius();
+ 
+      Vec center;
+      for (std::list<Particle *>::iterator itr = allParticleList.begin(); itr != allParticleList.end(); ) {
+	center=(*itr)->getCurrPos();
+	if(center.getX() < x1 || center.getX() > x2 ||
+	   center.getY() < y1 || center.getY() > y2 ||
+	   center.getZ() < z1 || center.getZ() + maxR > z2)
+	  {
+	    delete (*itr); // release memory
+	    itr = allParticleList.erase(itr); 
+	  }
+	else
+	  ++itr;
+      }
+  
+      printParticleListByRoot("trim_particle_end", allParticleList);
+      REAL totalMass = 0;
+      REAL totalVol  = 0;
+      for (std::list<Particle *>::const_iterator it = allParticleList.begin(); it != allParticleList.end(); ++it) {
+	totalMass += (*it)->getMass();
+	totalVol  += (*it)->getVolume();
+      }
+
+      allParticleList.clear();
+      plotGrid("trim_gridplot_end");
+      plotBoundary("trim_bdryplot_end");
+
+      // print density, void ratio, etc 
+      REAL distX, distY, distZ;
+      getStartDimension(distX, distY, distZ);
+      REAL bulkVolume = distX * distY * distZ;
+      REAL voidRatio = bulkVolume / totalVol - 1;
+      REAL density = totalMass / bulkVolume;
+      REAL porosity = voidRatio / (1 + voidRatio);
+      std::ofstream ofs;
+      ofs.open("trim_stats");
+      if(!ofs) { debugInf << "stream error: trim_stats" << std::endl; exit(-1); }
+      ofs.setf(std::ios::scientific, std::ios::floatfield);
+      ofs.precision(OPREC);
+      ofs << std::setw(OWID) << "bulk_volume"
+	  << std::setw(OWID) << "density"
+	  << std::setw(OWID) << "void_ratio"
+	  << std::setw(OWID) << "porosity"
+	  << std::endl
+	  << std::setw(OWID) << bulkVolume 
+	  << std::setw(OWID) << density 
+	  << std::setw(OWID) << voidRatio
+	  << std::setw(OWID) << porosity
+	  << std::endl;
+      ofs.close();
+    }
   }
 
 
@@ -2560,6 +2635,7 @@ namespace dem {
       Vec vspan = v2 - v1;
 
       std::list<Particle *> allParticleList(allParticleVec.begin(), allParticleVec.end());
+      allParticleVec.clear(); // to avoid double free error.
       boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
       std::vector<Particle *> tmpParticleVec;
       for (int iRank = mpi.mpiSize - 1; iRank >= 0; --iRank) {
@@ -6445,6 +6521,97 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     Vec vObj;
     std::vector<Particle *>::const_iterator  it;
     for (it = particleVec.begin(); it != particleVec.end();++it)  {
+      ofs << std::setw(OWID) << (*it)->getId()
+	  << std::setw(OWID) << (*it)->getType()
+	  << std::setw(OWID) << (*it)->getA()
+	  << std::setw(OWID) << (*it)->getB()
+	  << std::setw(OWID) << (*it)->getC();
+    
+      vObj=(*it)->getCurrPos();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrDirecA();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrDirecB();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrDirecC();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrVeloc();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getCurrOmga();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getForce();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ();
+    
+      vObj=(*it)->getMoment();
+      ofs << std::setw(OWID) << vObj.getX()
+	  << std::setw(OWID) << vObj.getY()
+	  << std::setw(OWID) << vObj.getZ() << std::endl;
+    }
+  
+    ofs.close();
+  }
+
+
+  void Assembly::printParticleListByRoot(const char *str, std::list<Particle *>  &particleList) const {
+    std::ofstream ofs(str);
+    if(!ofs) { debugInf << "stream error: printParticleListByRoot" << std::endl; exit(-1); }
+    ofs.setf(std::ios::scientific, std::ios::floatfield);
+    ofs.precision(OPREC);
+    ofs << std::setw(OWID) << particleList.size() << std::endl;
+    ofs << std::setw(OWID) << "id"
+	<< std::setw(OWID) << "type"
+	<< std::setw(OWID) << "radius_a"
+	<< std::setw(OWID) << "radius_b"
+	<< std::setw(OWID) << "radius_c"
+	<< std::setw(OWID) << "position_x"
+	<< std::setw(OWID) << "position_y"
+	<< std::setw(OWID) << "position_z"
+	<< std::setw(OWID) << "axis_a_x"
+	<< std::setw(OWID) << "axis_a_y"
+	<< std::setw(OWID) << "axis_a_z"
+	<< std::setw(OWID) << "axis_b_x"
+	<< std::setw(OWID) << "axis_b_y"
+	<< std::setw(OWID) << "axis_b_z"
+	<< std::setw(OWID) << "axis_c_x"
+	<< std::setw(OWID) << "axis_c_y"
+	<< std::setw(OWID) << "axis_c_z"
+	<< std::setw(OWID) << "velocity_x"
+	<< std::setw(OWID) << "velocity_y"
+	<< std::setw(OWID) << "velocity_z"
+	<< std::setw(OWID) << "omga_x"
+	<< std::setw(OWID) << "omga_y"
+	<< std::setw(OWID) << "omga_z"
+	<< std::setw(OWID) << "force_x"
+	<< std::setw(OWID) << "force_y"
+	<< std::setw(OWID) << "force_z"
+	<< std::setw(OWID) << "moment_x"
+	<< std::setw(OWID) << "moment_y"
+	<< std::setw(OWID) << "moment_z"
+	<< std::endl;
+  
+    Vec vObj;
+    std::list<Particle *>::const_iterator  it;
+    for (it = particleList.begin(); it != particleList.end();++it)  {
       ofs << std::setw(OWID) << (*it)->getId()
 	  << std::setw(OWID) << (*it)->getType()
 	  << std::setw(OWID) << (*it)->getA()

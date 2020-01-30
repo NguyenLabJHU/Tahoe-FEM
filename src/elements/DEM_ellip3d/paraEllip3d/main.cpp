@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     assemb.tuneMassPercent();
     break;
   case 003: // trim particles
-    assemb.trimOnly();
+    assemb.trimOnlyByList();
     break; 
   case 004: // remove particles
     assemb.removeBySphere();

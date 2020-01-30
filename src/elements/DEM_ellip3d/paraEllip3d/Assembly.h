@@ -183,6 +183,8 @@ namespace dem {
     void trim(bool toRebuild,
 	      const char *inputParticle,
 	      const char *trmParticle);
+    void trimOnlyByList();
+
     void removeBySphere();
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
@@ -303,6 +305,8 @@ namespace dem {
     void printParticle(const char *str) const;       // print all particles by parallel IO
     void printParticleByRoot(const char *str) const; // print all particles by root process
     void printParticleByRoot(const char *str, std::vector<Particle *>  &particleVec) const; // print particles info
+    void printParticleListByRoot(const char *str, std::list<Particle *>  &particleList) const;
+
     void printBdryContact(const char *str) const;    // print all boundary contact info
     void printMemParticle(const char *str) const;    // print membrane particles
     void plotSpring(const char *str) const;          // print springs in Tecplot format
