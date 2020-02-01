@@ -6776,6 +6776,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     y2 = allContainer.getMaxCorner().getY();
     z2 = allContainer.getMaxCorner().getZ();
 
+    /*
+    // DATAPACKING=POINT
     ofs	<< "ZONE T=\"bdry\" N=8, E=1, DATAPACKING=POINT, ZONETYPE=FEBRICK, STRANDID=3, SOLUTIONTIME=" << snap << std::endl;
     ofs << std::setw(OWID) << x2 << std::setw(OWID) << y1 << std::setw(OWID) << z1 << std::endl;
     ofs << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z1 << std::endl;
@@ -6785,6 +6787,18 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     ofs << std::setw(OWID) << x2 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl;
     ofs << std::setw(OWID) << x1 << std::setw(OWID) << y2 << std::setw(OWID) << z2 << std::endl;
     ofs << std::setw(OWID) << x1 << std::setw(OWID) << y1 << std::setw(OWID) << z2 << std::endl;
+    ofs << "1 2 3 4 5 6 7 8" << std::endl;
+    */
+
+    // DATAPACKING=BLOCK
+    ofs	<< "VARIABLES = X Y Z" << std::endl
+	<< "ZONE T=\"bdry\" N=8, E=1, DATAPACKING=BLOCK, ZONETYPE=FEBRICK, STRANDID=3, SOLUTIONTIME=" << snap << std::endl;
+    ofs << std::setw(OWID) << x2 << std::setw(OWID) << x2 << std::setw(OWID) << x1 << std::setw(OWID) << x1
+	<< std::setw(OWID) << x2 << std::setw(OWID) << x2 << std::setw(OWID) << x1 << std::setw(OWID) << x1 << std::endl;
+    ofs << std::setw(OWID) << y1 << std::setw(OWID) << y2 << std::setw(OWID) << y2 << std::setw(OWID) << y1
+	<< std::setw(OWID) << y1 << std::setw(OWID) << y2 << std::setw(OWID) << y2 << std::setw(OWID) << y1 << std::endl;
+    ofs << std::setw(OWID) << z1 << std::setw(OWID) << z1 << std::setw(OWID) << z1 << std::setw(OWID) << z1
+	<< std::setw(OWID) << z2 << std::setw(OWID) << z2 << std::setw(OWID) << z2 << std::setw(OWID) << z2 << std::endl;
     ofs << "1 2 3 4 5 6 7 8" << std::endl;
 
     ofs.close();
@@ -6801,9 +6815,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     Vec v2 = grid.getMaxCorner();
     Vec vspan = v2 - v1;
 
-    ofs	<< "ZONE T=\"grid\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
-	<< ", E=" << mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ << ", DATAPACKING=POINT, ZONETYPE=FEBRICK, STRANDID=2, SOLUTIONTIME=" << snap << std::endl;
-
     std::vector<Vec> coords((mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1));
     std::size_t index = 0;
     for (std::size_t i = 0; i < mpi.mpiProcX + 1; ++i)
@@ -6813,11 +6824,32 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 				v1.getY() + vspan.getY() / mpi.mpiProcY * j,
 				v1.getZ() + vspan.getZ() / mpi.mpiProcZ * k);
 
+    // for coordinates
+    /*
+    // DATAPACKING=POINT
+    ofs	<< "ZONE T=\"grid\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
+	<< ", E=" << mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ << ", DATAPACKING=POINT, ZONETYPE=FEBRICK, STRANDID=2, SOLUTIONTIME=" << snap << std::endl;
     for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
       ofs << std::setw(OWID) << coords[i].getX() 
 	  << std::setw(OWID) << coords[i].getY() 
 	  << std::setw(OWID) << coords[i].getZ() << std::endl;
+    */
 
+    // DATAPACKING=BLOCK
+    ofs	<< "VARIABLES = X Y Z" << std::endl
+	<< "ZONE T=\"grid\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
+	<< ", E=" << mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ << ", DATAPACKING=BLOCK, ZONETYPE=FEBRICK, STRANDID=2, SOLUTIONTIME=" << snap << std::endl;
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
+      ofs << std::setw(OWID) << coords[i].getX();
+    ofs << std::endl;
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
+      ofs << std::setw(OWID) << coords[i].getY();
+    ofs << std::endl;
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
+      ofs << std::setw(OWID) << coords[i].getZ();
+    ofs << std::endl;
+
+    // for connectivity
     for (int iRank = 0; iRank < mpi.mpiSize; ++iRank) {
       int coords[3];
       MPI_Cart_coords(mpi.cartComm, iRank, 3, coords);
