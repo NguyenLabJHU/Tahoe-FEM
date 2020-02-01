@@ -1,7 +1,7 @@
 if (($# != 5)); then
 echo "purpose: convert CFD to Tecplot format in parallel"
 echo "  usage: mygas.para prefix start_snap end_snap increment number_of_process"
-echo "example: mygas.para couple 1 100 5 10"
+echo "example: mygas.para couple_fluidplot 1 100 5 10"
 exit
 fi
 
