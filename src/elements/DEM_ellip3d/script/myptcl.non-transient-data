@@ -1,0 +1,36 @@
+if (($# != 4)); then
+echo "purpose: convert ellipsoid to Tecplot format"
+echo "  usage: myptcl.non-transient-data prefix start_snap end_snap increment"
+echo "example: myptcl.non-transient-data deposit 1 100 5"
+exit
+fi
+
+prefix=$1
+ptcl=$1"_particle"
+grid=$1"_gridplot"
+bdry=$1"_bdryplot"
+
+plot3 $ptcl $2 $3 $4
+
+for suffix in `printf "%03d\n" $(seq $2 $4 $3)`
+do
+
+  # start of making transient dataset: adding to the ZONE line
+  # sed -i '/ZONE/s/$/, STRANDID=1, SOLUTIONTIME='"$suffix"'/' $ptcl"_"$suffix".dat"
+    sed -i '/ZONE/s/$/, STRANDID=2, SOLUTIONTIME='"$suffix"'/' $grid"_"$suffix".dat"
+    sed -i '/ZONE/s/$/, STRANDID=3, SOLUTIONTIME='"$suffix"'/' $bdry"_"$suffix".dat"
+  # end of making transient dataset
+  # particle files made transient by plot3.
+  # for non-transient grid files from paraEllip3d, make them transient here.
+  # for non-transient boundary files from paraEllip3d, make them transient here.
+
+  echo " cat "$grid"_"$suffix".dat" " >> " $ptcl"_"$suffix".dat "
+  cat $grid"_"$suffix".dat" >> $ptcl"_"$suffix".dat"
+
+  echo " cat "$bdry"_"$suffix".dat" " >> " $ptcl"_"$suffix".dat "
+  cat $bdry"_"$suffix".dat" >> $ptcl"_"$suffix".dat"
+
+  preplot $ptcl"_"$suffix".dat"
+  rm $ptcl"_"$suffix".dat"
+
+done

@@ -1,0 +1,34 @@
+if (($# != 5)); then
+echo "purpose: convert ellipsoid to Tecplot format in parallel"
+echo "  usage: myptcl.para.non-transient-data prefix start_snap end_snap increment number_of_process"
+echo "example: myptcl.para.non-transient-data deposit 1 100 5 10"
+exit
+fi
+
+proc=$5
+((part = ($3 - $2 + 1) / $5))
+((rmdr = ($3 - $2 + 1) % $5))
+
+for ((i = 0; i < rmdr; ++i))
+{
+ ((start = $2 + i * $part + i))
+ ((end = $start + $part))
+ myptcl.non-transient-data $1 $start $end $4 > /dev/null 2>& 1 &
+ #printf "%03d %03d %d\n" $start $end $4
+}
+
+if ((part != 0)); then
+
+((restart = end + 1))
+if ((rmdr == 0)); then
+restart=$2
+fi
+for ((i = 0; i < proc - rmdr; ++i))
+{
+ ((start = restart + i * part ))
+ ((end = $start + $part - 1))
+ myptcl.non-transient-data $1 $start $end $4 > /dev/null 2>& 1 &
+ #printf "%03d %03d %d\n" $start $end $4
+}
+
+fi
