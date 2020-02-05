@@ -6839,6 +6839,35 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     ofs	<< "VARIABLES = X Y Z" << std::endl
 	<< "ZONE T=\"grid\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
 	<< ", E=" << mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ << ", DATAPACKING=BLOCK, ZONETYPE=FEBRICK, STRANDID=2, SOLUTIONTIME=" << snap << std::endl;
+
+    // Implement A: for current Tecplot line character limit 32,000
+    int lineLen = 32000;
+    int valNum = lineLen / OWID - 10; // leave room for 10 values
+    int k;
+
+    k = 0;
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i) {
+      ofs << std::setw(OWID) << coords[i].getX();
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
+    k = 0;
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i) {
+      ofs << std::setw(OWID) << coords[i].getY();
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
+    k = 0;
+    for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i) {
+      ofs << std::setw(OWID) << coords[i].getZ();
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
+    // Implement B: for future Tecplot which removes line character limit 32,000
+    /*
     for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
       ofs << std::setw(OWID) << coords[i].getX();
     ofs << std::endl;
@@ -6848,6 +6877,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (std::size_t i = 0; i < (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1); ++i)
       ofs << std::setw(OWID) << coords[i].getZ();
     ofs << std::endl;
+    */
 
     // for connectivity
     for (int iRank = 0; iRank < mpi.mpiSize; ++iRank) {
