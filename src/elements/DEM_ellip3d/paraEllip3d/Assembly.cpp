@@ -2228,6 +2228,7 @@ namespace dem {
   }
 
 
+  // for small-scale data
   void Assembly::removeBySphere()
   {
    if (mpi.mpiRank == 0) {
@@ -2258,6 +2259,43 @@ namespace dem {
     }
   
     printParticleByRoot("remove_particle_end");
+   }
+  }
+
+
+  // for large-scale data
+  void Assembly::removeBySphereByList()
+  {
+   if (mpi.mpiRank == 0) {
+
+    readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+    std::list<Particle *> allParticleList(allParticleVec.begin(), allParticleVec.end());
+    allParticleVec.clear(); // to avoid double free error.
+
+    readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str());
+    REAL minR = gradation.getPtclMinRadius(0);
+    
+    REAL x0S = dem::Parameter::getSingleton().parameter["x0S"];
+    REAL y0S = dem::Parameter::getSingleton().parameter["y0S"];
+    REAL z0S = dem::Parameter::getSingleton().parameter["z0S"];
+    REAL r0S = dem::Parameter::getSingleton().parameter["r0S"];
+ 
+    Vec center;
+    REAL dist;
+    for (std::list<Particle *>::iterator itr = allParticleList.begin(); itr != allParticleList.end(); ) {
+      center = (*itr)->getCurrPos();
+      dist = sqrt(pow(center.getX()-x0S,2) + pow(center.getY()-y0S,2) + pow(center.getZ()-z0S,2));
+      if(dist <= r0S + minR)
+	{
+	  delete (*itr); // release memory
+	  itr = allParticleList.erase(itr); 
+	}
+      else
+	++itr;
+    }
+
+    printParticleListByRoot("remove_particle_end", allParticleList);
+    allParticleList.clear();
    }
   }
 
@@ -6568,6 +6606,14 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	  << std::setw(OWID) << vObj.getZ() << std::endl;
     }
   
+    std::size_t sieveNum = gradation.getSieveNum();
+    std::vector<REAL> percent = gradation.getPercent();
+    std::vector<REAL> size    = gradation.getSize();
+    ofs << std::endl << std::setw(OWID) << sieveNum << std::endl;
+    for (std::size_t i = 0; i < sieveNum; ++i)
+      ofs << std::setw(OWID) << percent[i] << std::setw(OWID) << size[i] << std::endl;
+    ofs << std::endl << std::setw(OWID) << gradation.getPtclRatioBA() << std::setw(OWID) << gradation.getPtclRatioCA() << std::endl;
+
     ofs.close();
   }
 
@@ -6659,6 +6705,14 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	  << std::setw(OWID) << vObj.getZ() << std::endl;
     }
   
+    std::size_t sieveNum = gradation.getSieveNum();
+    std::vector<REAL> percent = gradation.getPercent();
+    std::vector<REAL> size    = gradation.getSize();
+    ofs << std::endl << std::setw(OWID) << sieveNum << std::endl;
+    for (std::size_t i = 0; i < sieveNum; ++i)
+      ofs << std::setw(OWID) << percent[i] << std::setw(OWID) << size[i] << std::endl;
+    ofs << std::endl << std::setw(OWID) << gradation.getPtclRatioBA() << std::setw(OWID) << gradation.getPtclRatioCA() << std::endl;
+
     ofs.close();
   }
 

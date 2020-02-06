@@ -186,6 +186,7 @@ namespace dem {
     void trimOnlyByList();
 
     void removeBySphere();
+    void removeBySphereByList();
     void deposit(const char *inputBoundary,
 		 const char *inputParticle);
     void proceedFromPreset();
