@@ -1893,7 +1893,7 @@ namespace dem {
 	for (std::size_t iPrn = 0; iPrn < printPtcls.size(); ++iPrn) {
 	  if ((*it)->getId() == printPtcls[iPrn]) {
 	    std::fstream pfs;
-	    pfs.open (dem::combineStr("particle_", printPtcls[iPrn], 7).c_str(), std::fstream::out | std::fstream::app);
+	    pfs.open (dem::combineStr("particle_", printPtcls[iPrn], 10).c_str(), std::fstream::out | std::fstream::app);
 	    if(!pfs) { std::cout << "stream error: Gas::calcPtclForce" << std::endl; exit(-1); }
 	    pfs.setf(std::ios::scientific, std::ios::floatfield);
 	    if (iteration == 1) {
