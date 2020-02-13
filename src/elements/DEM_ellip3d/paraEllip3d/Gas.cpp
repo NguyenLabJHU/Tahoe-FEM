@@ -664,8 +664,10 @@ namespace dem {
     RankineHugoniot();
     initialCondition(); 
     soundSpeed(); // for printing Mach number
+  }
 
-    if (mpi.mpiRank == 0) {
+  void Gas::printTimeField() {
+    if (mpi.mpiRank == 0)
       debugInf << std::setw(OWID) << "iteration" 
 	       << std::setw(OWID) << "demTimeStep"
 	       << std::setw(OWID) << "cfdTimeStep" 
@@ -683,7 +685,6 @@ namespace dem {
 	       << std::setw(OWID) << "demMigraT"
 	       << std::setw(OWID) << "demTotalT"
 	       << std::setw(OWID) << "totalT";
-    }
   }
 
   void Gas::runOneStep(std::vector<Particle *> &ptcls) {

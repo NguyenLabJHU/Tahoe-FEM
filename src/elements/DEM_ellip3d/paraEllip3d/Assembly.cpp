@@ -1644,11 +1644,18 @@ namespace dem {
   {
     int gridUpdate = -10; // do not update DEM grids!
 
+    REAL pretime0, pretime1, pretime2, pretime3;
+#ifdef MODULE_TIME
+    pretime0=MPI_Wtime();
+#endif
     if (mpi.mpiRank == 0) {
       readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
       readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
       openDepositProg(progressInf, "couple_progress");
     }
+#ifdef MODULE_TIME
+    pretime1=MPI_Wtime();
+#endif
     broadcastInfo(); // must call before gas.initParameter().
 
     mpi.findNeighborProcess(); // one-time operation.
@@ -1658,7 +1665,19 @@ namespace dem {
     /*pre04*/ gas.initialize();
     /*pre05*/ grid = Rectangle(gas.x1F, gas.y1F, gas.z1F, gas.x2F, gas.y2F, gas.z2F); // redefine DEM grid.   
 
+#ifdef MODULE_TIME
+    pretime2=MPI_Wtime();
+#endif
     scatterParticleByCFD(); // must call after grid is redefined.
+#ifdef MODULE_TIME
+    pretime3=MPI_Wtime();
+    if (mpi.mpiRank == 0)
+      debugInf << std::setw(OWID) << "readFile" << std::setw(OWID) << pretime1-pretime0
+	       << std::setw(OWID) << "scatterPtcl" << std::setw(OWID) << pretime3-pretime2 << std::endl;
+
+#endif
+
+    /*pre06*/ gas.printTimeField();
 
     std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
     std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
@@ -1681,7 +1700,7 @@ namespace dem {
       printBdryContact(combineString("couple_bdrycntc_", iterSnap -1, 3).c_str());
       releaseGatheredParticle(); // release memory after printing
     }
-    /*pre06*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
+    /*pre07*/ gas.plot((combineString("couple_fluidplot_", iterSnap -1, 3) + ".dat").c_str(), iterSnap -1); 
 
     /*
     if (mpi.mpiRank == 0)

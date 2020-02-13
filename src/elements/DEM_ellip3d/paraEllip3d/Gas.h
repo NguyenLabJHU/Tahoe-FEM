@@ -288,6 +288,7 @@ namespace dem {
     void allocArray();
     void initializePureGas();
     void initialize();
+    void printTimeField();
     void initialCondition();
     void calcTimeStep();
     void RankineHugoniot();
