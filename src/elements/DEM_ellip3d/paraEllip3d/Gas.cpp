@@ -2036,6 +2036,14 @@ namespace dem {
   }
 
   void Gas::plot(const char *str, std::size_t snap) {
+    int printFactor = 2; 
+    // the printFactor is used to reduce the number of CFD grids to be printed.
+    // =2 by default
+    // =2: 1 2 3 4   ..., 3d ratio = 1
+    // =3: 1 3 5 7   ..., 3d ratio = (1/2)^3
+    // =4: 1 4 7 10  ..., 3d ratio = (1/3)^3
+    // =5: 1 5 9 13  ..., 3d ratio = (1/4)^3
+    // =6: 1 6 11 17 ..., 3d ratio = (1/5)^3
 
     if (mpi.mpiSize == 1) { // serial computing
 
@@ -2067,17 +2075,27 @@ namespace dem {
 	  << std::setw(OWID) << "pressureFz"
 	  << std::endl;
 
-      ofs << "ZONE I=" << std::setw(OWID) << allGridNx -2
-	  << ", J="    << std::setw(OWID) << allGridNy -2
-	  << ", K="    << std::setw(OWID) << allGridNz -2
+      int boundX = 0;
+      int boundY = 0;
+      int boundZ = 0;
+      for (std::size_t i = 1; i <= allGridNx - 2; i += printFactor - 1)
+	++boundX;
+      for (std::size_t j = 1; j <= allGridNy - 2; j += printFactor - 1)
+	++boundY;
+      for (std::size_t k = 1; k <= allGridNz - 2; k += printFactor - 1)
+	++boundZ;
+
+      ofs << "ZONE I=" << std::setw(OWID) << boundX
+	  << ", J="    << std::setw(OWID) << boundY
+	  << ", K="    << std::setw(OWID) << boundZ
 	  << ", DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME="
 	  << std::setw(OWID) << snap
 	  << std::endl;
 
       // write in k,j,i order, only in this order does Tecplot plot correctly (Tecplot requires I vary fastest for IJK-ordered data).
-      for (std::size_t k = 1; k < allGridNz - 1; ++k)
-	for (std::size_t j = 1; j < allGridNy - 1; ++j)
-	  for (std::size_t i = 1; i < allGridNx -1; ++i) {
+      for (std::size_t k = 1; k <= allGridNz - 2; k += printFactor - 1)
+	for (std::size_t j = 1; j <= allGridNy - 2; j += printFactor - 1)
+	  for (std::size_t i = 1; i <= allGridNx - 2; i += printFactor - 1) {
 	    ofs << std::setw(OWID) << arrayGridCoord[i][j][k][0]
 		<< std::setw(OWID) << arrayGridCoord[i][j][k][1]
 		<< std::setw(OWID) << arrayGridCoord[i][j][k][2]
@@ -2107,9 +2125,16 @@ namespace dem {
     } // end of serial
     else { // parallel IO
 
-      int boundX = boundPrn.sizeX;
-      int boundY = boundPrn.sizeY;
-      int boundZ = boundPrn.sizeZ;
+      int boundX = 0;
+      int boundY = 0;
+      int boundZ = 0;
+      for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; i += printFactor - 1)
+	++boundX;
+      for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; j += printFactor - 1)
+	++boundY;
+      for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; k += printFactor - 1)
+	++boundZ;
+
       int allBoundX, allBoundY, allBoundZ;
       MPI_Allreduce(&boundX, &allBoundX, 1, MPI_INT, MPI_SUM, mpi.mpiWorld);
       MPI_Allreduce(&boundY, &allBoundY, 1, MPI_INT, MPI_SUM, mpi.mpiWorld);
@@ -2170,9 +2195,9 @@ namespace dem {
       }
 
       // (OWID*24 + std::endl) * ( boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ )
-      for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; ++k)
-	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; ++j)
-	  for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; ++i) {
+      for (std::size_t k = boundPrn.lowZ; k <= boundPrn.uppZ; k += printFactor - 1)
+	for (std::size_t j = boundPrn.lowY; j <= boundPrn.uppY; j += printFactor - 1)
+	  for (std::size_t i = boundPrn.lowX; i <= boundPrn.uppX; i += printFactor - 1) {
 	    // i, j, k are local, mapped to global in case.
 	    IJK local(i,j,k);
 	    IJK global;
@@ -2209,7 +2234,7 @@ namespace dem {
       MPI_Type_contiguous(361, MPI_CHAR, &record);
       MPI_Type_commit(&record);
 
-      length += (boundPrn.sizeX * boundPrn.sizeY * boundPrn.sizeZ); // * (OWID*24 + 1);
+      length += boundX * boundY * boundZ; // * (OWID*24 + 1);
       //std::cout << "mpiRank=" << mpi.mpiRank << " length=" << length << std::endl;
       MPI_File_write_ordered(file, const_cast<char*> (inf.str().c_str()), length, record, &status); // in this way length is 361 times smaller
       MPI_File_close(&file);
