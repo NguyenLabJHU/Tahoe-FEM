@@ -2796,6 +2796,7 @@ namespace dem {
       Vec v2 = grid.getMaxCorner();
       Vec vspan = v2 - v1;
 
+      debugInf << std::setw(OWID) << "process ID" << std::setw(OWID) << "particle #" << std::endl;
       boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
       std::vector<Particle *> tmpParticleVec;
       for (int iRank = mpi.mpiSize - 1; iRank >= 0; --iRank) {
@@ -2856,14 +2857,19 @@ namespace dem {
 	*/
 
 	findParticleInRectangle(container, allParticleVec, tmpParticleVec);
+	debugInf << std::setw(OWID) << iRank << std::setw(OWID) << tmpParticleVec.size() << std::endl;
 	if (iRank != 0)
 	  reqs[iRank - 1] = mpi.boostWorld.isend(iRank, mpi.mpiTag, tmpParticleVec); // non-blocking send
 	if (iRank == 0) {
 	  particleVec.resize(tmpParticleVec.size());
 	  for (int i = 0; i < particleVec.size(); ++i)
 	    particleVec[i] = new Particle(*tmpParticleVec[i]); // default synthesized copy constructor
+
 	} // now particleVec do not share memeory with allParticleVec
-      }
+
+      } // end of for loop
+      debugInf << std::endl;
+
       boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
       delete [] reqs;
 
