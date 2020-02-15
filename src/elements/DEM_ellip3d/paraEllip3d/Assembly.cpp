@@ -2787,6 +2787,8 @@ namespace dem {
   }
 
 
+  /*
+  // version 1: inefficient double loops
   void Assembly::scatterParticleByCFD() {
     // partition particles and send to each process
     if (mpi.mpiRank == 0) { // process 0
@@ -2819,19 +2821,18 @@ namespace dem {
 	REAL uppY = v1.getY() - gas.gridDy + gas.gridDy * (highGridY + 1);
 	REAL uppZ = v1.getZ() - gas.gridDz + gas.gridDz * (highGridZ + 1);
 
-	/*
 	// for ceil/floor method, no longer needed, but keep here for record.
-	int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
-	int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
-	int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
+	//int segX = (int) ceil((double) allGasGridNx / mpi.mpiProcX);
+	//int segY = (int) ceil((double) allGasGridNy / mpi.mpiProcY);
+	//int segZ = (int) ceil((double) allGasGridNz / mpi.mpiProcZ);
 
-	REAL lowX = v1.getX() - gasGridDx + gasGridDx * segX * coords[0];
-	REAL lowY = v1.getY() - gasGridDy + gasGridDy * segY * coords[1];
-	REAL lowZ = v1.getZ() - gasGridDz + gasGridDz * segZ * coords[2];
-	REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (coords[0] + 1);
-	REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (coords[1] + 1);
-	REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (coords[2] + 1);
-	*/
+	//REAL lowX = v1.getX() - gasGridDx + gasGridDx * segX * coords[0];
+	//REAL lowY = v1.getY() - gasGridDy + gasGridDy * segY * coords[1];
+	//REAL lowZ = v1.getZ() - gasGridDz + gasGridDz * segZ * coords[2];
+	//REAL uppX = v1.getX() - gasGridDx + gasGridDx * segX * (coords[0] + 1);
+	//REAL uppY = v1.getY() - gasGridDy + gasGridDy * segY * (coords[1] + 1);
+	//REAL uppZ = v1.getZ() - gasGridDz + gasGridDz * segZ * (coords[2] + 1);
+	// end of the ceil/floor method. 
 
 	if (coords[0] == 0)
 	  lowX = v1.getX();
@@ -2848,13 +2849,14 @@ namespace dem {
 	  uppZ = v2.getZ();
 
 	Rectangle container(lowX, lowY, lowZ, uppX, uppY, uppZ);
-	/*
-	std::cout << "scatterP: iRank=" << std::setw(OWID) << iRank 
+
+	// start
+	//std::cout << "scatterP: iRank=" << std::setw(OWID) << iRank 
 	  //<< " segXYZ=" << std::setw(OWID) << segX << std::setw(OWID) << segY << std::setw(OWID) << segZ 	  
 	  //<< " gridXYZ="<< std::setw(OWID) << gasGridDx << std::setw(OWID) << gasGridDy << std::setw(OWID) << gasGridDz
-		  << " lowXYZ=" << std::setw(OWID) << lowX << std::setw(OWID) << lowY << std::setw(OWID) << lowZ 
-		  << " uppXYZ=" << std::setw(OWID) << uppX << std::setw(OWID) << uppY << std::setw(OWID) << uppZ << std::endl;
-	*/
+	//  << " lowXYZ=" << std::setw(OWID) << lowX << std::setw(OWID) << lowY << std::setw(OWID) << lowZ 
+	//  << " uppXYZ=" << std::setw(OWID) << uppX << std::setw(OWID) << uppY << std::setw(OWID) << uppZ << std::endl;
+	// end
 
 	findParticleInRectangle(container, allParticleVec, tmpParticleVec);
 	debugInf << std::setw(OWID) << iRank << std::setw(OWID) << tmpParticleVec.size() << std::endl;
@@ -2872,6 +2874,63 @@ namespace dem {
 
       boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
       delete [] reqs;
+
+    } else { // other processes except 0
+      mpi.boostWorld.recv(0, mpi.mpiTag, particleVec);
+    }
+
+    // content of allParticleVec may need to be printed, so do not clear it. 
+    //if (mpi.mpiRank == 0) releaseGatheredParticle();
+  }
+  */
+
+
+  // version 2: use BigO(1) search algorithm in light of CFD grids (very tricky, very efficient!)
+  void Assembly::scatterParticleByCFD() {
+    // partition particles and send to each process
+    if (mpi.mpiRank == 0) { // process 0
+
+      // grid initialized in readBoundary(), but already overwritten later.
+      Vec v1 = grid.getMinCorner();
+      Vec v2 = grid.getMaxCorner();
+      Vec vspan = v2 - v1;
+
+      // particle partition 
+      std::vector<std::vector<Particle *>> particleByProcess(mpi.mpiProcX * mpi.mpiProcY * mpi.mpiProcZ); // -1? no need.
+      std::vector<Particle *>::const_iterator  it;
+      for (it = allParticleVec.begin(); it != allParticleVec.end(); ++it)  {
+	int ixInCFD = ((*it)->getCurrPos().getX() - (v1.getX() - gas.gridDx)) / (vspan.getX() + gas.gridDx * 2) * gas.allGridNx;
+	int iyInCFD = ((*it)->getCurrPos().getY() - (v1.getY() - gas.gridDy)) / (vspan.getY() + gas.gridDy * 2) * gas.allGridNy;
+	int izInCFD = ((*it)->getCurrPos().getZ() - (v1.getZ() - gas.gridDz)) / (vspan.getZ() + gas.gridDz * 2) * gas.allGridNz;
+
+	int ix = BLOCK_OWNER(ixInCFD, mpi.mpiProcX, gas.allGridNx);
+	int iy = BLOCK_OWNER(iyInCFD, mpi.mpiProcY, gas.allGridNy);
+	int iz = BLOCK_OWNER(izInCFD, mpi.mpiProcZ, gas.allGridNz);
+
+	int rank = ix * mpi.mpiProcY * mpi.mpiProcZ + iy * mpi.mpiProcZ + iz;
+	particleByProcess[rank].push_back(*it);
+      }
+
+      debugInf << std::setw(OWID) << "process ID" << std::setw(OWID) << "particle #" << std::endl;
+      for (int i = 0; i < particleByProcess.size(); ++i)
+	debugInf << std::setw(OWID) << i << std::setw(OWID) << particleByProcess[i].size() << std::endl;
+      debugInf << std::endl;
+
+      // for root process only
+      particleVec.resize(particleByProcess[0].size());
+      for (int i = 0; i < particleVec.size(); ++i)
+	particleVec[i] = new Particle(*particleByProcess[0][i]); // default synthesized copy constructor
+      // now particleVec do not share memeory with allParticleVec in root process.
+
+      // do not send to root process itself
+      boost::mpi::request *reqs = new boost::mpi::request [mpi.mpiSize - 1];
+      for (int iRank = mpi.mpiSize - 1; iRank >= 1; --iRank) // until 1, not 0
+	reqs[iRank - 1] = mpi.boostWorld.isend(iRank, mpi.mpiTag, particleByProcess[iRank]); // non-blocking send
+
+      boost::mpi::wait_all(reqs, reqs + mpi.mpiSize - 1); // for non-blocking send
+      delete [] reqs;
+      particleByProcess.clear();
+      particleByProcess.shrink_to_fit();
 
     } else { // other processes except 0
       mpi.boostWorld.recv(0, mpi.mpiTag, particleVec);
