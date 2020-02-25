@@ -683,6 +683,7 @@ namespace dem {
       broadcast(mpi.boostWorld, mergedBoundaryVec, 0); // each process needs mergedBoundaryVec to break iterations or stop.
       if (isotropicType == 1) {
 	if (tractionErrorTol(sigmaVar, "isotropic")) {
+	  //gatherParticle();
 #ifdef STRESS_STRAIN
 	  gatherGranularStress("isotropic_tensor_end");
 #endif
@@ -704,6 +705,7 @@ namespace dem {
 	  sigmaVar += sigmaInc;
 	}
 	if (tractionErrorTol(sigmaEnd, "isotropic")) {
+	  //gatherParticle();
 #ifdef STRESS_STRAIN
 	  gatherGranularStress("isotropic_tensor_end");
 #endif
@@ -731,6 +733,7 @@ namespace dem {
 	  }
 	}
 	if (tractionErrorTol(sigmaEnd, "isotropic")) {
+	  //gatherParticle();
 	  if (mpi.mpiRank == 0) {
 	    printBdryContact("isotropic_bdrycntc_end");
 	    printBoundary("isotropic_boundary_end");
@@ -881,6 +884,7 @@ namespace dem {
 	  sigmaVar += sigmaInc;
 	}
 	if (tractionErrorTol(sigmaEnd, "oedometer")) {
+	  //gatherParticle();
 	  if (mpi.mpiRank == 0) {
 	    printBdryContact("oedometer_bdrycntc_end");
 	    printBoundary("oedometer_boundary_end");
@@ -899,6 +903,7 @@ namespace dem {
 	  }
 	}
 	if (tractionErrorTol(sigmaEnd, "oedometer")) {
+	  //gatherParticle();
 	  if (mpi.mpiRank == 0) {
 	    printBdryContact("oedometer_bdrycntc_end");
 	    printBoundary("oedometer_boundary_end");
@@ -1020,6 +1025,7 @@ namespace dem {
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
+	//gatherParticle();
 #ifdef STRESS_STRAIN
 	gatherGranularStress("triaxial_tensor_end");
 #endif
@@ -1147,6 +1153,7 @@ namespace dem {
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
+	//gatherParticle();
 	if (mpi.mpiRank == 0) {
 	  printBdryContact("plnstrn_bdrycntc_end");
 	  printBoundary("plnstrn_boundary_end");
@@ -1307,6 +1314,7 @@ namespace dem {
 	  sigmaVarY += sigmaIncY;
 	}
 	if (tractionErrorTol(sigmaEndZ, "trueTriaxial", sigmaEndX, sigmaEndY)) {
+	  //gatherParticle();
 	  if (mpi.mpiRank == 0) {
 	    printBdryContact("trueTriaxial_bdrycntc_end");
 	    printBoundary("trueTriaxial_boundary_end");
@@ -1337,6 +1345,7 @@ namespace dem {
 	  sigmaX = sigmaInit[0]; sigmaY = sigmaInit[1]; sigmaZ = sigmaEnd;
 	}
 	if (tractionErrorTol(sigmaZ, "trueTriaxial", sigmaX, sigmaY)) {
+	  //gatherParticle();
 	  if (mpi.mpiRank == 0) {
 	    printBdryContact("trueTriaxial_bdrycntc_end");
 	    printBoundary("trueTriaxial_boundary_end");
@@ -1470,6 +1479,7 @@ namespace dem {
       // 2. it must be prior to releaseRecvParticle() and migrateParticle(), because they delete particles
       //    such that gatherGranularStress() may refer to non-existing pointers.
       if (iteration == endStep) {
+	//gatherParticle();
 #ifdef STRESS_STRAIN
 	gatherGranularStress("oedometerImpact_tensor_end");
 #endif
