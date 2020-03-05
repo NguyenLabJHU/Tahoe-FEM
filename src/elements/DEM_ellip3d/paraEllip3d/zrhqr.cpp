@@ -3,7 +3,8 @@
 namespace dem {
 
 #define NRANSI
-#define MAXM 50
+//#define MAXM 50
+#define MAXM 6
 
   bool zrhqr(REAL a[], int m, REAL rtr[], REAL rti[]) {
     void balanc(REAL **a, int n);
