@@ -2,7 +2,7 @@ Note:
 1. The commonly used codes have adopted Tecplot transient data format.
 2. Use plot3 deposit_particle 99 99 1 rather than plot3 deposit_particle_099, because the former syntax produces accurate SOLUTIONTIME for Tecplot transient data format.
 3. To compile, use default g++ (do not load modules) so that the executable is usable without loading modules.
-4. To compile plot3bin, use the script plot3bin.compile, which needs newer GCC and tecio libraries.
+4. To compile plot3bin, use the script plot3bin.compile, which needs newer GCC and TECIO libraries.
 
 plot:  
 it plots all particles at a time as a snapshot. Animations can be made by combining snapshots.
@@ -11,6 +11,21 @@ There are various versions:
 2. plot3: for data format from paraEllip3d.
 3. plot4: for data format from merged version of paraEllip3d and paraPolyEllip3d.
 4. plot3bin: directly generate binary .plt files using TECIO.
+
+myptcl vs myptclbin (both work well, the latter is better)
+myptcl deposit 0 99 1 (generate fewer binary files due to cat, slower because of converting text to binary.)
+myptclbin deposit 0 99 1 (generate more binary files, but faster because of generating binary directly.)
+
+Tecplot vs Paraview
+1. For Tecplot
+myptclbin.para isotropic 0 10 1 11
+let Tecplot load all .plt files in the order of ptcl, grid and bdry (click for name reverse order)
+apply Macro
+
+2. For Paraview (the same data)
+use Surface for ptcl
+use Wireframe for grid
+use Wireframe for bdry
 
 plotsec:
 it plots half of all particles from a cross-sectional perspective. Animations can be made by
