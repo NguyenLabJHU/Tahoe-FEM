@@ -6,6 +6,7 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 #include <map>
 
 class IJK {
@@ -179,15 +180,14 @@ int main(int argc, char *argv[])
       ++lineNum;
     }
     ifs.close();
-    remove(str); // remove file
+    //remove(str); // remove file
 
     // Tecplot example:
     //VARIABLES = x              y              z        iGlobal        jGlobal        kGlobal           Mach        density      momentumX      momentumY      momentumZ         energy      velocityX      velocityY      velocityZ       pressure    temperature           mask        penalFx        penalFy        penalFz     pressureFx     pressureFy     pressureFz
     //ZONE I=             17, J=             17, K=             17, DATAPACKING=POINT, STRANDID=1, SOLUTIONTIME=             10
 
-    std::ofstream ofs(str);
-    //std::string nstr = "new";
-    //std::ofstream ofs((nstr+std::string(str)).c_str());
+    std::string nstr = "sorted_";
+    std::ofstream ofs((nstr+std::string(str)).c_str());
     if(!ofs) { std::cout << "ofstream error." << std::endl; exit(-1); }
     ofs.setf(std::ios::scientific, std::ios::floatfield);
     ofs.precision(OPREC);
@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
 	  << std::endl;
 
     ofs.close();
+    rename((nstr+std::string(str)).c_str(), str);
   } // snapLoop
 
   return 0;
