@@ -120,11 +120,18 @@ int main(int argc, char *argv[])
 	    
       ofs << setw(OWID) << x0
 	  << setw(OWID) << y0
-	  << setw(OWID) << z0
-	  << setw(OWID) << x0 - centerInit[id][0]
-	  << setw(OWID) << y0 - centerInit[id][1]
-	  << setw(OWID) << z0 - centerInit[id][2]
-	  << setw(OWID) << v1
+	  << setw(OWID) << z0;
+
+      if (centerInit.count(id)) // ==1, make sure the key exist, for special cases like extracting particles.
+	ofs << setw(OWID) << x0 - centerInit[id][0]	
+	    << setw(OWID) << y0 - centerInit[id][1]
+	    << setw(OWID) << z0 - centerInit[id][2];
+      else	  
+	ofs << setw(OWID) << 0
+	    << setw(OWID) << 0
+	    << setw(OWID) << 0;
+      
+      ofs << setw(OWID) << v1
 	  << setw(OWID) << v2
 	  << setw(OWID) << v3
 	  << setw(OWID) << f1
