@@ -7149,12 +7149,12 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     // beware that a virtualContainer gets unnecessary halo layers for boundary processes in parallel computing,
     // but it does not affect numerical results.
     Rectangle virtualContainer(container.getMinCorner() - Vec(cellSize), container.getMaxCorner() + Vec(cellSize));
-    int  nx = floor (virtualContainer.getDimx() / cellSize);
-    int  ny = floor (virtualContainer.getDimy() / cellSize);
-    int  nz = floor (virtualContainer.getDimz() / cellSize);
-    REAL dx = virtualContainer.getDimx() / nx;
-    REAL dy = virtualContainer.getDimy() / ny;
-    REAL dz = virtualContainer.getDimz() / nz;
+    int  nx = floor (virtualContainer.getDimX() / cellSize);
+    int  ny = floor (virtualContainer.getDimY() / cellSize);
+    int  nz = floor (virtualContainer.getDimZ() / cellSize);
+    REAL dx = virtualContainer.getDimX() / nx;
+    REAL dy = virtualContainer.getDimY() / ny;
+    REAL dz = virtualContainer.getDimZ() / nz;
     Vec  minCorner = virtualContainer.getMinCorner();
     REAL x0 = minCorner.getX();
     REAL y0 = minCorner.getY();
