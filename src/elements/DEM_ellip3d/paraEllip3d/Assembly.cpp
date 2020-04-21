@@ -5086,7 +5086,22 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     // The order of MPI gather agrees with (int iRank = 0; iRank < mpi.mpiSize; ++iRank) below.
     // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
+
+    for (int i = 0; i < printStressVec.size(); ++i)
+      ofs << std::setw(OWID) << printStressVec[i].density;
+    ofs << std::endl;
+
+    for (int i = 0; i < printStressVec.size(); ++i)
+      ofs << std::setw(OWID) << printStressVec[i].voidRatio;
+    ofs << std::endl;
+
     int numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].fabric[j];
+      ofs << std::endl;
+    }
+
     for (int j = 0; j < numCompo; ++j) {
       for (int i = 0; i < printStressVec.size(); ++i)
 	ofs << std::setw(OWID) << printStressVec[i].stress[j];
