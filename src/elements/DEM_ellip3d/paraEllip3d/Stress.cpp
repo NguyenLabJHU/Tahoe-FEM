@@ -15,6 +15,7 @@ namespace dem {
   void Stress::setZero() {
     density = 0;
     voidRatio = 0;
+    angle = 0;
 
     for (int i = 0; i < 3; ++i) {
       coord[i] = 0;
@@ -22,6 +23,7 @@ namespace dem {
       stressEigenValue[i] = 0;
       stressRateEigenValue[i] = 0;
       rateOfDeformEigenValue[i] = 0;
+      unitVec[i] = 0;
     }
 
     for (int i = 0; i < 6; ++i) {
@@ -138,6 +140,9 @@ namespace dem {
 	<< std::setw(OWID) << rateOfDeformEigenVector[0]<< std::setw(OWID) << rateOfDeformEigenVector[1]<< std::setw(OWID) << rateOfDeformEigenVector[2]
 	<< std::setw(OWID) << rateOfDeformEigenVector[3]<< std::setw(OWID) << rateOfDeformEigenVector[4]<< std::setw(OWID) << rateOfDeformEigenVector[5]
 	<< std::setw(OWID) << rateOfDeformEigenVector[6]<< std::setw(OWID) << rateOfDeformEigenVector[7]<< std::setw(OWID) << rateOfDeformEigenVector[8]
+
+	<< std::setw(OWID) << unitVec[0]<< std::setw(OWID) << unitVec[1] << std::setw(OWID) << unitVec[2]
+      	<< std::setw(OWID) << angle
 
 	<< std::endl;
   }

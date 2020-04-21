@@ -49,6 +49,9 @@ namespace dem {
     REAL stressRateEigenVector[9];
     REAL rateOfDeformEigenValue[3];
     REAL rateOfDeformEigenVector[9];
+
+    REAL unitVec[3];
+    REAL angle;
     
     friend class boost::serialization::access;
     template<class Archive>
@@ -76,6 +79,8 @@ namespace dem {
       ar & stressRateEigenVector;
       ar & rateOfDeformEigenValue;
       ar & rateOfDeformEigenVector;
+      ar & unitVec;
+      ar & angle;
     }
     
   };

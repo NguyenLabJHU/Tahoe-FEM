@@ -4692,6 +4692,11 @@ namespace dem {
 	<< " " << "d_3_v2"
 	<< " " << "d_3_v3"
 
+	<< " " << "p1"
+	<< " " << "p2"
+	<< " " << "p3"
+	<< " " << "rot_deg"
+
 	<< std::endl;
 
     ofs	<< "ZONE T=\"stress\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
@@ -4701,7 +4706,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
 116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,\
-139,140,141,142,143,144,145,146]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
+139,140,141,142,143,144,145,146,147,148,149,150]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
 
     int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
@@ -5070,6 +5075,24 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::endl;
     }
 
+    // rotation unit vector and angle for rotation tensor R.
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].unitVec[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].angle;
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
     // Implement B: for future Tecplot which removes line character limit 32,000
     /*
     for (std::size_t i = 0; i < spaceCoords.size(); ++i)
@@ -5219,6 +5242,19 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	ofs << std::setw(OWID) << printStressVec[i].rateOfDeformEigenVector[j];
       ofs << std::endl;
     }
+
+    // rotation unit vector and angle for rotation tensor R.
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i)
+	ofs << std::setw(OWID) << printStressVec[i].unitVec[j];
+      ofs << std::endl;
+    }
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].angle;
+    }
+    ofs << std::endl;
+
     */
 
     // The order agrees with MPI gather order.
@@ -5417,6 +5453,11 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "d_3_v1"
 	<< std::setw(OWID) << "d_3_v2"
 	<< std::setw(OWID) << "d_3_v3"
+
+	<< std::setw(OWID) << "p1"
+	<< std::setw(OWID) << "p2"
+	<< std::setw(OWID) << "p3"
+	<< std::setw(OWID) << "rot_deg"
 
 	<< std::endl;
 
@@ -5618,6 +5659,20 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       printStress.rateOfDeformEigenVector[7]= vectors.col(2)(1);
       printStress.rateOfDeformEigenVector[8]= vectors.col(2)(2);
     }
+
+    if ((granularStrain["R"] - Eigen::Matrix3d::Identity(3,3)).norm() > EPS) {
+      double val = 0.5*(granularStrain["R"](0,0)+granularStrain["R"](1,1)+granularStrain["R"](2,2) - 1);
+      if (val - 1 > - EPS || val + 1 < EPS ) // tricky, for val around 1 and -1, respectively.
+	printStress.angle = 0;
+      else {
+	printStress.angle = acos(val);
+	printStress.unitVec[0] = 0.5*(granularStrain["R"](2,1)-granularStrain["R"](1,2))/sin(printStress.angle);
+	printStress.unitVec[1] = 0.5*(granularStrain["R"](0,2)-granularStrain["R"](2,0))/sin(printStress.angle);
+	printStress.unitVec[2] = 0.5*(granularStrain["R"](1,0)-granularStrain["R"](0,1))/sin(printStress.angle);
+	printStress.angle *= 180.0/Pi;
+      }
+    }
+    
   }
 
 
