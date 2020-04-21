@@ -27,7 +27,7 @@ ifeq ($(STRESS_STRAIN), yes)
 endif
 
 ###4. print contact info or not?
-PRINT_CONTACT = yes
+#PRINT_CONTACT = yes
 ifeq ($(PRINT_CONTACT), yes)
  MACRO_PRINT_CONTACT = -DPRINT_CONTACT
 endif
