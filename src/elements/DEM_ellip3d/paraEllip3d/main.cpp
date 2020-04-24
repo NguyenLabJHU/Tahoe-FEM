@@ -101,6 +101,9 @@ int main(int argc, char* argv[]) {
   case 102: // resume deposition using specified data file of particles and boundaries
     assemb.resumeDepositIntoContainer();
     break;
+  case 111: // move side walls at constant velocities
+    assemb.moveWall();
+    break;
   case 201: // isotropic type 1 - create an initial state with low confining pressure
     assemb.isotropic();
     break; 

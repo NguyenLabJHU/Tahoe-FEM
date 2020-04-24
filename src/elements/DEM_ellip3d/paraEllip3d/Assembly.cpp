@@ -565,6 +565,110 @@ namespace dem {
   }
 
 
+  void Assembly::moveWall() 
+  {
+    int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
+    if (mpi.mpiRank == 0) {
+      readParticle(dem::Parameter::getSingleton().datafile["particleFile"].c_str());
+      readBoundary(dem::Parameter::getSingleton().datafile["boundaryFile"].c_str(), gridUpdate);
+      openCompressProg(progressInf, "moveWall_progress");
+    }
+    scatterParticle();
+
+    std::size_t startStep = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startStep"]);
+    std::size_t endStep   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endStep"]);
+    std::size_t startSnap = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["startSnap"]);
+    std::size_t endSnap   = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["endSnap"]);
+    std::size_t netStep   = endStep - startStep + 1;
+    std::size_t netSnap   = endSnap - startSnap + 1;
+    timeStep = dem::Parameter::getSingleton().parameter["timeStep"];
+
+    REAL time0, time1, time2, commuT, migraT, gatherT, totalT;
+    iteration = startStep;
+    std::size_t iterSnap = startSnap;
+    REAL distX, distY, distZ;
+    if (mpi.mpiRank == 0) {
+      plotBoundary((combineString("moveWall_bdryplot_", iterSnap - 1, 3) + ".dat").c_str(), iterSnap - 1);
+      plotGrid((combineString("moveWall_gridplot_", iterSnap - 1, 3) + ".dat").c_str(), iterSnap - 1);
+      printParticleByRoot(combineString("moveWall_particle_", iterSnap - 1, 3).c_str());
+      printBdryContact(combineString("moveWall_bdrycntc_", iterSnap -1, 3).c_str());
+      printBoundary(combineString("moveWall_boundary_", iterSnap - 1, 3).c_str());
+      getStartDimension(distX, distY, distZ);
+      releaseGatheredParticle(); // release memory after printing
+    }
+    if (mpi.mpiRank == 0)
+      debugInf << std::setw(OWID) << "iter" << std::setw(OWID) << "commuT" << std::setw(OWID) << "migraT"
+	       << std::setw(OWID) << "totalT" << std::setw(OWID) << "overhead%" << std::endl;
+
+    mpi.findNeighborProcess(); // one-time operation
+    while (iteration <= endStep) {
+      commuT = migraT = gatherT = totalT = 0; time0 = MPI_Wtime();
+      commuParticle(); time2 = MPI_Wtime(); commuT = time2 - time0;
+
+      calcTimeStep(); // use values from last step, must call before findContact()
+      findContact();
+      if (mpi.isBdryProcess()) findBdryContact();
+
+      clearContactForce();
+      internalForce();
+      if (mpi.isBdryProcess()) boundaryForce();
+
+#ifdef STRESS_STRAIN
+      if ((iteration + 2) % (netStep / netSnap) == 0)
+	calcPrevGranularStress(); // compute stress in previous time step
+
+      if ((iteration + 1) % (netStep / netSnap) == 0) {
+	gatherGranularStress(combineString("moveWall_tensor_", iterSnap, 3).c_str(), timeStep, netStep / netSnap * timeStep); //ensure both contact forces and particle locations are in current step.
+        snapParticlePos(); // snapshot particle positions
+      }
+#endif
+
+      updateParticle();
+      gatherBdryContact(); // must call before updateBoundary()
+   
+      if (iteration % (netStep / netSnap) == 0) {
+	time1 = MPI_Wtime();
+	//gatherParticle();
+	gatherEnergy(); time2 = MPI_Wtime(); gatherT = time2 - time1;
+
+	if (mpi.mpiRank == 0) {
+	  plotBoundary((combineString("moveWall_bdryplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	  plotGrid((combineString("moveWall_gridplot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	  printBdryContact(combineString("moveWall_bdrycntc_", iterSnap, 3).c_str());
+	  printBoundary(combineString("moveWall_boundary_", iterSnap, 3).c_str());
+	  printCompressProg(progressInf, distX, distY, distZ);
+#ifdef STRESS_STRAIN
+	  printGranularStressFEM((combineString("moveWall_stress_plot_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+	  printGranularStressOrdered((combineString("moveWall_stress_data_", iterSnap, 3) + ".dat").c_str(), iterSnap);
+#endif
+	}
+	printParticle(combineString("moveWall_particle_", iterSnap, 3).c_str());
+#ifdef PRINT_CONTACT
+	printContact(combineString("moveWall_contact_", iterSnap, 3).c_str());      
+#endif
+	++iterSnap;
+      }
+
+      updateBoundary(0, "moveWall"); // must call after printBdryContact
+      updateGridMaxZ(); // a special case: top wall does not move, top grid boundary moves.
+
+      releaseRecvParticle(); // late release because printContact refers to received particles
+      time1 = MPI_Wtime();
+      migrateParticle(); time2 = MPI_Wtime(); migraT = time2 - time1; totalT = time2 - time0;
+      if (mpi.mpiRank == 0 && (iteration+1 ) % (netStep / netSnap) == 0) // ignore gather and print time at this step
+	debugInf << std::setw(OWID) << iteration << std::setw(OWID) << commuT << std::setw(OWID) << migraT
+		 << std::setw(OWID) << totalT << std::setw(OWID) << (commuT + migraT)/totalT*100 << std::endl;
+
+      ++iteration;
+    } 
+  
+    if (mpi.mpiRank == 0) {
+      closeProg(progressInf);
+      closeProg(balancedInf);
+    }
+  }
+
+
   void Assembly::isotropic() 
   {
     int gridUpdate = static_cast<int> (dem::Parameter::getSingleton().parameter["gridUpdate"]);
@@ -7483,7 +7587,10 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       REAL areaY = (z2 - z1) * (x2 - x1);
       REAL areaZ = (x2 - x1) * (y2 - y1);
 
-      if (type.compare("isotropic") == 0) {
+      if (type.compare("moveWall") == 0) {
+	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
+	  (*it)->updateMoveWall(sigma, areaX, areaY, areaZ);
+      } else if (type.compare("isotropic") == 0) {
 	for(std::vector<Boundary *>::iterator it = mergedBoundaryVec.begin(); it != mergedBoundaryVec.end(); ++it)
 	  (*it)->updateIsotropic(sigma, areaX, areaY, areaZ);
       } else if (type.compare("oedometer") == 0) {

@@ -159,6 +159,43 @@ namespace dem {
     updateStatForce();
   }
 
+  void planeBoundary::updateMoveWall(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
+    REAL bdry1Rate = dem::Parameter::getSingleton().parameter["bdry1Rate"];
+    REAL bdry2Rate = dem::Parameter::getSingleton().parameter["bdry2Rate"];
+    REAL bdry3Rate = dem::Parameter::getSingleton().parameter["bdry3Rate"];
+    REAL bdry4Rate = dem::Parameter::getSingleton().parameter["bdry4Rate"];
+
+    REAL vel, pos;
+    switch (id) {
+    case 1: 
+      vel = - bdry1Rate;
+      pos = prevPoint.getX() + vel * timeStep;
+      setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
+      setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() ));
+      break;
+    case 2:
+      vel = bdry2Rate;
+      pos = prevPoint.getX() + vel * timeStep;
+      setVeloc(Vec(vel, getVeloc().getY(), getVeloc().getZ() ));
+      setPoint(Vec(pos, getPoint().getY(), getPoint().getZ() ));
+      break;
+    case 3:
+      vel = - bdry3Rate;
+      pos = prevPoint.getY() + vel * timeStep;
+      setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
+      setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
+      break;
+    case 4:
+      vel = bdry4Rate;
+      pos = prevPoint.getY() + vel * timeStep;
+      setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
+      setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
+      break;
+    }
+    prevPoint = point;
+    prevVeloc = veloc;
+  }
+
   void planeBoundary::updateIsotropic(REAL sigma, REAL areaX, REAL areaY, REAL areaZ) {
     std::size_t isotropicType = static_cast<std::size_t> (dem::Parameter::getSingleton().parameter["isotropicType"]);
     REAL forceDamp = dem::Parameter::getSingleton().parameter["forceDamp"];

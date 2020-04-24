@@ -193,6 +193,7 @@ namespace dem {
     void coupleWithGas();    
     void pureGas();    
 
+    void moveWall();
     void isotropic();
     void oedometer();
     void oedometerImpact();

@@ -207,6 +207,7 @@ namespace dem {
     void clearContactInfo();
     void clearPossParticle();
 
+    virtual void updateMoveWall(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateIsotropic(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateOedometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ) {}
     virtual void updateOedometerImpact(REAL areaX, REAL areaY, REAL areaZ) {}
@@ -265,6 +266,7 @@ namespace dem {
     void print(std::ostream &os);
     void printContactInfo(std::ostream &os);
 
+    void updateMoveWall(REAL sigma, REAL areaX, REAL areaY, REAL areaZ);
     void updateIsotropic(REAL sigma, REAL areaX, REAL areaY, REAL areaZ);
     void updateOedometer(REAL simga, REAL areaX, REAL areaY, REAL areaZ);
     void updateOedometerImpact(REAL areaX, REAL areaY, REAL areaZ);
