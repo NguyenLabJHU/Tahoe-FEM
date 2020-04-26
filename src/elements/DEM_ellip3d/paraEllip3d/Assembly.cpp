@@ -4178,6 +4178,9 @@ namespace dem {
     printStress.setZero();
 
     // print coordinates even without computing stress/strain.
+    // this is not needed as calcGranularStrain(timeIncr) below will compute the centroids,
+    // and convertGranularStressForPrint() below will overwrite the centroids,
+    // but leave here for grids without any particles inside.
     printStress.coord[0]  = container.getCenter().getX();
     printStress.coord[1]  = container.getCenter().getY();
     printStress.coord[2]  = container.getCenter().getZ();
@@ -4247,7 +4250,8 @@ namespace dem {
     // OWID*14 + std::endl = 211
     inf << std::setw(OWID) << "iteration=" << std::setw(OWID) << iteration << std::setw(OWID) << "process=" << std::setw(OWID) << mpi.mpiRank 
 	<< std::setw(OWID) << "(i,j,k)=" << std::setw(OWID) << mpi.mpiCoords[0] << std::setw(OWID) << mpi.mpiCoords[1] << std::setw(OWID) << mpi.mpiCoords[2] 
-	<< std::setw(OWID) << "(x,y,z)=" << std::setw(OWID) << container.getCenter().getX() << std::setw(OWID) << container.getCenter().getY() << std::setw(OWID) << container.getCenter().getZ() 
+      //<< std::setw(OWID) << "(x,y,z)=" << std::setw(OWID) << container.getCenter().getX() << std::setw(OWID) << container.getCenter().getY() << std::setw(OWID) << container.getCenter().getZ() 
+	<< std::setw(OWID) << "(x,y,z)=" << std::setw(OWID) << centroid.getX() << std::setw(OWID) << centroid.getY() << std::setw(OWID) << centroid.getZ() 
 	<< std::setw(OWID) << "particles=" << std::setw(OWID) << particleVec.size()
 	<< std::endl;
 
@@ -4403,6 +4407,15 @@ namespace dem {
 
     Eigen::Matrix3d avg;
     REAL actualVolume;
+
+    // averaging for centroid
+    centroid = 0;
+    actualVolume = 0;
+    for (int i = 0; i < tetraVec.size(); ++i) {
+      centroid += tetraVec[i].getCentroid() * tetraVec[i].getVolume();
+      actualVolume += tetraVec[i].getVolume();
+    }
+    if (actualVolume == 0) centroid = 0; centroid /= actualVolume;
 
     // averaging for matrixF, only accounting for initially "continuous" tetrahedra
     avg.setZero();
@@ -4812,6 +4825,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,\
 139,140,141,142,143,144,145,146,147,148,149,150]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
 
+    // note x, y, z of spaceCoords are for FEM nodes.
     int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
     std::vector<Vec> spaceCoords(totalCoord);
     if (coupled == 0) { // no coupling with CFD
@@ -5392,6 +5406,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     ofs.precision(OPREC);
     //ofs << std::setw(OWID) << printStressVec.size() << std::endl;
 
+    // note x, y, z are for FEM cell centers.
     ofs	<< std::setw(OWID) << "VARIABLES=" << std::endl
 	<< std::setw(OWID) << "x"
 	<< std::setw(OWID) << "y"
@@ -5583,9 +5598,14 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.setZero();
 
     // container: last update in commuParticle(); next update in migrateParticle() 
-    printStress.coord[0]  = container.getCenter().getX();
-    printStress.coord[1]  = container.getCenter().getY();
-    printStress.coord[2]  = container.getCenter().getZ();
+    //printStress.coord[0]  = container.getCenter().getX();
+    //printStress.coord[1]  = container.getCenter().getY();
+    //printStress.coord[2]  = container.getCenter().getZ();
+    ///*
+    printStress.coord[0]  = centroid.getX();
+    printStress.coord[1]  = centroid.getY();
+    printStress.coord[2]  = centroid.getZ();
+    //*/
 
     printStress.density   = nominalDensity;
     printStress.voidRatio = nominalVoidRatio;

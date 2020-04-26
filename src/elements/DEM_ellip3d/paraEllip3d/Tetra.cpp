@@ -58,6 +58,28 @@ namespace dem {
   }
 
 
+  Vec Tetra::getCentroid() {
+    REAL x1, y1, z1;
+    REAL x2, y2, z2;
+    REAL x3, y3, z3;
+    REAL x4, y4, z4;
+    x1 = ptclMap[m]->getCurrPos().getX();
+    y1 = ptclMap[m]->getCurrPos().getY();
+    z1 = ptclMap[m]->getCurrPos().getZ();
+    x2 = ptclMap[n]->getCurrPos().getX();
+    y2 = ptclMap[n]->getCurrPos().getY();
+    z2 = ptclMap[n]->getCurrPos().getZ();
+    x3 = ptclMap[i]->getCurrPos().getX();
+    y3 = ptclMap[i]->getCurrPos().getY();
+    z3 = ptclMap[i]->getCurrPos().getZ();
+    x4 = ptclMap[j]->getCurrPos().getX();
+    y4 = ptclMap[j]->getCurrPos().getY();
+    z4 = ptclMap[j]->getCurrPos().getZ();
+    
+    return(Vec((x1+x2+x3+x4)/4, (y1+y2+y3+y4)/4, (z1+z2+z3+z4)/4));
+  }
+
+
   void Tetra::setNodeOrderCalcMatrix() {
     if(getVolume() < 0) { // swap node 2 and node 3
       /*

@@ -68,6 +68,7 @@ namespace dem {
     Eigen::Matrix3d  getMatrixF() const {return matrixF;}
     Eigen::Matrix3d  getMatrixFdot() const {return matrixFdot;}
 
+    Vec  getCentroid();
     REAL getVolume();
     REAL getInitVolume();
     void setNodeOrderCalcMatrix();

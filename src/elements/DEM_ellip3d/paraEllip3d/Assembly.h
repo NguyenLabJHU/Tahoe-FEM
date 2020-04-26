@@ -91,6 +91,7 @@ namespace dem {
     
 #ifdef STRESS_STRAIN
     // continuum property
+    Vec  centroid;                      // centroid, per process
     REAL nominalDensity;                // nominal density, per process
     REAL nominalVoidRatio;              // nominal void ratio, per process
     Eigen::Matrix3d fabricTensor;       // fabric tensor, per process
