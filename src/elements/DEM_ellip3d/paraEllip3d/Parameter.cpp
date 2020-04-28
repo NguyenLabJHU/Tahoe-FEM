@@ -177,7 +177,7 @@ namespace dem {
     }
       break;
 
-    case 111: { // move walls at a velocity
+    case 111: { // move 4 walls at a velocity
       std::size_t i;
       for (i = 0; i < 2; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
@@ -186,6 +186,23 @@ namespace dem {
 	datafile[str] = str2;
       }
       for (i = 0; i < 8; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> val;
+	parameter[str] = val;
+      }
+    }
+      break;
+
+    case 112: { // move 5 walls at a velocity
+      std::size_t i;
+      for (i = 0; i < 2; ++i) {
+	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
+	ssline.clear(); ssline.str(line);
+	ssline >> str >> str2;
+	datafile[str] = str2;
+      }
+      for (i = 0; i < 9; ++i) {
 	while (getline(ifs, line) ) if (line[0] != '#' && line.compare("") != 0 ) break;
 	ssline.clear(); ssline.str(line);
 	ssline >> str >> val;

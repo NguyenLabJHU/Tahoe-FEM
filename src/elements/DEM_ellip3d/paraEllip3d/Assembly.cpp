@@ -650,7 +650,9 @@ namespace dem {
       }
 
       updateBoundary(0, "moveWall"); // must call after printBdryContact
-      updateGridMaxZ(); // a special case: top wall does not move, top grid boundary moves.
+      int simuType = static_cast<int> (dem::Parameter::getSingleton().parameter["simuType"]);
+      if (simuType == 111)
+	updateGridMaxZ(); // a special case: top wall does not move, top grid boundary moves.
 
       releaseRecvParticle(); // late release because printContact refers to received particles
       time1 = MPI_Wtime();

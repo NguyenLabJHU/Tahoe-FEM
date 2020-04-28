@@ -164,6 +164,7 @@ namespace dem {
     REAL bdry2Rate = dem::Parameter::getSingleton().parameter["bdry2Rate"];
     REAL bdry3Rate = dem::Parameter::getSingleton().parameter["bdry3Rate"];
     REAL bdry4Rate = dem::Parameter::getSingleton().parameter["bdry4Rate"];
+    REAL bdry6Rate = dem::Parameter::getSingleton().parameter["bdry6Rate"];
 
     REAL vel, pos;
     switch (id) {
@@ -190,6 +191,12 @@ namespace dem {
       pos = prevPoint.getY() + vel * timeStep;
       setVeloc(Vec(getVeloc().getX(), vel, getVeloc().getZ() ));
       setPoint(Vec(getPoint().getX(), pos, getPoint().getZ() ));
+      break;
+    case 6:
+      vel = bdry6Rate;
+      pos = prevPoint.getZ() + vel * timeStep;
+      setVeloc(Vec(getVeloc().getX(), getVeloc().getY(), vel ));
+      setPoint(Vec(getPoint().getX(), getPoint().getY(), pos ));
       break;
     }
     prevPoint = point;
