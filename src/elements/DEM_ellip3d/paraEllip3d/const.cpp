@@ -9,7 +9,8 @@ namespace dem {
   const REAL EPS  = 1.0E-12;
 
   // minimum particle number for computing granular stress and strain
-  const int stressMinPtcl = 8;
+  // mininum 5 to construct initial simplex
+  const int stressMinPtcl = 5;
 
   // algorithm tolerance
   const REAL TOL  = 1.0E-6;
