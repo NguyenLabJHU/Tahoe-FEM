@@ -4297,6 +4297,17 @@ namespace dem {
     }
 
     // 4
+    if (granularStrain.count("intgra_e") == 0) 
+      granularStrain["intgra_e"].setZero();
+    inf << std::setw(OWID) << std::left << "intgra_e=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["intgra_e"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    // 5
     if (granularStrain.count("E") == 0) 
       granularStrain["E"].setZero();
     inf << std::setw(OWID) << std::left << "E=[ ..." << std::right << std::endl;
@@ -4307,7 +4318,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 5
+    // 6
     if (granularStrain.count("e") == 0) 
       granularStrain["e"].setZero();
     inf << std::setw(OWID) << std::left << "e=[ ..." << std::right << std::endl;
@@ -4318,7 +4329,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 6
+    // 7
     if (granularStrain.count("intgraF") == 0) 
       granularStrain["intgraF"].setZero();
     inf << std::setw(OWID) << std::left << "intgraF=[ ..." << std::right << std::endl;
@@ -4329,7 +4340,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 7
+    // 8
     if (granularStrain.count("F") == 0) 
       granularStrain["F"].setZero();
     inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
@@ -4340,7 +4351,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 8
+    // 9
     if (granularStrain.count("R") == 0) 
       granularStrain["R"].setZero();
     inf << std::setw(OWID) << std::left << "R=[ ..." << std::right << std::endl;
@@ -4351,7 +4362,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 9
+    // 10
     if (granularStrain.count("U") == 0) 
       granularStrain["U"].setZero();
     inf << std::setw(OWID) << std::left << "U=[ ..." << std::right << std::endl;
@@ -4362,7 +4373,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 10
+    // 11
     if (granularStrain.count("l") == 0) 
       granularStrain["l"].setZero();
     inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
@@ -4373,7 +4384,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 11
+    // 12
     if (granularStrain.count("d") == 0) 
       granularStrain["d"].setZero();
     inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
@@ -4384,7 +4395,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    int length = 211 * 1 + 157 * 12;
+    int length = 211 * 1 + 157 * 13; // 0 to 12
     MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
     MPI_File_close(&tensorFile); // end of parallel IO
 
@@ -4475,6 +4486,7 @@ namespace dem {
 
     Eigen::Matrix3d matrixE = 0.5 * (matrixF.transpose() * matrixF - Eigen::Matrix3d::Identity(3,3));
     Eigen::Matrix3d intgraE = 0.5 * (intgraF.transpose() * intgraF - Eigen::Matrix3d::Identity(3,3));
+    Eigen::Matrix3d intgra_e = 0.5 * (Eigen::Matrix3d::Identity(3,3) -  (intgraF * intgraF.transpose()).inverse() );
     Eigen::Matrix3d matrix_e;
     matrix_e.setZero();
     if (matrixF != Eigen::Matrix3d::Zero(3,3))
@@ -4485,6 +4497,7 @@ namespace dem {
     granularStrain["Fdot"] = matrixFdot;
 
     granularStrain["intgraE"] = intgraE;
+    granularStrain["intgra_e"] = intgra_e;
     granularStrain["E"] = matrixE;
     granularStrain["e"] = matrix_e;
 
@@ -5681,7 +5694,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.stretch[3] = granularStrain["U"](0,1);
     printStress.stretch[4] = granularStrain["U"](0,2);
     printStress.stretch[5] = granularStrain["U"](1,2);
-
+    /*
     printStress.greenStrain[0] = granularStrain["E"](0,0);
     printStress.greenStrain[1] = granularStrain["E"](1,1);
     printStress.greenStrain[2] = granularStrain["E"](2,2);
@@ -5695,6 +5708,20 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.eulerStrain[3] = granularStrain["e"](0,1);
     printStress.eulerStrain[4] = granularStrain["e"](0,2);
     printStress.eulerStrain[5] = granularStrain["e"](1,2);
+    */
+    printStress.greenStrain[0] = granularStrain["intgraE"](0,0);
+    printStress.greenStrain[1] = granularStrain["intgraE"](1,1);
+    printStress.greenStrain[2] = granularStrain["intgraE"](2,2);
+    printStress.greenStrain[3] = granularStrain["intgraE"](0,1);
+    printStress.greenStrain[4] = granularStrain["intgraE"](0,2);
+    printStress.greenStrain[5] = granularStrain["intgraE"](1,2);
+
+    printStress.eulerStrain[0] = granularStrain["intgra_e"](0,0);
+    printStress.eulerStrain[1] = granularStrain["intgra_e"](1,1);
+    printStress.eulerStrain[2] = granularStrain["intgra_e"](2,2);
+    printStress.eulerStrain[3] = granularStrain["intgra_e"](0,1);
+    printStress.eulerStrain[4] = granularStrain["intgra_e"](0,2);
+    printStress.eulerStrain[5] = granularStrain["intgra_e"](1,2);
 
     printStress.velocityGradient[0] = granularStrain["l"](0,0);
     printStress.velocityGradient[1] = granularStrain["l"](0,1);
