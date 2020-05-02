@@ -26,6 +26,10 @@ namespace dem {
       stressRateEigenValue[i] = 0;
       rateOfDeformEigenValue[i] = 0;
       unitVec[i] = 0;
+      OldroEigenValue[i] = 0;
+      TruesEigenValue[i] = 0;
+      EDotEigenValue[i] = 0;
+      eDotEigenValue[i] = 0;
     }
 
     for (int i = 0; i < 6; ++i) {
@@ -50,6 +54,10 @@ namespace dem {
       stressEigenVector[i] = 0;
       stressRateEigenVector[i] = 0;
       rateOfDeformEigenVector[i] = 0;
+      OldroEigenVector[i] = 0;
+      TruesEigenVector[i] = 0;
+      EDotEigenVector[i] = 0;
+      eDotEigenVector[i] = 0;
     }
 
   } 
@@ -157,6 +165,26 @@ namespace dem {
 	<< std::setw(OWID) << eDot[3]<< std::setw(OWID) << eDot[4]<< std::setw(OWID) << eDot[5]
 	
 	<< std::setw(OWID) << JDot
+
+	<< std::setw(OWID) << OldroEigenValue[0]<< std::setw(OWID) << OldroEigenValue[1]<< std::setw(OWID) << OldroEigenValue[2]
+	<< std::setw(OWID) << OldroEigenVector[0]<< std::setw(OWID) << OldroEigenVector[1]<< std::setw(OWID) << OldroEigenVector[2]
+	<< std::setw(OWID) << OldroEigenVector[3]<< std::setw(OWID) << OldroEigenVector[4]<< std::setw(OWID) << OldroEigenVector[5]
+	<< std::setw(OWID) << OldroEigenVector[6]<< std::setw(OWID) << OldroEigenVector[7]<< std::setw(OWID) << OldroEigenVector[8]
+
+	<< std::setw(OWID) << TruesEigenValue[0]<< std::setw(OWID) << TruesEigenValue[1]<< std::setw(OWID) << TruesEigenValue[2]
+	<< std::setw(OWID) << TruesEigenVector[0]<< std::setw(OWID) << TruesEigenVector[1]<< std::setw(OWID) << TruesEigenVector[2]
+	<< std::setw(OWID) << TruesEigenVector[3]<< std::setw(OWID) << TruesEigenVector[4]<< std::setw(OWID) << TruesEigenVector[5]
+	<< std::setw(OWID) << TruesEigenVector[6]<< std::setw(OWID) << TruesEigenVector[7]<< std::setw(OWID) << TruesEigenVector[8]
+
+	<< std::setw(OWID) << EDotEigenValue[0]<< std::setw(OWID) << EDotEigenValue[1]<< std::setw(OWID) << EDotEigenValue[2]
+	<< std::setw(OWID) << EDotEigenVector[0]<< std::setw(OWID) << EDotEigenVector[1]<< std::setw(OWID) << EDotEigenVector[2]
+	<< std::setw(OWID) << EDotEigenVector[3]<< std::setw(OWID) << EDotEigenVector[4]<< std::setw(OWID) << EDotEigenVector[5]
+	<< std::setw(OWID) << EDotEigenVector[6]<< std::setw(OWID) << EDotEigenVector[7]<< std::setw(OWID) << EDotEigenVector[8]
+
+	<< std::setw(OWID) << eDotEigenValue[0]<< std::setw(OWID) << eDotEigenValue[1]<< std::setw(OWID) << eDotEigenValue[2]
+	<< std::setw(OWID) << eDotEigenVector[0]<< std::setw(OWID) << eDotEigenVector[1]<< std::setw(OWID) << eDotEigenVector[2]
+	<< std::setw(OWID) << eDotEigenVector[3]<< std::setw(OWID) << eDotEigenVector[4]<< std::setw(OWID) << eDotEigenVector[5]
+	<< std::setw(OWID) << eDotEigenVector[6]<< std::setw(OWID) << eDotEigenVector[7]<< std::setw(OWID) << eDotEigenVector[8]
 
 	<< std::endl;
   }

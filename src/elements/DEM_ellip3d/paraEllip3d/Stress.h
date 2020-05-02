@@ -58,6 +58,15 @@ namespace dem {
     REAL eDot[6];             // symmetric
     REAL JDot;
     
+    REAL OldroEigenValue[3];
+    REAL OldroEigenVector[9];
+    REAL TruesEigenValue[3];
+    REAL TruesEigenVector[9];
+    REAL EDotEigenValue[3];
+    REAL EDotEigenVector[9];
+    REAL eDotEigenValue[3];
+    REAL eDotEigenVector[9];
+
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
@@ -90,6 +99,14 @@ namespace dem {
       ar & EDot;
       ar & eDot;
       ar & JDot;
+      ar & OldroEigenValue;
+      ar & OldroEigenVector;
+      ar & TruesEigenValue;
+      ar & TruesEigenVector;
+      ar & EDotEigenValue;
+      ar & EDotEigenVector;
+      ar & eDotEigenValue;
+      ar & eDotEigenVector;
     }
     
   };

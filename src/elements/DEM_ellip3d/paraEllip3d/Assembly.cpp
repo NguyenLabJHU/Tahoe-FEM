@@ -4919,6 +4919,58 @@ namespace dem {
 
 	<< " " << "JDot"
 
+	<< " " << "Oldro_1"
+	<< " " << "Oldro_2"
+	<< " " << "Oldro_3"
+	<< " " << "Oldro_1_v1"
+	<< " " << "Oldro_1_v2"
+	<< " " << "Oldro_1_v3"
+	<< " " << "Oldro_2_v1"
+	<< " " << "Oldro_2_v2"
+	<< " " << "Oldro_2_v3"
+	<< " " << "Oldro_3_v1"
+	<< " " << "Oldro_3_v2"
+	<< " " << "Oldro_3_v3"
+
+	<< " " << "Trues_1"
+	<< " " << "Trues_2"
+	<< " " << "Trues_3"
+	<< " " << "Trues_1_v1"
+	<< " " << "Trues_1_v2"
+	<< " " << "Trues_1_v3"
+	<< " " << "Trues_2_v1"
+	<< " " << "Trues_2_v2"
+	<< " " << "Trues_2_v3"
+	<< " " << "Trues_3_v1"
+	<< " " << "Trues_3_v2"
+	<< " " << "Trues_3_v3"
+
+	<< " " << "EDot_1"
+	<< " " << "EDot_2"
+	<< " " << "EDot_3"
+	<< " " << "EDot_1_v1"
+	<< " " << "EDot_1_v2"
+	<< " " << "EDot_1_v3"
+	<< " " << "EDot_2_v1"
+	<< " " << "EDot_2_v2"
+	<< " " << "EDot_2_v3"
+	<< " " << "EDot_3_v1"
+	<< " " << "EDot_3_v2"
+	<< " " << "EDot_3_v3"
+
+	<< " " << "eDot_1"
+	<< " " << "eDot_2"
+	<< " " << "eDot_3"
+	<< " " << "eDot_1_v1"
+	<< " " << "eDot_1_v2"
+	<< " " << "eDot_1_v3"
+	<< " " << "eDot_2_v1"
+	<< " " << "eDot_2_v2"
+	<< " " << "eDot_2_v3"
+	<< " " << "eDot_3_v1"
+	<< " " << "eDot_3_v2"
+	<< " " << "eDot_3_v3"
+
 	<< std::endl;
 
     ofs	<< "ZONE T=\"stress\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
@@ -4928,7 +4980,12 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
 116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,\
-139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
+139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,\
+165,166,167,168,169,170,171,172,173,174,175,176,\
+177,178,179,180,181,182,183,184,185,186,187,188,\
+189,190,191,192,193,194,195,196,197,198,199,200,\
+201,202,203,204,205,206,207,208,209,210,211,212\
+]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
 
     // note x, y, z of spaceCoords are for FEM nodes.
     int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
@@ -5352,264 +5409,85 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     }
     ofs << std::endl;
 
-    // Implement B: for future Tecplot which removes line character limit 32,000
-    /*
-    for (std::size_t i = 0; i < spaceCoords.size(); ++i)
-      ofs << std::setw(OWID) << spaceCoords[i].getX();
-    ofs << std::endl;
-
-    for (std::size_t i = 0; i < spaceCoords.size(); ++i)
-      ofs << std::setw(OWID) << spaceCoords[i].getY();
-    ofs << std::endl;
-
-    for (std::size_t i = 0; i < spaceCoords.size(); ++i)
-      ofs << std::setw(OWID) << spaceCoords[i].getZ();
-    ofs << std::endl;
-
-    // The order of MPI gather agrees with (int iRank = 0; iRank < mpi.mpiSize; ++iRank) below.
-    // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
-
-    for (int i = 0; i < printStressVec.size(); ++i)
-      ofs << std::setw(OWID) << printStressVec[i].density;
-    ofs << std::endl;
-
-    for (int i = 0; i < printStressVec.size(); ++i)
-      ofs << std::setw(OWID) << printStressVec[i].voidRatio;
-    ofs << std::endl;
-
-    int numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].fabric[j];
-      ofs << std::endl;
-    }
-
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stress[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stressRate[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].OldroStressRate[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].TruesStressRate[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].deformGradient[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].rotation[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stretch[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].greenStrain[j];
-      }
-      ofs << std::endl;
-    }
-
-    // Green volume and shear stains
-    numCompo = 2;
-    double green[2];
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i) {
-	double xx = printStressVec[i].greenStrain[0];
-	double yy = printStressVec[i].greenStrain[1];
-	double zz = printStressVec[i].greenStrain[2];
-	double xy = printStressVec[i].greenStrain[3];
-	double xz = printStressVec[i].greenStrain[4];
-	double yz = printStressVec[i].greenStrain[5];
-	green[0] = (xx + yy + zz) / 3;
-	green[1] = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
-	ofs << std::setw(OWID) << green[j];
-      }
-      ofs << std::endl;
-    }
-
-    numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].eulerStrain[j];
-      }
-      ofs << std::endl;
-    }
-
-    // Euler volume and shear stains
-    numCompo = 2;
-    double euler[2];
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i) {
-	double xx = printStressVec[i].eulerStrain[0];
-	double yy = printStressVec[i].eulerStrain[1];
-	double zz = printStressVec[i].eulerStrain[2];
-	double xy = printStressVec[i].eulerStrain[3];
-	double xz = printStressVec[i].eulerStrain[4];
-	double yz = printStressVec[i].eulerStrain[5];
-	euler[0] = (xx + yy + zz) / 3;
-	euler[1] = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
-	ofs << std::setw(OWID) << euler[j];
-      }
-      ofs << std::endl;
-    }
-
-    // for Jacobian
-    for (int i = 0; i < printStressVec.size(); ++i) {
-      ofs << std::setw(OWID) << printStressVec[i].Jacobian;
-    }
-    ofs << std::endl;
-
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].velocityGradient[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].rateOfDeform[j];
-      ofs << std::endl;
-    }
-
+    // eigen of Oldro
     numCompo = 3;
     for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].spin[j];
-      ofs << std::endl;
-    }
-
-    numCompo = 9; // for norm of 9 tensors
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].norm[j];
-      ofs << std::endl;
-    }
-
-    // p and q
-    numCompo = 2;
-    double pq[2];
-    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
-	double sigma1 = printStressVec[i].stressEigenValue[0];
-	double sigma2 = printStressVec[i].stressEigenValue[1];
-	double sigma3 = printStressVec[i].stressEigenValue[2];
-	pq[0] = (sigma1 + sigma2 + sigma3 ) / 3; // p
-	pq[1] = sqrt( (pow(sigma1-sigma2,2) + pow(sigma2-sigma3,2) + pow(sigma3-sigma1,2)) / 2); // q
-	ofs << std::setw(OWID) << pq[j];
+	ofs << std::setw(OWID) << printStressVec[i].OldroEigenValue[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
       }
-      ofs << std::endl;
-    }
-
-    // eigen of stress
-    numCompo = 3;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stressEigenValue[j];
       ofs << std::endl;
     }
     numCompo = 9;
     for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stressEigenVector[j];
-      ofs << std::endl;
-    }
-
-    // eigen of stressRate
-    numCompo = 3;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stressRateEigenValue[j];
-      ofs << std::endl;
-    }
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].stressRateEigenVector[j];
-      ofs << std::endl;
-    }
-
-    // eigen of rateOfDeform
-    numCompo = 3;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].rateOfDeformEigenValue[j];
-      ofs << std::endl;
-    }
-    numCompo = 9;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].rateOfDeformEigenVector[j];
-      ofs << std::endl;
-    }
-
-    // rotation unit vector and angle for rotation tensor R.
-    numCompo = 3;
-    for (int j = 0; j < numCompo; ++j) {
-      for (int i = 0; i < printStressVec.size(); ++i)
-	ofs << std::setw(OWID) << printStressVec[i].unitVec[j];
-      ofs << std::endl;
-    }
-
-    for (int i = 0; i < printStressVec.size(); ++i) {
-      ofs << std::setw(OWID) << printStressVec[i].angle;
-    }
-    ofs << std::endl;
-
-    numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].EDot[j];
+	ofs << std::setw(OWID) << printStressVec[i].OldroEigenVector[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
       }
       ofs << std::endl;
     }
 
-    numCompo = 6;
+    // eigen of Trues
+    numCompo = 3;
     for (int j = 0; j < numCompo; ++j) {
+      k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].eDot[j];
+	ofs << std::setw(OWID) << printStressVec[i].TruesEigenValue[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].TruesEigenVector[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
       }
       ofs << std::endl;
     }
 
-    // for JDot
-    for (int i = 0; i < printStressVec.size(); ++i) {
-      ofs << std::setw(OWID) << printStressVec[i].JDot;
+    // eigen of EDot
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].EDotEigenValue[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
     }
-    ofs << std::endl;
-    */
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].EDotEigenVector[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
+    // eigen of eDot
+    numCompo = 3;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].eDotEigenValue[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+    numCompo = 9;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].eDotEigenVector[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
 
     // The order agrees with MPI gather order.
     // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
@@ -5831,6 +5709,58 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "eDot_yz"
 
 	<< std::setw(OWID) << "JDot"
+
+	<< std::setw(OWID) << "Oldro_1"
+	<< std::setw(OWID) << "Oldro_2"
+	<< std::setw(OWID) << "Oldro_3"
+	<< std::setw(OWID) << "Oldro_1_v1"
+	<< std::setw(OWID) << "Oldro_1_v2"
+	<< std::setw(OWID) << "Oldro_1_v3"
+	<< std::setw(OWID) << "Oldro_2_v1"
+	<< std::setw(OWID) << "Oldro_2_v2"
+	<< std::setw(OWID) << "Oldro_2_v3"
+	<< std::setw(OWID) << "Oldro_3_v1"
+	<< std::setw(OWID) << "Oldro_3_v2"
+	<< std::setw(OWID) << "Oldro_3_v3"
+
+	<< std::setw(OWID) << "Trues_1"
+	<< std::setw(OWID) << "Trues_2"
+	<< std::setw(OWID) << "Trues_3"
+	<< std::setw(OWID) << "Trues_1_v1"
+	<< std::setw(OWID) << "Trues_1_v2"
+	<< std::setw(OWID) << "Trues_1_v3"
+	<< std::setw(OWID) << "Trues_2_v1"
+	<< std::setw(OWID) << "Trues_2_v2"
+	<< std::setw(OWID) << "Trues_2_v3"
+	<< std::setw(OWID) << "Trues_3_v1"
+	<< std::setw(OWID) << "Trues_3_v2"
+	<< std::setw(OWID) << "Trues_3_v3"
+
+	<< std::setw(OWID) << "EDot_1"
+	<< std::setw(OWID) << "EDot_2"
+	<< std::setw(OWID) << "EDot_3"
+	<< std::setw(OWID) << "EDot_1_v1"
+	<< std::setw(OWID) << "EDot_1_v2"
+	<< std::setw(OWID) << "EDot_1_v3"
+	<< std::setw(OWID) << "EDot_2_v1"
+	<< std::setw(OWID) << "EDot_2_v2"
+	<< std::setw(OWID) << "EDot_2_v3"
+	<< std::setw(OWID) << "EDot_3_v1"
+	<< std::setw(OWID) << "EDot_3_v2"
+	<< std::setw(OWID) << "EDot_3_v3"
+
+	<< std::setw(OWID) << "eDot_1"
+	<< std::setw(OWID) << "eDot_2"
+	<< std::setw(OWID) << "eDot_3"
+	<< std::setw(OWID) << "eDot_1_v1"
+	<< std::setw(OWID) << "eDot_1_v2"
+	<< std::setw(OWID) << "eDot_1_v3"
+	<< std::setw(OWID) << "eDot_2_v1"
+	<< std::setw(OWID) << "eDot_2_v2"
+	<< std::setw(OWID) << "eDot_2_v3"
+	<< std::setw(OWID) << "eDot_3_v1"
+	<< std::setw(OWID) << "eDot_3_v2"
+	<< std::setw(OWID) << "eDot_3_v3"
 
 	<< std::endl;
 
@@ -6082,6 +6012,79 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.eDot[5] = granularStrain["eDot"](1,2);
 
     printStress.JDot = JDot;
+
+    if (OldroStressRate != Eigen::Matrix3d::Zero(3,3)) {
+      es.compute(OldroStressRate);
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.OldroEigenValue[0] = value(0);
+      printStress.OldroEigenValue[1] = value(1);
+      printStress.OldroEigenValue[2] = value(2);
+      printStress.OldroEigenVector[0]= vectors.col(0)(0);
+      printStress.OldroEigenVector[1]= vectors.col(0)(1);
+      printStress.OldroEigenVector[2]= vectors.col(0)(2);
+      printStress.OldroEigenVector[3]= vectors.col(1)(0);
+      printStress.OldroEigenVector[4]= vectors.col(1)(1);
+      printStress.OldroEigenVector[5]= vectors.col(1)(2);
+      printStress.OldroEigenVector[6]= vectors.col(2)(0);
+      printStress.OldroEigenVector[7]= vectors.col(2)(1);
+      printStress.OldroEigenVector[8]= vectors.col(2)(2);
+    }
+
+    if (TruesStressRate != Eigen::Matrix3d::Zero(3,3)) {
+      es.compute(TruesStressRate);
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.TruesEigenValue[0] = value(0);
+      printStress.TruesEigenValue[1] = value(1);
+      printStress.TruesEigenValue[2] = value(2);
+      printStress.TruesEigenVector[0]= vectors.col(0)(0);
+      printStress.TruesEigenVector[1]= vectors.col(0)(1);
+      printStress.TruesEigenVector[2]= vectors.col(0)(2);
+      printStress.TruesEigenVector[3]= vectors.col(1)(0);
+      printStress.TruesEigenVector[4]= vectors.col(1)(1);
+      printStress.TruesEigenVector[5]= vectors.col(1)(2);
+      printStress.TruesEigenVector[6]= vectors.col(2)(0);
+      printStress.TruesEigenVector[7]= vectors.col(2)(1);
+      printStress.TruesEigenVector[8]= vectors.col(2)(2);
+    }
+
+    if (granularStrain["EDot"] != Eigen::Matrix3d::Zero(3,3)) {
+      es.compute(granularStrain["EDot"]);
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.EDotEigenValue[0] = value(0);
+      printStress.EDotEigenValue[1] = value(1);
+      printStress.EDotEigenValue[2] = value(2);
+      printStress.EDotEigenVector[0]= vectors.col(0)(0);
+      printStress.EDotEigenVector[1]= vectors.col(0)(1);
+      printStress.EDotEigenVector[2]= vectors.col(0)(2);
+      printStress.EDotEigenVector[3]= vectors.col(1)(0);
+      printStress.EDotEigenVector[4]= vectors.col(1)(1);
+      printStress.EDotEigenVector[5]= vectors.col(1)(2);
+      printStress.EDotEigenVector[6]= vectors.col(2)(0);
+      printStress.EDotEigenVector[7]= vectors.col(2)(1);
+      printStress.EDotEigenVector[8]= vectors.col(2)(2);
+    }
+
+    if (granularStrain["eDot"] != Eigen::Matrix3d::Zero(3,3)) {
+      es.compute(granularStrain["eDot"]);
+      value   = es.eigenvalues();
+      vectors = es.eigenvectors();
+      printStress.eDotEigenValue[0] = value(0);
+      printStress.eDotEigenValue[1] = value(1);
+      printStress.eDotEigenValue[2] = value(2);
+      printStress.eDotEigenVector[0]= vectors.col(0)(0);
+      printStress.eDotEigenVector[1]= vectors.col(0)(1);
+      printStress.eDotEigenVector[2]= vectors.col(0)(2);
+      printStress.eDotEigenVector[3]= vectors.col(1)(0);
+      printStress.eDotEigenVector[4]= vectors.col(1)(1);
+      printStress.eDotEigenVector[5]= vectors.col(1)(2);
+      printStress.eDotEigenVector[6]= vectors.col(2)(0);
+      printStress.eDotEigenVector[7]= vectors.col(2)(1);
+      printStress.eDotEigenVector[8]= vectors.col(2)(2);
+    }
+
   }
 
 
