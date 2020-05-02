@@ -25,7 +25,7 @@ namespace dem {
     Matrix43d matrixB; // "strain" matrix, based on shape function N(x), x is current coordinates
     Eigen::Matrix3d  matrix_l;   // velocity gradient, dvdx, using shape function
     Eigen::Matrix3d  matrixF;    // deformation gradient, directly resolved
-    Eigen::Matrix3d  matrixFdot; // rate of deformation gradient, directly resolved
+    Eigen::Matrix3d  matrixFDot; // rate of deformation gradient, directly resolved
     //Eigen::Matrix3d  matrix_l2;  // velocity gradient, dvdx, directly resolved, exactly the same
 
   public:
@@ -34,7 +34,7 @@ namespace dem {
       matrixB.setZero();
       matrix_l.setZero();
       matrixF.setZero();
-      matrixFdot.setZero();
+      matrixFDot.setZero();
       //matrix_l2.setZero();
     }
     
@@ -48,7 +48,7 @@ namespace dem {
       matrixB.setZero();
       matrix_l.setZero();
       matrixF.setZero();
-      matrixFdot.setZero();
+      matrixFDot.setZero();
       //matrix_l2.setZero();
     }
     
@@ -66,7 +66,7 @@ namespace dem {
     Matrix43d getMatrixB() const {return matrixB;}
     Eigen::Matrix3d  getMatrix_l() const {return matrix_l;}
     Eigen::Matrix3d  getMatrixF() const {return matrixF;}
-    Eigen::Matrix3d  getMatrixFdot() const {return matrixFdot;}
+    Eigen::Matrix3d  getMatrixFDot() const {return matrixFDot;}
 
     Vec  getCentroid();
     REAL getVolume();

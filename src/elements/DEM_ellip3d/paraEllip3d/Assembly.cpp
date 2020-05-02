@@ -434,7 +434,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if (timeCount + timeStep >= timeIncr/netSnap) {
-	gatherGranularStress(combineString("deposit_tensor_", iterSnap, 3).c_str(),timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("deposit_tensor_", iterSnap, 3).c_str(), timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshot particle positions
       }
 #endif
@@ -1875,7 +1875,7 @@ namespace dem {
 	calcPrevGranularStress(); // compute stress in previous time step
 
       if (timeCount + timeStep >= timeIncr/netSnap) {
-	gatherGranularStress(combineString("couple_tensor_", iterSnap, 3).c_str(),timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
+	gatherGranularStress(combineString("couple_tensor_", iterSnap, 3).c_str(), timeStep, timeIncr/netSnap); //ensure both contact forces and particle locations are in current step.
         snapParticlePos(); // snapshot particle positions
       }
 #endif
@@ -4223,7 +4223,7 @@ namespace dem {
 		<< "intgraF= ..." << std::endl << granularStrain["intgraF"].format(fmt) << std::endl << std::endl
 		<< "matrixF= ..." << std::endl << granularStrain["F"].format(fmt) << std::endl << std::endl
 
-		<< "matrixFdot= ..." << std::endl << granularStrain["Fdot"].format(fmt) << std::endl << std::endl
+		<< "matrixFDot= ..." << std::endl << granularStrain["FDot"].format(fmt) << std::endl << std::endl
 		<< "matrixE= ..." << std::endl << granularStrain["E"].format(fmt) << std::endl << std::endl
 		<< "matrixR= ..." << std::endl << granularStrain["R"].format(fmt) << std::endl << std::endl
 		<< "matrixU= ..." << std::endl << granularStrain["U"].format(fmt) << std::endl << std::endl
@@ -4258,7 +4258,7 @@ namespace dem {
 	<< std::endl;
 
     // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
-    // 0
+    // 1
     inf << std::setw(OWID) << std::left << "fabric=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4267,7 +4267,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 1
+    // 2
     inf << std::setw(OWID) << std::left << "sigma=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4276,7 +4276,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 2
+    // 3
     inf << std::setw(OWID) << std::left << "sigmaDot=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4285,7 +4285,25 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 3
+    // 4
+    inf << std::setw(OWID) << std::left << "OldroRate=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << OldroStressRate(i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    // 5
+    inf << std::setw(OWID) << std::left << "TruesRate=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << TruesStressRate(i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    // 6
     if (granularStrain.count("intgraE") == 0) 
       granularStrain["intgraE"].setZero();
     inf << std::setw(OWID) << std::left << "intgraE=[ ..." << std::right << std::endl;
@@ -4296,7 +4314,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 4
+    // 7
     if (granularStrain.count("intgra_e") == 0) 
       granularStrain["intgra_e"].setZero();
     inf << std::setw(OWID) << std::left << "intgra_e=[ ..." << std::right << std::endl;
@@ -4307,7 +4325,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 5
+    // 8
     if (granularStrain.count("E") == 0) 
       granularStrain["E"].setZero();
     inf << std::setw(OWID) << std::left << "E=[ ..." << std::right << std::endl;
@@ -4318,7 +4336,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 6
+    // 9
     if (granularStrain.count("e") == 0) 
       granularStrain["e"].setZero();
     inf << std::setw(OWID) << std::left << "e=[ ..." << std::right << std::endl;
@@ -4329,7 +4347,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 7
+    // 10
     if (granularStrain.count("intgraF") == 0) 
       granularStrain["intgraF"].setZero();
     inf << std::setw(OWID) << std::left << "intgraF=[ ..." << std::right << std::endl;
@@ -4340,7 +4358,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 8
+    // 11
     if (granularStrain.count("F") == 0) 
       granularStrain["F"].setZero();
     inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
@@ -4351,10 +4369,10 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 9
+    // 12
     if (granularStrain.count("R") == 0) 
       granularStrain["R"].setZero();
-    inf << std::setw(OWID) << std::left << "R=[ ..." << std::right << std::endl;
+    inf << std::setw(OWID) << std::left << "intgraR=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
 	inf << std::setw(OWID) << granularStrain["R"](i,j);
@@ -4362,10 +4380,10 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 10
+    // 13
     if (granularStrain.count("U") == 0) 
       granularStrain["U"].setZero();
-    inf << std::setw(OWID) << std::left << "U=[ ..." << std::right << std::endl;
+    inf << std::setw(OWID) << std::left << "intgraU=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
 	inf << std::setw(OWID) << granularStrain["U"](i,j);
@@ -4373,7 +4391,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 11
+    // 14
     if (granularStrain.count("l") == 0) 
       granularStrain["l"].setZero();
     inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
@@ -4384,7 +4402,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 12
+    // 15
     if (granularStrain.count("d") == 0) 
       granularStrain["d"].setZero();
     inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
@@ -4395,7 +4413,29 @@ namespace dem {
       inf << std::endl;
     }
 
-    int length = 211 * 1 + 157 * 13; // 0 to 12
+    // 16
+    if (granularStrain.count("EDot") == 0) 
+      granularStrain["EDot"].setZero();
+    inf << std::setw(OWID) << std::left << "EDot=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["EDot"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    // 17
+    if (granularStrain.count("eDot") == 0) 
+      granularStrain["eDot"].setZero();
+    inf << std::setw(OWID) << std::left << "eDot=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << granularStrain["eDot"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    int length = 211 * 1 + 157 * 17; // 1 to 17
     MPI_File_write_ordered(tensorFile, const_cast<char*> (inf.str().c_str()), length, MPI_CHAR, &status);
     MPI_File_close(&tensorFile); // end of parallel IO
 
@@ -4405,7 +4445,7 @@ namespace dem {
   void Assembly::calcGranularStrain(REAL timeIncr) { // epsilon = 1/V (sum(epsilon)*v)
     /*
     Eigen::Matrix3d  matrixF;   // deformation gradient
-    Eigen::Matrix3d  matrixFdot;// rate of deformation gradient
+    Eigen::Matrix3d  matrixFDot;// rate of deformation gradient
     Eigen::Matrix3d  matrixR;   // rotation matrix in polar decomposition
     Eigen::Matrix3d  matrixU;   // stretch matrix in polar decomposition
     Eigen::Matrix3d  matrixE;   // Green strain
@@ -4413,9 +4453,12 @@ namespace dem {
     Eigen::Matrix3d  matrix_l;  // velocity gradient
     Eigen::Matrix3d  matrix_d;  // rate of deformation
     Eigen::Matrix3d  matrix_w;  // spin
+    Eigen::Matrix3d  matrix_EDot; // Green strain rate
+    Eigen::Matrix3d  matrix_eDot; // Euler strain rate
 
-    Eigen::Matrix3d  intgraF;   // snapshot-integrated F using Fdot = l F
+    Eigen::Matrix3d  intgraF;   // snapshot-integrated F using FDot = l F
     Eigen::Matrix3d  intgraE;   // computed from intgraF
+    Eigen::Matrix3d  intgra_e;   // computed from intgraF
     */
 
     Eigen::Matrix3d avg;
@@ -4442,17 +4485,17 @@ namespace dem {
     if (actualVolume == 0) avg.setZero(); else avg /= actualVolume;
     Eigen::Matrix3d matrixF = avg;
 
-    // averaging for matrixFdot, only accounting for initially "continuous" tetrahedra
+    // averaging for matrixFDot, only accounting for initially "continuous" tetrahedra
     avg.setZero();
     actualVolume = 0;
     for (int i = 0; i < tetraVec.size(); ++i) {
-      if (tetraVec[i].getMatrixFdot() != Eigen::Matrix3d::Zero(3,3)) {
-	avg += tetraVec[i].getMatrixFdot() * tetraVec[i].getVolume();
+      if (tetraVec[i].getMatrixFDot() != Eigen::Matrix3d::Zero(3,3)) {
+	avg += tetraVec[i].getMatrixFDot() * tetraVec[i].getVolume();
 	actualVolume += tetraVec[i].getVolume();
       }
     }
     if (actualVolume == 0) avg.setZero(); else avg /= actualVolume;
-    Eigen::Matrix3d matrixFdot = avg;
+    Eigen::Matrix3d matrixFDot = avg;
 
     // averaging for matrix_l, not associated with initial state of any tetrahedra
     avg.setZero();
@@ -4461,16 +4504,6 @@ namespace dem {
     }
     if (getGranularTetraVolume() == 0) avg.setZero(); else avg /= getGranularTetraVolume();
     Eigen::Matrix3d matrix_l = avg;
-
-    // polar decompostion of matrixF
-    Eigen::Matrix3d matrixR, matrixU;
-    matrixR.setZero();
-    matrixU.setZero();
-    if (matrixF != Eigen::Matrix3d::Zero(3,3)) {
-      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(matrixF.transpose() * matrixF);
-      matrixU = es.operatorSqrt();           // stretch tensor
-      matrixR = matrixF * matrixU.inverse(); // rotation tensor
-    }
 
     // symmetric and skew-symmetric decomposition of matrix_l
     Eigen::Matrix3d matrix_d = 0.5 * (matrix_l + matrix_l.transpose());
@@ -4484,17 +4517,42 @@ namespace dem {
       prevSnapMatrixF = intgraF;   
     }
 
+    /*
+    // polar decompostion of matrixF
+    Eigen::Matrix3d matrixR, matrixU;
+    matrixR.setZero();
+    matrixU.setZero();
+    if (matrixF != Eigen::Matrix3d::Zero(3,3)) {
+      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(matrixF.transpose() * matrixF);
+      matrixU = es.operatorSqrt();           // stretch tensor
+      matrixR = matrixF * matrixU.inverse(); // rotation tensor
+    }
+    */
+
+    // polar decompostion of intgraF
+    Eigen::Matrix3d matrixR, matrixU;
+    matrixR.setZero();
+    matrixU.setZero();
+    if (intgraF != Eigen::Matrix3d::Zero(3,3)) {
+      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(intgraF.transpose() * intgraF);
+      matrixU = es.operatorSqrt();           // stretch tensor
+      matrixR = intgraF * matrixU.inverse(); // rotation tensor
+    }
+
     Eigen::Matrix3d matrixE = 0.5 * (matrixF.transpose() * matrixF - Eigen::Matrix3d::Identity(3,3));
     Eigen::Matrix3d intgraE = 0.5 * (intgraF.transpose() * intgraF - Eigen::Matrix3d::Identity(3,3));
-    Eigen::Matrix3d intgra_e = 0.5 * (Eigen::Matrix3d::Identity(3,3) -  (intgraF * intgraF.transpose()).inverse() );
     Eigen::Matrix3d matrix_e;
     matrix_e.setZero();
     if (matrixF != Eigen::Matrix3d::Zero(3,3))
       matrix_e = 0.5 * (Eigen::Matrix3d::Identity(3,3) - (matrixF * matrixF.transpose()).inverse());
+    Eigen::Matrix3d intgra_e;
+    intgra_e.setZero();
+    if (intgraF != Eigen::Matrix3d::Zero(3,3))
+      intgra_e = 0.5 * (Eigen::Matrix3d::Identity(3,3) - (intgraF * intgraF.transpose()).inverse());
 
     granularStrain.clear();
     granularStrain["intgraF"] = intgraF;
-    granularStrain["Fdot"] = matrixFdot;
+    granularStrain["FDot"] = matrixFDot;
 
     granularStrain["intgraE"] = intgraE;
     granularStrain["intgra_e"] = intgra_e;
@@ -4507,6 +4565,20 @@ namespace dem {
     granularStrain["l"] = matrix_l;
     granularStrain["d"] = matrix_d;
     granularStrain["w"] = matrix_w;
+
+    /*
+    // use matrixF and matrix_e
+    granularStrain["EDot"] = matrixF.transpose() * matrix_d * matrixF;
+    granularStrain["eDot"] = matrix_d - matrix_l.transpose() * matrix_e - matrix_e * matrix_l;
+    Jacobian = matrixF.determinant();
+    */
+
+    // use intgraF and intgra_e
+    granularStrain["EDot"] = intgraF.transpose() * matrix_d * intgraF;
+    granularStrain["eDot"] = matrix_d - matrix_l.transpose() * intgra_e - intgra_e * matrix_l;
+    Jacobian = intgraF.determinant();
+
+    JDot = Jacobian * matrix_d.trace();
   }
 
 
@@ -4752,6 +4824,8 @@ namespace dem {
 	<< " " << "Euler_vol"
 	<< " " << "Euler_shr"
 
+	<< " " << "Jacobian"
+
 	<< " " << "l_xx"
 	<< " " << "l_xy"
 	<< " " << "l_xz"
@@ -4829,6 +4903,22 @@ namespace dem {
 	<< " " << "p3"
 	<< " " << "rot_deg"
 
+	<< " " << "EDot_xx"
+	<< " " << "EDot_yy"
+	<< " " << "EDot_zz"
+	<< " " << "EDot_xy"
+	<< " " << "EDot_xz"
+	<< " " << "EDot_yz"
+
+	<< " " << "eDot_xx"
+	<< " " << "eDot_yy"
+	<< " " << "eDot_zz"
+	<< " " << "eDot_xy"
+	<< " " << "eDot_xz"
+	<< " " << "eDot_yz"
+
+	<< " " << "JDot"
+
 	<< std::endl;
 
     ofs	<< "ZONE T=\"stress\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
@@ -4838,7 +4928,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,\
 91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,\
 116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,\
-139,140,141,142,143,144,145,146,147,148,149,150]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
+139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
 
     // note x, y, z of spaceCoords are for FEM nodes.
     int totalCoord = (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1);
@@ -5091,6 +5181,14 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::endl;
     }
 
+    // for Jacobian
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].Jacobian;
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
     numCompo = 9;
     for (int j = 0; j < numCompo; ++j) {
       k = 0;
@@ -5226,6 +5324,34 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     }
     ofs << std::endl;
 
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].EDot[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].eDot[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
+    // for JDot
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].JDot;
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
     // Implement B: for future Tecplot which removes line character limit 32,000
     /*
     for (std::size_t i = 0; i < spaceCoords.size(); ++i)
@@ -5306,6 +5432,64 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::endl;
     }
 
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].greenStrain[j];
+      }
+      ofs << std::endl;
+    }
+
+    // Green volume and shear stains
+    numCompo = 2;
+    double green[2];
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	double xx = printStressVec[i].greenStrain[0];
+	double yy = printStressVec[i].greenStrain[1];
+	double zz = printStressVec[i].greenStrain[2];
+	double xy = printStressVec[i].greenStrain[3];
+	double xz = printStressVec[i].greenStrain[4];
+	double yz = printStressVec[i].greenStrain[5];
+	green[0] = (xx + yy + zz) / 3;
+	green[1] = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
+	ofs << std::setw(OWID) << green[j];
+      }
+      ofs << std::endl;
+    }
+
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].eulerStrain[j];
+      }
+      ofs << std::endl;
+    }
+
+    // Euler volume and shear stains
+    numCompo = 2;
+    double euler[2];
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	double xx = printStressVec[i].eulerStrain[0];
+	double yy = printStressVec[i].eulerStrain[1];
+	double zz = printStressVec[i].eulerStrain[2];
+	double xy = printStressVec[i].eulerStrain[3];
+	double xz = printStressVec[i].eulerStrain[4];
+	double yz = printStressVec[i].eulerStrain[5];
+	euler[0] = (xx + yy + zz) / 3;
+	euler[1] = sqrt(2.0)/3 * sqrt(pow(xx-yy,2) + pow(yy-zz,2) + pow(zz-xx,2) + 6.0*(xy*xy + yz*yz + xz*xz));
+	ofs << std::setw(OWID) << euler[j];
+      }
+      ofs << std::endl;
+    }
+
+    // for Jacobian
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].Jacobian;
+    }
+    ofs << std::endl;
+
     numCompo = 9;
     for (int j = 0; j < numCompo; ++j) {
       for (int i = 0; i < printStressVec.size(); ++i)
@@ -5331,6 +5515,21 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     for (int j = 0; j < numCompo; ++j) {
       for (int i = 0; i < printStressVec.size(); ++i)
 	ofs << std::setw(OWID) << printStressVec[i].norm[j];
+      ofs << std::endl;
+    }
+
+    // p and q
+    numCompo = 2;
+    double pq[2];
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	double sigma1 = printStressVec[i].stressEigenValue[0];
+	double sigma2 = printStressVec[i].stressEigenValue[1];
+	double sigma3 = printStressVec[i].stressEigenValue[2];
+	pq[0] = (sigma1 + sigma2 + sigma3 ) / 3; // p
+	pq[1] = sqrt( (pow(sigma1-sigma2,2) + pow(sigma2-sigma3,2) + pow(sigma3-sigma1,2)) / 2); // q
+	ofs << std::setw(OWID) << pq[j];
+      }
       ofs << std::endl;
     }
 
@@ -5383,11 +5582,33 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	ofs << std::setw(OWID) << printStressVec[i].unitVec[j];
       ofs << std::endl;
     }
+
     for (int i = 0; i < printStressVec.size(); ++i) {
       ofs << std::setw(OWID) << printStressVec[i].angle;
     }
     ofs << std::endl;
 
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].EDot[j];
+      }
+      ofs << std::endl;
+    }
+
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].eDot[j];
+      }
+      ofs << std::endl;
+    }
+
+    // for JDot
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].JDot;
+    }
+    ofs << std::endl;
     */
 
     // The order agrees with MPI gather order.
@@ -5516,6 +5737,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "Euler_vol"
 	<< std::setw(OWID) << "Euler_shr"
 
+	<< std::setw(OWID) << "Jacobian"
+
 	<< std::setw(OWID) << "l_xx"
 	<< std::setw(OWID) << "l_xy"
 	<< std::setw(OWID) << "l_xz"
@@ -5592,6 +5815,22 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "p2"
 	<< std::setw(OWID) << "p3"
 	<< std::setw(OWID) << "rot_deg"
+
+	<< std::setw(OWID) << "EDot_xx"
+	<< std::setw(OWID) << "EDot_yy"
+	<< std::setw(OWID) << "EDot_zz"
+	<< std::setw(OWID) << "EDot_xy"
+	<< std::setw(OWID) << "EDot_xz"
+	<< std::setw(OWID) << "EDot_yz"
+
+	<< std::setw(OWID) << "eDot_xx"
+	<< std::setw(OWID) << "eDot_yy"
+	<< std::setw(OWID) << "eDot_zz"
+	<< std::setw(OWID) << "eDot_xy"
+	<< std::setw(OWID) << "eDot_xz"
+	<< std::setw(OWID) << "eDot_yz"
+
+	<< std::setw(OWID) << "JDot"
 
 	<< std::endl;
 
@@ -5723,6 +5962,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.eulerStrain[4] = granularStrain["intgra_e"](0,2);
     printStress.eulerStrain[5] = granularStrain["intgra_e"](1,2);
 
+    printStress.Jacobian = Jacobian;
+
     printStress.velocityGradient[0] = granularStrain["l"](0,0);
     printStress.velocityGradient[1] = granularStrain["l"](0,1);
     printStress.velocityGradient[2] = granularStrain["l"](0,2);
@@ -5794,7 +6035,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       printStress.stressRateEigenVector[7]= vectors.col(2)(1);
       printStress.stressRateEigenVector[8]= vectors.col(2)(2);
     }
-
+    
     if (granularStrain["d"] != Eigen::Matrix3d::Zero(3,3)) {
       es.compute(granularStrain["d"]);// rateOfDeform
       value   = es.eigenvalues();
@@ -5825,7 +6066,22 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	printStress.angle *= 180.0/Pi;
       }
     }
-    
+
+    printStress.EDot[0] = granularStrain["EDot"](0,0);
+    printStress.EDot[1] = granularStrain["EDot"](1,1);
+    printStress.EDot[2] = granularStrain["EDot"](2,2);
+    printStress.EDot[3] = granularStrain["EDot"](0,1);
+    printStress.EDot[4] = granularStrain["EDot"](0,2);
+    printStress.EDot[5] = granularStrain["EDot"](1,2);
+
+    printStress.eDot[0] = granularStrain["eDot"](0,0);
+    printStress.eDot[1] = granularStrain["eDot"](1,1);
+    printStress.eDot[2] = granularStrain["eDot"](2,2);
+    printStress.eDot[3] = granularStrain["eDot"](0,1);
+    printStress.eDot[4] = granularStrain["eDot"](0,2);
+    printStress.eDot[5] = granularStrain["eDot"](1,2);
+
+    printStress.JDot = JDot;
   }
 
 

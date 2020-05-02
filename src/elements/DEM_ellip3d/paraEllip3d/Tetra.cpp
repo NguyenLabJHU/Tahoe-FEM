@@ -104,7 +104,7 @@ namespace dem {
     std::cout << "iteration=" << iteration 
 	      << " /////////////////////////////////////////" << std::endl
 	      << "matrixF=" << std::endl << matrixF << std::endl << std::endl
-	      << "matrixFdot=" << std::endl << matrixFdot << std::endl << std::endl
+	      << "matrixFDot=" << std::endl << matrixFDot << std::endl << std::endl
 	      << "matrix_l=" << std::endl << matrix_l << std::endl << std::endl
 	      << "matrix_l2=" << std::endl << matrix_l2 << std::endl << std::endl;
     */
@@ -269,7 +269,7 @@ namespace dem {
       dzdzdz << jm.getZ(), jn.getZ(), ji.getZ();
       pdz = inv * dzdzdz;
 
-      matrixFdot << pdx.transpose(), pdy.transpose(), pdz.transpose();
+      matrixFDot << pdx.transpose(), pdy.transpose(), pdz.transpose();
     }
 
   }

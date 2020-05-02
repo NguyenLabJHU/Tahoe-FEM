@@ -16,6 +16,8 @@ namespace dem {
     density = 0;
     voidRatio = 0;
     angle = 0;
+    Jacobian = 0;
+    JDot = 0;
 
     for (int i = 0; i < 3; ++i) {
       coord[i] = 0;
@@ -34,6 +36,8 @@ namespace dem {
       rateOfDeform[i] = 0;
       greenStrain[i] = 0;
       eulerStrain[i] = 0;
+      EDot[i] = 0;
+      eDot[i] = 0;
     }
 
     for (int i = 0; i < 9; ++i) {
@@ -110,6 +114,8 @@ namespace dem {
 	<< std::setw(OWID) << eulerStrain[3]<< std::setw(OWID) << eulerStrain[4]<< std::setw(OWID) << eulerStrain[5]
 	<< std::setw(OWID) << eulerVolumeStrain << std::setw(OWID) << eulerShearStrain
 
+	<< std::setw(OWID) << Jacobian
+
 	<< std::setw(OWID) << velocityGradient[0]<< std::setw(OWID) << velocityGradient[1]<< std::setw(OWID) << velocityGradient[2]
 	<< std::setw(OWID) << velocityGradient[3]<< std::setw(OWID) << velocityGradient[4]<< std::setw(OWID) << velocityGradient[5]
 	<< std::setw(OWID) << velocityGradient[6]<< std::setw(OWID) << velocityGradient[7]<< std::setw(OWID) << velocityGradient[8]
@@ -142,7 +148,15 @@ namespace dem {
 	<< std::setw(OWID) << rateOfDeformEigenVector[6]<< std::setw(OWID) << rateOfDeformEigenVector[7]<< std::setw(OWID) << rateOfDeformEigenVector[8]
 
 	<< std::setw(OWID) << unitVec[0]<< std::setw(OWID) << unitVec[1] << std::setw(OWID) << unitVec[2]
-      	<< std::setw(OWID) << angle
+	<< std::setw(OWID) << angle
+
+	<< std::setw(OWID) << EDot[0]<< std::setw(OWID) << EDot[1]<< std::setw(OWID) << EDot[2]
+	<< std::setw(OWID) << EDot[3]<< std::setw(OWID) << EDot[4]<< std::setw(OWID) << EDot[5]
+
+	<< std::setw(OWID) << eDot[0]<< std::setw(OWID) << eDot[1]<< std::setw(OWID) << eDot[2]
+	<< std::setw(OWID) << eDot[3]<< std::setw(OWID) << eDot[4]<< std::setw(OWID) << eDot[5]
+	
+	<< std::setw(OWID) << JDot
 
 	<< std::endl;
   }

@@ -94,6 +94,7 @@ namespace dem {
     Vec  centroid;                      // centroid, per process
     REAL nominalDensity;                // nominal density, per process
     REAL nominalVoidRatio;              // nominal void ratio, per process
+    REAL Jacobian, JDot;                // Jacobian and JDot, per process
     Eigen::Matrix3d fabricTensor;       // fabric tensor, per process
     Eigen::Matrix3d prevGranularStress; // granular stress at previous time step, per process
     Eigen::Matrix3d granularStress;     // granular stress, per process

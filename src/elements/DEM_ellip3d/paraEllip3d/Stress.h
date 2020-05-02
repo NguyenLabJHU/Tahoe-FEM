@@ -36,6 +36,7 @@ namespace dem {
     REAL stretch[6];          // symmetric
     REAL greenStrain[6];      // symmetric
     REAL eulerStrain[6];      // symmetric
+    REAL Jacobian;
 
     REAL velocityGradient[9]; // unsymmetric
     REAL rateOfDeform[6];     // symmetric
@@ -52,6 +53,10 @@ namespace dem {
 
     REAL unitVec[3];
     REAL angle;
+
+    REAL EDot[6];             // symmetric
+    REAL eDot[6];             // symmetric
+    REAL JDot;
     
     friend class boost::serialization::access;
     template<class Archive>
@@ -69,6 +74,7 @@ namespace dem {
       ar & stretch;
       ar & greenStrain;
       ar & eulerStrain;
+      ar & Jacobian;
       ar & velocityGradient;
       ar & rateOfDeform;
       ar & spin;
@@ -81,6 +87,9 @@ namespace dem {
       ar & rateOfDeformEigenVector;
       ar & unitVec;
       ar & angle;
+      ar & EDot;
+      ar & eDot;
+      ar & JDot;
     }
     
   };
