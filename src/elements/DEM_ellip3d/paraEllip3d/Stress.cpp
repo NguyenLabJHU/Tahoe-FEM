@@ -50,7 +50,6 @@ namespace dem {
       deformGradient[i] = 0;
       rotation[i] = 0;
       velocityGradient[i] = 0;  
-      norm[i] = 0;
       stressEigenVector[i] = 0;
       stressRateEigenVector[i] = 0;
       rateOfDeformEigenVector[i] = 0;
@@ -60,6 +59,8 @@ namespace dem {
       eDotEigenVector[i] = 0;
     }
 
+    for (int i = 0; i < 12; ++i)
+      norm[i] = 0;
   } 
 
   void Stress::print(std::ostream &ofs) const {
@@ -85,9 +86,6 @@ namespace dem {
     ofs << std::setw(OWID) << coord[0] << std::setw(OWID) << coord[1] << std::setw(OWID) << coord[2]
 
 	<< std::setw(OWID) << density << std::setw(OWID) << voidRatio
-
-	<< std::setw(OWID) << fabric[0] << std::setw(OWID) << fabric[1] << std::setw(OWID) << fabric[2]
-	<< std::setw(OWID) << fabric[3] << std::setw(OWID) << fabric[4] << std::setw(OWID) << fabric[5]
 
 	<< std::setw(OWID) << stress[0] << std::setw(OWID) << stress[1] << std::setw(OWID) << stress[2]
 	<< std::setw(OWID) << stress[3] << std::setw(OWID) << stress[4] << std::setw(OWID) << stress[5]
@@ -132,10 +130,6 @@ namespace dem {
 	<< std::setw(OWID) << rateOfDeform[3] << std::setw(OWID) << rateOfDeform[4] << std::setw(OWID) << rateOfDeform[5]
 
 	<< std::setw(OWID) << spin[0] << std::setw(OWID) << spin[1] << std::setw(OWID) << spin[2]
-
-	<< std::setw(OWID) << norm[0] << std::setw(OWID) << norm[1] << std::setw(OWID) << norm[2]
-	<< std::setw(OWID) << norm[3] << std::setw(OWID) << norm[4] << std::setw(OWID) << norm[5]
-	<< std::setw(OWID) << norm[6] << std::setw(OWID) << norm[7] << std::setw(OWID) << norm[8]
 
 	<< std::setw(OWID) << (stressEigenValue[0] + stressEigenValue[1] + stressEigenValue[2]) / 3
 	<< std::setw(OWID) << sqrt((pow(stressEigenValue[0]-stressEigenValue[1],2) + pow(stressEigenValue[1]-stressEigenValue[2],2) + pow(stressEigenValue[2]-stressEigenValue[0],2)) / 2)
@@ -188,6 +182,14 @@ namespace dem {
 	<< std::setw(OWID) << eDotEigenVector[0] << std::setw(OWID) << eDotEigenVector[1] << std::setw(OWID) << eDotEigenVector[2]
 	<< std::setw(OWID) << eDotEigenVector[3] << std::setw(OWID) << eDotEigenVector[4] << std::setw(OWID) << eDotEigenVector[5]
 	<< std::setw(OWID) << eDotEigenVector[6] << std::setw(OWID) << eDotEigenVector[7] << std::setw(OWID) << eDotEigenVector[8]
+
+	<< std::setw(OWID) << fabric[0] << std::setw(OWID) << fabric[1] << std::setw(OWID) << fabric[2]
+	<< std::setw(OWID) << fabric[3] << std::setw(OWID) << fabric[4] << std::setw(OWID) << fabric[5]
+
+	<< std::setw(OWID) << norm[0] << std::setw(OWID) << norm[1] << std::setw(OWID) << norm[2]
+	<< std::setw(OWID) << norm[3] << std::setw(OWID) << norm[4] << std::setw(OWID) << norm[5]
+	<< std::setw(OWID) << norm[6] << std::setw(OWID) << norm[7] << std::setw(OWID) << norm[8]
+	<< std::setw(OWID) << norm[9] << std::setw(OWID) << norm[10]<< std::setw(OWID) << norm[11]
 
 	<< std::endl;
   }

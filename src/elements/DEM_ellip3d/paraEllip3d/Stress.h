@@ -24,7 +24,6 @@ namespace dem {
     REAL density;
     REAL voidRatio;
 
-    REAL fabric[6];           // symmetric
     REAL stress[6];           // symmetric
     REAL stressRate[6];       // symmetric
 
@@ -41,8 +40,6 @@ namespace dem {
     REAL velocityGradient[9]; // unsymmetric
     REAL rateOfDeform[6];     // symmetric
     REAL spin[3];             // skew-symmetric
-
-    REAL norm[9];             // norm of above tensors, except for rotation
 
     REAL stressEigenValue[3];
     REAL stressEigenVector[9];
@@ -67,13 +64,16 @@ namespace dem {
     REAL eDotEigenValue[3];
     REAL eDotEigenVector[9];
 
+    REAL fabric[6];           // symmetric
+
+    REAL norm[12];            // norm of 12 tensors
+
     friend class boost::serialization::access;
     template<class Archive>
       void serialize(Archive & ar, const unsigned int version) {
       ar & coord;
       ar & density;
       ar & voidRatio;
-      ar & fabric;
       ar & stress;
       ar & stressRate;
       ar & OldroStressRate;
@@ -87,7 +87,6 @@ namespace dem {
       ar & velocityGradient;
       ar & rateOfDeform;
       ar & spin;
-      ar & norm;
       ar & stressEigenValue;
       ar & stressEigenVector;
       ar & stressRateEigenValue;
@@ -107,6 +106,8 @@ namespace dem {
       ar & EDotEigenVector;
       ar & eDotEigenValue;
       ar & eDotEigenVector;
+      ar & fabric;
+      ar & norm;
     }
     
   };

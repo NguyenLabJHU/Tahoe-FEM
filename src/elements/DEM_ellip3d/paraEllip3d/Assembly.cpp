@@ -4259,15 +4259,6 @@ namespace dem {
 
     // for each 2nd-order tensor: OWID*10 + 4x std::endl + 2x ";" + 1x "]" = 157
     // 1
-    inf << std::setw(OWID) << std::left << "fabric=[ ..." << std::right << std::endl;
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j)
-	inf << std::setw(OWID) << fabricTensor(i,j);
-      if (i < 2) inf << ";"; else inf << "]";
-      inf << std::endl;
-    }
-
-    // 2
     inf << std::setw(OWID) << std::left << "sigma=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4276,7 +4267,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 3
+    // 2
     inf << std::setw(OWID) << std::left << "sigmaDot=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4285,7 +4276,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 4
+    // 3
     inf << std::setw(OWID) << std::left << "OldroRate=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4294,7 +4285,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 5
+    // 4
     inf << std::setw(OWID) << std::left << "TruesRate=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
@@ -4303,7 +4294,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 6
+    // 5
     if (granularStrain.count("intgraE") == 0) 
       granularStrain["intgraE"].setZero();
     inf << std::setw(OWID) << std::left << "intgraE=[ ..." << std::right << std::endl;
@@ -4314,7 +4305,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 7
+    // 6
     if (granularStrain.count("intgra_e") == 0) 
       granularStrain["intgra_e"].setZero();
     inf << std::setw(OWID) << std::left << "intgra_e=[ ..." << std::right << std::endl;
@@ -4325,7 +4316,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 8
+    // 7
     if (granularStrain.count("E") == 0) 
       granularStrain["E"].setZero();
     inf << std::setw(OWID) << std::left << "E=[ ..." << std::right << std::endl;
@@ -4336,7 +4327,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 9
+    // 8
     if (granularStrain.count("e") == 0) 
       granularStrain["e"].setZero();
     inf << std::setw(OWID) << std::left << "e=[ ..." << std::right << std::endl;
@@ -4347,7 +4338,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 10
+    // 9
     if (granularStrain.count("intgraF") == 0) 
       granularStrain["intgraF"].setZero();
     inf << std::setw(OWID) << std::left << "intgraF=[ ..." << std::right << std::endl;
@@ -4358,7 +4349,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 11
+    // 10
     if (granularStrain.count("F") == 0) 
       granularStrain["F"].setZero();
     inf << std::setw(OWID) << std::left << "F=[ ..." << std::right << std::endl;
@@ -4369,7 +4360,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 12
+    // 11
     if (granularStrain.count("R") == 0) 
       granularStrain["R"].setZero();
     inf << std::setw(OWID) << std::left << "intgraR=[ ..." << std::right << std::endl;
@@ -4380,7 +4371,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 13
+    // 12
     if (granularStrain.count("U") == 0) 
       granularStrain["U"].setZero();
     inf << std::setw(OWID) << std::left << "intgraU=[ ..." << std::right << std::endl;
@@ -4391,7 +4382,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 14
+    // 13
     if (granularStrain.count("l") == 0) 
       granularStrain["l"].setZero();
     inf << std::setw(OWID) << std::left << "l=[ ..." << std::right << std::endl;
@@ -4402,7 +4393,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 15
+    // 14
     if (granularStrain.count("d") == 0) 
       granularStrain["d"].setZero();
     inf << std::setw(OWID) << std::left << "d=[ ..." << std::right << std::endl;
@@ -4413,7 +4404,7 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 16
+    // 15
     if (granularStrain.count("EDot") == 0) 
       granularStrain["EDot"].setZero();
     inf << std::setw(OWID) << std::left << "EDot=[ ..." << std::right << std::endl;
@@ -4424,13 +4415,22 @@ namespace dem {
       inf << std::endl;
     }
 
-    // 17
+    // 16
     if (granularStrain.count("eDot") == 0) 
       granularStrain["eDot"].setZero();
     inf << std::setw(OWID) << std::left << "eDot=[ ..." << std::right << std::endl;
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 3; ++j)
 	inf << std::setw(OWID) << granularStrain["eDot"](i,j);
+      if (i < 2) inf << ";"; else inf << "]";
+      inf << std::endl;
+    }
+
+    // 17
+    inf << std::setw(OWID) << std::left << "fabric=[ ..." << std::right << std::endl;
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j)
+	inf << std::setw(OWID) << fabricTensor(i,j);
       if (i < 2) inf << ";"; else inf << "]";
       inf << std::endl;
     }
@@ -4738,13 +4738,6 @@ namespace dem {
 	<< " " << "nomin_den"
 	<< " " << "nomin_voidr"
 
-	<< " " << "fabric_xx"
-	<< " " << "fabric_yy"
-	<< " " << "fabric_zz"
-	<< " " << "fabric_xy"
-	<< " " << "fabric_xz"
-	<< " " << "fabric_yz"
-
 	<< " " << "sigma_xx"
 	<< " " << "sigma_yy"
 	<< " " << "sigma_zz"
@@ -4846,16 +4839,6 @@ namespace dem {
 	<< " " << "w_xy"
 	<< " " << "w_xz"
 	<< " " << "w_yz"
-
-	<< " " << "norm_sigma"
-	<< " " << "norm_sigmaDot"
-	<< " " << "norm_Oldro"
-	<< " " << "norm_Trues"
-	<< " " << "norm_F"
-	<< " " << "norm_U"
-	<< " " << "norm_l"
-	<< " " << "norm_d"
-	<< " " << "norm_w"
 
 	<< " " << "p"
 	<< " " << "q"
@@ -4976,6 +4959,26 @@ namespace dem {
 	<< " " << "eDot_3_v2"
 	<< " " << "eDot_3_v3"
 
+	<< " " << "fabric_xx"
+	<< " " << "fabric_yy"
+	<< " " << "fabric_zz"
+	<< " " << "fabric_xy"
+	<< " " << "fabric_xz"
+	<< " " << "fabric_yz"
+
+	<< " " << "norm_sigma"
+	<< " " << "norm_sigmaDot"
+	<< " " << "norm_Oldro"
+	<< " " << "norm_Trues"
+	<< " " << "norm_F"
+	<< " " << "norm_U"
+	<< " " << "norm_l"
+	<< " " << "norm_d"
+	<< " " << "norm_w"
+	<< " " << "norm_EDot"
+	<< " " << "norm_eDot"
+	<< " " << "norm_fabric"
+
 	<< std::endl;
 
     ofs	<< "ZONE T=\"stress\" N=" << (mpi.mpiProcX + 1) * (mpi.mpiProcY + 1) * (mpi.mpiProcZ + 1)
@@ -4990,7 +4993,7 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 177,178,179,180,181,182,183,184,185,186,187,188,\
 189,190,191,192,193,194,195,196,197,198,199,200,\
 201,202,203,204,205,206,207,208,209,210,211,212,\
-213,214,215,216\
+213,214,215,216,217,218,219\
 ]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
 
     // note x, y, z of spaceCoords are for FEM nodes.
@@ -5105,16 +5108,9 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     }
     ofs << std::endl;
 
-    int numCompo = 6;
-    for (int j = 0; j < numCompo; ++j) {
-      k = 0;
-      for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].fabric[j];
-	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
-      }
-      ofs << std::endl;
-    }
+    int numCompo = 0;
 
+    numCompo = 6;
     for (int j = 0; j < numCompo; ++j) {
       k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
@@ -5277,16 +5273,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
 	ofs << std::setw(OWID) << printStressVec[i].spin[j];
-	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
-      }
-      ofs << std::endl;
-    }
-
-    numCompo = 9; // for norm of 9 tensors
-    for (int j = 0; j < numCompo; ++j) {
-      k = 0;
-      for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].norm[j];
 	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
       }
       ofs << std::endl;
@@ -5521,6 +5507,27 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::endl;
     }
 
+    numCompo = 6;
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].fabric[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
+
+    numCompo = 12; // for norm of 12 tensors
+    for (int j = 0; j < numCompo; ++j) {
+      k = 0;
+      for (int i = 0; i < printStressVec.size(); ++i) {
+	ofs << std::setw(OWID) << printStressVec[i].norm[j];
+	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+      }
+      ofs << std::endl;
+    }
+
     // The order agrees with MPI gather order.
     // In setCommunicator(), int reorder = 0; // mpi.mpiRank not reordered
     for (int iRank = 0; iRank < mpi.mpiSize; ++iRank) {
@@ -5560,13 +5567,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
 	<< std::setw(OWID) << "nomin_den"
 	<< std::setw(OWID) << "nomin_voidr"
-
-	<< std::setw(OWID) << "fabric_xx"
-	<< std::setw(OWID) << "fabric_yy"
-	<< std::setw(OWID) << "fabric_zz"
-	<< std::setw(OWID) << "fabric_xy"
-	<< std::setw(OWID) << "fabric_xz"
-	<< std::setw(OWID) << "fabric_yz"
 
 	<< std::setw(OWID) << "sigma_xx"
 	<< std::setw(OWID) << "sigma_yy"
@@ -5669,16 +5669,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "w_xy"
 	<< std::setw(OWID) << "w_xz"
 	<< std::setw(OWID) << "w_yz"
-
-	<< std::setw(OWID) << "norm_sigma"
-	<< std::setw(OWID) << "norm_sigmaDot"
-	<< std::setw(OWID) << "norm_Oldro"
-	<< std::setw(OWID) << "norm_Trues"
-	<< std::setw(OWID) << "norm_F"
-	<< std::setw(OWID) << "norm_U"
-	<< std::setw(OWID) << "norm_l"
-	<< std::setw(OWID) << "norm_d"
-	<< std::setw(OWID) << "norm_w"
 
 	<< std::setw(OWID) << "p"
 	<< std::setw(OWID) << "q"
@@ -5799,6 +5789,26 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "eDot_3_v2"
 	<< std::setw(OWID) << "eDot_3_v3"
 
+	<< std::setw(OWID) << "fabric_xx"
+	<< std::setw(OWID) << "fabric_yy"
+	<< std::setw(OWID) << "fabric_zz"
+	<< std::setw(OWID) << "fabric_xy"
+	<< std::setw(OWID) << "fabric_xz"
+	<< std::setw(OWID) << "fabric_yz"
+
+	<< std::setw(OWID) << "norm_sigma"
+	<< std::setw(OWID) << "norm_sigmaDot"
+	<< std::setw(OWID) << "norm_Oldro"
+	<< std::setw(OWID) << "norm_Trues"
+	<< std::setw(OWID) << "norm_F"
+	<< std::setw(OWID) << "norm_U"
+	<< std::setw(OWID) << "norm_l"
+	<< std::setw(OWID) << "norm_d"
+	<< std::setw(OWID) << "norm_w"
+	<< std::setw(OWID) << "norm_EDot"
+	<< std::setw(OWID) << "norm_eDot"
+	<< std::setw(OWID) << "norm_fabric"
+
 	<< std::endl;
 
     ofs << "ZONE I=" << mpi.mpiProcX
@@ -5830,13 +5840,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 
     printStress.density   = nominalDensity;
     printStress.voidRatio = nominalVoidRatio;
-
-    printStress.fabric[0] = fabricTensor(0,0);
-    printStress.fabric[1] = fabricTensor(1,1);
-    printStress.fabric[2] = fabricTensor(2,2);
-    printStress.fabric[3] = fabricTensor(0,1);
-    printStress.fabric[4] = fabricTensor(0,2);
-    printStress.fabric[5] = fabricTensor(1,2);
 
     printStress.stress[0] = granularStress(0,0);
     printStress.stress[1] = granularStress(1,1);
@@ -5951,16 +5954,6 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     printStress.spin[0] = granularStrain["w"](0,1);
     printStress.spin[1] = granularStrain["w"](0,2);
     printStress.spin[2] = granularStrain["w"](1,2);
-
-    printStress.norm[0] = granularStress.norm();
-    printStress.norm[1] = granularStressRate.norm();
-    printStress.norm[2] = OldroStressRate.norm();
-    printStress.norm[3] = TruesStressRate.norm();
-    printStress.norm[4] = granularStrain["F"].norm();
-    printStress.norm[5] = granularStrain["U"].norm();
-    printStress.norm[6] = granularStrain["l"].norm();
-    printStress.norm[7] = granularStrain["d"].norm();
-    printStress.norm[8] = granularStrain["w"].norm();
 
     Eigen::Vector3d value;
     Eigen::Matrix3d vectors;
@@ -6121,6 +6114,26 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       printStress.eDotEigenVector[7]= vectors.col(2)(1);
       printStress.eDotEigenVector[8]= vectors.col(2)(2);
     }
+
+    printStress.fabric[0] = fabricTensor(0,0);
+    printStress.fabric[1] = fabricTensor(1,1);
+    printStress.fabric[2] = fabricTensor(2,2);
+    printStress.fabric[3] = fabricTensor(0,1);
+    printStress.fabric[4] = fabricTensor(0,2);
+    printStress.fabric[5] = fabricTensor(1,2);
+
+    printStress.norm[0] = granularStress.norm();
+    printStress.norm[1] = granularStressRate.norm();
+    printStress.norm[2] = OldroStressRate.norm();
+    printStress.norm[3] = TruesStressRate.norm();
+    printStress.norm[4] = granularStrain["F"].norm();
+    printStress.norm[5] = granularStrain["U"].norm();
+    printStress.norm[6] = granularStrain["l"].norm();
+    printStress.norm[7] = granularStrain["d"].norm();
+    printStress.norm[8] = granularStrain["w"].norm();
+    printStress.norm[9] = granularStrain["EDot"].norm();
+    printStress.norm[10] = granularStrain["eDot"].norm();
+    printStress.norm[11] = fabricTensor.norm();
 
   }
 
