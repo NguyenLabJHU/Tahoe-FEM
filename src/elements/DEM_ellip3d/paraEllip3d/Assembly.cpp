@@ -4898,10 +4898,15 @@ namespace dem {
 	<< " " << "d_3_v2"
 	<< " " << "d_3_v3"
 
-	<< " " << "p1"
-	<< " " << "p2"
-	<< " " << "p3"
+	<< " " << "p1rot"
+	<< " " << "p2rot"
+	<< " " << "p3rot"
 	<< " " << "rot_deg"
+
+	<< " " << "omg_x"
+	<< " " << "omg_y"
+	<< " " << "omg_z"
+	<< " " << "omgMag"
 
 	<< " " << "EDot_xx"
 	<< " " << "EDot_yy"
@@ -4984,7 +4989,8 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 165,166,167,168,169,170,171,172,173,174,175,176,\
 177,178,179,180,181,182,183,184,185,186,187,188,\
 189,190,191,192,193,194,195,196,197,198,199,200,\
-201,202,203,204,205,206,207,208,209,210,211,212\
+201,202,203,204,205,206,207,208,209,210,211,212,\
+213,214,215,216\
 ]=CELLCENTERED), ZONETYPE=FEBRICK, STRANDID=4, SOLUTIONTIME=" << snap << std::endl;
 
     // note x, y, z of spaceCoords are for FEM nodes.
@@ -5363,12 +5369,12 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
       ofs << std::endl;
     }
 
-    // rotation unit vector and angle for rotation tensor R.
+    // rotation tensor R.
     numCompo = 3;
     for (int j = 0; j < numCompo; ++j) {
       k = 0;
       for (int i = 0; i < printStressVec.size(); ++i) {
-	ofs << std::setw(OWID) << printStressVec[i].unitVec[j];
+	ofs << std::setw(OWID) << printStressVec[i].unitVec[j] * printStressVec[i].angle;
 	++k; if (k >= valNum) {ofs << std::endl; k = 0;}
       }
       ofs << std::endl;
@@ -5377,6 +5383,32 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
     k = 0;
     for (int i = 0; i < printStressVec.size(); ++i) {
       ofs << std::setw(OWID) << printStressVec[i].angle;
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+
+    // change order and sign for omega
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << - printStressVec[i].spin[2];
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << printStressVec[i].spin[1];
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << - printStressVec[i].spin[0];
+      ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
+    }
+    ofs << std::endl;
+    k = 0;
+    for (int i = 0; i < printStressVec.size(); ++i) {
+      ofs << std::setw(OWID) << sqrt(pow(printStressVec[i].spin[0],2) + pow(printStressVec[i].spin[1],2) + pow(printStressVec[i].spin[2],2));
       ++k; if (k >= valNum) {ofs << std::endl; k = 0;}
     }
     ofs << std::endl;
@@ -5689,10 +5721,15 @@ VARLOCATION=([4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,
 	<< std::setw(OWID) << "d_3_v2"
 	<< std::setw(OWID) << "d_3_v3"
 
-	<< std::setw(OWID) << "p1"
-	<< std::setw(OWID) << "p2"
-	<< std::setw(OWID) << "p3"
+	<< std::setw(OWID) << "p1rot"
+	<< std::setw(OWID) << "p2rot"
+	<< std::setw(OWID) << "p3rot"
 	<< std::setw(OWID) << "rot_deg"
+
+	<< std::setw(OWID) << "omg_x"
+	<< std::setw(OWID) << "omg_y"
+	<< std::setw(OWID) << "omg_z"
+	<< std::setw(OWID) << "omgMag"
 
 	<< std::setw(OWID) << "EDot_xx"
 	<< std::setw(OWID) << "EDot_yy"
