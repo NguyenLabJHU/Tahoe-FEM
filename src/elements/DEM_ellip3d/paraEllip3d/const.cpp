@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   Code: ParaEllip3d-CFD                                           //
+//                                 Author: Dr. Beichuan Yan                                          //
+//                                  Email: beichuan.yan@colorado.edu                                 //
+//                              Institute: University of Colorado Boulder                            //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include "const.h"
 
 namespace dem { 
@@ -10,7 +17,7 @@ namespace dem {
 
   // minimum particle number for computing granular stress and strain
   // mininum 5 to construct initial simplex
-  const int stressMinPtcl = 5;
+  const int stressMinPtcl = 8;
 
   // algorithm tolerance
   const REAL TOL  = 1.0E-6;

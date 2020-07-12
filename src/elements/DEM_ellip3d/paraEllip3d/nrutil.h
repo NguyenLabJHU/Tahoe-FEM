@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   Code: ParaEllip3d-CFD                                           //
+//                                 Author: Dr. Beichuan Yan                                          //
+//                                  Email: beichuan.yan@colorado.edu                                 //
+//                              Institute: University of Colorado Boulder                            //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /* CAUTION: This is the ANSI C (only) version of the Numerical Recipes
    utility file nrutil.h.  Do not confuse this file with the same-named
    file nrutil.h that is supplied in the 'misc' subdirectory.

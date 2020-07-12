@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   Code: ParaEllip3d-CFD                                           //
+//                                 Author: Dr. Beichuan Yan                                          //
+//                                  Email: beichuan.yan@colorado.edu                                 //
+//                              Institute: University of Colorado Boulder                            //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include "Vec.h"
 #include "const.h"
 #include <iostream>

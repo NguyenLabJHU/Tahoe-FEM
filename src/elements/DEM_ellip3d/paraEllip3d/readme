@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   Code: ParaEllip3d-CFD                                           //
+//                                 Author: Dr. Beichuan Yan                                          //
+//                                  Email: beichuan.yan@colorado.edu                                 //
+//                              Institute: University of Colorado Boulder                            //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 How to use paraEllip3d
 
 1. compile
@@ -22,7 +29,7 @@ How to use paraEllip3d
 
    3) make
 
-   4) copy paraEllip3d to the simulation directory.
+   4) copy the executable paraEllip3d to the simulation directory.
 
 2. run
 

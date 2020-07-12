@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   Code: ParaEllip3d-CFD                                           //
+//                                 Author: Dr. Beichuan Yan                                          //
+//                                  Email: beichuan.yan@colorado.edu                                 //
+//                              Institute: University of Colorado Boulder                            //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //    Numerical Recipes in C
 //    void zrhqr(float a[], int m, float rtr[], float rti[])
 //    Find all the roots of a polynomial with real coefficients, i=0~m, a(i)x^i, given the degree m
