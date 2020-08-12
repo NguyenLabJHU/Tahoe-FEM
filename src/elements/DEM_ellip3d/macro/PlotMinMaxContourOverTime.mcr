@@ -128,6 +128,28 @@ $!XYLINEAXIS XDETAIL 1 {TITLE{TITLEMODE = USETEXT}}
 $!XYLINEAXIS XDETAIL 1 {TITLE{TEXT = 'Solution Time'}}
 $!XYLINEAXIS YDETAIL 1 {TITLE{TITLEMODE = USETEXT}}
 $!XYLINEAXIS YDETAIL 1 {TITLE{TEXT = 'Max |ContourVarName| over Time'}}
+
+$!XYLineAxis YDetail 1 {TickLabel{Color = Red}}
+$!XYLineAxis YDetail 2 {TickLabel{Color = Blue}}
+$!XYLineAxis YDetail 1 {Title{Color = Red}}
+$!XYLineAxis YDetail 2 {Title{Color = Blue}}
+$!LineMap [1]  Lines{LineThickness = 0.40}
+$!LineMap [2]  Lines{LineThickness = 0.40}
+$!LineMap [2]  Lines{Color = Blue}
+$!XYLineAxis YDetail 1 {TickLabel{TextShape{Height = 4}}}
+$!XYLineAxis YDetail 1 {TickLabel{TextShape{IsBold = Yes}}}
+$!XYLineAxis YDetail 2 {TickLabel{TextShape{Height = 4}}}
+$!XYLineAxis YDetail 2 {TickLabel{TextShape{IsBold = Yes}}}
+$!XYLineAxis XDetail 1 {TickLabel{TextShape{Height = 4}}}
+$!XYLineAxis XDetail 1 {TickLabel{TextShape{IsBold = Yes}}}
+$!XYLineAxis XDetail 1 {Title{TextShape{Height = 5}}}
+$!XYLineAxis XDetail 2 {Title{TextShape{Height = 5}}}
+$!XYLineAxis YDetail 2 {Title{TextShape{Height = 5}}}
+$!XYLineAxis YDetail 1 {Title{TextShape{Height = 5}}}
+$!XYLineAxis YDetail 1 {Title{Offset = 8}}
+$!XYLineAxis YDetail 2 {Title{Offset = 8}}
+$!XYLineAxis XDetail 1 {Title{Offset = 5}}
+
 # Show the solution time axis marker in the XY frame. We turn
 # on solution time frame linking to ensure the line updates when
 # we animate in the other frame.
