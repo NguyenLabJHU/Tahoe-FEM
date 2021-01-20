@@ -24,7 +24,7 @@ PotentialT::~PotentialT(void){};
 void PotentialT::SetKappa(double kappa) {fKappa = kappa; }
 void PotentialT::SetMu(double mu) {fMu = mu; }
 
-double PotentialT::MeanEnergy(const double& J) {0.25*fKappa*(J*J-1-2*log(J));}
+double PotentialT::MeanEnergy(const double& J) {return(0.25*fKappa*(J*J-1-2*log(J)));}
 
 double PotentialT::MeanStress(const double& J) 
 {
