@@ -25,7 +25,8 @@ OBJ = NeoHookean.o \
 	MooneyRivlin.o \
 	ArrudaBoyce.o \
 	VWPotentialT.o \
-	FungPotentialT.o 
+	FungPotentialT.o \
+	ArrudaBoyceCoupled.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -50,7 +51,8 @@ SRC = NeoHookean.cpp \
 	MooneyRivlin.cpp \
 	ArrudaBoyce.cpp \
 	VWPotentialT.cpp \
-	FungPotentialT.cpp 
+	FungPotentialT.cpp \
+	ArrudaBoyceCoupled.cpp
 
 ##################### (3) headers
 #
@@ -67,7 +69,8 @@ HDR = NeoHookean.h \
 	MooneyRivlin.h \
 	ArrudaBoyce.h \
 	VWPotentialT.h \
-	FungPotentialT.h 
+	FungPotentialT.h \
+	ArrudaBoyceCoupled.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
