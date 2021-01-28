@@ -3,12 +3,12 @@
 #include "ios_fwd_decl.h"
 
 /* ANSI headers */
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
-#include <math.h>
-#include <limits.h>
-#include <ctype.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <climits>
+#include <cctype>
 
 /* Tahoe headers */
 #include "iArrayT.h"
