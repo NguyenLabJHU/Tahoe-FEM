@@ -605,7 +605,7 @@ namespace Tahoe {
             ExceptionT::SizeMismatch("nMatrixT");
 #endif
         
-        int* prows = rows.Pointer();
+        const int* prows = rows.Pointer();
         for (int i = 0; i < rows.Length(); i++)
         {
             double* psrc  = source.Pointer(*prows++);
@@ -643,7 +643,7 @@ namespace Tahoe {
             ExceptionT::SizeMismatch("nMatrixT");
 #endif
         
-        int* prows = cols.Pointer();
+        const int* prows = cols.Pointer();
         for (int i = 0; i < cols.Length(); i++)
         {
             double* psrc  = source(*prows++);
