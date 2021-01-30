@@ -115,6 +115,17 @@ using namespace std;
 #endif
 #endif
 
+/* version higher than 4 */
+/* ZLW(2021): Maybe should use an different name than __GCC_4__ */
+#if (__GNUC__ > 4) /* GCC predefined macro */
+#define __GCC_4__
+using namespace std;
+#ifndef NEW_STATIC_TEMPLATE_SYNTAX
+#define NEW_STATIC_TEMPLATE_SYNTAX
+#endif
+#endif
+
+
 #endif /* __GNU__ */
 
 /* IBM XL C/C++ for OS X */

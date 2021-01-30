@@ -44,7 +44,7 @@ void ExceptionT::WriteExceptionCodes(ostream& out)
 	out << "\nE x c e p t i o n   c o d e s :\n\n";
 	for (int i = 0; i < NumExceptions; i++)
 	{
-		out << setw(kIntWidth) << i << " : ";
+		out << std::setw(kIntWidth) << i << " : ";
 		out << fExceptionStrings[i] << '\n';
 	}
 		out << endl;
