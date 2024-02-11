@@ -1,3 +1,0 @@
-plotvec deposit_particle 0 99 1 &> /dev/null
-mkdir vec; mv *vec.dat vec; cd vec;mypre &> /dev/null
-rm *.dat

@@ -1,1 +1,0 @@
-/usr/local/bin/ffmpeg -r 10  -i couple_fluidplot_%3d.dat.line.png couple_fluidplot.line.mp4

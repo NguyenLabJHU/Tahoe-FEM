@@ -1,9 +1,0 @@
-
-MRSSNLHardT_continuum.cpp uses the continuum tangent
-
-MRSSNLHardT.cpp uses the consistent tangent
-
-both use the same header file MRSSNLHardT.h
-
-so only compile one of these files when using this model
-
