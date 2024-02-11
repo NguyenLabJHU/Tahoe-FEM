@@ -1,0 +1,140 @@
+1. Matlab:
+help elmat
+help elfun
+help specfun
+help datafun
+help format
+help []
+help \ left matrix divide
+path(path,'D:\Muri\benchmark\cfd\')
+userpath('newpath')
+userpath('reset')
+userpath('clear')
+
+* vs .* matrix multiply vs array multiply
+^ vs .^ 
+[]
+[,]
+[;]
+()
+;
+...
+%
+A.' vs A' non-conjugate vs conjugate
+A(1,3)
+
+a = 1:0.1:2
+x = (1:0.1:2)';
+logs = [x log10(x) x.^2]
+plot(x,y,x,y1,x,y2);
+plot(x,y1,'k:',x,y2,'b--',x1,y3,'rp');
+plotyy(x1,y1,x2,y2)
+ezplot fplot
+scatter
+
+fnch = @tanh;
+fplot(fnch,[-2 2])
+
+who whos
+clear; clear all
+clc home
+figure, close, figure(n), close(n), subplot(2,2,1), plottools
+clf
+cla
+hold on/off
+axis on/off
+grid on/off
+box  on/off
+hidden on/off
+title, xlabel, text, gtext, legend
+axis([-1 1 -1 1]) equal squre auto on/off
+
+[X,Y]=meshgrid(-1:.2:1, -2:.2:2); Z=X .* exp(-X.^2 - Y.^2);
+mesh(X,Y,Z) meshc meshz
+surf(X,Y,Z) surfc surfl
+t=0:pi/50:10*pi; plot3(sin(t),cos(t),t);
+waterfall
+contour/contour3
+view(135,30) % +z+x+y
+
+ezplot('x^2-y^4')
+ezplot3('sin(t)','cos(t)','t',[0,6*pi])
+ezmesh('x*exp(-x^2 - y^2)')
+ezmesh('x.*exp(-x.^2 - y.^2)')
+ezsurf
+
+fplot('[sin(x), cos(x), tan(x)]', 2*pi*[-1 1 -1 1])
+
+p=poly(A)
+polyfit
+polyval
+polyvalm
+r=roots(p)
+
+isfinite(X)
+isfloat
+isinf
+isnan
+islogical
+isinteger
+isnumeric
+isscalar
+issparse
+isvector
+
+2. Symbolic Math Toolbox:
+sym syms symvar
+syms z; default complex
+syms x real;
+syms x clear; vs clear x;  clear assumption vs clear symbolic object
+expand factor simplify simple
+subs subexpr sym2poly
+diff int
+solve('eqn1','eqn2',...,'eqnN','var1','var2',...'varN')
+or syms a b c x; solve(a*x^2 + b*x + c)
+
+collect(f,x)
+double(subs())
+
+Calculus:
+diff int limit symsum taylor
+
+Linear algerbra:
+det diag eig inv null poly rank svd tril triu
+
+Simplification:
+coeffs
+collect
+expand
+factor
+horner
+numden
+simplify simple
+subexpr subs
+
+Equation solutions:
+compose
+dslove
+finverse
+solve
+
+Conversions:
+ccode
+char
+double
+latex
+sym2poly
+poly2sym
+
+mupad
+
+2. run matlab w/o gui
+matlab -nodesktop -nosplash -r "ezplot('x^2-y^4')"
+
+3. run matlab in background
+matlab -nodesktop -nosplash < ~/matlab/cfd_fluidplot_point_files.m > mylog &
+matlab -nodesktop -nosplash < ~/matlab/cfd_fluidplot_point_files.m > /dev/null 2>& 1 &
+
+To suppress figure from displaying, add the following to code:
+fh = figure('visible', 'off');
+set(0, 'CurrentFigure', fh);

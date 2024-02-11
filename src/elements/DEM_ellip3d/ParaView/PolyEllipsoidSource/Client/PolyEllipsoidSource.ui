@@ -1,0 +1,158 @@
+<ui version="4.0" >
+ <class>Ellip3dReader</class>
+ <widget class="QWidget" name="Ellip3dReader" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>234</width>
+    <height>290</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" >
+    <widget class="QLabel" name="label_7" >
+     <property name="text" >
+      <string>+x Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" >
+    <widget class="QDoubleSpinBox" name="RadiusXPlus_0" >
+     <property name="maximum" >
+      <double>999.990000000000009</double>
+     </property>
+     <property name="value" >
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" >
+    <widget class="QLabel" name="label_6" >
+     <property name="text" >
+      <string>-x Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" >
+    <widget class="QDoubleSpinBox" name="RadiusXMinus_0" >
+     <property name="maximum" >
+      <double>999.990000000000009</double>
+     </property>
+     <property name="value" >
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" >
+    <widget class="QLabel" name="label_5" >
+     <property name="text" >
+      <string>+y Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" >
+    <widget class="QDoubleSpinBox" name="RadiusYPlus_0" >
+     <property name="maximum" >
+      <double>999.990000000000009</double>
+     </property>
+     <property name="value" >
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" >
+    <widget class="QLabel" name="label_4" >
+     <property name="text" >
+      <string>-y Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1" >
+    <widget class="QDoubleSpinBox" name="RadiusYMinus_0" >
+     <property name="maximum" >
+      <double>999.990000000000009</double>
+     </property>
+     <property name="value" >
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" >
+    <widget class="QLabel" name="label_3" >
+     <property name="text" >
+      <string>+z Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" >
+    <widget class="QDoubleSpinBox" name="RadiusZPlus_0" >
+     <property name="maximum" >
+      <double>999.990000000000009</double>
+     </property>
+     <property name="value" >
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" >
+    <widget class="QLabel" name="label_2" >
+     <property name="text" >
+      <string>-z Radius</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1" >
+    <widget class="QDoubleSpinBox" name="RadiusZMinus_0" >
+     <property name="maximum" >
+      <double>999.990000000000009</double>
+     </property>
+     <property name="value" >
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" >
+    <widget class="QLabel" name="label" >
+     <property name="text" >
+      <string>Resolution</string>
+     </property>
+     <property name="wordWrap" >
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1" >
+    <widget class="QSpinBox" name="Resolution_0" >
+     <property name="minimum" >
+      <number>3</number>
+     </property>
+     <property name="maximum" >
+      <number>64</number>
+     </property>
+     <property name="value" >
+      <number>16</number>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

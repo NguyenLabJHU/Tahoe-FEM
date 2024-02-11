@@ -1,0 +1,109 @@
+Note:
+1. The commonly used codes have adopted Tecplot transient data format.
+2. Use plot3 deposit_particle 99 99 1 rather than plot3 deposit_particle_099, because the former syntax produces accurate SOLUTIONTIME for Tecplot transient data format.
+3. To compile, use default g++ (do not load modules) so that the executable is usable without loading modules.
+4. To compile plot3bin, use the script plot3bin.compile, which needs newer GCC and TECIO libraries.
+
+plot:  
+it plots all particles at a time as a snapshot. Animations can be made by combining snapshots.
+There are various versions: 
+1. plot:  for data format from ellip3d and ellip3d-2.0.
+2. plot3: for data format from paraEllip3d.
+3. plot4: for data format from merged version of paraEllip3d and paraPolyEllip3d.
+4. plot3bin: directly generate binary .plt files using TECIO.
+
+myptcl vs myptclbin (both work well, the latter is better)
+myptcl deposit 0 99 1 (generate fewer binary files due to cat, slower because of converting text to binary.)
+myptclbin deposit 0 99 1 (generate more binary files, but faster because of generating binary directly.)
+
+Tecplot vs Paraview
+1. For Tecplot
+myptclbin.para isotropic 0 10 1 11
+let Tecplot load all .plt files in the order of ptcl, grid and bdry (click for name reverse order)
+apply Macro
+
+2. For Paraview (the same data)
+use Surface for ptcl
+use Wireframe for grid
+use Wireframe for bdry
+
+plotsec:
+it plots half of all particles from a cross-sectional perspective. Animations can be made by
+combining snapshots.
+
+plotmz:  
+it plots each particle as a zone.
+
+plot1pc: (plot-1-particle-contacting) 
+it plots one particle and its contacting neighbours as a snapshot. Animations can be made by
+combining snapshots, however, it plots a neighour only when the neighbour is in contact with
+it, so a neighbour may first appear and  then disappear in animation.
+
+plot1pp: (plot-1-particle-possible)
+it plots a particle and its possible neighbours as a snapshot. Animations can be made by
+combining snapshots.
+
+plot1pmz: (plot-1-particle-multiple_zones)
+it plots one particle and its contacting neighbours as a snapshot, each particle being a zone.
+
+plotvec: 
+it plots vectors such as force and velocity.
+
+plotcontact:
+it plots normal and tangential force vectors at contacts.
+
+probe1p:
+it extracts a particle's information.
+
+probedual:
+it extracts contact info between two particles.
+
+plotpile, plotsecpile:
+it plots for the case of rectangular pile specifically.
+
+initfree:
+it extracts free particles' information for the case of fixed-particle-boundary.
+
+mergeContact:
+merge particle contact info from multiple processes and remove redundance.
+paraEllip3d no longer outputs multiple data files for contact info, instead, it prints one 
+contact info file using parallel IO.
+
+uniqueContact:
+remove redundance (unique) in particle contact info.
+
+dupSpecimen:
+duplicate specimen in x, y, z directions.
+
+examples of plotting internal contact forces, and all contact forces:
+1. for internal_contact:
+mkdir internal_contact
+uniqueContact deposit_contact 1 500
+plotcontact deposit_contact 1 500 1
+mv deposit_contact_*.dat internal_contact
+cd internal_contact
+mypre;rm *.dat
+
+2. for merged_contact:
+mkdir merged_contact
+uniqueContact deposit_contact 1 500 1
+plotcontact deposit_contact 1 500 1
+mv deposit_contact_*.dat merged_contact
+plot_bdry_contact deposit_bdrycntc 1 500 1
+mv deposit_bdrycntc_*.dat merged_contact
+cd merged_contact
+plotcontactall deposit_contact deposit_bdrycntc 1 500 1
+rm deposit_contact_[0-9][0-9][0-9].dat deposit_bdrycntc_*.dat
+mypre;rm *.dat
+
+3. example of plotting contact tetrahedra:
+uniqueContact deposit_contact 1 100
+cp -pr deposit_contact* tetra_contact/dat
+cd tetra_contact/dat
+plotcontact deposit_contact 1 100 1
+rm deposit_contact_[0-9][0-9][0-9]
+plot_contact_tetra deposit_contact 1 100 1
+mkdir ../tetra
+mv *tetra.dat ../tetra
+cd ../tetra
+mypre;rm *.dat

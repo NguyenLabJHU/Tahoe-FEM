@@ -1,0 +1,4 @@
+g++ -c Vec.cpp
+g++ -c sortParaIJK.cpp
+g++ -o sortParaIJK *.o
+

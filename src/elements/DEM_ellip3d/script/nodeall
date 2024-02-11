@@ -1,0 +1,1 @@
+pbsnodes -a | grep "state = " | wc -l

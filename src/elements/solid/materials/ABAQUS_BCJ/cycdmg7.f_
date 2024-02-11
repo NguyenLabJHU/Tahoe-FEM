@@ -1,0 +1,714 @@
+c*************************************************************************
+c
+c              USCAR-USAMP CRADA property model developed at Sandia.
+c              The BAMMANN - CHIESA - JOHNSON  Plasticity Model
+c              was modified to include dendrite cell size effects and
+c              damage nucleation, growth, and coalescence were
+c              added by Mark F. Horstemeyer        
+c
+c*************************************************************************
+c*************************************************************************
+c**                                                                     **
+c**   WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING     **
+c**                                                                     **
+c**                    this is proprietary software                     **
+c**                                                                     **
+c**        recipients of this routine are not allowed to distribute     **     
+c**        their source to other facilities.  rather, requests for      **
+c**        the source should be directed to the author at sandia.       **
+c**                                                                     **
+c**                        Mark F. Horstemeyer                          **
+c**                       Sandia National Labs                          **
+c**                         Mail Stop 9405                              **
+c**                            PO Box 969                               **
+c**                     Livermore, CA 94551-0969                        **
+c**                                                                     **
+c**                   email:    mfhorst@sandia.gov                      **
+c**                                                                     **
+c**   WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING     **
+c**                                                                     **
+c*************************************************************************
+c*************************************************************************
+C
+C                                Copyright
+C                         Sandia Corporation 1998
+C                           All Rights Reserved
+C
+C     Notice: The Government is granted for itself and others acting on 
+C  its behalf a paid-up, nonexclusive, irrevocable worldwide license in
+C  this data to reproduce, prepare derivative works, and perform publicly 
+C  and display publicly.  Beginning five (5) years after permission to 
+C  assert copyright was obtained, the Government is granted for itself 
+C  and others acting on its behalf a paid-up, nonexclusive, irrevocable 
+C  worldwide license in this data to reproduce, prepare derivative works, 
+C  distribute copies to the public, perform publicly and display publicly, 
+C  and to permit others to do so.  NEITHER THE UNITED STATES NOR THE 
+C  UNITED STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, MAKES 
+C  ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR 
+C  RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY 
+C  INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS 
+C  THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+C
+c*************************************************************************
+c
+c        Sandia strain rate and temperature dependent plasticity model
+c        was originally implemented by Mike Chiesa.
+c        This subroutine can be used for axisymmetric, plane strain and
+c        3d solid elements. 
+c        Porosity was added by Mark Horstemeyer 1/8/97.
+c        Void Nucleation was added by Mark Horstemeyer 9/28/97.
+c        Void coalescence was added by Mark Horstemeyer 3/1/98.
+c        Dendrite cell size was added by Mark Horstemeyer 3/15/98.
+c
+c*************************************************************************
+c                                                                      
+c                          w a r n i n g
+c
+c                 this is proprietary software
+c                                                                      
+c             recipients of this routine are not allowed to distribute         
+c             their source to other facilities.  rather, request for   
+c             the source should be directed to the author at snll.      
+c             phone: 510-294-2816                                      
+c                                                                      
+c                                                                      
+c***********************************************************************
+c                                                                      
+c                          l e g a l   n o t i c e                     
+c                                                                      
+c             this computer code material was prepared as an account   
+c             of work sponsored by the united states government.       
+c             neither the united states nor the united states          
+c             department of energy, nor any of their employees,        
+c             nor any of their contractors, subcontractors, or their   
+c             employees, makes any warranty, express or implied, or    
+c             assumes any legal liability or responsibility for the    
+c             accuracy, completeness or usefulness of any information, 
+c             apparatus, produce or process disclosed, or represents   
+c             that its use would not infringe privately-owned rights   
+c                                                                      
+C*************************************************************************
+       subroutine umat(stress,statev,ddsdde,sse,spd,scd,
+     1   rpl,ddsddt,drplde,drpldt,
+     2   stran,dstran,time,dtime,temp,dtemp,predef,dpred,cmname,
+     3   ndi,nshr,ntens,nstatv,props,nprops,coords,drot,pnewdt,
+     4   celent,dfgrd0,dfgrd1,noel,npt,layer,kspt,kstep,kinc)
+	INCLUDE 'ABA_PARAM.INC'
+c ***************************************************
+      character*8 cmname
+      dimension stress(ntens),statev(nstatv),
+     1 ddsdde(ntens,ntens),
+     2 ddsddt(ntens),drplde(ntens),
+     3 stran(ntens),dstran(ntens),predef(1),dpred(1),
+     4 props(nprops),coords(3),drot(3,3),t(6),de(6),
+     5 dfgrd0(3,3),dfgrd1(3,3),xi(6)
+c
+      data third  /.333333333333333/
+      data twothd /.666666666666667/
+      data con1   /.81649658092773/
+      data pi     /3.1415927/
+      data iparam1,iparam2,iparam3 / 0,0,0 /
+c                                                                      
+c***********************************************************************
+c
+c     *  ntens = number of non-zero stress components (4 for 2d, 6 for 3d)
+c     *  nshr  = number of non-zero shear components (1 for 2d, 3 for 3d)
+c     *  ndi   = number of non-zero normal stresses (always 3)
+c     *  nstatv = number of state variables (25)
+c     *  nprops = number of material parameters (50)
+c
+c*************************************************************************
+c
+c     *  statev(1) = alpha-xx
+c     *  statev(2) = alpha-yy
+c     *  statev(3) = alpha-zz
+c     *  statev(4) = alpha-xy
+c     *  statev(5) = alpha-yz
+c     *  statev(6) = alpha-zx
+c     *  statev(7) = kappa
+c     *  statev(8) = temperature
+c     *  statev(9) = effective plastic strain
+c     *  statev(10) = McClintock void growth(second phase pores)
+c     *  statev(11) = rate of change of M porosity
+c     *  statev(12) = stress triaxiality 
+c     *  statev(13) = nucleation 
+c     *  statev(14) = damage
+c     *  statev(15) = nucleation rate 
+c     *  statev(16) = damage rate
+c     *  statev(17) = nucleation from previous time step
+c     *  statev(18) = Cocks-Ashby void growth(large pores)
+c     *  statev(19) = rate of change of CA porosity
+c     *  statev(20) = alpha-xx long range
+c     *  statev(21) = alpha-yy long range
+c     *  statev(22) = alpha-zz long range
+c     *  statev(23) = alpha-xy long range
+c     *  statev(24) = alpha-yz long range
+c     *  statev(25) = alpha-zx long range
+
+c
+c*************************************************************************
+c
+c     *  props(1) thru props(5) are constants for Johnson/Bammann
+c     *  formulas for shear and bulk moduli
+c     *  props(1) = mu zero         , props(2) = a
+c     *  props(3) = K zero          , props(4) = b
+c     *  props(5) = T melt          , props(6) = C1
+c     *  props(7) = C2              , props(8) = C3
+c     *  props(9) = C4              , props(10)= C5
+c     *  props(11)= C6              , props(12)= C7
+c     *  props(13)= C8              , props(14)= C9
+c     *  props(15)= C10             , props(16)= C11
+c     *  props(17)= C12             , props(18)= C13
+c     *  props(19)= C14             , props(20)= C15
+c     *  props(21)= C16             , props(22)= C17
+c     *  props(23)= C18             , props(24)= C19
+c     *  props(25)= C20             , props(26)= CA
+c     *  props(27)= CB            
+c     *  props(28)= initial temperature
+c     *  props(29)= heat generation coefficient
+c     *  props(30)= McClintock damage constant, n
+c     *  props(31)= initial void radius
+c     *  props(32)= torsional constant a in nucleation model
+c     *  props(33)= tension/comp constant b in nucleation model
+c     *  props(34)= triaxiality constant c in nucleation model
+c     *  props(35)= coefficient constant in nucleation model
+c     *  props(36)= fracture toughness, related to nucleation model
+c     *  props(37)= ave size of particles, related to nucleation model
+c     *  props(38)= particles vol fraction, related to nucleation model
+c     *  props(39)= coalescence factor, D=nucleation*void volume*coal.
+c     *  props(40)= coalescence factor, D=nucleation*void volume*coal.
+c     *  props(41)= reference grain size or dendrite cell size,dcs0
+c     *  props(42)= grain size or dendrite cell size of material,dcs
+c     *  props(43)= grain size or dendrite cell size exponent,zz
+c     *  props(44)= initial void volume fraction for CA void growth
+c     *  props(45)= C21             , props(46)= C22
+c     *  props(47)= C23             , props(48)= C24
+c     *  props(49)= C25             , props(50)= C26
+c     *  props(51)= nucleation temperature dependence
+c     *  props(52)= coalescence temperature dependence
+c
+c******************************************************************
+c
+c   * iparam1 = 0 for linear return (uses total strain in recovery)
+c   *         = 1 for quadratic return (uses plastic strain in recovery)
+c   *           (only linear return implemented in this version)
+c
+c   * iparam2 = 0 for Simo tangent stiffness matrix
+c   *         = 1 for Lathrop tangent stiffness matrix
+c   *           (only Simo stiffness implemented in this version)
+c
+c   * iparam3 = 0 for trial kappa = kappa(n)
+c   *         = 1 for trial kappa = kappa(n + 1/2)
+c
+c************************************************************************
+c---- initialize state variables
+c     temperature is set first by *initial condition command in abaqus
+c     or by props(28)
+c
+      if(time.eq.0.0)then
+        statev(1) = 0.0
+        statev(2) = 0.0
+        statev(3) = 0.0
+        statev(4) = 0.0
+        statev(5) = 0.0
+        statev(6) = 0.0
+        statev(7) = 0.0
+        statev(8) = props(28)
+        statev(9) = 0.0
+        statev(10)=pi*props(31)**2.0
+        statev(11) = 0.0
+        statev(12) = 0.0
+        statev(13) = props(35)
+        statev(14) = props(35)*statev(10)
+        statev(15) = 0.0
+        statev(16) = 0.0
+        statev(17) = 0.0
+        statev(18) = props(44)
+        statev(19) = 0.0
+        statev(20) = 0.0
+        statev(21) = 0.0
+        statev(22) = 0.0
+        statev(23) = 0.0
+        statev(24) = 0.0
+        statev(25) = 0.0
+         if(temp.eq.0.0)then
+          if(props(28).eq.0.0)then
+           write(*,*)' error - temperature is zero'
+           stop
+          else
+           statev(8) = props(28)
+          endif
+         else
+          statev(8) = temp
+         endif 
+       endif
+c
+c******************************************************************
+c
+      cc1  = props(6)
+      cc2  = props(7)
+      cc3  = props(8)
+      cc4  = props(9)
+      cc5  = props(10)
+      cc6  = props(11)
+      cc7  = props(12)
+      cc8  = props(13)
+      cc9  = props(14)
+      cc10 = props(15)
+      cc11 = props(16)
+      cc12 = props(17)
+      cc13 = props(18)
+      cc14 = props(19)
+      cc15 = props(20)
+      cc16 = props(21)
+      cc17 = props(22)
+      cc18 = props(23)
+      cc19 = props(24)
+      cc20 = props(25)
+      cc21 = props(45)
+      cc22 = props(46)
+      cc23 = props(47)
+      cc24 = props(48)
+      cc25 = props(49)
+      cc26 = props(50)
+      ca = props(26)
+      cb = props(27)
+      cd1 = props(39)
+      cd2 = props(40)
+      dcs0 = props(41)
+      dcs = props(42)
+      zz = props(43)
+c
+      htcp = props(29)
+c
+c---- g = shear modulus   twog = 2*g   blk = bulk modulus 
+c
+      if(props(28).eq.0.)statev(8) = temp
+      theta = statev(8)
+      if (props(5).eq.0) then
+      blk = props(3)
+      g = props(1)
+      else
+      tratio = theta/props(5)
+      tratio = min(tratio,0.9999)
+      g = props(1)*(1.-tratio*exp(props(2)*(1.-1./tratio)))
+      endif
+      twog = 2.0 * g
+      blk = props(3) - props(4)*tratio
+c
+c---- damage
+      dam1=1.0-statev(14)
+      dam2 = 1.0-min(1.0,dtime*statev(16)/dam1)
+      phi1 = 1.0-statev(18)
+c
+c---- calculate pressure
+c
+      davg = third * (dstran(1) + dstran(2) + dstran(3))
+      pold = third * (stress(1) + stress(2) + stress(3))
+      p = pold*dam2 + dam1*blk * davg * 3.0
+c
+c---- check for melt
+c
+      if(theta.gt.props(5)) then
+       do 35 i=1,ntens
+       stress(i) = 0.
+   35  statev(i) = 0.
+       p = min(0.,p)
+       stress(1) = p
+       stress(2) = p
+       stress(3) = p
+       statev(7) = 0.
+       statev(9) = 0.
+       go to 315
+       endif
+c
+c---- compute function evaluations
+c       theta = temperature
+c       ytheta = static yield stress
+c       vtheta,ftheta = functions to define rate dependence of yield
+c       h1,h2,h3 = plastic hardeing moduli
+c       rs1,rs2,h3 = static recovery functions
+c       rd1,rd2,h3 = dynamic recovery functions    
+c
+c deviatoric stress
+       ds11=stress(1)-p
+       ds22=stress(2)-p
+       ds33=stress(3)-p
+       ds12=stress(4)
+       ds23=stress(5)
+       ds13=stress(6)
+c invariants of stress
+       dj2=0.5*(ds11**2.+ds22**2.+ds33**2.+
+     *     2*(ds12**2.+ds23**2.+ds13**2.))
+       dj3=ds11*(ds22*ds33-ds23**2.)-ds22*(ds11*ds33-ds13**2.)
+     *     +ds33*(ds22*ds11-ds12**2.)
+c 
+c stress state dependent material constants
+      adj    = 0.5*(1.+tanh(cc19*(cc20-theta)))
+      if(cc19.eq.0.)adj=1.0
+      vtheta = cc1*exp(-cc2/theta)
+      ytheta = cc3*exp(cc4/theta)*adj
+      ftheta = cc5*exp(-cc6/theta)
+        if(dj2.eq.0)then
+          rd1=cc7*(1-ca*(4./27.))*exp(-cc8/theta)
+          h1=(cc9-cc10*theta)*(1+ca*(4./27.))
+          rs1    = cc11 * exp(-cc12/theta)
+          rd2    = cc13*(1-ca*(4./27.))*exp(-cc14/theta)
+          h2     = (cc15-cc16*theta)*(1+ca*(4./27.))
+          rs2    = cc17 * exp(-cc18/theta)
+          rd3    = cc21*(1-ca*(4./27.))*exp(-cc22/theta)
+          h3     = (cc23-cc24*theta)*(1+ca*(4./27.))
+          rs3    = cc25 * exp(-cc26/theta)
+
+        else
+          rd1    = cc7*(1-ca*(4./27.-dj3**2./dj2**3.)
+     *                -cb*dj3/dj2**1.5)*exp(-cc8/theta)
+          h1     = (cc9-cc10*theta)*(1+ca*(4./27.-dj3**2./dj2**3.)
+     *                 +cb*dj3/dj2**1.5)
+          rs1    = cc11 * exp(-cc12/theta)
+          rd2    = cc13*(1-ca*(4./27.-dj3**2./dj2**3.)
+     *                 -cb*dj3/dj2**1.5)*exp(-cc14/theta)
+          h2     = (cc15-cc16*theta)*(1+ca*(4./27.-dj3**2./dj2**3.)
+     *                  +cb*dj3/dj2**1.5)
+          rs2    = cc17 * exp(-cc18/theta)
+          rd3    = cc21*(1-ca*(4./27.-dj3**2./dj2**3.)
+     *              -cb*dj3/dj2**1.5)*exp(-cc22/theta)
+          h3     = (cc23-cc24*theta)*(1+ca*(4./27.-dj3**2./dj2**3.)
+     *                  +cb*dj3/dj2**1.5)
+          rs3    = cc25 * exp(-cc26/theta)
+        endif
+c
+c---- update alpha using abaqus rotation matrix
+c
+      if(rs1.ne.0. .or. rd1.ne.0. .or. h1.ne.0.)then
+      if(ntens.eq.4)then
+       term1 = drot(1,1)*statev(1) + drot(1,2)*statev(4)
+       term2 = drot(1,1)*statev(4) + drot(1,2)*statev(2)
+       term3 = drot(2,1)*statev(1) + drot(2,2)*statev(4)
+       term4 = drot(2,1)*statev(4) + drot(2,2)*statev(2)
+       term5 = statev(1) + statev(2)
+       statev(1) = drot(1,1)*term1+drot(1,2)*term2-term5*drot(1,3)**2
+       statev(2) = drot(2,1)*term3+drot(2,2)*term4-term5*drot(2,3)**2
+       statev(3) = - (statev(1) + statev(2))
+       statev(4) = drot(2,1)*term1+drot(2,2)*term2 -
+     $             term5*drot(1,3)*drot(2,3)
+      else
+       term1=drot(1,1)*statev(1)+drot(1,2)*statev(4)+drot(1,3)*statev(6)
+       term2=drot(1,1)*statev(4)+drot(1,2)*statev(2)+drot(1,3)*statev(5)
+       term3=drot(1,1)*statev(6)+drot(1,2)*statev(5)+drot(1,3)*statev(3)
+       term4=drot(2,1)*statev(1)+drot(2,2)*statev(4)+drot(2,3)*statev(6)
+       term5=drot(2,1)*statev(4)+drot(2,2)*statev(2)+drot(2,3)*statev(5)
+       term6=drot(2,1)*statev(6)+drot(2,2)*statev(5)+drot(2,3)*statev(3)
+       term7=drot(3,1)*statev(1)+drot(3,2)*statev(4)+drot(3,3)*statev(6)
+       term8=drot(3,1)*statev(4)+drot(3,2)*statev(2)+drot(3,3)*statev(5)
+       term9=drot(3,1)*statev(6)+drot(3,2)*statev(5)+drot(3,3)*statev(3)
+       statev(1)=term1*drot(1,1)+term2*drot(1,2)+term3*drot(1,3)
+       statev(2)=term4*drot(2,1)+term5*drot(2,2)+term6*drot(2,3)
+       statev(3)=term7*drot(3,1)+term8*drot(3,2)+term9*drot(3,3)
+       statev(4)=term1*drot(2,1)+term2*drot(2,2)+term3*drot(2,3)
+       statev(5)=term4*drot(3,1)+term5*drot(3,2)+term6*drot(3,3)
+       statev(6)=term1*drot(3,1)+term2*drot(3,2)+term3*drot(3,3)
+      endif
+      endif
+c---- update long range alpha using abaqus rotation matrix
+c
+      if(rs3.ne.0. .or. rd3.ne.0. .or. h3.ne.0.)then
+      if(ntens.eq.4)then
+       term1 = drot(1,1)*statev(20) + drot(1,2)*statev(23)
+       term2 = drot(1,1)*statev(23) + drot(1,2)*statev(21)
+       term3 = drot(2,1)*statev(20) + drot(2,2)*statev(23)
+       term4 = drot(2,1)*statev(23) + drot(2,2)*statev(21)
+       term5 = statev(20) + statev(21)
+       statev(20) = drot(1,1)*term1+drot(1,2)*term2-term5*drot(1,3)**2
+       statev(21) = drot(2,1)*term3+drot(2,2)*term4-term5*drot(2,3)**2
+       statev(22) = - (statev(20) + statev(21))
+       statev(23) = drot(2,1)*term1+drot(2,2)*term2 -
+     $             term5*drot(1,3)*drot(2,3)
+      else
+       term1=drot(1,1)*statev(20)+drot(1,2)*statev(23)+drot(1,3)*
+     *       statev(25)
+       term2=drot(1,1)*statev(23)+drot(1,2)*statev(21)+drot(1,3)*
+     *       statev(24)
+       term3=drot(1,1)*statev(25)+drot(1,2)*statev(24)+drot(1,3)*
+     *       statev(22)
+       term4=drot(2,1)*statev(20)+drot(2,2)*statev(23)+drot(2,3)*
+     *       statev(25)
+       term5=drot(2,1)*statev(23)+drot(2,2)*statev(21)+drot(2,3)*
+     *       statev(24)
+       term6=drot(2,1)*statev(25)+drot(2,2)*statev(24)+drot(2,3)*
+     *       statev(22)
+       term7=drot(3,1)*statev(20)+drot(3,2)*statev(23)+drot(3,3)*
+     *       statev(25)
+       term8=drot(3,1)*statev(23)+drot(3,2)*statev(21)+drot(3,3)*
+     *       statev(24)
+       term9=drot(3,1)*statev(25)+drot(3,2)*statev(24)+drot(3,3)*
+     *       statev(22)
+       statev(20)=term1*drot(1,1)+term2*drot(1,2)+term3*drot(1,3)
+       statev(21)=term4*drot(2,1)+term5*drot(2,2)+term6*drot(2,3)
+       statev(22)=term7*drot(3,1)+term8*drot(3,2)+term9*drot(3,3)
+       statev(23)=term1*drot(2,1)+term2*drot(2,2)+term3*drot(2,3)
+       statev(24)=term4*drot(3,1)+term5*drot(3,2)+term6*drot(3,3)
+       statev(25)=term1*drot(3,1)+term2*drot(3,2)+term3*drot(3,3)
+      endif
+      endif
+c
+c---- compute effective strain rate
+c
+      if(dtime.ne.0.0)then
+       dum = 0.
+       do 40 i=4,ntens
+   40  dum = dum + dstran(i)**2
+       ddd = sqrt(dstran(1)**2+dstran(2)**2+dstran(3)**2 + 
+     $       0.5*dum) * con1 / dtime
+       else
+       ddd = 0.0
+      endif
+c
+c---- calculate trial alpha, kappa and yield radius
+c
+      alphaxx = statev(1)+statev(20)
+      alphayy = statev(2)+statev(21)
+      alphazz = statev(3)+statev(22)
+      alphaxy = statev(4)+statev(23)
+      alphayz = statev(5)+statev(24)
+      alphazx = statev(6)+statev(25)
+      alpm = con1 * sqrt(alphaxx**2 + alphayy**2 + alphazz**2+
+     $       2.*(alphaxy**2 + alphayz**2 + alphazx**2))
+      sto = dtime*rs1*alpm*(dcs0/dcs)**zz
+      sto2 = dtime*rs2*(dcs0/dcs)**zz
+       if(iparam1.eq.0)then
+        sto  = dtime * (rs1+rd1*ddd+rs3+rd3*ddd)*alpm*(dcs0/dcs)**zz
+        sto2 = dtime * (rs2+rd2*ddd)*(dcs0/dcs)**zz
+       endif
+      do 50 i=1,ntens
+   50 statev(i) = statev(i) * (1.0 - sto)
+      do 51 i=19,ntens+19
+   51 statev(i) = statev(i) * (1.0 - sto)
+       if(iparam3.eq.0)then
+        trialk = statev(7)
+       else
+        trialk = (-1.0+sqrt(1.+2*sto2*(statev(7)+0.5*h2*ddd*dtime)))/
+     $                 max(1.e-30,sto2)
+       endif
+      statev(7) = statev(7) - sto2 *  trialk * trialk
+      ak = (vtheta * log((ddd+sqrt(ddd**2+ftheta**2))/ftheta) +
+     $     ytheta + statev(7))*dam1
+c
+c---- calculate trial elastic deviatoric stresses
+c
+      do 60 i=1,3
+   60 stress(i) = dam2*(stress(i)-pold)+dam1*twog*(dstran(i)-davg)
+      do 70 i=4,ntens
+   70 stress(i) = dam2*stress(i) + dam1*g*dstran(i)
+c
+c---- compute xi (deviatoric stress - 2/3 alpha)
+c
+      do 80 i=1,ntens
+   80 xi(i) = stress(i) - twothd * statev(i)
+c
+c---- compute (magnitude of xi) squared
+c
+      dum = 0.0
+      do 85 i=4,ntens
+   85 dum = dum + xi(i)**2
+      ximag2 = xi(1)**2 + xi(2)**2 + xi(3)**2 + 2.*dum
+c
+c---- check for plasticity
+c
+      ak2 = ximag2 - twothd * ak * abs(ak)
+      if(ak2 .le. 0.0 .or. ddd.eq.0.0) go to 300
+c
+c---- plasticity process begins here
+c
+      ximag = sqrt(ximag2)
+c
+c---- return trial stresses to yield surface, add pressure term
+c      and update state variables
+c
+      if(iparam1.eq.0)then
+      dgam = (ximag-con1*ak)/(dam1*twog+twothd*(dcs0/dcs)**zz
+     *                    *(h1+h3+h2*dam1))
+      endif
+      dgam2 = dgam / ximag
+c
+      dsig = dam1*twog * dgam2
+      do 90 i=1,ntens
+   90 stress(i) = stress(i) - dsig * xi(i)
+      stress(1) = stress(1) + p
+      stress(2) = stress(2) + p
+      stress(3) = stress(3) + p
+c
+      statev(7) = statev(7) + dgam * con1 * h2*(dcs0/dcs)**zz
+      statev(7) = max(0.,statev(7))
+c
+      dalph = (h1+h3) * dgam2
+      do 100 i=1,ntens
+  100 statev(i) = statev(i) + dalph * xi(i)*(dcs0/dcs)**zz
+c
+c---- update plastic strain (for output purposes only)
+c
+      statev(9) = statev(9) + dgam * con1
+c
+c---- update temperature for adiabatic problems
+c
+      dum = 0.0
+      do 110 i=4,ntens
+  110 dum = dum + stress(i)*xi(i)
+      statev(8) = statev(8) + htcp*dgam2*( stress(1)*xi(1) +
+     $            stress(2)*xi(2) + stress(3)*xi(3) + 2.0*dum)
+c
+c---- update damage
+c
+      epsdot=dgam*con1/dtime
+      sige=max(1.e-15,sqrt(0.5*((stress(1)-stress(2))**2.+
+     *     (stress(2)-stress(3))**2.+(stress(3)-stress(1))**2.+
+     *     6*(stress(4)**2.+stress(5)**2.+stress(6)**2.))))
+c
+c Cocks-Ashby large pore growth term
+          cacon = abs(vtheta/ytheta)
+           if(cacon.lt.8.0) then
+           cacon=8.0
+           endif
+          dterm=2*(2*cacon-1)/(2*cacon+1)
+          arg = min(15.,p*dterm/sige)
+	  beta = sinh(max(0.,arg) )
+	  c90 = 1. + cacon
+	  psi = min(15.,beta*dtime*epsdot*c90)
+	  tmp = max(0.,(1.0+(phi1**c90-1.0)*exp(psi)))
+ 	  statev(18) = min((1.0-tmp**(1./c90)),.99)
+c Cocks-Ashby void growth rate
+ 	  statev(19) = beta*epsdot*(1./(1.-statev(18))**(vtheta/ytheta)
+     *                 -(1.-statev(18)))
+c McClintock form of void growth
+           abc=3.**0.5/(2.*(1.-props(30)))*sinh(3.**0.5*
+     *         (1.-props(30))*p/sige)
+           vrad=props(31)*exp(statev(9)*abc/con1)
+           statev(10)=pi*vrad**2.0
+           statev(11)=3.*statev(10)*abc*epsdot
+c Nucleation of voids
+c deviatoric stress
+       ds11=stress(1)-p
+       ds22=stress(2)-p
+       ds33=stress(3)-p
+       ds12=stress(4)
+       ds23=stress(5)
+       ds13=stress(6)
+c invariants of stress
+       di1=3.*p
+       dj2=0.5*(ds11**2.+ds22**2.+ds33**2.+
+     *     2*(ds12**2.+ds23**2.+ds13**2.))
+       dj3=ds11*(ds22*ds33-ds23**2.)-ds22*(ds11*ds33-ds13**2.)
+     *     +ds33*(ds22*ds11-ds12**2.)
+          if(dj2.le.0.)then
+          r1=0.
+          r2=0.
+          r3=0.
+          else
+          r1=(4./27.-dj3**2./dj2**3.)
+          r2=dj3/dj2**(3./2.)
+          r3=di1/(dj2**0.5)
+          endif
+           r3=abs(r3)
+c	   if(r3.lt.0)then
+c            r3=-r3
+c           endif
+          zzz=(props(32)*r1+props(33)*r2+props(34)*r3)
+          zzz=abs(zzz)
+          zzzz=(props(37)**0.5/(props(36)*props(38)**third))*zzz
+          statev(17)=statev(13)
+          statev(13)=props(35)*exp(statev(9)*zzzz/con1)*
+     *                exp(-props(51)/statev(8))
+c added for nonmonotonic path sequences, statev(17) is old nucleation
+          if(statev(13).lt.statev(17)) then
+          statev(13) = abs(statev(17)+statev(13))
+          endif
+c Coalescence factor
+          cf=(cd1+cd2*statev(13)*statev(10))*
+     *           exp(props(52)*statev(8))
+     *           *(dcs0/dcs)**zz
+c Damage
+      damage=cf*(statev(13)*statev(10)+statev(18))
+      if(damage.gt.0.1) damage=.99
+      statev(14)=min(damage,0.99)
+c Nucleation Rate
+          epsdot=abs(epsdot)
+      statev(15)=zzzz*statev(13)*epsdot
+c Damage Rate
+      zsecond=cf*(statev(15)*statev(10)+statev(13)*statev(11)+
+     *        statev(19))
+      zthird=(statev(13)*statev(10)+statev(18))*
+     *       cd2*(dcs0/dcs)**zz*exp(props(52)*statev(8))*
+     *       (statev(15)*statev(10)+statev(13)*statev(11))
+      statev(16)=zsecond+zthird
+c
+c Triaxiality
+	  statev(12)=p/sige
+c 
+c---- form elastic-plastic constitutive matrix
+c     if bbb=1 then conventional stiffness is calculated
+c     otherwise simo stiffness is calculated
+c
+      if(iparam2.eq.0)then
+      alpm2 = con1 * sqrt(alphaxx**2 + alphayy**2 + alphazz**2
+     $        + 2.*(alphaxy**2.+alphayz**2.+alphazx**2.))
+      bbb = (con1*(ak+h2*con1*dgam) + alpm2 - alpm) / ximag
+      bbb=min(1.0,bbb)
+      slope = h1+h3+h2-(rd1+rd3)*alpm2*alpm2-rd2*statev(7)*statev(7)
+      slope = max((1.e-5*(h1+h2+h3)),slope)
+      gamma = 1./(1.+slope/3.0/g) - (1.0-bbb)
+      r = dam1*(twog * gamma / ximag**2)
+      z1 = dam1*(blk + twothd * twog * bbb)
+      z2 = dam1*(blk - third * twog * bbb)
+      z3 = dam1*(g * bbb)
+      do 140 i=1,ntens
+      do 140 j=1,ntens
+  140 ddsdde(i,j) = - r * xi(i) * xi(j)
+      ddsdde(1,1) = z1 + ddsdde(1,1)
+      ddsdde(2,2) = z1 + ddsdde(2,2)
+      ddsdde(3,3) = z1 + ddsdde(3,3)
+      ddsdde(1,2) = z2 + ddsdde(1,2)
+      ddsdde(1,3) = z2 + ddsdde(1,3)
+      ddsdde(2,1) = z2 + ddsdde(2,1)
+      ddsdde(3,1) = z2 + ddsdde(3,1)
+      ddsdde(2,3) = z2 + ddsdde(2,3)
+      ddsdde(3,2) = z2 + ddsdde(3,2)
+      do 130 i=4,ntens
+  130 ddsdde(i,i) = z3 + ddsdde(i,i)
+      endif
+ 2000 format(' debug',5e13.5/4e13.5)
+      go to 400
+c
+c---- elastic process begins here
+c
+  300 continue
+      do 310 i=1,3
+  310 stress(i) = stress(i) + p
+      dgam=0.
+c
+c---- form elastic stiffness matrix
+c
+  315 continue
+      do 320 i=1,ntens
+      do 320 j=1,ntens
+  320 ddsdde(i,j) = 0.0
+      z1 = dam1*(blk + twothd * twog)
+      z2 = dam1*(blk - third * twog)
+      ddsdde(1,1) = z1
+      ddsdde(2,2) = z1
+      ddsdde(3,3) = z1
+      ddsdde(1,2) = z2
+      ddsdde(1,3) = z2
+      ddsdde(2,1) = z2
+      ddsdde(3,1) = z2
+      ddsdde(2,3) = z2
+      ddsdde(3,2) = z2
+      do 330 i=4,ntens
+  330 ddsdde(i,i) = dam1*g
+c
+c---- clean up
+c
+  400 continue
+      statev(7) = max(statev(7),0.0)
+c
+      return
+      end

@@ -1,0 +1,9 @@
+*     Double precision version
+      implicit double precision (a-h,o-z)
+      parameter (j_sys_Dimension = 2)
+* m_vec_Length = Maximum vector (group) block length.
+      parameter ( m_vec_Length = 136 )
+      parameter(i_ipm_sta = -6)
+      character*5 m_ipm_Error
+      parameter(m_ipm_Error='Error')
+      parameter(m_ipm_Aborted=20)

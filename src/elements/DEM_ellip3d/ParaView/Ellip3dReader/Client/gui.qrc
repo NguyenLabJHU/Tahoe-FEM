@@ -1,0 +1,10 @@
+<!-- paraview looks for "/pqWidgets/UI/<SM XML Name>.ui", so an alias is created to put the panel there -->
+<!-- this resource can be converted to binary form by running "rcc -binary -o gui.bqrc gui.qrc" -->
+<RCC>
+    <qresource prefix="/pqWidgets" >
+        <file alias="UI/Ellip3dReader.ui">Ellip3dReader.ui</file>
+    </qresource>
+    <qresource prefix="/ParaViewResources" >
+        <file>fileTypes.xml</file>
+    </qresource>
+</RCC>

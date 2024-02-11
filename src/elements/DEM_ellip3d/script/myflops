@@ -1,0 +1,2 @@
+grep MFLOPS `ls run.o*` | awk '{ sum += $2; n++ } END {printf("sum avg L3= %d %d", sum, sum /n ); }'
+grep L3_TCM `ls run.o*` | awk '{ sum += $2; n++ } END { if (n > 0) printf(" %d\n", sum / n); }'
