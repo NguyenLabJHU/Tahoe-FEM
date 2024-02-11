@@ -1,0 +1,9 @@
+$Id: ReadMe,v 1.2 2003-03-02 23:18:18 paklein Exp $
+The .conf files in this directory are part of a build configuration system
+that controls which directories are included or excluded in the build 
+process. The configuration of the build is NOT customized by editing these
+files. The build settings are controlled by the .h files in the
+
+	development/src/config
+	
+directory. See the ReadMe file there for more information.

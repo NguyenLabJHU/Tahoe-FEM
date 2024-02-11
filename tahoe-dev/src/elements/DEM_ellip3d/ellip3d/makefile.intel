@@ -1,0 +1,43 @@
+# 1. You can turn on/off openmp
+
+# C++ compiler
+CXX = icpc
+
+# optimization
+OPTIMIZE = -O3 -fp-model source
+# -xCORE-AVX2 -axCORE-AVX2 -ipo -guide (-vec) -parallel (-ftz) -fp-model extended/source/precise/strict
+
+# debugging options (macro DEBUG is defined in source code)
+DEBUG = -Wall -g -DDEBUG
+
+# OpenMP (macro OPENMP is defined in source code)
+OPENMP = -DOPENMP -openmp
+
+# CXXFLAGS
+ CXXFLAGS = $(OPTIMIZE) $(OPENMP)
+#CXXFLAGS = $(DEBUG) $(OPENMP)
+
+SOURCES = $(wildcard *.cpp)
+OBJECTS = $(SOURCES:.cpp=.o)
+#OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
+EXECUTABLE = ellip3d
+
+.PHONY: all clean
+
+all: $(SOURCES) $(EXECUTABLE)
+
+sinclude $(SOURCES:.cpp=.d)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+%.d: %.cpp
+	$(CXX) -MM $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+clean:
+	-rm -f *.o *.d *~ ellip3d

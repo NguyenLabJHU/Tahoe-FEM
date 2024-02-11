@@ -1,0 +1,122 @@
+# $Id: makefile.template,v 1.11 2008-05-24 19:46:52 beichuan Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (0) copy makefile.template to a local makefile.
+# (1) set HOME_DIR to the full path to this makefile.
+# (2) set MACRO_DIR to the full path to directory
+#     containing the machine specific compiler macros.
+# (3) select ARCH from those in the macros directory.
+# (4) select installed "build options".
+# (5) "make init" to (re-)initialize headers and file
+#     dependencies.
+# (6) "make build" to (re-)compiler binaries.
+#
+# full path to the top level of this module
+HOME_DIR =
+
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build 
+BLD_DIR = $(HOME_DIR)
+
+# working directories:
+INC_DIR = $(BLD_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
+
+# default target name - root of library name or executable name
+TARGET  = development
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
+
+# path to main, needed if primary target is an executable (not 
+# a library)
+MAIN = $(BLD_SRC_DIR)/main/main.o
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD = $(LIBRARY)
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+##### any additional C, C++, fortran, or linker flags specific to the module
+MOD_CFLAGS_C  =
+MOD_CFLAGS_CC =
+MOD_CFLAGS_F  =
+MOD_LFLAGS    =
+
+##### toolbox and tahoe
+TB_DIR      = $(HOME_DIR)/../toolbox
+TAHOE_DIR   = $(HOME_DIR)/../tahoe
+TB_INC      = -I$(TB_DIR)/inc -I$(TAHOE_DIR)/inc
+TB_CFLAGS   = $(TB_INC)
+TB_LIB_NAME    = toolbox
+TAHOE_LIB_NAME = tahoe
+TB_LIB      = $(TAHOE_DIR)/lib/lib$(TAHOE_LIB_NAME).a $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+TB_LFLAGS   = -L$(TAHOE_DIR)/lib -l$(TAHOE_LIB_NAME) -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### expat XML parsing library
+#EXPAT_PREFIX   = $(HOME_DIR)/../expat
+#EXPAT_DEFINES  = -D__EXPAT__
+#EXPAT_INC      = -I$(EXPAT_PREFIX)/include
+#EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+#EXPAT_LIB_NAME = expat
+#EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
+#EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
+
+##### development
+DEV_DIR      = $(HOME_DIR)/../development
+DEV_INC      = -I$(DEV_DIR)/inc
+DEV_DEFINES  = -D__DEVELOPMENT__
+DEV_CFLAGS   = $(DEV_INC) $(DEV_DEFINES)
+DEV_LIB_NAME = development
+DEV_LIB      = $(DEV_DIR)/lib/lib$(DEV_LIB_NAME).a
+DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME) -l$(TARGET)
+
+##### F2C 1.4.3
+#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_DEFINES  = -D__F2C__
+#F2C_CFLAGS   = $(F2C_INC) $(F2C_DEFINES)
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+############################### build options ###########################
+
+# extra macros for specific modules
+include $(MACRO_DIR)/development.extras
+
+# "make build" extras - target brought up to date before other makefile
+# targets associated with "make build"
+MOD_MAKE_INIT_XTRAS        = update_config
+MOD_MAKE_HEADERS_XTRAS     = nothing
+MOD_MAKE_DEPEND_INIT_XTRAS = nothing
+MOD_MAKE_CLEAN_XTRAS       = clean_config
+MOD_MAKE_BUILD_XTRAS        = nothing
+
+# include common target definitions
+include $(MACRO_DIR)/make.targets
+
+# init extras target
+update_config:
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; fi
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentElementsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentElementsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; fi
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl DevelopmentMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   DevelopmentMaterialsConfig.conf $(BLD_DIR)/src-mirror/config
+
+# clean extras target - clean config files out of src/config
+clean_config:
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h;     then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make;  then rm $(BLD_DIR)/src-mirror/config/DevelopmentElementsConfig.make; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h;    then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.h; fi
+	@ if test -f $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; then rm $(BLD_DIR)/src-mirror/config/DevelopmentMaterialsConfig.make; fi

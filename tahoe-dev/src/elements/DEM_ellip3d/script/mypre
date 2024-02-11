@@ -1,0 +1,4 @@
+for file in `ls *.dat`
+do
+  preplot $file
+done

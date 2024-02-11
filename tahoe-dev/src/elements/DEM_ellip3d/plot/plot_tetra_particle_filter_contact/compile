@@ -1,0 +1,9 @@
+g++ -c Vec.cpp
+g++ -I/usr/local/eigen-3.3.4 -c Tetra.cpp
+g++ -c plot_tetra_particle_filter.cpp -I/usr/local/eigen-3.3.4 -I/usr/local/qhull-2015.2/src -L/usr/local/qhull-2015.2/lib -lqhullcpp -lqhull_r
+g++ -o plot_tetra_particle_filter_contact plot_tetra_particle_filter.o Vec.o Tetra.o -L/usr/local/qhull-2015.2/lib -lqhullcpp -lqhull_r
+
+#to run the code:
+#export PATH=/usr/local/qhull-2015.2/bin:$PATH
+#export LD_LIBRARY_PATH=/usr/local/qhull-2015.2/lib:$LD_LIBRARY_PATH
+

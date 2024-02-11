@@ -1,0 +1,10 @@
+<ParaViewReaders>
+  <Reader name="Ellip3dReader"
+          extensions="elp"
+          file_description="Ellip3d output files">
+  </Reader>
+  <Reader name="Ellip3dSeriesReader"
+          extensions="els"
+          file_description="Ellip3d output file series">
+  </Reader>
+</ParaViewReaders>
