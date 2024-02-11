@@ -1,4 +1,0 @@
-module load gcc-9.2.0
-g++ -o plot3bin       plot3bin.cpp -I/usr/local/tecplot/360ex_2017r3/include -L/usr/local/tecplot/360ex_2017r3/bin/ -ltecio -lstdc++ -Wl,-rpath=/usr/local/tecplot/360ex_2017r3/bin/:/usr/local/gcc-9.2.0/lib64
-#g++ -o plot3bin.szplt plot3bin.cpp -I/usr/local/tecplot/360ex_2017r3/include -L/usr/local/tecplot/360ex_2017r3/bin/ -ltecio -lstdc++ -Wl,-rpath=/usr/local/tecplot/360ex_2017r3/bin/:/usr/local/gcc-9.2.0/lib64
-

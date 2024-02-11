@@ -1,6 +1,0 @@
-for file in `ls *.jpg`
-do
-  newfile=` echo $file | sed 's/\.jpg/\.eps/' `
-  convert $file eps3:$newfile
-done
-
