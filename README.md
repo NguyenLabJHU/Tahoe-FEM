@@ -6,10 +6,8 @@ This is a custom fork of Tahoe which was originally hosted on SourceForge (https
 
 ## Installing Tahoe
 
-### macOS
 
-
-#### Pre-requisites
+### Obtaining prerequisites for macOS
 
 - In case you don't have a Zsh profile set up on mac, open a profile from the terminal. We will use this file later to save environment variables and paths.
 ```bash
@@ -38,12 +36,13 @@ brew install automake
 brew install open-mpi
 ```
 homebrew will install the compilers in ```/opt/homebrew/bin/``` directory. Check the installed version of the compilers by navigating to the directory and using ```ls``` command before you do the next step 
-- Create symlinks of the installed compilers (gcc, g++, and gfortran). At this time, the stable versions of the installed compilers are 13. **(TO DO: need more clarification on this step about Clang vs Brew)**
+- Create symlinks of the installed compilers (gcc, g++, and gfortran). At this time, the stable versions of the installed compilers are 13.
 ```bash
 ln -s gcc-13 gcc
 ln -s g++-13 g++
 ln -s gfortran-13 gfortran
 ```
+**(TO DO: need more clarification on this step about Clang vs. Brew)**
 - Log out of the Zsh terminal (close) to activate these and log back in (reopen).
 - Create a dedicated directory for Tahoe in your home directory.
 ```bash
@@ -78,7 +77,15 @@ $ ln -s libexodus.a libexoIIv2c.a
 - Log out of your Zsh terminal to activate the changes and log back in (close and reopen).
 
 
-#### Downloading and building Tahoe
+
+###  Obtaining prerequisites on Linux (Ubuntu)
+
+
+Download and run the bash script ```install_pre_ubuntu.sh``` included in the Tahoe repository to install all the prerequisites. Necessary details are provided in shell script. Please make sure to update the installation directory in the script. Alternatively, you can copy and paste those commands inside the script one by one to do the installation of the necessary packages on Linux.
+
+
+
+### Downloading and building Tahoe (macOS and Ubuntu)
 
 - Clone Tahoe from this repository using
 ```bash
@@ -92,6 +99,12 @@ cd tahoe && sudo chmod 755 ./tahoe-manager
 ```bash
 ./tahoe-manager build
 ```
+Select GNU-GCC-MPI-9.3 (for parallel installation) or GNU-GCC9.3 (for serial installation) as architecture. Additionally, for optional modules, select 0 (CBLAS), 6 (ACCESS), 8 (benchmark_XML), 10 (contrib), 11 (development), 12 (development_benchmark_xml), 13 (f2c), 14 (metis), 15 (spooles), 16 (spoolesMPI).
+
+**TO DO: Updating the makefile.template for the parallel version of Tahoe**
+From "AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf"
+to "AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf -lhdf5"
+**TO DO: Address the issue with libf2c_.a file** 
 - Add the following directories as your system path.
 ```bash
 echo export TAHOE_MOD=$TAHOE_MAIN/tahoe >> ~/.zshrc
@@ -104,5 +117,6 @@ source ~/.zshrc
 install_name_tool -add_rpath “$ACCESS/lib” /Users/user-name/tahoe-install/tahoe/tahoe/tahoe
 ```
 
+## Executing Tahoe
 
-### Linux (Ubuntu)
+
