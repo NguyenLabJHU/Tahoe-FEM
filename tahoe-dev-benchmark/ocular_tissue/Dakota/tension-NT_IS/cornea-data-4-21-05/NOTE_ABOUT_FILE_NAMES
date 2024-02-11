@@ -1,0 +1,26 @@
+Vicky:
+
+The file names are as follows:
+
+FILES FROM "040605...":
+example:	nt02-cycle3 2_22_39 PM 4_11_2005.TXT
+format:		XXaa-cycleb .......
+
+xx = nt or is = nasal-temporal or inferior-superior
+aa = tissue number: typically three tissues were tested under nominally identical conditions, I have only included
+	the data set that was shown in the slide, but I have more if you want them.
+b = cycle number for repetitive loading
+........ = a date-time stamp that can be ignored
+
+
+
+FILES FROM "pre-conditioning":
+example:	b-NT02-2 5_04_19 PM 2_28_2005.TXT
+format:		y-ZZcc-d ........
+
+y = b or p = bovine or porcine
+ZZ = NT or IS = nasal-temporal or inferior-superior
+cc = tissue number: typically three tissues were tested, only those shown in the slide are included.   More are available.
+d = cycle number, starts with 0
+......... = a date-time stamp that can be ignored
+

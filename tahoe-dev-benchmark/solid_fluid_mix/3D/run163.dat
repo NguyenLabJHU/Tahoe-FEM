@@ -1,0 +1,2017 @@
+
+ Tahoe 2.1
+
+ Copyright 2003, Sandia Corporation.
+ All rights reserved.
+
+ Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive
+ license for use of this work by or on behalf of the U.S. Government. Export
+ of this program may require a license from the United States Government.
+
+ build: 19:31:30, Apr 30 2007
+
+ Extended error checking is OFF
+ Turn on "extended error checking" to add.
+
+ RunJob_analysis, serial version: three_d_hex27_8m_top_3_Mpa_run163.xml
+#######################################################
+############### ECHO FSSolidFluidMix DATA #########################
+#######################################################
+iConstitutiveModelType 1
+kAnalysisType2
+kInitialConditionType1
+fMaterial_Params[kMu] 5.600000e+06
+fMaterial_Params[kLambda] 8.400000e+06
+fMaterial_Params[kAlpha] 0.000000e+00
+fMaterial_Params[kKf] 2.200000e+10
+fMaterial_Params[kK] 1.000000e-01
+fMaterial_Params[kg] 9.810000e+00
+fMaterial_Params[kg1] 0.000000e+00
+fMaterial_Params[kg2] 0.000000e+00
+fMaterial_Params[kg3] 0.000000e+00
+fMaterial_Params[kRho_sR0] 2.700000e+03
+fMaterial_Params[kRho_fR0] 1.000000e+03
+fMaterial_Params[kPhi_s0] 5.800000e-01
+fMaterial_Params[kPhi_f0] 4.200000e-01
+
+ FEManagerT::SetEquationSystem: equations could not be renumbered
+     because group 1 contains 2 fields.
+
+ FEManagerT::InitialCondition: computing initial conditions
+
+ Group : 1
+ Absolute error = 0.000000e+00
+ Relative error :
+
+       0	0.000000e+00
+
+ NLSolver::DoConverged: quick converged count: 1/3
+
+ FEManagerT::InitialCondition: computing initial conditions: DONE
+
+     Time: 2.500000e-02
+Step size: 2.500000e-02
+     Step: 1 of 80
+
+
+ Group : 1
+ Absolute error = 1.250000e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.119918e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    4.519304e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    3.150566e-11
+
+ NLSolver::DoConverged: quick converged count: 2/3
+
+     Time: 5.000000e-02
+Step size: 2.500000e-02
+     Step: 2 of 80
+
+
+ Group : 1
+ Absolute error = 2.130622e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.481191e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.490375e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    3.168765e-11
+
+ NLSolver::DoConverged: quick converged count: 3/3
+
+     Time: 7.500000e-02
+Step size: 2.500000e-02
+     Step: 3 of 80
+
+
+ Group : 1
+ Absolute error = 2.583362e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.315309e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.487985e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    2.460956e-11
+
+ NLSolver::DoConverged: quick converged count: 4/3
+
+     Time: 1.000000e-01
+Step size: 2.500000e-02
+     Step: 4 of 80
+
+
+ Group : 1
+ Absolute error = 2.807964e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    9.645821e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.494115e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    3.105353e-11
+
+ NLSolver::DoConverged: quick converged count: 5/3
+
+     Time: 1.250000e-01
+Step size: 2.500000e-02
+     Step: 5 of 80
+
+
+ Group : 1
+ Absolute error = 2.746622e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    6.321363e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    7.747544e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.526227e-11
+
+ NLSolver::DoConverged: quick converged count: 6/3
+
+     Time: 1.500000e-01
+Step size: 2.500000e-02
+     Step: 6 of 80
+
+
+ Group : 1
+ Absolute error = 2.563744e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    3.861017e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.424349e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    6.635922e-12
+
+ NLSolver::DoConverged: quick converged count: 7/3
+
+     Time: 1.750000e-01
+Step size: 2.500000e-02
+     Step: 7 of 80
+
+
+ Group : 1
+ Absolute error = 2.305433e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.636415e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.851502e-08
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.079137e-11
+
+ NLSolver::DoConverged: quick converged count: 8/3
+
+     Time: 2.000000e-01
+Step size: 2.500000e-02
+     Step: 8 of 80
+
+
+ Group : 1
+ Absolute error = 1.937243e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.894289e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.430867e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.294408e-11
+
+ NLSolver::DoConverged: quick converged count: 9/3
+
+     Time: 2.250000e-01
+Step size: 2.500000e-02
+     Step: 9 of 80
+
+
+ Group : 1
+ Absolute error = 1.630741e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.930640e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.448008e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.636513e-11
+
+ NLSolver::DoConverged: quick converged count: 10/3
+
+     Time: 2.500000e-01
+Step size: 2.500000e-02
+     Step: 10 of 80
+
+
+ Group : 1
+ Absolute error = 1.239536e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.914885e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.258162e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.668404e-11
+
+ NLSolver::DoConverged: quick converged count: 11/3
+
+     Time: 2.750000e-01
+Step size: 2.500000e-02
+     Step: 11 of 80
+
+
+ Group : 1
+ Absolute error = 9.996050e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.221353e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.081445e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.501834e-11
+
+ NLSolver::DoConverged: quick converged count: 12/3
+
+     Time: 3.000000e-01
+Step size: 2.500000e-02
+     Step: 12 of 80
+
+
+ Group : 1
+ Absolute error = 7.155395e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.651787e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    7.817400e-08
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.253126e-11
+
+ NLSolver::DoConverged: quick converged count: 13/3
+
+     Time: 3.250000e-01
+Step size: 2.500000e-02
+     Step: 13 of 80
+
+
+ Group : 1
+ Absolute error = 1.395768e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.736794e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.983389e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    4.869808e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       3: Relative error =    2.885048e-13
+
+ NLSolver::DoConverged: quick converged count: 14/3
+
+     Time: 3.500000e-01
+Step size: 2.500000e-02
+     Step: 14 of 80
+
+
+ Group : 1
+ Absolute error = 2.072356e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.427899e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.263787e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.799274e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       3: Relative error =    1.782622e-13
+
+ NLSolver::DoConverged: quick converged count: 15/3
+
+     Time: 3.750000e-01
+Step size: 2.500000e-02
+     Step: 15 of 80
+
+
+ Group : 1
+ Absolute error = 2.575622e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.453736e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.518519e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    9.563736e-11
+
+ NLSolver::DoConverged: quick converged count: 16/3
+
+     Time: 4.000000e-01
+Step size: 2.500000e-02
+     Step: 16 of 80
+
+
+ Group : 1
+ Absolute error = 2.595639e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.061295e-02
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.589145e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    5.351668e-11
+
+ NLSolver::DoConverged: quick converged count: 17/3
+
+     Time: 4.250000e-01
+Step size: 2.500000e-02
+     Step: 17 of 80
+
+
+ Group : 1
+ Absolute error = 2.573615e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    7.319637e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    7.707435e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.257548e-11
+
+ NLSolver::DoConverged: quick converged count: 18/3
+
+     Time: 4.500000e-01
+Step size: 2.500000e-02
+     Step: 18 of 80
+
+
+ Group : 1
+ Absolute error = 2.380661e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.411516e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    3.820368e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    4.431106e-12
+
+ NLSolver::DoConverged: quick converged count: 19/3
+
+     Time: 4.750000e-01
+Step size: 2.500000e-02
+     Step: 19 of 80
+
+
+ Group : 1
+ Absolute error = 2.133053e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.723076e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    8.692921e-08
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    6.972853e-13
+
+ NLSolver::DoConverged: quick converged count: 20/3
+
+     Time: 5.000000e-01
+Step size: 2.500000e-02
+     Step: 20 of 80
+
+
+ Group : 1
+ Absolute error = 1.838770e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.302040e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    6.305928e-08
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    4.707681e-13
+
+ NLSolver::DoConverged: quick converged count: 21/3
+
+     Time: 5.250000e-01
+Step size: 2.500000e-02
+     Step: 21 of 80
+
+
+ Group : 1
+ Absolute error = 1.522478e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.431708e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.018258e-07
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    6.984849e-13
+
+ NLSolver::DoConverged: quick converged count: 22/3
+
+     Time: 5.500000e-01
+Step size: 2.500000e-02
+     Step: 22 of 80
+
+
+ Group : 1
+ Absolute error = 1.190530e+05
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.248205e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    4.393981e-08
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    5.758499e-13
+
+ NLSolver::DoConverged: quick converged count: 23/3
+
+     Time: 5.750000e-01
+Step size: 2.500000e-02
+     Step: 23 of 80
+
+
+ Group : 1
+ Absolute error = 9.380432e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.946276e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.680387e-08
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    4.564396e-13
+
+ NLSolver::DoConverged: quick converged count: 24/3
+
+     Time: 6.000000e-01
+Step size: 2.500000e-02
+     Step: 24 of 80
+
+
+ Group : 1
+ Absolute error = 7.440774e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.451401e-03
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.160071e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    5.470215e-13
+
+ NLSolver::DoConverged: quick converged count: 25/3
+
+     Time: 6.250000e-01
+Step size: 2.500000e-02
+     Step: 25 of 80
+
+
+ Group : 1
+ Absolute error = 5.518192e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    9.907567e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    4.730484e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    7.233868e-13
+
+ NLSolver::DoConverged: quick converged count: 26/3
+
+     Time: 6.500000e-01
+Step size: 2.500000e-02
+     Step: 26 of 80
+
+
+ Group : 1
+ Absolute error = 4.284570e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    6.793633e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.882517e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    9.126378e-13
+
+ NLSolver::DoConverged: quick converged count: 27/3
+
+     Time: 6.750000e-01
+Step size: 2.500000e-02
+     Step: 27 of 80
+
+
+ Group : 1
+ Absolute error = 3.287175e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.948933e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.948181e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.184486e-12
+
+ NLSolver::DoConverged: quick converged count: 28/3
+
+     Time: 7.000000e-01
+Step size: 2.500000e-02
+     Step: 28 of 80
+
+
+ Group : 1
+ Absolute error = 3.097043e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.505190e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.369579e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.255317e-12
+
+ NLSolver::DoConverged: quick converged count: 29/3
+
+     Time: 7.250000e-01
+Step size: 2.500000e-02
+     Step: 29 of 80
+
+
+ Group : 1
+ Absolute error = 2.928396e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    3.559416e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.257340e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.362458e-12
+
+ NLSolver::DoConverged: quick converged count: 30/3
+
+     Time: 7.500000e-01
+Step size: 2.500000e-02
+     Step: 30 of 80
+
+
+ Group : 1
+ Absolute error = 2.425540e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.786594e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.208666e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.579478e-12
+
+ NLSolver::DoConverged: quick converged count: 31/3
+
+     Time: 7.750000e-01
+Step size: 2.500000e-02
+     Step: 31 of 80
+
+
+ Group : 1
+ Absolute error = 2.014586e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.912536e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.786137e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.853910e-12
+
+ NLSolver::DoConverged: quick converged count: 32/3
+
+     Time: 8.000000e-01
+Step size: 2.500000e-02
+     Step: 32 of 80
+
+
+ Group : 1
+ Absolute error = 2.007607e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.602081e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    7.259033e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.897881e-12
+
+ NLSolver::DoConverged: quick converged count: 33/3
+
+     Time: 8.250000e-01
+Step size: 2.500000e-02
+     Step: 33 of 80
+
+
+ Group : 1
+ Absolute error = 2.105511e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.295859e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.264438e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.839814e-12
+
+ NLSolver::DoConverged: quick converged count: 34/3
+
+     Time: 8.500000e-01
+Step size: 2.500000e-02
+     Step: 34 of 80
+
+
+ Group : 1
+ Absolute error = 2.021030e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.034467e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.427145e-09
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    1.897010e-12
+
+ NLSolver::DoConverged: quick converged count: 35/3
+
+     Time: 8.750000e-01
+Step size: 2.500000e-02
+     Step: 35 of 80
+
+
+ Group : 1
+ Absolute error = 1.780426e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.159457e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.160129e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    2.162520e-12
+
+ NLSolver::DoConverged: quick converged count: 36/3
+
+     Time: 9.000000e-01
+Step size: 2.500000e-02
+     Step: 36 of 80
+
+
+ Group : 1
+ Absolute error = 1.223274e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.042095e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    4.703739e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    2.987376e-12
+
+ NLSolver::DoConverged: quick converged count: 37/3
+
+     Time: 9.250000e-01
+Step size: 2.500000e-02
+     Step: 37 of 80
+
+
+ Group : 1
+ Absolute error = 1.432550e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.271180e-04
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.936726e-10
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       2: Relative error =    2.631022e-12
+
+ NLSolver::DoConverged: quick converged count: 38/3
+
+     Time: 9.500000e-01
+Step size: 2.500000e-02
+     Step: 38 of 80
+
+
+ Group : 1
+ Absolute error = 1.715392e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    8.618069e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    7.049498e-11
+
+ NLSolver::DoConverged: quick converged count: 39/3
+
+     Time: 9.750000e-01
+Step size: 2.500000e-02
+     Step: 39 of 80
+
+
+ Group : 1
+ Absolute error = 1.537954e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    8.332230e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    5.575993e-11
+
+ NLSolver::DoConverged: quick converged count: 40/3
+
+     Time: 1.000000e+00
+Step size: 2.500000e-02
+     Step: 40 of 80
+
+
+ Group : 1
+ Absolute error = 1.075110e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    8.660273e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    5.100445e-11
+
+ NLSolver::DoConverged: quick converged count: 41/3
+
+     Time: 1.025000e+00
+Step size: 2.500000e-02
+     Step: 41 of 80
+
+
+ Group : 1
+ Absolute error = 9.291368e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    9.420921e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    3.533720e-11
+
+ NLSolver::DoConverged: quick converged count: 42/3
+
+     Time: 1.050000e+00
+Step size: 2.500000e-02
+     Step: 42 of 80
+
+
+ Group : 1
+ Absolute error = 1.229019e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    7.170267e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.650813e-11
+
+ NLSolver::DoConverged: quick converged count: 43/3
+
+     Time: 1.075000e+00
+Step size: 2.500000e-02
+     Step: 43 of 80
+
+
+ Group : 1
+ Absolute error = 1.335022e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    5.659301e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.599020e-11
+
+ NLSolver::DoConverged: quick converged count: 44/3
+
+     Time: 1.100000e+00
+Step size: 2.500000e-02
+     Step: 44 of 80
+
+
+ Group : 1
+ Absolute error = 1.179965e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    6.434217e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    4.135018e-11
+
+ NLSolver::DoConverged: quick converged count: 45/3
+
+     Time: 1.125000e+00
+Step size: 2.500000e-02
+     Step: 45 of 80
+
+
+ Group : 1
+ Absolute error = 8.013919e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    6.356280e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.583952e-11
+
+ NLSolver::DoConverged: quick converged count: 46/3
+
+     Time: 1.150000e+00
+Step size: 2.500000e-02
+     Step: 46 of 80
+
+
+ Group : 1
+ Absolute error = 7.251240e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    3.085948e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.072522e-11
+
+ NLSolver::DoConverged: quick converged count: 47/3
+
+     Time: 1.175000e+00
+Step size: 2.500000e-02
+     Step: 47 of 80
+
+
+ Group : 1
+ Absolute error = 1.156830e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    5.565353e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    4.391675e-11
+
+ NLSolver::DoConverged: quick converged count: 48/3
+
+     Time: 1.200000e+00
+Step size: 2.500000e-02
+     Step: 48 of 80
+
+
+ Group : 1
+ Absolute error = 1.179846e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    6.544368e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.477305e-11
+
+ NLSolver::DoConverged: quick converged count: 49/3
+
+     Time: 1.225000e+00
+Step size: 2.500000e-02
+     Step: 49 of 80
+
+
+ Group : 1
+ Absolute error = 7.268653e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.469318e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.333790e-11
+
+ NLSolver::DoConverged: quick converged count: 50/3
+
+     Time: 1.250000e+00
+Step size: 2.500000e-02
+     Step: 50 of 80
+
+
+ Group : 1
+ Absolute error = 5.151215e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.853186e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.164908e-11
+
+ NLSolver::DoConverged: quick converged count: 51/3
+
+     Time: 1.275000e+00
+Step size: 2.500000e-02
+     Step: 51 of 80
+
+
+ Group : 1
+ Absolute error = 8.945901e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.742116e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.260266e-11
+
+ NLSolver::DoConverged: quick converged count: 52/3
+
+     Time: 1.300000e+00
+Step size: 2.500000e-02
+     Step: 52 of 80
+
+
+ Group : 1
+ Absolute error = 1.028054e+04
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.759221e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    5.984439e-11
+
+ NLSolver::DoConverged: quick converged count: 53/3
+
+     Time: 1.325000e+00
+Step size: 2.500000e-02
+     Step: 53 of 80
+
+
+ Group : 1
+ Absolute error = 8.397133e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.956734e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.680226e-11
+
+ NLSolver::DoConverged: quick converged count: 54/3
+
+     Time: 1.350000e+00
+Step size: 2.500000e-02
+     Step: 54 of 80
+
+
+ Group : 1
+ Absolute error = 6.013275e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.749959e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    8.674256e-12
+
+ NLSolver::DoConverged: quick converged count: 55/3
+
+     Time: 1.375000e+00
+Step size: 2.500000e-02
+     Step: 55 of 80
+
+
+ Group : 1
+ Absolute error = 5.530100e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.754695e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.603203e-12
+
+ NLSolver::DoConverged: quick converged count: 56/3
+
+     Time: 1.400000e+00
+Step size: 2.500000e-02
+     Step: 56 of 80
+
+
+ Group : 1
+ Absolute error = 7.441131e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.859952e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.091969e-11
+
+ NLSolver::DoConverged: quick converged count: 57/3
+
+     Time: 1.425000e+00
+Step size: 2.500000e-02
+     Step: 57 of 80
+
+
+ Group : 1
+ Absolute error = 8.980677e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.570852e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.218600e-11
+
+ NLSolver::DoConverged: quick converged count: 58/3
+
+     Time: 1.450000e+00
+Step size: 2.500000e-02
+     Step: 58 of 80
+
+
+ Group : 1
+ Absolute error = 7.711705e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.877884e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.762668e-11
+
+ NLSolver::DoConverged: quick converged count: 59/3
+
+     Time: 1.475000e+00
+Step size: 2.500000e-02
+     Step: 59 of 80
+
+
+ Group : 1
+ Absolute error = 3.738451e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.376832e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    3.786111e-11
+
+ NLSolver::DoConverged: quick converged count: 60/3
+
+     Time: 1.500000e+00
+Step size: 2.500000e-02
+     Step: 60 of 80
+
+
+ Group : 1
+ Absolute error = 4.115863e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.168394e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.006234e-11
+
+ NLSolver::DoConverged: quick converged count: 61/3
+
+     Time: 1.525000e+00
+Step size: 2.500000e-02
+     Step: 61 of 80
+
+
+ Group : 1
+ Absolute error = 7.670621e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.863989e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.611781e-11
+
+ NLSolver::DoConverged: quick converged count: 62/3
+
+     Time: 1.550000e+00
+Step size: 2.500000e-02
+     Step: 62 of 80
+
+
+ Group : 1
+ Absolute error = 7.837753e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.992171e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    6.179780e-11
+
+ NLSolver::DoConverged: quick converged count: 63/3
+
+     Time: 1.575000e+00
+Step size: 2.500000e-02
+     Step: 63 of 80
+
+
+ Group : 1
+ Absolute error = 4.907232e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.345173e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    3.405010e-11
+
+ NLSolver::DoConverged: quick converged count: 64/3
+
+     Time: 1.600000e+00
+Step size: 2.500000e-02
+     Step: 64 of 80
+
+
+ Group : 1
+ Absolute error = 2.822452e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.853637e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.451137e-11
+
+ NLSolver::DoConverged: quick converged count: 65/3
+
+     Time: 1.625000e+00
+Step size: 2.500000e-02
+     Step: 65 of 80
+
+
+ Group : 1
+ Absolute error = 5.601290e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.624029e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.162489e-11
+
+ NLSolver::DoConverged: quick converged count: 66/3
+
+     Time: 1.650000e+00
+Step size: 2.500000e-02
+     Step: 66 of 80
+
+
+ Group : 1
+ Absolute error = 6.945810e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.843737e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    2.210080e-11
+
+ NLSolver::DoConverged: quick converged count: 67/3
+
+     Time: 1.675000e+00
+Step size: 2.500000e-02
+     Step: 67 of 80
+
+
+ Group : 1
+ Absolute error = 5.580713e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.389159e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    3.236285e-11
+
+ NLSolver::DoConverged: quick converged count: 68/3
+
+     Time: 1.700000e+00
+Step size: 2.500000e-02
+     Step: 68 of 80
+
+
+ Group : 1
+ Absolute error = 3.408561e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.754197e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.316822e-11
+
+ NLSolver::DoConverged: quick converged count: 69/3
+
+     Time: 1.725000e+00
+Step size: 2.500000e-02
+     Step: 69 of 80
+
+
+ Group : 1
+ Absolute error = 3.870526e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.006585e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.053616e-11
+
+ NLSolver::DoConverged: quick converged count: 70/3
+
+     Time: 1.750000e+00
+Step size: 2.500000e-02
+     Step: 70 of 80
+
+
+ Group : 1
+ Absolute error = 5.485255e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.148646e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.892361e-11
+
+ NLSolver::DoConverged: quick converged count: 71/3
+
+     Time: 1.775000e+00
+Step size: 2.500000e-02
+     Step: 71 of 80
+
+
+ Group : 1
+ Absolute error = 5.842149e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    2.131491e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.277687e-11
+
+ NLSolver::DoConverged: quick converged count: 72/3
+
+     Time: 1.800000e+00
+Step size: 2.500000e-02
+     Step: 72 of 80
+
+
+ Group : 1
+ Absolute error = 4.498766e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.718885e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    9.253840e-12
+
+ NLSolver::DoConverged: quick converged count: 73/3
+
+     Time: 1.825000e+00
+Step size: 2.500000e-02
+     Step: 73 of 80
+
+
+ Group : 1
+ Absolute error = 2.479089e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.127252e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.587757e-11
+
+ NLSolver::DoConverged: quick converged count: 74/3
+
+     Time: 1.850000e+00
+Step size: 2.500000e-02
+     Step: 74 of 80
+
+
+ Group : 1
+ Absolute error = 3.333466e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.137892e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.226317e-11
+
+ NLSolver::DoConverged: quick converged count: 75/3
+
+     Time: 1.875000e+00
+Step size: 2.500000e-02
+     Step: 75 of 80
+
+
+ Group : 1
+ Absolute error = 5.294972e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.703711e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    8.255655e-12
+
+ NLSolver::DoConverged: quick converged count: 76/3
+
+     Time: 1.900000e+00
+Step size: 2.500000e-02
+     Step: 76 of 80
+
+
+ Group : 1
+ Absolute error = 5.389810e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.735491e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    8.058007e-12
+
+ NLSolver::DoConverged: quick converged count: 77/3
+
+     Time: 1.925000e+00
+Step size: 2.500000e-02
+     Step: 77 of 80
+
+
+ Group : 1
+ Absolute error = 3.165375e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    8.446621e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.254788e-11
+
+ NLSolver::DoConverged: quick converged count: 78/3
+
+     Time: 1.950000e+00
+Step size: 2.500000e-02
+     Step: 78 of 80
+
+
+ Group : 1
+ Absolute error = 1.024775e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    4.440524e-06
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    3.772207e-11
+
+ NLSolver::DoConverged: quick converged count: 79/3
+
+     Time: 1.975000e+00
+Step size: 2.500000e-02
+     Step: 79 of 80
+
+
+ Group : 1
+ Absolute error = 3.727155e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.332437e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    1.065352e-11
+
+ NLSolver::DoConverged: quick converged count: 80/3
+
+     Time: 2.000000e+00
+Step size: 2.500000e-02
+     Step: 80 of 80
+
+
+ Group : 1
+ Absolute error = 4.940652e+03
+ Relative error :
+
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       0: Relative error =    1.387963e-05
+
+ CCNSMatrixT::SolNonSymSysSkyLine: factorization is approximate due to zero values on the diagonal
+
+ CCNSMatrixT::BackSubstitute: solution is approximate due to zero values on the diagonal
+       1: Relative error =    8.481791e-12
+
+ NLSolver::DoConverged: quick converged count: 81/3
+
+     Filename: three_d_hex27_8m_top_3_Mpa_run163.xml
+   Start time: Wed Jun  6 15:24:00 2007
+ Construction: 3.300000e-01 sec.
+     Solution: 2.448522e+02 sec.
+    Stop time: Thu Jun  7 18:59:37 2007
+
+ End Execution
+
+
+Exit.
+

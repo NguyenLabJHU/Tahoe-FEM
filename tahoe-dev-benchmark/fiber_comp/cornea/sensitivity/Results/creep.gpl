@@ -1,0 +1,12 @@
+set logscale xy
+set xrange [0.5:*]
+plot \
+"creep500.dat" w p,\
+"creep500.uvst_Y" w l,\
+pause -1
+set term png color
+set output "creep.png"
+repl
+set term post eps color
+set output "creep.eps"
+repl

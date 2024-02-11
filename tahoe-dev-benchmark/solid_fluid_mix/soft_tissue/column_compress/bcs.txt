@@ -1,0 +1,8 @@
+            <kinematic_BC dof="2" node_ID="1" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="4" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="5" type="fixed"/>
+            <force_BC dof="3" node_ID="8" schedule="1"  value="-0.002777777777777"/>
+            <force_BC dof="3" node_ID="9" schedule="1"  value="-0.011111111111111"/>
+            <force_BC dof="3" node_ID="10" schedule="1" value="-0.044444444444444"/>

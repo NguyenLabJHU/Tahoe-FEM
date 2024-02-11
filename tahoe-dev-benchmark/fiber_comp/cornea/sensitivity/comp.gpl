@@ -1,0 +1,23 @@
+set key left
+
+plot "rate350.best.uvst_Y" t "best" w l, \
+     "rate350.base.uvst_Y" t "base" w l, \
+     "rate350.dat" t "exp" w lp
+pause -1
+set term png
+set output "rate350.png"
+repl
+
+set output 
+set term x11
+set logscale x
+plot "creep100.best.uvst_Y" t "100 best" w l, \
+     "creep500.best.uvst_Y" t "500 best" w l, \
+     "creep100.base.uvst_Y" t "100 base" w l, \
+     "creep500.base.uvst_Y" t "500 base" w l, \
+     "creep100.dat" t "100 exp" w lp, \
+     "creep500.dat" t "500 exp" w lp
+pause -1
+set term png
+set output "creep.png"
+repl

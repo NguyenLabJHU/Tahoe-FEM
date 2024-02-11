@@ -1,0 +1,23 @@
+plot "creep100.13.uvst_Y" w l, "creep100.dat" w l
+pause -1
+set output "best.creep100.png"
+set term png
+repl
+
+set output
+set term x11
+plot "creep500.13.uvst_Y" w l, "creep500.dat" w l
+pause -1
+set output "best.creep500.png"
+set term png
+repl
+
+set output
+set term x11
+plot "rate350.13.uvst_Y" w l, "rate350.dat" w l
+pause -1
+set output "best.rate350.png"
+set term png
+repl
+
+

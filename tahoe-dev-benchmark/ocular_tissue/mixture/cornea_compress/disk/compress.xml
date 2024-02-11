@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="raregue" geometry_file="../geometry/cylinder_coarse.g"
+    geometry_format="ExodusII" output_format="ExodusII"
+    title="cornea compress" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="10" num_steps="5000" output_inc="1" time_step="1.0e-2">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="5.0" y="1.0"/>
+                <OrderedPair x="50.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="static" solution_group="1">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="50"/>
+            <kinematic_BC dof="2" node_ID="40"/>
+            <kinematic_BC dof="3" node_ID="20"/>
+            <kinematic_BC dof="3" node_ID="30" schedule="1" type="u" value="-1.0e-4"/>
+        </field>
+        <field field_name="solid" integrator="trapezoid" solution_group="2">
+            <dof_labels>
+                <String value="c_s"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="60" schedule="2" type="u" value="275"/>
+        </field>
+        <field field_name="fluid" integrator="trapezoid" solution_group="3">
+            <dof_labels>
+                <String value="c_f"/>
+            </dof_labels>
+            <initial_condition dof="1" node_ID="60" type="u" value="825"/>
+            <kinematic_BC dof="1" node_ID="10" schedule="2" type="u" value="825"/>
+        </field>
+        <history_node_ID_list>
+            <String value="20"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <Q1P0_mixture field_name="displacement">
+            <hexahedron/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1">
+                <wave_direction>
+                    <Vector_3 v_1="1.0" v_2="0.0" v_3="0.0"/>
+                </wave_direction>
+            </solid_element_nodal_output>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <large_strain_solid_mixture density="1100">
+                        <solid_mixture_species concentration_field="solid">
+                            <large_strain_StVenant density="1571">
+                                <E_and_nu Poisson_ratio="0.48" Young_modulus="5.05e5"/>
+                            </large_strain_StVenant>
+                        </solid_mixture_species>
+                        <solid_mixture_species concentration_field="fluid">
+                            <large_strain_StVenant density="1000">
+                                <E_and_nu Poisson_ratio="0.48" Young_modulus="1.32e8"/>
+                            </large_strain_StVenant>
+                        </solid_mixture_species>
+                    </large_strain_solid_mixture>
+                </large_strain_material_3D>
+            </large_strain_element_block>
+        </Q1P0_mixture>
+        <mixture_species concentration="current_concentration"
+            field_name="fluid" solid_element_group="1">
+            <hexahedron/>
+            <diffusion_element_nodal_output displacement="1" material_output="1"/>
+            <diffusion_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <diffusion_material>
+                    <linear_diffusion_material conductivity="3.06e-12"
+                        density="1000" specific_heat="1.0"/>
+                </diffusion_material>
+            </diffusion_element_block>
+        </mixture_species>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-02"
+        divergence_tolerance="1.0e+03" max_iterations="100" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+03" max_iterations="100" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+03" max_iterations="100" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+    <solver_phases max_loops="100">
+        <solver_phase iterations="-1" pass_iterations="0" solver="1"/>
+        <solver_phase iterations="-1" pass_iterations="0" solver="2"/>
+        <solver_phase iterations="-1" pass_iterations="0" solver="3"/>
+    </solver_phases>
+</tahoe>

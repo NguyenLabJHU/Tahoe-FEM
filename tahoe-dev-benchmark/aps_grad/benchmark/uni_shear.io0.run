@@ -1,0 +1,182 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 19
+ Labels:
+	gammap_x_A
+	gammap_y_A
+	d_A
+	gamma_x
+	gamma_y
+	gammap_curl
+	effstr
+	s_xz
+	s_yz
+	J2
+	xi_1
+	kappa_1
+	gamma_dot_1
+	xi_2
+	kappa_2
+	gamma_dot_2
+	xi_3
+	kappa_3
+	gamma_dot_3
+ Number of element values. . . . . . . . . . . . = 144
+ Labels:
+	ip1.gamma_x
+	ip1.gamma_y
+	ip1.gammap_curl
+	ip1.effstr
+	ip1.s_xz
+	ip1.s_yz
+	ip1.J2
+	ip1.xi_1
+	ip1.kappa_1
+	ip1.gamma_dot_1
+	ip1.xi_2
+	ip1.kappa_2
+	ip1.gamma_dot_2
+	ip1.xi_3
+	ip1.kappa_3
+	ip1.gamma_dot_3
+	ip2.gamma_x
+	ip2.gamma_y
+	ip2.gammap_curl
+	ip2.effstr
+	ip2.s_xz
+	ip2.s_yz
+	ip2.J2
+	ip2.xi_1
+	ip2.kappa_1
+	ip2.gamma_dot_1
+	ip2.xi_2
+	ip2.kappa_2
+	ip2.gamma_dot_2
+	ip2.xi_3
+	ip2.kappa_3
+	ip2.gamma_dot_3
+	ip3.gamma_x
+	ip3.gamma_y
+	ip3.gammap_curl
+	ip3.effstr
+	ip3.s_xz
+	ip3.s_yz
+	ip3.J2
+	ip3.xi_1
+	ip3.kappa_1
+	ip3.gamma_dot_1
+	ip3.xi_2
+	ip3.kappa_2
+	ip3.gamma_dot_2
+	ip3.xi_3
+	ip3.kappa_3
+	ip3.gamma_dot_3
+	ip4.gamma_x
+	ip4.gamma_y
+	ip4.gammap_curl
+	ip4.effstr
+	ip4.s_xz
+	ip4.s_yz
+	ip4.J2
+	ip4.xi_1
+	ip4.kappa_1
+	ip4.gamma_dot_1
+	ip4.xi_2
+	ip4.kappa_2
+	ip4.gamma_dot_2
+	ip4.xi_3
+	ip4.kappa_3
+	ip4.gamma_dot_3
+	ip5.gamma_x
+	ip5.gamma_y
+	ip5.gammap_curl
+	ip5.effstr
+	ip5.s_xz
+	ip5.s_yz
+	ip5.J2
+	ip5.xi_1
+	ip5.kappa_1
+	ip5.gamma_dot_1
+	ip5.xi_2
+	ip5.kappa_2
+	ip5.gamma_dot_2
+	ip5.xi_3
+	ip5.kappa_3
+	ip5.gamma_dot_3
+	ip6.gamma_x
+	ip6.gamma_y
+	ip6.gammap_curl
+	ip6.effstr
+	ip6.s_xz
+	ip6.s_yz
+	ip6.J2
+	ip6.xi_1
+	ip6.kappa_1
+	ip6.gamma_dot_1
+	ip6.xi_2
+	ip6.kappa_2
+	ip6.gamma_dot_2
+	ip6.xi_3
+	ip6.kappa_3
+	ip6.gamma_dot_3
+	ip7.gamma_x
+	ip7.gamma_y
+	ip7.gammap_curl
+	ip7.effstr
+	ip7.s_xz
+	ip7.s_yz
+	ip7.J2
+	ip7.xi_1
+	ip7.kappa_1
+	ip7.gamma_dot_1
+	ip7.xi_2
+	ip7.kappa_2
+	ip7.gamma_dot_2
+	ip7.xi_3
+	ip7.kappa_3
+	ip7.gamma_dot_3
+	ip8.gamma_x
+	ip8.gamma_y
+	ip8.gammap_curl
+	ip8.effstr
+	ip8.s_xz
+	ip8.s_yz
+	ip8.J2
+	ip8.xi_1
+	ip8.kappa_1
+	ip8.gamma_dot_1
+	ip8.xi_2
+	ip8.kappa_2
+	ip8.gamma_dot_2
+	ip8.xi_3
+	ip8.kappa_3
+	ip8.gamma_dot_3
+	ip9.gamma_x
+	ip9.gamma_y
+	ip9.gammap_curl
+	ip9.effstr
+	ip9.s_xz
+	ip9.s_yz
+	ip9.J2
+	ip9.xi_1
+	ip9.kappa_1
+	ip9.gamma_dot_1
+	ip9.xi_2
+	ip9.kappa_2
+	ip9.gamma_dot_2
+	ip9.xi_3
+	ip9.kappa_3
+	ip9.gamma_dot_3
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodes . . . . . . . . . . . . . . . . = 21
+ Number of elements. . . . . . . . . . . . . . . = 4
+
+ O U T P U T   D A T A :  T O C
+uni_shear.io0.run.ps0000
+uni_shear.io0.run.ps0001

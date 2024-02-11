@@ -1,0 +1,5 @@
+This is the MPI parallelized example of DEM-SPH dam break simulation.
+To run this simulaiton in Spirit
+(1) go to the "paraEllip3d_DEM_SPH" in development/
+(2) In terminal type "make clean", and then "make" to get excutable file "paraEllip3d", then copy to this folder
+(3) qsub run_spirit.sh

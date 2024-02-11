@@ -1,0 +1,8 @@
+##!export BEST=`grep "Best data captured at function evaluation" qnewton.stdout | awk '{print $8}'` ; cp in.${BEST} in.best; cp rate350.${BEST}.uvst_Y  rate350.best.uvst_Y ; cp creep100.${BEST}.uvst_Y creep100.best.uvst_Y ;cp creep500.${BEST}.uvst_Y creep500.best.uvst_Y ;echo BEST ${BEST} ; cat in.best
+
+plot "rate350.best.uvst_Y" w l, "rate350.dat" w lp
+pause -1
+set logscale x
+plot "creep100.best.uvst_Y" w l, "creep100.dat" w lp, \
+     "creep500.best.uvst_Y" w l, "creep500.dat" w lp
+pause -1

@@ -1,0 +1,28 @@
+strategy, \
+	single_method \
+	tabular_graphics_data \
+#	graphics
+
+method, \
+	multidim_parameter_study \
+   partitions = 11 11 
+
+variables, \
+	continuous_design = 2 \
+	cdv_descriptor     'ALPHA1' 'XI1' \
+	cdv_lower_bounds 0.01 0.1 \
+	cdv_upper_bounds 0.6 100.0
+
+interface, \
+	system \
+	analysis_driver = 'run-pstudy.pl' \
+	parameters_file = 'in' \
+	results_file = 'out' \
+  evaluation_concurrency = 2 \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+  no_gradients\
+  no_hessians 

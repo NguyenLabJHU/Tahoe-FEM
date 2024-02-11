@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="regueiro" echo_input="true"
+    geometry_file="../../cube88.geom" geometry_format="TahoeII"
+    output_format="ExodusII"
+    title="3x3x3 27-node element mesh with punch" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="5" num_steps="100" output_inc="1" time_step="0.01">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1" y="1"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displ">
+            <dof_labels>
+                <String value="d_x"/>
+                <String value="d_y"/>
+                <String value="d_z"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="6" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="7" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="8" schedule="1" type="u" value="-10"/>
+        </field>
+        <history_node_ID_list>
+            <String value="8"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <small_strain field_name="displ">
+            <hexahedron num_ip="27"/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" strain="1" stress="1"/>
+            <solid_element_element_output material_output="1" stress="1"/>
+            <small_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_3D>
+                    <small_strain_StVenant_DP_Loc density="1">
+                        <E_and_nu Poisson_ratio=".25" Young_modulus="16e-3"/>
+                        <DP_Loc_SS_linear_hardening H="0" dilation="0.818"
+                            fluidity_eta="0" friction="0.818" kappa="5.85e-5"/>
+                    </small_strain_StVenant_DP_Loc>
+                </small_strain_material_3D>
+            </small_strain_element_block>
+        </small_strain>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-20"
+        divergence_tolerance="1.0e+4" max_iterations="50" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

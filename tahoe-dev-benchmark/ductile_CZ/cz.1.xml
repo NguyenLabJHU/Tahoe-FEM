@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="cse.geom"
+    title="simple ductile CZ test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="10" output_inc="1" time_step="1">
+        <schedule_function>
+            <linear_function a="1.0" b="0.0"/>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value="1.0e-03"/>
+            <kinematic_BC dof="1" node_ID="7"/>
+            <kinematic_BC dof="1" node_ID="8"/>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <ABAQUS_UMAT_BCJ_iso-damage
+                        UMAT_parameter_file="bcj.param" density="1.0">
+                        <E_and_nu Poisson_ratio="0.333333" Young_modulus="691.2"/>
+                    </ABAQUS_UMAT_BCJ_iso-damage>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <nodal_rigid_anisotropic_CSE field_name="displacement">
+            <line/>
+            <surface_element_nodal_output displacement_jump="1"
+                material_output="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <cohesive_relation_2D>
+                    <rigid-inelastic_BCJ_2D C_1="0.0" C_19="0.0"
+                        C_2="0.0" C_20="0.0" C_21="0.0"
+                        C_3="1.5995836e+00" C_4="1.6166666e+02"
+                        C_5="1.0000000e-04" C_6="0.0" abs_tol="1.0e-10"
+                        phi_0="0.0" phi_exp="1.0" phi_init="0.0025"
+                        phi_max="0.95" rel_tol="1.0e-08"
+                        temperature="297" zone_width="5.0e-3">
+                        <bulk_element_groups>
+                            <Integer value="1"/>
+                        </bulk_element_groups>
+                    </rigid-inelastic_BCJ_2D>
+                </cohesive_relation_2D>
+            </anisotropic_CSE_element_block>
+        </nodal_rigid_anisotropic_CSE>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+10" max_iterations="100" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

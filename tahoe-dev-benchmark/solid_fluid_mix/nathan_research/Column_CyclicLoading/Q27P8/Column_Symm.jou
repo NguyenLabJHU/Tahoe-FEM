@@ -1,0 +1,39 @@
+## /usr/local/regueiro/cubit/bin/clarox
+## Cubit Version 12.1
+## Cubit Build 43915
+## Revised 2010-07-27 08:03:22 -0600 (Tue, 27 Jul 2010)
+## Running 10/19/2014 09:13:28 PM
+## Command Options:
+## -warning = On
+## -information = On
+undo on
+brick x 0.1014 y 0.1014 z 0.458
+block 1 volume 1
+curve 10 12 9 11 interval default
+curve 10 12 9 11 interval 8
+curve 10 12 9 11 scheme bias factor 1
+curve 4 1 2 3 5 6 7 8 interval default
+curve 4 1 2 3 5 6 7 8 interval 2
+curve 4 1 2 3 5 6 7 8 scheme bias factor 1
+volume 1 size auto factor 5
+mesh volume 1
+block 1 element type HEX27
+nodeset 1 surface 4
+nodeset 2 surface 3
+nodeset 3 surface 2
+sideset 1 surface 6
+sideset 2 surface 5
+sideset 3 surface 1
+nodeset 3 surface 6
+nodeset 4 surface 5
+nodeset 5 surface 2
+nodeset 6 surface 1
+sideset 1 surface 5
+delete nodeset 3
+nodeset 3 surface 1
+delete sideset 1
+delete sideset 2
+delete sideset 3
+sideset 1 surface 5
+sideset 2 surface 4
+sideset 3 surface 1

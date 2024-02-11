@@ -1,0 +1,143 @@
+## radii of fit : from 9 test average
+##radii: 17.9829, 17.7144, 24.193
+# {Rnt = 17.9829}
+# {Ris = 17.7144}
+# {Rz  = 24.193}
+## apex thickness : 1.16 - 1.10, across cornea, shrink with time
+## 2D0 thickness sensistivity
+# {Zapex = 1.15}
+## meridians : NT : 27.1 - 28.9 ave 28.07, IS : 21.5 - 23.2 ave 22.35
+# {Mnt = 12.75}
+# {Mis = 10.25}
+# {M = 0.5*(Mnt+Mis)}
+## collar
+# {Cnt = Mnt}
+# {Cis = Mis}
+## end of fixture
+# {fD = 1.1 }
+## transition
+# {fB = 0.95 }
+## mesh size
+# {hsize = 1.0}
+## units conversion
+# {inch2mm = 25.4}
+
+# create cutting tool
+# create cutting tool
+import "holder.sat"
+group "holder" add volume all
+volume all scale X {inch2mm} Y {inch2mm} Z {inch2mm}
+volume 1 to 36 scale X {fD} Y {fD} Z {fD}
+move volume 1 to 36 z {Rz}
+webcut volume 1 to 36 with yplane
+volume all visibility off
+volume 10 visibility on
+
+create curve spline vertex 644 431 366 to 374 645 
+create curve spline vertex 646 377 to 428  643
+delete volume 1 to 52
+create curve 674 671
+create curve 672 673
+create surface curve 707 to 710
+surface {Id("surface")} name "cutter"
+
+# create ellipsoid
+create sphere radius 1
+volume {Id("volume")} scale X {Rnt} Y {Ris} Z {Rz}
+volume {Id("volume")} name "outerEllipse"
+move volume outerEllipse z {-Rz}
+
+#webcut 1
+webcut outerEllipse sweep curve in cutter vector 0 0 -1 distance {3*Rz}
+split outerEllipse
+delete outerEllipse outerEllipse@B
+volume outerEllipse@A  name "cornea"
+section cornea cornea with yplane reverse
+delete cutter
+
+# inner ellipse
+create sphere radius 1
+volume {Id("volume")} scale X {Rnt-Zapex*1.55} Y {Ris-Zapex*1.55} Z {Rz-Zapex}
+volume {Id("volume")} name "innerEllipse"
+move volume innerEllipse z {-Rz}
+subtract innerEllipse from cornea 
+split  volume all
+delete cornea@A
+
+curve 717 name "limbustopedge"
+project curve 717 onto surface 84 
+curve {Id("curve")} name "limbusbotedge"
+create curve vertex 683 700
+curve {Id("curve")} name "LCTright"
+create curve vertex 681 699
+curve {Id("curve")} name "LCTleft"
+create surface limbustopedge limbusbotedge, LCTright, LCTleft
+surface {Id("surface")} name "ltool"
+webcut volume cornea with sheet extended from surface ltool 
+delete cornea@A
+delete ltool
+
+webcut volume all with xplane
+
+#volume outerEllipse@A  name "cornea"
+### measure between vertex 667 and vertex 876 
+### DX = 26.26735954230647
+### 12.857065 -13.410294
+
+# mesh
+healer autoheal volume all rebuild 
+imprint volume all
+merge volume all
+regularize surface all
+regularize volume al
+merge all
+
+
+# top inner B A, transition F E outer D C
+surface 117 110 scheme triprimitive
+surface 117 110 interval size 0.5
+curve 783 775 interval 12
+mesh surface 117 110
+
+# trans, outer radial
+curve 770 773 784 interval 6
+
+volume cornea scheme sweep source surface 110 target surface 112
+volume cornea@A scheme sweep source surface 117 target surface 114
+
+mesh volume all
+
+block 1 cornea@A cornea
+
+# outer block
+# "symmetry" plane
+nodeset 10 surface 109 116
+#anterior NT meridians
+nodeset 11 curve 772
+nodeset 12 curve 772 785
+
+#anterior IS meridians
+nodeset 21 curve 769
+
+# fixed limbus edge/ surface
+nodeset 30 curve 783 775
+nodeset 31 surface 111 115
+#NT anchor
+nodeset 32 curve 784 773
+#IS anchor
+nodeset 33 curve 768
+
+# inner surface
+sideset 40 surface 112 114
+nodeset 40 surface 112 114
+#apex
+nodeset 41 vertex 722
+
+# outer surface 
+nodeset 50 surface 117 110
+sideset 50 surface 117 110
+# apex (?)
+nodeset 51 vertex 721
+
+
+export genesis "cornea_simple.exo" overwrite

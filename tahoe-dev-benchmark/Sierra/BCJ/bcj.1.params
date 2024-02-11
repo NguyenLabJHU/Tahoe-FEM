@@ -1,0 +1,91 @@
+####### SIERRA native input
+  begin definition for function TEMPERATURE
+    type is piecewise linear
+    ordinate is temperature
+    abscissa is time
+    begin values
+        0.00   1255.4
+        1.00   1255.4
+    end values
+  end definition for function TEMPERATURE
+
+  begin definition for function THERMAL_STRAIN
+    type is piecewise linear
+    ordinate is strain
+    abscissa is temperature
+    begin values
+      200.0  0.0
+     3000.0  0.0
+    end values
+  end definition for function THERMAL_STRAIN
+##
+##  Ignoring variations in Young's modulus for testing
+##
+  begin definition for function YOUNGS_MODULUS
+    type is piecewise linear
+    ordinate is value
+    abscissa is temperature
+    begin values
+      292.00   1.0
+      3000.0   1.0
+    end values
+  end definition for function YOUNGS_MODULUS
+##
+## Ignoring variations in Poisson's ratio for testing
+##
+  begin definition for function POISSONS_RATIO
+    type is piecewise linear
+    ordinate is value
+    abscissa is temperature
+    begin values
+      292.00   1.0
+      3000.0   1.0
+    end values
+  end definition for function POISSONS_RATIO
+
+  begin property specification for material 304L
+    density         = 8.0E-4
+    thermal strain function = THERMAL_STRAIN
+
+    begin parameters for model BCJ
+      YOUNGS MODULUS = 200.0E3
+      POISSONS RATIO = 0.25
+      C1 = 16.313      $MPa
+      C2 = 5.7667      $K
+      C3 = 58.688      $MPa
+      C4 = 356.22      $K
+      C5 = 221.6       $1/s
+      C6 = 1.3583      $K
+      C7 = 0.19014     $1/MPa
+      C8 = 1141.11     $K
+      C9 = 1563.73     $MPa
+      C10 = 0.2364     $MPa/K
+      C11 = 3346020.61 $1/(MPa*s)
+      C12 = 17038.89   $K
+      C13 = 0.91939    $1/MPa
+      C14 = 4467.22    $K
+      C15 = 712.92     $MPa
+      C16 = 0.14012    $MPa/K
+      C17 = 489067.25  $1/(MPa*s)
+      C18 = 22661.11   $K
+      C19 = 0.038862   $1/K
+      C20 = 1273.89    $K
+      DAMAGE EXPONENT = 0.5
+      INITIAL ALPHA_XX = 0.0         $MPa
+      INITIAL ALPHA_YY = 0.0         $MPa
+      INITIAL ALPHA_ZZ = 0.0         $MPa
+      INITIAL ALPHA_XY = 0.0         $MPa
+      INITIAL ALPHA_YZ = 0.0         $MPa
+      INITIAL ALPHA_XZ = 0.0         $MPa
+      INITIAL KAPPA =  0.0           $MPa
+      INITIAL DAMAGE = 0.0
+      YOUNGS MODULUS FUNCTION = YOUNGS_MODULUS
+      POISSONS RATIO FUNCTION = POISSONS_RATIO
+      THETA OPT = 0.0                $ 0.0 for driven theta, 1.0 for adiabatic
+      FACTOR    = 0.9                $ fraction of plastic work converted to heat under adiabatic conditions
+      RHO       = 8.0e-9             $ mass density, Mg/mm^3
+      SPECIFIC HEAT = 400.0e6        $ mJ/(Mg K)
+      TEMP0     = 300.0              $ initial temperature, K
+    end parameters for model BCJ
+
+  end property specification for material 304L

@@ -1,0 +1,19 @@
+## /Users/paklein/Applications/cubit_MAC_alpha/cubit_exe/cubitx.app/Contents/MacOS/cubitx
+## Cubit Version 10.0b
+## Cubit Build 959
+## Revised 04/13/2005 12:22:43 MST
+## Running 07/21/2005 07:10:17 AM
+## Command Options:
+## -warning = On
+## -information = On
+create brick x 93.3967 y 93.3967 z 93.3967
+nodeset 1 vertex 7
+nodeset 2 vertex 6
+nodeset 3 vertex 8
+block 1 volume 1
+block 1 element type HEX20
+curve 6 interval 3
+curve 7 interval 3
+curve 9 interval 3
+mesh volume 1
+export genesis "cube.20.exo"

@@ -1,0 +1,122 @@
+## radii of fit
+# {Rnt = 207.29087760331691}
+# {Ris = 205.49342138407664}
+# {Rz  = 3085.3358745615037}
+## apex thickness 
+# {Zapex = 1.15}
+## meridians
+# {Mnt = 12.75}
+# {Mis = 10.25}
+# {M = 0.5*(Mnt+Mis)}
+## collar
+# {Cnt = 10.5}
+# {Cis = 10.5}
+## end of fixture
+# {fD = 1.1 }
+# {Dnt = fD*Cnt}
+# {Dis = fD*Cis}
+## transition
+# {fB = 0.7 }
+# {B = 8.049999999999999 }
+# {Bnt = B}
+# {Bis = B}
+## inner/periphery boundary
+# {fA = 0.5}
+# {A = 5.75}
+# {Ant = A}
+# {Ais = A}
+## mesh size (was 1.5)
+# {hsize = 1.0}
+# {hsize = 1.6}
+graph mode wire
+
+create sphere radius 1
+volume {Id("volume")} scale X {Rnt} Y {Ris} Z {Rz}
+create sphere radius 1
+volume {Id("volume")} scale X {Rnt-Zapex} Y {Ris-Zapex} Z {Rz-Zapex}
+subtract volume 2 from volume 1
+section volume all with xplane
+section volume all with zplane
+section volume all with yplane
+volume all name "cornea"
+move volume all z {-Rz}
+create cylinder height {Rz} major radius {Dnt} minor radius {Dis}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+delete volume cornea@A
+volume all name "cornea"
+## done with removal
+create cylinder height {Rz} major radius {Cnt} minor radius {Cis}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+volume all name "cornea"
+## done with covered/uncovered boundary
+create cylinder height {Rz} major radius {Bnt} minor radius {Bis}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+volume all name "cornea"
+## done with covered/uncovered boundary
+create cylinder height {Rz} major radius {Ant} minor radius {Ais}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+#pause
+
+imprint all
+merge all
+
+volume all interval size {hsize}
+curve with x_min = 0 or y_min = 0 interval 3
+
+#draw curve with length > 5 and x_coord < 0.001 in volume 12
+curve 75 76 77 78 interval 8
+curve 75 scheme bias first_delta {hsize} start vertex in curve 75 with y_coord < {(B+Cnt)/2.0}
+curve 78 scheme bias first_delta {hsize} start vertex in curve 78 with y_coord < {(B+Cnt)/2.0}
+curve 76 scheme bias first_delta {hsize} start vertex in curve 76 with x_coord < {(B+Cnt)/2.0}
+curve 77 scheme bias first_delta {hsize} start vertex in curve 77 with x_coord < {(B+Cnt)/2.0}
+mesh volume all
+#### the bias issue is messed up
+#### start bias from uniform end
+mesh volume all
+#pause
+
+# center & periphery
+volume with x_coord < {Bnt/2}                       name "inner_cornea"
+volume with x_coord > {Bnt/2} and x_coord < {Cnt/2} name "transition_cornea"
+volume with x_coord > {Cnt/2} and x_coord < {Dnt/2} name "outer_cornea"
+volume with x_coord > {Dnt/2}                       name "covered_cornea"
+#pause
+#block 1 volume inner_cornea 
+#block 2 volume transition_cornea
+#block 3 volume outer_cornea
+#block 4 volume covered_cornea
+block 1 volume inner_cornea transition_cornea outer_cornea
+block 2 volume covered_cornea
+#block 1 volume inner_cornea transition_cornea outer_cornea covered_cornea
+# x
+nodeset 10 surface with x_coord = 0
+# y
+nodeset 20 surface with y_coord = 0
+# z (covered surface)
+nodeset 30 surface 39
+#   outer edge
+nodeset 31 surface 19
+# inner surface (by block)
+#sideset 40 surface 60 65 51 41
+sideset 401 surface 60 65 51 
+sideset 402 surface 41 
+#sideset 41 surface 60 
+#sideset 42 surface 65
+#sideset 43 surface 51
+#sideset 44 surface 41
+# outer surface
+nodeset 60 surface 62 67 53
+sideset 60 surface 62 67 53
+# apex
+nodeset 100 vertex 56
+# edge curve
+nodeset 200 curve 89 97 77
+
+#body all scale 0.001 # convert to meters
+export genesis "model.exo" overwrite
+graph mode smoothshade
+exit

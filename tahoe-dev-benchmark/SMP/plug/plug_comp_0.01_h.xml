@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="geometry/plug2.exo" geometry_format="automatic"
+    output_format="ExodusII" restart_output_inc="2000" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <graph_decomposition/>
+    <time max_step_cuts="10" num_steps="2000" output_inc="10" time_step="0.03">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="373"/>
+            </piecewise_linear>
+        </schedule_function>
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="20" y="-2"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" solution_group="1">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="5" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="4" schedule="2" type="u" value="1"/>
+        </field>
+        <field field_name="temperature" integrator="trapezoid" solution_group="2">
+            <dof_labels>
+                <String value="T"/>
+            </dof_labels>
+            <initial_condition all_nodes="true" dof="1" type="u" value="373"/>
+            <kinematic_BC dof="1" node_ID="7" schedule="1" type="u" value="1"/>
+            <kinematic_BC dof="1" node_ID="8" schedule="1" type="u" value="1"/>
+        </field>
+        <history_node_ID_list>
+            <String value="1"/>
+            <String value="4"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" material_output="1" stress="1"/>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <SMP_simple density="1.00" ref_temperature="373">
+                        <smp_thermal_expansion high_temp_CTE="0.000767" low_temp_CTE="0.000385"/>
+                        <smp_eq_potential>
+                            <arruda-boyce kappa="611.11"
+                                locking_stretch="4.11825" network_stiffness="0.00083183"/>
+                        </smp_eq_potential>
+                        <smp_neq_potential>
+                            <neo-hookean kappa="0" mu="405.654"/>
+                        </smp_neq_potential>
+                        <smp_retardation_time Tg="298" WLF_C1="17.44"
+                            WLF_C2="90" tauR_ref="1100"/>
+                        <smp_shear_viscosity activation_energy="4000"
+                            etaS_ref="14142" hardening_modulus="250"
+                            init_yield_strength="39.6" sat_yield_strength="17"/>
+                    </SMP_simple>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+        </updated_lagrangian_axi>
+        <updated_lagrangian_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" material_output="1" stress="1"/>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <large_strain_StVenant CTE="0.0" density="1">
+                        <E_and_nu Poisson_ratio="0.35" Young_modulus="1e+5"/>
+                    </large_strain_StVenant>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+        </updated_lagrangian_axi>
+        <contact_2D_penalty field_name="displacement" penalty_stiffness="1e+5">
+            <contact_surface>
+                <surface_side_set side_set_ID="1"/>
+            </contact_surface>
+            <contact_surface>
+                <surface_side_set side_set_ID="2"/>
+            </contact_surface>
+            <contact_nodes>
+                <node_ID_list>
+                    <String value="1"/>
+                </node_ID_list>
+            </contact_nodes>
+        </contact_2D_penalty>
+        <diffusion field_name="temperature">
+            <quadrilateral/>
+            <diffusion_element_nodal_output coordinates="1" displacement="1"/>
+            <diffusion_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <diffusion_material>
+                    <linear_diffusion_material conductivity=".2"
+                        density="1.17e-6" specific_heat="1.466e+6"/>
+                </diffusion_material>
+            </diffusion_element_block>
+            <diffusion_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <diffusion_material>
+                    <linear_diffusion_material conductivity="16"
+                        density="8e-6" specific_heat="0.5e+6"/>
+                </diffusion_material>
+            </diffusion_element_block>
+        </diffusion>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-7"
+        divergence_tolerance="10000" max_iterations="6" rel_tolerance="1.0e-13">
+        <SPOOLES_matrix/>
+    </nonlinear_solver>
+    <nonlinear_solver abs_tolerance="1e-10" divergence_tolerance="10000"
+        max_iterations="5" rel_tolerance="1e-10">
+        <SPOOLES_matrix/>
+    </nonlinear_solver>
+    <solver_phases max_loops="5">
+        <solver_phase iterations="-1" pass_iterations="1" solver="1"/>
+        <solver_phase iterations="-1" pass_iterations="1" solver="2"/>
+    </solver_phases>
+</tahoe>

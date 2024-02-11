@@ -1,0 +1,24 @@
+        <total_lagrangian_solid_fluid_mix 
+            field_name="displ" pore_pressure_field_name="press" 
+            n_en_displ="27" n_en_press="8" 
+            GeometryCodeSurf_displ="1" GeometryCode_displ="3" 
+            NumIPSurf_displ="9" NumIP_displ="27" 
+            K="1.83e-7" Kf="2.2e9" 
+            phi_f0="0.99" phi_s0="0.01"
+            rho_fR0="1000" rho_sR0="1000" 
+            constitutive_mod_type="1" 
+            mu="1923" lambda="2885" 
+            Beta="-1" c0="0" H_c="0" Phi=".35" Psi=".1745" 
+            R="10" alpha_k="100" kappa0="-2000" 
+            local_tol_absolute="1e-8" local_tol_relative="1e-8" 
+            local_yield_tr_tol="1e-1" max_local_iterations="20" 
+            g="9.81" g1="0" g2="0" g3="0"
+            initial_condition_1geostatic_2displ_vel_press="1"
+            type_of_analysis_0static_1consolidation_2dynamic="1">
+            <total_lagrangian_solid_fluid_mix_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+            </total_lagrangian_solid_fluid_mix_element_block>
+            <gravity_body_force gravity_schedule="1"/>
+        </total_lagrangian_solid_fluid_mix>

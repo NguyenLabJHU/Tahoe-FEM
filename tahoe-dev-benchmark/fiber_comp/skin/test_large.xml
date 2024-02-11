@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="geometry/circ_patch_large.exo"
+    geometry_format="ExodusII" output_format="ExodusII"
+    restart_output_inc="10000" title="circ_patch" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="10" num_steps="100" output_inc="-1" time_step=".001">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0."/>
+                <OrderedPair x="10.0" y="0.1"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="1" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="1" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="2" type="fixed"/>
+            <pressure_bc schedule="1">
+                <side_set_ID_list>
+                    <String value="1"/>
+                </side_set_ID_list>
+            </pressure_bc>
+        </field>
+        <history_node_ID_list>
+            <String value="4"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_Q1P0 field_name="displacement">
+            <hexahedron/>
+            <solid_element_nodal_output displacements="1"
+                principal_strain="1" principal_stress="1" strain="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <RG_split_general density="1">
+                        <rg_eq_potential>
+                            <neo-hookean kappa="55.556" mu=".334"/>
+                        </rg_eq_potential>
+                    </RG_split_general>
+                </large_strain_material_3D>
+            </large_strain_element_block>
+        </updated_lagrangian_Q1P0>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" check_code="small_pivots"
+        divergence_tolerance="1.0e+05" max_iterations="12"
+        output_inc="0" rel_tolerance="1.0e-8">
+        <SPOOLES_matrix/>
+    </nonlinear_solver>
+    <solver_phases>
+        <solver_phase pass_iterations="15" solver="1"/>
+    </solver_phases>
+</tahoe>

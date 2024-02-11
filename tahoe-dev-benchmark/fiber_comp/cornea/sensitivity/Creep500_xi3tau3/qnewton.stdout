@@ -1,0 +1,239 @@
+Running MPI executable in serial mode.
+DAKOTA version 4.0 released 05/12/2006.
+Writing new restart file dakota.rst
+Constructing Single Method Strategy...
+methodName = optpp_q_newton
+gradientType = numerical
+Numerical gradients using central differences
+to be calculated by the dakota finite difference routine.
+hessianType = none
+
+>>>>> Running Single Method Strategy.
+
+>>>>> Running optpp_q_newton iterator.
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Initial map for analytic portion of response:
+
+------------------------------
+Begin Function Evaluation    1
+------------------------------
+Parameters for function evaluation 1:
+                      1.0000000000e+05 XI3
+                      4.5000000000e+01 TAU3
+
+(run.pl in.1 out.1)
+running creep500:1  error : 2.603041777843e-03 SHIFT: -0.00420569199999979
+ error : 1.846881562709e-03 
+error: 18.46881562709 
+
+Active response data for function evaluation 1:
+Active set vector = { 1 }
+                      1.8468815627e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation    2
+------------------------------
+Parameters for function evaluation 2:
+                      1.0000010000e+05 XI3
+                      4.5000000000e+01 TAU3
+
+(run.pl in.2 out.2)
+running creep500:2  error : 2.603042014813e-03 SHIFT: -0.00420569199999979
+ error : 1.846881764173e-03 
+error: 18.46881764173 
+
+Active response data for function evaluation 2:
+Active set vector = { 1 }
+                      1.8468817642e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation    3
+------------------------------
+Parameters for function evaluation 3:
+                      9.9999900000e+04 XI3
+                      4.5000000000e+01 TAU3
+
+(run.pl in.3 out.3)
+running creep500:3  error : 2.603041512269e-03 SHIFT: -0.00420569199999979
+ error : 1.846881331648e-03 
+error: 18.46881331648 
+
+Active response data for function evaluation 3:
+Active set vector = { 1 }
+                      1.8468813316e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation    4
+------------------------------
+Parameters for function evaluation 4:
+                      1.0000000000e+05 XI3
+                      4.5000045000e+01 TAU3
+
+(run.pl in.4 out.4)
+running creep500:4  error : 2.603041988887e-03 SHIFT: -0.00420569199999979
+ error : 1.846881742891e-03 
+error: 18.46881742891 
+
+Active response data for function evaluation 4:
+Active set vector = { 1 }
+                      1.8468817429e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation    5
+------------------------------
+Parameters for function evaluation 5:
+                      1.0000000000e+05 XI3
+                      4.4999955000e+01 TAU3
+
+(run.pl in.5 out.5)
+running creep500:5  error : 2.603041537186e-03 SHIFT: -0.00420569199999979
+ error : 1.846881355419e-03 
+error: 18.46881355419 
+
+Active response data for function evaluation 5:
+Active set vector = { 1 }
+                      1.8468813554e-02 obj_fn
+
+
+>>>>> Total response returned to iterator:
+
+Active set vector = { 3 }
+                      1.8468815627e-02 obj_fn
+ [  2.1626250010e-08  4.3052444441e-05 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation    6
+------------------------------
+Parameters for function evaluation 6:
+                      1.0000000000e+05 XI3
+                      4.4999956948e+01 TAU3
+
+(run.pl in.6 out.6)
+running creep500:6  error : 2.603041552546e-03 SHIFT: -0.00420569199999979
+ error : 1.846881368997e-03 
+error: 18.46881368997 
+
+Active response data for function evaluation 6:
+Active set vector = { 1 }
+                      1.8468813690e-02 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation    7
+------------------------------
+Parameters for function evaluation 7:
+                      1.0000010000e+05 XI3
+                      4.4999956948e+01 TAU3
+
+(run.pl in.7 out.7)
+running creep500:7  error : 2.603041809497e-03 SHIFT: -0.00420569199999979
+ error : 1.846881590301e-03 
+error: 18.46881590301 
+
+Active response data for function evaluation 7:
+Active set vector = { 1 }
+                      1.8468815903e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation    8
+------------------------------
+Parameters for function evaluation 8:
+                      9.9999900000e+04 XI3
+                      4.4999956948e+01 TAU3
+
+(run.pl in.8 out.8)
+running creep500:8  error : 2.603041270636e-03 SHIFT: -0.00420569199999979
+ error : 1.846881123107e-03 
+error: 18.46881123107 
+
+Active response data for function evaluation 8:
+Active set vector = { 1 }
+                      1.8468811231e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation    9
+------------------------------
+Parameters for function evaluation 9:
+                      1.0000000000e+05 XI3
+                      4.5000001948e+01 TAU3
+
+(run.pl in.9 out.9)
+running creep500:9  error : 2.603041786638e-03 SHIFT: -0.00420569199999979
+ error : 1.846881568548e-03 
+error: 18.46881568548 
+
+Active response data for function evaluation 9:
+Active set vector = { 1 }
+                      1.8468815685e-02 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   10
+------------------------------
+Parameters for function evaluation 10:
+                      1.0000000000e+05 XI3
+                      4.4999911948e+01 TAU3
+
+(run.pl in.10 out.10)
+running creep500:10  error : 2.603041300823e-03 SHIFT: -0.00420569199999979
+ error : 1.846881151530e-03 
+error: 18.4688115153 
+
+Active response data for function evaluation 10:
+Active set vector = { 1 }
+                      1.8468811515e-02 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [  2.3359699990e-08  4.6335377663e-05 ] obj_fn gradient
+
+
+
+<<<<< Iterator optpp_q_newton completed.
+<<<<< Function evaluation summary: 10 total (10 new, 0 duplicate)
+         obj_fn: 10 val (10 n, 0 d), 0 grad (0 n, 0 d), 0 Hess (0 n, 0 d)
+<<<<< Best parameters          =
+                      1.0000000000e+05 XI3
+                      4.4999956948e+01 TAU3
+<<<<< Best objective function  =
+                      1.8468813690e-02
+<<<<< Best data captured at function evaluation 6
+<<<<< Single Method Strategy completed.
+DAKOTA execution time in seconds:
+  Total CPU        =         0 [parent =  0.009999, child = -0.009999]
+  Total wall clock =   4159.84

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="./geometry/cube.1.geom"
+    title="3D uniaxial extension" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="2" output_inc="1" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.5" y="1.5"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" solution_group="1">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="3" node_ID="1"/>
+            <kinematic_BC dof="3" node_ID="2" schedule="1" type="u" value="0.01"/>
+            <kinematic_BC dof="2" node_ID="3"/>
+            <kinematic_BC dof="1" node_ID="4"/>
+        </field>
+        <field field_name="temperature" integrator="trapezoid" solution_group="2">
+            <dof_labels>
+                <String value="T"/>
+            </dof_labels>
+            <initial_condition dof="1" node_ID="5" type="u" value="300"/>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <hexahedron/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <SIERRA_BCJ SIERRA_parameter_file="./bcj.2.params" density="8000.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="200.0E3"/>
+                    </SIERRA_BCJ>
+                </large_strain_material_3D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <diffusion field_name="temperature">
+            <hexahedron/>
+            <diffusion_element_nodal_output displacement="1"/>
+            <diffusion_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <diffusion_material>
+                    <linear_diffusion_material conductivity="16.2e-06"
+                        density="8000.0" specific_heat="500.0e-06"/>
+                </diffusion_material>
+            </diffusion_element_block>
+        </diffusion>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-12"
+        divergence_tolerance="1.0e+10" max_iterations="100" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+    <nonlinear_solver check_code='print_RHS' abs_tolerance="1.0e-12"
+        divergence_tolerance="1.0e+10" max_iterations="100" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+    <solver_phases max_loops="100">
+        <solver_phase iterations="4" pass_iterations="0" solver="1"/>
+        <solver_phase iterations="4" pass_iterations="0" solver="2"/>
+    </solver_phases>
+</tahoe>

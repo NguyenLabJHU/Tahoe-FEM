@@ -1,0 +1,15 @@
+<<<<< Iterator optpp_q_newton completed.
+<<<<< Function evaluation summary: 110 total (110 new, 0 duplicate)
+         obj_fn: 110 val (110 n, 0 d), 0 grad (0 n, 0 d), 0 Hess (0 n, 0 d)
+   nln_eq_con_1: 110 val (110 n, 0 d), 0 grad (0 n, 0 d), 0 Hess (0 n, 0 d)
+<<<<< Best parameters          =
+                      4.1955249252e-01 ALPHA1
+                      4.1774377904e-01 ALPHA2
+                      5.6270372845e-01 ALPHA3
+                      5.5403019308e+02 XI1
+                      1.3124544960e+03 XI2
+<<<<< Best objective function  =
+                      1.4973297105e-02
+<<<<< Best constraint values   =
+                      1.4000000000e+00
+

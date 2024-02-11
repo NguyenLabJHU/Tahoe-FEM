@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe compute_IC="true" echo_input="false"
+    geometry_file="geometry/grid.geom" geometry_format="TahoeII"
+    output_format="Tahoe" restart_output_inc="0"
+    title="3D FCC Cauchy-Born" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="0" num_steps="1" output_inc="1" time_step="1.0">
+        <schedule_function>
+            <linear_function a="1.0" b="0.0"/>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="static" solution_group="1">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <mapped_nodes schedule="1">
+                <Matrix_3x3 A_1_1="0.0E1" A_2_2="0.0E1" A_3_3="0.05"/>
+                <mapped_node_ID_list>
+                    <String value="1"/>
+                </mapped_node_ID_list>
+            </mapped_nodes>
+        </field>
+    </nodes>
+    <element_list>
+        <total_lagrangian_CBsurface field_name="displacement">
+            <hexahedron/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <FCC_3D density="1.0" shells="3">
+                        <CB_lattice_FCC>
+                            <FCC_natural/>
+                        </CB_lattice_FCC>
+                        <Lennard_Jones energy_scaling="1.0"
+                            length_scaling="1.0" mass="1.0"/>
+                    </FCC_3D>
+                </large_strain_material_3D>
+            </large_strain_element_block>
+        </total_lagrangian_CBsurface>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        check_LHS_perturbation="1.0E-8" check_code="check_LHS"
+        divergence_tolerance="1.0e+10" max_iterations="5" rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

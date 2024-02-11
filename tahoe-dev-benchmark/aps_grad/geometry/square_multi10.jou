@@ -1,0 +1,28 @@
+brick x 5e-4 y 5e-4 z 5e-4
+create planar surface with plane surface 1  
+delete volume 1 
+surface 7  move x 2.5e-4 y 2.5e-4 z 0 
+surface 7  copy move x 5e-4 y 0 z 0 
+surface 7  copy move x 5e-4 y 5e-4 z 0 
+surface 7  copy move x 0 y 5e-4 z 0 
+block 1 surface 7  
+block 2 surface 8  
+block 3 surface 9  
+block 4 surface 10  
+merge curve 15 with curve 17 
+merge curve 20 with curve 22 
+merge curve 21 with curve 27 
+merge curve 26 with curve 16 
+nodeset 10 curve 28 24 
+Sideset 100 curve 24 28 
+Sideset 200 curve 25 13 
+nodeset 20 curve 13 25 
+nodeset 30 curve 18 14 
+Sideset 300 curve 14 18 
+Sideset 400 curve 23 19 
+nodeset 40 curve 19 23 
+surface 7 8 9 10 interval 5
+surface 7 8 9 10 scheme Map
+mesh surface 7 8 9 10
+block 1 2 3 4 element type quad9
+

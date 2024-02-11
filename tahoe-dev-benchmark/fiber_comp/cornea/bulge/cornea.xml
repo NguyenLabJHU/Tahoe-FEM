@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="./cornea.exo" geometry_format="ExodusII"
+    restart_output_inc="400" title="cornea_zero"
+    output_format="ExodusII" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="4" num_steps="532" output_inc="2" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0."/>
+                <OrderedPair x="33.027" y="7.21081"/>
+                <OrderedPair x="200.0"  y="7.21081"/>
+                <OrderedPair x="233.027" y="15.79134"/>
+                <OrderedPair x="266.0" y="7.21081."/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="30" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="30" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="30" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="20" type="fixed"/>
+            <pressure_bc schedule="1">
+                <side_set_ID_list>
+                    <String value="101"/>
+                    <String value="102"/>
+                </side_set_ID_list>
+            </pressure_bc>
+        </field>
+        <history_node_ID_list>
+            <String value="200"/>
+            <String value="300"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <uplag_fiber_comp_planar field_name="displacement">
+            <hexahedron num_ip="8"/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" material_output="1"
+                principal_stress="1" strain_energy_density="1" stress="1"/>
+            <fiber_comp_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                    <String value="2"/>
+                </block_ID_list>
+                <fiber_comp_material>
+                    <aniso_viscoelastic_cornea density="1.0" n_points="40">
+                        <matrix_material_params>
+                            <Neo-Hookean bulk_modulus="30.0" shear_modulus="10.0"/>
+                        </matrix_material_params>
+                        <eq_fibril_potential>
+                            <fung_type alpha="0.121" beta="34.7" description="f(I) = alpha*(exp(beta*(I - 1.0)) + beta/I)"/>
+                        </eq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.234" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.242" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.600" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="4.5555e+3" tau0="20000"/>
+                        </viscosity>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="9.1111e+4" tau0="20000"/>
+                        </viscosity>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="9.1111e+7" tau0="450"/>
+                        </viscosity>
+                        <fibril_distribution>
+                            <cornea
+                                a1="1.0" b1="1.0" c1="0.451" n1="8"
+                                a2="0.0" b2="1.0" c2="0.72"  n2="8"
+                                                  c3="1.666"
+                                r1="6." 
+                                r2="8." 
+                                r3="10." 
+                                r4="12.5" />
+                        </fibril_distribution>
+                    </aniso_viscoelastic_cornea>
+                </fiber_comp_material>
+            </fiber_comp_element_block>
+            <fiber_orientations>
+                <ellipsoid Cx="0.0E1" Cy="0.0E1" Cz="-24.193"
+                        Rx="17.9829" Ry="17.7144" Rz="24.193" block_ID="1"
+                    coordinate_system="cartesian" projection_normal="z">
+                    <DoubleList name="NT_">
+                        <Double value="1"/>
+                        <Double value="0"/>
+                    </DoubleList>
+                    <DoubleList name="IS_">
+                        <Double value="0"/>
+                        <Double value="1"/>
+                    </DoubleList>
+                </ellipsoid>
+            </fiber_orientations>
+            <fiber_orientations>
+                <ellipsoid Cx="0.0E1" Cy="0.0E1" Cz="-24.193"
+                        Rx="17.9829" Ry="17.7144" Rz="24.193" block_ID="2"
+                    coordinate_system="cartesian" projection_normal="z">
+                    <DoubleList name="NT_">
+                        <Double value="1"/>
+                        <Double value="0"/>
+                    </DoubleList>
+                    <DoubleList name="IS_">
+                        <Double value="0"/>
+                        <Double value="1"/>
+                    </DoubleList>
+                </ellipsoid>
+            </fiber_orientations>
+        </uplag_fiber_comp_planar>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-8" check_code="small_pivots"
+        divergence_tolerance="1.0e+03" max_iterations="12"
+        output_inc="0" rel_tolerance="1.0e-8">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

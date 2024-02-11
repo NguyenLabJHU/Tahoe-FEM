@@ -1,0 +1,26 @@
+clear all
+%
+sim=load('eldata_stand_1.txt');
+time=(sim(:,1));
+%ip1
+sig11=(sim(:,2));
+sig22=(sim(:,3));
+sig33=(sim(:,4));
+sig23=(sim(:,5));
+sig13=(sim(:,6));
+sig12=(sim(:,7));
+eps11=(sim(:,8));
+eps22=(sim(:,9));
+eps33=(sim(:,10));
+eps23=(sim(:,11));
+eps13=(sim(:,12));
+eps12=(sim(:,13));
+kappa=(sim(:,14));
+VM=(sim(:,15));
+press=(sim(:,16));
+%
+figure(1)
+plot(abs(eps22),abs(sig22))
+xlabel('strain')
+ylabel('stress')
+%

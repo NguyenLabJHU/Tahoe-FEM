@@ -1,0 +1,3 @@
+This example is eccentric impact of two poly-ellipsoids with different Young's modulus and Poisson's ratio. This eccentric impact happens in a container.
+Here the input file is different than the input files for polyEllip3d with the same minerals, Since Young's modulus and Poisson's ratio for each particle is added
+to the last two variables in the row.

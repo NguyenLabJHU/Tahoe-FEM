@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="./shell.exo" geometry_format="ExodusII"
+    output_format="ExodusII" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="2" num_steps="32" output_inc="1" time_step="10.0">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0"/>
+                <OrderedPair x="160" y="135.8774"/>
+                <OrderedPair x="320" y="135.8774"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="10" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="20" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="30" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="30" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="30" type="fixed"/>
+            <pressure_bc control="volume" normal="z" penalty="0.001E0"
+                schedule="1" schedule_scale="1.0E0" use_multiplier="true">
+                <side_set_ID_list>
+                    <String value="41"/>
+                    <String value="42"/>
+                </side_set_ID_list>
+            </pressure_bc>
+        </field>
+    </nodes>
+    <element_list>
+        <uplag_fiber_comp_planar field_name="displacement">
+            <hexahedron num_ip="8"/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" material_output="1" stress="1"/>
+            <fiber_comp_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <fiber_comp_material>
+                    <aniso_viscoelastic_cornea density="1.0" n_points="11">
+                        <matrix_material_params>
+                            <Neo-Hookean bulk_modulus="30.0" shear_modulus="10.0"/>
+                        </matrix_material_params>
+                        <eq_fibril_potential>
+                            <fung_type alpha="0.15" beta="34.7" description="f(I) = alpha*(exp(beta*(I - 1.0)) + beta/I)"/>
+                        </eq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.29" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.3" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.7575" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="1.33e+4" tau0="2000"/>
+                        </viscosity>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="2.67e+5" tau0="2000"/>
+                        </viscosity>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="2.67e+8" tau0="100"/>
+                        </viscosity>
+                        <fibril_distribution>
+                            <power_trig a="1.0" b="1.0" c="0.45"
+                                description="f(theta) = a*cos(theta+phi)^n + b*sin(theta+phi)^n + c"
+                                n="8" phi="0.0"/>
+                        </fibril_distribution>
+                    </aniso_viscoelastic_cornea>
+                </fiber_comp_material>
+            </fiber_comp_element_block>
+            <fiber_comp_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <fiber_comp_material>
+                    <aniso_viscoelastic_cornea density="1.0" n_points="11">
+                        <matrix_material_params>
+                            <Neo-Hookean bulk_modulus="30.0" shear_modulus="10.0"/>
+                        </matrix_material_params>
+                        <eq_fibril_potential>
+                            <fung_type alpha="0.15" beta="34.7" description="f(I) = alpha*(exp(beta*(I - 1.0)) + beta/I)"/>
+                        </eq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.29" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.3" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <neq_fibril_potential>
+                            <fung_type alpha="0.7575" beta="34.7"/>
+                        </neq_fibril_potential>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="1.33e+4" tau0="2000"/>
+                        </viscosity>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="2.67e+5" tau0="2000"/>
+                        </viscosity>
+                        <viscosity>
+                            <scaled_csch
+                                description="f(tau) = eta0* tau/tau0 / Sinh(tau/tau0)"
+                                eta0="2.67e+8" tau0="100"/>
+                        </viscosity>
+                        <fibril_distribution>
+                            <power_trig a="1.0" b="0.0" c="0.72"
+                                description="f(theta) = a*cos(theta+phi)^n + b*sin(theta+phi)^n + c"
+                                n="8" phi="0.0"/>
+                        </fibril_distribution>
+                    </aniso_viscoelastic_cornea>
+                </fiber_comp_material>
+            </fiber_comp_element_block>
+            <fiber_orientations>
+                <ellipsoid Cx="0.0" Cy="0.0" Cz="-19.01" Rx="15.66"
+                    Ry="15.61" Rz="19.01" block_ID="1"
+                    coordinate_system="cartesian" projection_normal="z">
+                    <DoubleList name="NT_">
+                        <Double value="1"/>
+                        <Double value="0"/>
+                    </DoubleList>
+                    <DoubleList name="IS_">
+                        <Double value="0"/>
+                        <Double value="1"/>
+                    </DoubleList>
+                </ellipsoid>
+            </fiber_orientations>
+            <fiber_orientations>
+                <ellipsoid Cx="0.0" Cy="0.0" Cz="-19.01" Rx="15.66"
+                    Ry="15.61" Rz="19.01" block_ID="2"
+                    coordinate_system="polar" projection_normal="z">
+                    <DoubleList name="NT_">
+                        <Double value="0"/>
+                        <Double value="1"/>
+                    </DoubleList>
+                    <DoubleList name="IS_">
+                        <Double value="1"/>
+                        <Double value="0"/>
+                    </DoubleList>
+                </ellipsoid>
+            </fiber_orientations>
+        </uplag_fiber_comp_planar>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-8" check_code="small_pivots"
+        divergence_tolerance="1.0e+03" max_iterations="12"
+        output_inc="0" rel_tolerance="1.0e-8">
+        <full_matrix/>
+    </nonlinear_solver>
+</tahoe>

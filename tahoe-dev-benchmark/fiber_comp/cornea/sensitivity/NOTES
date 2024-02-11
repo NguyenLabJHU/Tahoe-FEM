@@ -1,0 +1,68 @@
+use same dt in each time interval
+
+Need neq stiffness indep of eq stiffness otherwise relax to half
+
+
+on logscale
+  int_a^b e(t) dt = int_f^-1(a)^f^-1(b)  e(f(s)) f'(s) ds
+                  ~ int_c^d g(s) ds
+  difference is the jacobian 
+create a subdir RUN 
+cd RUN; ln -sf ../* .
+local  sensitivity : dakota -i pstudy.dakota  
+global sensitivity : dakota -i sample.dakota  
+
+fit to:
+350 kPa/s rate (loading only)
+100 kPa creep
+500 kPa creep
+
+free parameters:
+ALPHA0 0.121
+ALPHA1 0.234
+ALPHA2 0.242
+ALPHA3 0.6
+BETA  34.7
+XI1   16.17
+XI2  312.67
+XI3 126000.0
+TAU3 450.0
+MU    10.0
+
+fixed parameters:
+GAMMA 0.49 / K 30.0
+
+data weighting:
+* each point equal weight
+* log for creep
+* equal for tests
+
+sampling:
+* val +/- 20%  : uniform (use preprocessor)
+{
+{"0.0968`", "0.1452`"},
+{"0.18720000000000003`", "0.2808`"},
+{"0.1936`", "0.2904`"},
+{"0.48`", "0.72`"},
+{"27.760000000000005`", "41.64`"},
+{"12.936000000000002`", "19.404`"},
+{"250.13600000000002`", "375.204`"},
+{"100800.`", "151200.`"},
+{"360.`", "540.`"},
+{"8.`", "12.`"}
+}
+
+* val +/- order of magnitude    : loguniform
+
+
+{{ALPHA0, 0.121},
+{ALPHA1, 0.234},
+{ALPHA2, 0.242},
+{ALPHA3, 0.6},
+{BETA , 34.7},
+{XI1, 16.17},
+{XI2 , 312.67},
+{XI3 , 126000.0},
+{TAU3 , 450.0},
+{MU, 10.0}}
+

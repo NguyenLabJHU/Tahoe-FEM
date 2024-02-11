@@ -1,0 +1,46 @@
+create vertex 0.0 0.0
+create vertex 1.732 0.043
+create vertex 3.898 0.433
+create vertex 6.036 2.295
+create vertex 6.103 4.158
+create vertex 5.041 6.497
+create vertex 3.451 7.796
+create vertex 2.393 8.229
+create vertex 0.346 8.662
+create vertex 0.0 8.662
+create curve vertex 1 vertex 10 vertex 2 vertex 3 vertex 4 vertex 5 vertex 6 vertex 7 vertex 8 vertex 9
+curve 1 copy scale 0.98814 0.984354
+curve 2 move 0 0.06
+create curve vertex 10 12
+create curve vertex 11 1
+create curve vertex 11 12
+create vertex location on curve 1 extrema direction x
+create vertex location on curve 2 extrema direction x
+create curve 19 20
+split curve 1 at vertex 19
+split curve 2 at vertex 20
+create surface curve 5 9 10
+create surface curve 4 6 7 9
+create surface curve 3 6 8 10
+sweep surface 1 2 3 axis 0 0.06 0 0 8.526 0 angle 90
+webcut volume all with cylinder radius 1 axis vertex 17 vertex 18
+imprint volume all 
+merge volume all
+volume all size 0.348827
+mesh volume all
+block 1 volume 1 4
+block 1 element type hex27
+block 2 volume 3 6
+block 2 element type hex27
+block 3 volume 2 5
+block 3 element type hex27
+nodeset 1 vertex 13
+nodeset 2 vertex 16
+nodeset 3 curve 3 4 5
+nodeset 6 surface 38 42
+nodeset 7 surface 33 26
+nodeset 8 surface 27 29 34 31
+nodeset 9 surface 41 44 37 39
+nodeset 10 surface 17 19 21 24      
+set large exodus file off
+

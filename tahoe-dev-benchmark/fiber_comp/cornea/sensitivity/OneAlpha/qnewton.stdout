@@ -1,0 +1,1982 @@
+Running MPI executable in serial mode.
+DAKOTA version 4.0 released 05/12/2006.
+Writing new restart file dakota.rst
+Constructing Single Method Strategy...
+methodName = optpp_q_newton
+gradientType = numerical
+Numerical gradients using central differences
+to be calculated by the dakota finite difference routine.
+hessianType = none
+
+>>>>> Running Single Method Strategy.
+
+>>>>> Running optpp_q_newton iterator.
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Initial map for analytic portion of response:
+
+------------------------------
+Begin Function Evaluation    1
+------------------------------
+Parameters for function evaluation 1:
+                      1.0000000000e-01 ALPHA
+                      4.0000000000e+01 BETA
+
+(run.pl in.1 out.1)
+running rate350:1  error : 1.545477640797e-01 
+running creep100:1  error : 7.757467359751e-01 
+running creep500:1  error : 5.080266065360e-01 
+
+Active response data for function evaluation 1:
+Active set vector = { 1 }
+                      1.9019643988e+00 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation    2
+------------------------------
+Parameters for function evaluation 2:
+                      1.0000010000e-01 ALPHA
+                      4.0000000000e+01 BETA
+
+(run.pl in.2 out.2)
+running rate350:2  error : 1.545474162353e-01 
+running creep100:2  error : 7.757454110761e-01 
+running creep500:2  error : 5.080247540797e-01 
+
+Active response data for function evaluation 2:
+Active set vector = { 1 }
+                      1.9019598301e+00 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation    3
+------------------------------
+Parameters for function evaluation 3:
+                      9.9999900000e-02 ALPHA
+                      4.0000000000e+01 BETA
+
+(run.pl in.3 out.3)
+running rate350:3  error : 1.545480033140e-01 
+running creep100:3  error : 7.757479420625e-01 
+running creep500:3  error : 5.080266065360e-01 
+
+Active response data for function evaluation 3:
+Active set vector = { 1 }
+                      1.9019665619e+00 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation    4
+------------------------------
+Parameters for function evaluation 4:
+                      1.0000000000e-01 ALPHA
+                      4.0000040000e+01 BETA
+
+(run.pl in.4 out.4)
+running rate350:4  error : 1.545465464609e-01 
+running creep100:4  error : 7.757426329862e-01 
+running creep500:4  error : 5.080222677435e-01 
+
+Active response data for function evaluation 4:
+Active set vector = { 1 }
+                      1.9019510866e+00 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation    5
+------------------------------
+Parameters for function evaluation 5:
+                      1.0000000000e-01 ALPHA
+                      3.9999960000e+01 BETA
+
+(run.pl in.5 out.5)
+running rate350:5  error : 1.545488438390e-01 
+running creep100:5  error : 7.757508379223e-01 
+running creep500:5  error : 5.080297267521e-01 
+
+Active response data for function evaluation 5:
+Active set vector = { 1 }
+                      1.9019759400e+00 obj_fn
+
+
+>>>>> Total response returned to iterator:
+
+Active set vector = { 3 }
+                      1.9019643988e+00 obj_fn
+ [ -3.3658787501e+01 -3.1066821375e-01 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation    6
+------------------------------
+Parameters for function evaluation 6:
+                      1.0000000000e+01 ALPHA
+                      4.0091376296e+01 BETA
+
+(run.pl in.6 out.6)
+running rate350:6  error : 6.914367540638e-01 
+running creep100:6  error : 2.104957897216e+00 
+running creep500:6  error : 1.993604066658e+00 
+
+Active response data for function evaluation 6:
+Active set vector = { 1 }
+                      6.8643089801e+00 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation    7
+------------------------------
+Parameters for function evaluation 7:
+                      4.9773723204e+00 ALPHA
+                      4.0045017799e+01 BETA
+
+(run.pl in.7 out.7)
+running rate350:7  error : 6.494412240871e-01 
+running creep100:7  error : 2.016222505031e+00 
+running creep500:7  error : 1.824708033033e+00 
+
+Active response data for function evaluation 7:
+Active set vector = { 1 }
+                      6.4386954344e+00 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation    8
+------------------------------
+Parameters for function evaluation 8:
+                      2.0879123983e+00 ALPHA
+                      4.0018348290e+01 BETA
+
+(run.pl in.8 out.8)
+running rate350:8  error : 5.585306644986e-01 
+running creep100:8  error : 1.796371873517e+00 
+running creep500:8  error : 1.492729304246e+00 
+
+Active response data for function evaluation 8:
+Active set vector = { 1 }
+                      5.5232238358e+00 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation    9
+------------------------------
+Parameters for function evaluation 9:
+                      9.1259093526e-01 ALPHA
+                      4.0007500157e+01 BETA
+
+(run.pl in.9 out.9)
+running rate350:9  error : 4.229477756095e-01 
+running creep100:9  error : 1.402060355093e+00 
+running creep500:9  error : 1.052317175551e+00 
+
+Active response data for function evaluation 9:
+Active set vector = { 1 }
+                      4.1461686331e+00 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   10
+------------------------------
+Parameters for function evaluation 10:
+                      4.2107696005e-01 ALPHA
+                      4.0002963517e+01 BETA
+
+(run.pl in.10 out.10)
+running rate350:10  error : 2.546501435893e-01 
+running creep100:10  error : 8.193882123166e-01 
+running creep500:10  error : 5.549990679122e-01 
+
+Active response data for function evaluation 10:
+Active set vector = { 1 }
+                      2.3929878546e+00 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   11
+------------------------------
+Parameters for function evaluation 11:
+                      2.3423684480e-01 ALPHA
+                      4.0001238997e+01 BETA
+
+(run.pl in.11 out.11)
+running rate350:11  error : 1.083692300272e-01 
+running creep100:11  error : 2.391454715438e-01 
+running creep500:11  error : 1.373305719804e-01 
+
+Active response data for function evaluation 11:
+Active set vector = { 1 }
+                      8.0995296363e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   12
+------------------------------
+Parameters for function evaluation 12:
+                      2.3423707904e-01 ALPHA
+                      4.0001238997e+01 BETA
+
+(run.pl in.12 out.12)
+running rate350:12  error : 1.083694847132e-01 
+running creep100:12  error : 2.391464365514e-01 
+running creep500:12  error : 1.373313166030e-01 
+
+Active response data for function evaluation 12:
+Active set vector = { 1 }
+                      8.0995569201e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   13
+------------------------------
+Parameters for function evaluation 13:
+                      2.3423661056e-01 ALPHA
+                      4.0001238997e+01 BETA
+
+(run.pl in.13 out.13)
+running rate350:13  error : 1.083689715740e-01 
+running creep100:13  error : 2.391442665974e-01 
+running creep500:13  error : 1.373298273577e-01 
+
+Active response data for function evaluation 13:
+Active set vector = { 1 }
+                      8.0994998025e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   14
+------------------------------
+Parameters for function evaluation 14:
+                      2.3423684480e-01 ALPHA
+                      4.0001278998e+01 BETA
+
+(run.pl in.14 out.14)
+running rate350:14  error : 1.083700331411e-01 
+running creep100:14  error : 2.391483665666e-01 
+running creep500:14  error : 1.373333022635e-01 
+
+Active response data for function evaluation 14:
+Active set vector = { 1 }
+                      8.0996180139e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   15
+------------------------------
+Parameters for function evaluation 15:
+                      2.3423684480e-01 ALPHA
+                      4.0001198995e+01 BETA
+
+(run.pl in.15 out.15)
+running rate350:15  error : 1.083684627421e-01 
+running creep100:15  error : 2.391423365822e-01 
+running creep500:15  error : 1.373278416974e-01 
+
+Active response data for function evaluation 15:
+Active set vector = { 1 }
+                      8.0994402925e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [  1.2192266560e+01  2.2214495033e-01 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   16
+------------------------------
+Parameters for function evaluation 16:
+                      1.9947462347e-01 ALPHA
+                      3.9920456284e+01 BETA
+
+(run.pl in.16 out.16)
+running rate350:16  error : 6.868423975204e-02 
+running creep100:16  error : 5.585802619378e-02 
+running creep500:16  error : 1.485359083404e-02 
+
+Active response data for function evaluation 16:
+Active set vector = { 1 }
+                      3.4544857604e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   17
+------------------------------
+Parameters for function evaluation 17:
+                      1.9947482295e-01 ALPHA
+                      3.9920456284e+01 BETA
+
+(run.pl in.17 out.17)
+running rate350:17  error : 6.868447460865e-02 
+running creep100:17  error : 5.585897973097e-02 
+running creep500:17  error : 1.485419166192e-02 
+
+Active response data for function evaluation 17:
+Active set vector = { 1 }
+                      3.4545106983e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   18
+------------------------------
+Parameters for function evaluation 18:
+                      1.9947442400e-01 ALPHA
+                      3.9920456284e+01 BETA
+
+(run.pl in.18 out.18)
+running rate350:18  error : 6.868402803786e-02 
+running creep100:18  error : 5.585659588876e-02 
+running creep500:18  error : 1.485299001933e-02 
+
+Active response data for function evaluation 18:
+Active set vector = { 1 }
+                      3.4544569806e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   19
+------------------------------
+Parameters for function evaluation 19:
+                      1.9947462347e-01 ALPHA
+                      3.9920496204e+01 BETA
+
+(run.pl in.19 out.19)
+running rate350:19  error : 6.868491391618e-02 
+running creep100:19  error : 5.586088680659e-02 
+running creep500:19  error : 1.485589828558e-02 
+
+Active response data for function evaluation 19:
+Active set vector = { 1 }
+                      3.4545644076e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   20
+------------------------------
+Parameters for function evaluation 20:
+                      1.9947462347e-01 ALPHA
+                      3.9920416363e+01 BETA
+
+(run.pl in.20 out.20)
+running rate350:20  error : 6.868359451721e-02 
+running creep100:20  error : 5.585468881684e-02 
+running creep500:20  error : 1.485129196636e-02 
+
+Active response data for function evaluation 20:
+Active set vector = { 1 }
+                      3.4544035885e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [  1.3464790324e+01  2.0142436168e-01 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   21
+------------------------------
+Parameters for function evaluation 21:
+                      1.6057526585e-01 ALPHA
+                      3.9875142219e+01 BETA
+
+(run.pl in.21 out.21)
+running rate350:21  error : 4.530258272273e-02 
+running creep100:21  error : 2.003929982765e-01 
+running creep500:21  error : 1.557212503380e-01 
+
+Active response data for function evaluation 21:
+Active set vector = { 1 }
+                      5.3732457951e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   22
+------------------------------
+Parameters for function evaluation 22:
+                      1.8517402729e-01 ALPHA
+                      3.9903797445e+01 BETA
+
+(run.pl in.22 out.22)
+running rate350:22  error : 5.403424007346e-02 
+running creep100:22  error : 3.239239032662e-02 
+running creep500:22  error : 4.608004465865e-02 
+
+Active response data for function evaluation 22:
+Active set vector = { 1 }
+                      2.9460939528e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   23
+------------------------------
+Parameters for function evaluation 23:
+                      1.8517421246e-01 ALPHA
+                      3.9903797445e+01 BETA
+
+(run.pl in.23 out.23)
+running rate350:23  error : 5.403440578900e-02 
+running creep100:23  error : 3.239139537761e-02 
+running creep500:23  error : 4.607931278409e-02 
+
+Active response data for function evaluation 23:
+Active set vector = { 1 }
+                      2.9460833132e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   24
+------------------------------
+Parameters for function evaluation 24:
+                      1.8517384211e-01 ALPHA
+                      3.9903797445e+01 BETA
+
+(run.pl in.24 out.24)
+running rate350:24  error : 5.403407807681e-02 
+running creep100:24  error : 3.239346364158e-02 
+running creep500:24  error : 4.608077653366e-02 
+
+Active response data for function evaluation 24:
+Active set vector = { 1 }
+                      2.9461055248e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   25
+------------------------------
+Parameters for function evaluation 25:
+                      1.8517402729e-01 ALPHA
+                      3.9903837348e+01 BETA
+
+(run.pl in.25 out.25)
+running rate350:25  error : 5.403471086340e-02 
+running creep100:25  error : 3.238915708116e-02 
+running creep500:25  error : 4.607724183987e-02 
+
+Active response data for function evaluation 25:
+Active set vector = { 1 }
+                      2.9460524237e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   26
+------------------------------
+Parameters for function evaluation 26:
+                      1.8517402729e-01 ALPHA
+                      3.9903757541e+01 BETA
+
+(run.pl in.26 out.26)
+running rate350:26  error : 5.403377217733e-02 
+running creep100:26  error : 3.239555243325e-02 
+running creep500:26  error : 4.608297216142e-02 
+
+Active response data for function evaluation 26:
+Active set vector = { 1 }
+                      2.9461361330e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -5.9975062718e+00 -1.0488888146e-01 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   27
+------------------------------
+Parameters for function evaluation 27:
+                      1.8942550085e-01 ALPHA
+                      3.9919375583e+01 BETA
+
+(run.pl in.27 out.27)
+running rate350:27  error : 5.822318658533e-02 
+running creep100:27  error : 9.911866929521e-03 
+running creep500:27  error : 2.838898120148e-02 
+
+Active response data for function evaluation 27:
+Active set vector = { 1 }
+                      2.7119359447e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   28
+------------------------------
+Parameters for function evaluation 28:
+                      1.8942569028e-01 ALPHA
+                      3.9919375583e+01 BETA
+
+(run.pl in.28 out.28)
+running rate350:28  error : 5.822337692242e-02 
+running creep100:28  error : 9.911330104591e-03 
+running creep500:28  error : 2.838827272137e-02 
+
+Active response data for function evaluation 28:
+Active set vector = { 1 }
+                      2.7119311052e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   29
+------------------------------
+Parameters for function evaluation 29:
+                      1.8942531143e-01 ALPHA
+                      3.9919375583e+01 BETA
+
+(run.pl in.29 out.29)
+running rate350:29  error : 5.822299839698e-02 
+running creep100:29  error : 9.912224914203e-03 
+running creep500:29  error : 2.838968968351e-02 
+
+Active response data for function evaluation 29:
+Active set vector = { 1 }
+                      2.7119390819e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   30
+------------------------------
+Parameters for function evaluation 30:
+                      1.8942550085e-01 ALPHA
+                      3.9919415502e+01 BETA
+
+(run.pl in.30 out.30)
+running rate350:30  error : 5.822372972315e-02 
+running creep100:30  error : 9.910614621972e-03 
+running creep500:30  error : 2.838618208596e-02 
+
+Active response data for function evaluation 30:
+Active set vector = { 1 }
+                      2.7119171560e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   31
+------------------------------
+Parameters for function evaluation 31:
+                      1.8942550085e-01 ALPHA
+                      3.9919335663e+01 BETA
+
+(run.pl in.31 out.31)
+running rate350:31  error : 5.822263845217e-02 
+running creep100:31  error : 9.913217154831e-03 
+running creep500:31  error : 2.839173621855e-02 
+
+Active response data for function evaluation 31:
+Active set vector = { 1 }
+                      2.7119550718e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -2.1054979092e+00 -4.7490491442e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   32
+------------------------------
+Parameters for function evaluation 32:
+                      1.9154420364e-01 ALPHA
+                      3.9944555080e+01 BETA
+
+(run.pl in.32 out.32)
+running rate350:32  error : 6.070207126792e-02 
+running creep100:32  error : 1.433574688324e-02 
+running creep500:32  error : 1.896794179868e-02 
+
+Active response data for function evaluation 32:
+Active set vector = { 1 }
+                      2.7611197375e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   33
+------------------------------
+Parameters for function evaluation 33:
+                      1.8999215745e-01 ALPHA
+                      3.9926109953e+01 BETA
+
+(run.pl in.33 out.33)
+running rate350:33  error : 5.887592044742e-02 
+running creep100:33  error : 9.180252309978e-03 
+running creep500:33  error : 2.580149939833e-02 
+
+Active response data for function evaluation 33:
+Active set vector = { 1 }
+                      2.7048543350e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   34
+------------------------------
+Parameters for function evaluation 34:
+                      1.8999234744e-01 ALPHA
+                      3.9926109953e+01 BETA
+
+(run.pl in.34 out.34)
+running rate350:34  error : 5.887612668833e-02 
+running creep100:34  error : 9.180141997121e-03 
+running creep500:34  error : 2.580079900736e-02 
+
+Active response data for function evaluation 34:
+Active set vector = { 1 }
+                      2.7048544776e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   35
+------------------------------
+Parameters for function evaluation 35:
+                      1.8999196746e-01 ALPHA
+                      3.9926109953e+01 BETA
+
+(run.pl in.35 out.35)
+running rate350:35  error : 5.887573778618e-02 
+running creep100:35  error : 9.180065368155e-03 
+running creep500:35  error : 2.580219979186e-02 
+
+Active response data for function evaluation 35:
+Active set vector = { 1 }
+                      2.7048521630e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   36
+------------------------------
+Parameters for function evaluation 36:
+                      1.8999215745e-01 ALPHA
+                      3.9926149879e+01 BETA
+
+(run.pl in.36 out.36)
+running rate350:36  error : 5.887649981220e-02 
+running creep100:36  error : 9.180203756746e-03 
+running creep500:36  error : 2.579877807662e-02 
+
+Active response data for function evaluation 36:
+Active set vector = { 1 }
+                      2.7048498108e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   37
+------------------------------
+Parameters for function evaluation 37:
+                      1.8999215745e-01 ALPHA
+                      3.9926070027e+01 BETA
+
+(run.pl in.37 out.37)
+running rate350:37  error : 5.887536157843e-02 
+running creep100:37  error : 9.180117325731e-03 
+running creep500:37  error : 2.580426927132e-02 
+
+Active response data for function evaluation 37:
+Active set vector = { 1 }
+                      2.7048583291e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [  6.0911215783e-01 -1.0667563231e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   38
+------------------------------
+Parameters for function evaluation 38:
+                      1.8962775251e-01 ALPHA
+                      3.9945551176e+01 BETA
+
+(run.pl in.38 out.38)
+running rate350:38  error : 5.878978332991e-02 
+running creep100:38  error : 9.187130750488e-03 
+running creep500:38  error : 2.583502931599e-02 
+
+Active response data for function evaluation 38:
+Active set vector = { 1 }
+                      2.7018129339e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   39
+------------------------------
+Parameters for function evaluation 39:
+                      1.8962794214e-01 ALPHA
+                      3.9945551176e+01 BETA
+
+(run.pl in.39 out.39)
+running rate350:39  error : 5.878998116197e-02 
+running creep100:39  error : 9.186977395013e-03 
+running creep500:39  error : 2.583432876403e-02 
+
+Active response data for function evaluation 39:
+Active set vector = { 1 }
+                      2.7018123081e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   40
+------------------------------
+Parameters for function evaluation 40:
+                      1.8962756288e-01 ALPHA
+                      3.9945551176e+01 BETA
+
+(run.pl in.40 out.40)
+running rate350:40  error : 5.878959462324e-02 
+running creep100:40  error : 9.187015117429e-03 
+running creep500:40  error : 2.583572987050e-02 
+
+Active response data for function evaluation 40:
+Active set vector = { 1 }
+                      2.7018112348e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   41
+------------------------------
+Parameters for function evaluation 41:
+                      1.8962775251e-01 ALPHA
+                      3.9945591121e+01 BETA
+
+(run.pl in.41 out.41)
+running rate350:41  error : 5.879034705425e-02 
+running creep100:41  error : 9.186868327615e-03 
+running creep500:41  error : 2.583233909254e-02 
+
+Active response data for function evaluation 41:
+Active set vector = { 1 }
+                      2.7018059564e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   42
+------------------------------
+Parameters for function evaluation 42:
+                      1.8962775251e-01 ALPHA
+                      3.9945511230e+01 BETA
+
+(run.pl in.42 out.42)
+running rate350:42  error : 5.878923191329e-02 
+running creep100:42  error : 9.187245938210e-03 
+running creep500:42  error : 2.583771000167e-02 
+
+Active response data for function evaluation 42:
+Active set vector = { 1 }
+                      2.7018188359e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [  2.8299136751e-01 -1.6121393335e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   43
+------------------------------
+Parameters for function evaluation 43:
+                      1.5362376412e-01 ALPHA
+                      4.2024669231e+01 BETA
+
+(run.pl in.43 out.43)
+running rate350:43  error : 4.855657969985e-02 
+running creep100:43  error : 7.272339720284e-02 
+running creep500:43  error : 3.477814172203e-02 
+
+Active response data for function evaluation 43:
+Active set vector = { 1 }
+                      3.0172785772e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   44
+------------------------------
+Parameters for function evaluation 44:
+                      1.7917224910e-01 ALPHA
+                      4.0549323894e+01 BETA
+
+(run.pl in.44 out.44)
+running rate350:44  error : 5.663478999323e-02 
+running creep100:44  error : 1.840389101057e-02 
+running creep500:44  error : 2.498729474887e-02 
+
+Active response data for function evaluation 44:
+Active set vector = { 1 }
+                      2.6993034573e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   45
+------------------------------
+Parameters for function evaluation 45:
+                      1.7917242827e-01 ALPHA
+                      4.0549323894e+01 BETA
+
+(run.pl in.45 out.45)
+running rate350:45  error : 5.663496791991e-02 
+running creep100:45  error : 1.840289606478e-02 
+running creep500:45  error : 2.498659609886e-02 
+
+Active response data for function evaluation 45:
+Active set vector = { 1 }
+                      2.6992936384e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   46
+------------------------------
+Parameters for function evaluation 46:
+                      1.7917206993e-01 ALPHA
+                      4.0549323894e+01 BETA
+
+(run.pl in.46 out.46)
+running rate350:46  error : 5.663461578966e-02 
+running creep100:46  error : 1.840472260937e-02 
+running creep500:46  error : 2.498799340161e-02 
+
+Active response data for function evaluation 46:
+Active set vector = { 1 }
+                      2.6993117917e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   47
+------------------------------
+Parameters for function evaluation 47:
+                      1.7917224910e-01 ALPHA
+                      4.0549364443e+01 BETA
+
+(run.pl in.47 out.47)
+running rate350:47  error : 5.663535123206e-02 
+running creep100:47  error : 1.840098051771e-02 
+running creep500:47  error : 2.498473304558e-02 
+
+Active response data for function evaluation 47:
+Active set vector = { 1 }
+                      2.6992711849e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   48
+------------------------------
+Parameters for function evaluation 48:
+                      1.7917224910e-01 ALPHA
+                      4.0549283344e+01 BETA
+
+(run.pl in.48 out.48)
+running rate350:48  error : 5.663423253133e-02 
+running creep100:48  error : 1.840680166356e-02 
+running creep500:48  error : 2.499008937629e-02 
+
+Active response data for function evaluation 48:
+Active set vector = { 1 }
+                      2.6993382117e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -5.0658691543e+00 -8.2648401951e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   49
+------------------------------
+Parameters for function evaluation 49:
+                      1.8031774846e-01 ALPHA
+                      4.0503132760e+01 BETA
+
+(run.pl in.49 out.49)
+running rate350:49  error : 5.718128461147e-02 
+running creep100:49  error : 1.546424589857e-02 
+running creep500:49  error : 2.362610072696e-02 
+
+Active response data for function evaluation 49:
+Active set vector = { 1 }
+                      2.6781548507e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   50
+------------------------------
+Parameters for function evaluation 50:
+                      1.8031792878e-01 ALPHA
+                      4.0503132760e+01 BETA
+
+(run.pl in.50 out.50)
+running rate350:50  error : 5.718146139568e-02 
+running creep100:50  error : 1.546309459985e-02 
+running creep500:50  error : 2.362540798427e-02 
+
+Active response data for function evaluation 50:
+Active set vector = { 1 }
+                      2.6781434817e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   51
+------------------------------
+Parameters for function evaluation 51:
+                      1.8031756815e-01 ALPHA
+                      4.0503132760e+01 BETA
+
+(run.pl in.51 out.51)
+running rate350:51  error : 5.718110377020e-02 
+running creep100:51  error : 1.546502076269e-02 
+running creep500:51  error : 2.362679347289e-02 
+
+Active response data for function evaluation 51:
+Active set vector = { 1 }
+                      2.6781622932e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   52
+------------------------------
+Parameters for function evaluation 52:
+                      1.8031774846e-01 ALPHA
+                      4.0503173263e+01 BETA
+
+(run.pl in.52 out.52)
+running rate350:52  error : 5.718185535157e-02 
+running creep100:52  error : 1.546155376810e-02 
+running creep500:52  error : 2.362332977568e-02 
+
+Active response data for function evaluation 52:
+Active set vector = { 1 }
+                      2.6781230495e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   53
+------------------------------
+Parameters for function evaluation 53:
+                      1.8031774846e-01 ALPHA
+                      4.0503092257e+01 BETA
+
+(run.pl in.53 out.53)
+running rate350:53  error : 5.718072417458e-02 
+running creep100:53  error : 1.546672853429e-02 
+running creep500:53  error : 2.362884273898e-02 
+
+Active response data for function evaluation 53:
+Active set vector = { 1 }
+                      2.6781846797e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -5.2162073784e+00 -7.6080800546e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   54
+------------------------------
+Parameters for function evaluation 54:
+                      1.8547239822e-01 ALPHA
+                      4.0216958111e+01 BETA
+
+(run.pl in.54 out.54)
+running rate350:54  error : 5.845594277268e-02 
+running creep100:54  error : 9.855444751985e-03 
+running creep500:54  error : 2.308459742580e-02 
+
+Active response data for function evaluation 54:
+Active set vector = { 1 }
+                      2.6676381327e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   55
+------------------------------
+Parameters for function evaluation 55:
+                      1.8547258369e-01 ALPHA
+                      4.0216958111e+01 BETA
+
+(run.pl in.55 out.55)
+running rate350:55  error : 5.845615034365e-02 
+running creep100:55  error : 9.854936332503e-03 
+running creep500:55  error : 2.308390803892e-02 
+
+Active response data for function evaluation 55:
+Active set vector = { 1 }
+                      2.6676344575e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   56
+------------------------------
+Parameters for function evaluation 56:
+                      1.8547221275e-01 ALPHA
+                      4.0216958111e+01 BETA
+
+(run.pl in.56 out.56)
+running rate350:56  error : 5.845575694054e-02 
+running creep100:56  error : 9.855783801956e-03 
+running creep500:56  error : 2.308528681619e-02 
+
+Active response data for function evaluation 56:
+Active set vector = { 1 }
+                      2.6676409838e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   57
+------------------------------
+Parameters for function evaluation 57:
+                      1.8547239822e-01 ALPHA
+                      4.0216998328e+01 BETA
+
+(run.pl in.57 out.57)
+running rate350:57  error : 5.845653702041e-02 
+running creep100:57  error : 9.854258730125e-03 
+running creep500:57  error : 2.308192158681e-02 
+
+Active response data for function evaluation 57:
+Active set vector = { 1 }
+                      2.6676232840e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   58
+------------------------------
+Parameters for function evaluation 58:
+                      1.8547239822e-01 ALPHA
+                      4.0216917894e+01 BETA
+
+(run.pl in.58 out.58)
+running rate350:58  error : 5.845538041385e-02 
+running creep100:58  error : 9.856613841333e-03 
+running creep500:58  error : 2.308732714384e-02 
+
+Active response data for function evaluation 58:
+Active set vector = { 1 }
+                      2.6676546264e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -1.7593838471e+00 -3.8966671588e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   59
+------------------------------
+Parameters for function evaluation 59:
+                      1.8348834335e-01 ALPHA
+                      4.0345939271e+01 BETA
+
+(run.pl in.59 out.59)
+running rate350:59  error : 5.825131331264e-02 
+running creep100:59  error : 1.063234630144e-02 
+running creep500:59  error : 2.197820021916e-02 
+
+Active response data for function evaluation 59:
+Active set vector = { 1 }
+                      2.6561579977e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   60
+------------------------------
+Parameters for function evaluation 60:
+                      1.8348852683e-01 ALPHA
+                      4.0345939271e+01 BETA
+
+(run.pl in.60 out.60)
+running rate350:60  error : 5.825148209068e-02 
+running creep100:60  error : 1.063172050243e-02 
+running creep500:60  error : 2.197751653681e-02 
+
+Active response data for function evaluation 60:
+Active set vector = { 1 }
+                      2.6561516540e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   61
+------------------------------
+Parameters for function evaluation 61:
+                      1.8348815986e-01 ALPHA
+                      4.0345939271e+01 BETA
+
+(run.pl in.61 out.61)
+running rate350:61  error : 5.825110616765e-02 
+running creep100:61  error : 1.063298315305e-02 
+running creep500:61  error : 2.197888390557e-02 
+
+Active response data for function evaluation 61:
+Active set vector = { 1 }
+                      2.6561629173e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   62
+------------------------------
+Parameters for function evaluation 62:
+                      1.8348834335e-01 ALPHA
+                      4.0345979617e+01 BETA
+
+(run.pl in.62 out.62)
+running rate350:62  error : 5.825187971752e-02 
+running creep100:62  error : 1.063068160114e-02 
+running creep500:62  error : 2.197554785627e-02 
+
+Active response data for function evaluation 62:
+Active set vector = { 1 }
+                      2.6561374833e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   63
+------------------------------
+Parameters for function evaluation 63:
+                      1.8348834335e-01 ALPHA
+                      4.0345898926e+01 BETA
+
+(run.pl in.63 out.63)
+running rate350:63  error : 5.825072742367e-02 
+running creep100:63  error : 1.063401181492e-02 
+running creep500:63  error : 2.198090899596e-02 
+
+Active response data for function evaluation 63:
+Active set vector = { 1 }
+                      2.6561783051e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -3.0692065759e+00 -5.0589701760e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   64
+------------------------------
+Parameters for function evaluation 64:
+                      1.8208049352e-01 ALPHA
+                      4.0467486224e+01 BETA
+
+(run.pl in.64 out.64)
+running rate350:64  error : 5.852181432025e-02 
+running creep100:64  error : 1.014812233365e-02 
+running creep500:64  error : 1.932709509013e-02 
+
+Active response data for function evaluation 64:
+Active set vector = { 1 }
+                      2.6356247470e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   65
+------------------------------
+Parameters for function evaluation 65:
+                      1.8208067560e-01 ALPHA
+                      4.0467486224e+01 BETA
+
+(run.pl in.65 out.65)
+running rate350:65  error : 5.852200891710e-02 
+running creep100:65  error : 1.014765957371e-02 
+running creep500:65  error : 1.932643021175e-02 
+
+Active response data for function evaluation 65:
+Active set vector = { 1 }
+                      2.6356212545e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   66
+------------------------------
+Parameters for function evaluation 66:
+                      1.8208031144e-01 ALPHA
+                      4.0467486224e+01 BETA
+
+(run.pl in.66 out.66)
+running rate350:66  error : 5.852160352447e-02 
+running creep100:66  error : 1.014851876979e-02 
+running creep500:66  error : 1.932775997443e-02 
+
+Active response data for function evaluation 66:
+Active set vector = { 1 }
+                      2.6356269284e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   67
+------------------------------
+Parameters for function evaluation 67:
+                      1.8208049352e-01 ALPHA
+                      4.0467526692e+01 BETA
+
+(run.pl in.67 out.67)
+running rate350:67  error : 5.852241981225e-02 
+running creep100:67  error : 1.014673540865e-02 
+running creep500:67  error : 1.932445589083e-02 
+
+Active response data for function evaluation 67:
+Active set vector = { 1 }
+                      2.6356087055e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   68
+------------------------------
+Parameters for function evaluation 68:
+                      1.8208049352e-01 ALPHA
+                      4.0467445757e+01 BETA
+
+(run.pl in.68 out.68)
+running rate350:68  error : 5.852122777166e-02 
+running creep100:68  error : 1.014944370233e-02 
+running creep500:68  error : 1.932963746231e-02 
+
+Active response data for function evaluation 68:
+Active set vector = { 1 }
+                      2.6356399225e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -1.5580698103e+00 -3.8570505501e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   69
+------------------------------
+Parameters for function evaluation 69:
+                      1.7803506241e-01 ALPHA
+                      4.0762227295e+01 BETA
+
+(run.pl in.69 out.69)
+running rate350:69  error : 5.845172248326e-02 
+running creep100:69  error : 1.102977378566e-02 
+running creep500:69  error : 1.569967209042e-02 
+
+Active response data for function evaluation 69:
+Active set vector = { 1 }
+                      2.6053633581e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   70
+------------------------------
+Parameters for function evaluation 70:
+                      1.7803524044e-01 ALPHA
+                      4.0762227295e+01 BETA
+
+(run.pl in.70 out.70)
+running rate350:70  error : 5.845191028225e-02 
+running creep100:70  error : 1.102915663775e-02 
+running creep500:70  error : 1.569905110135e-02 
+
+Active response data for function evaluation 70:
+Active set vector = { 1 }
+                      2.6053584887e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   71
+------------------------------
+Parameters for function evaluation 71:
+                      1.7803488437e-01 ALPHA
+                      4.0762227295e+01 BETA
+
+(run.pl in.71 out.71)
+running rate350:71  error : 5.845151590634e-02 
+running creep100:71  error : 1.103029423720e-02 
+running creep500:71  error : 1.570029309038e-02 
+
+Active response data for function evaluation 71:
+Active set vector = { 1 }
+                      2.6053665095e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   72
+------------------------------
+Parameters for function evaluation 72:
+                      1.7803506241e-01 ALPHA
+                      4.0762268057e+01 BETA
+
+(run.pl in.72 out.72)
+running rate350:72  error : 5.845229912061e-02 
+running creep100:72  error : 1.102795267745e-02 
+running creep500:72  error : 1.569728384326e-02 
+
+Active response data for function evaluation 72:
+Active set vector = { 1 }
+                      2.6053443300e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   73
+------------------------------
+Parameters for function evaluation 73:
+                      1.7803506241e-01 ALPHA
+                      4.0762186532e+01 BETA
+
+(run.pl in.73 out.73)
+running rate350:73  error : 5.845112726739e-02 
+running creep100:73  error : 1.103149874994e-02 
+running creep500:73  error : 1.570215615556e-02 
+
+Active response data for function evaluation 73:
+Active set vector = { 1 }
+                      2.6053816398e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -2.2526035859e+00 -4.5765064346e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   74
+------------------------------
+Parameters for function evaluation 74:
+                      1.5107837015e-01 ALPHA
+                      4.2779762779e+01 BETA
+
+(run.pl in.74 out.74)
+running rate350:74  error : 5.566288831804e-02 
+running creep100:74  error : 3.343597050602e-02 
+running creep500:74  error : 9.657269374499e-03 
+
+Active response data for function evaluation 74:
+Active set vector = { 1 }
+                      2.6574479315e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   75
+------------------------------
+Parameters for function evaluation 75:
+                      1.6646341165e-01 ALPHA
+                      4.1628291120e+01 BETA
+
+(run.pl in.75 out.75)
+running rate350:75  error : 5.797306703280e-02 
+running creep100:75  error : 1.607707040750e-02 
+running creep500:75  error : 8.841065169946e-03 
+
+Active response data for function evaluation 75:
+Active set vector = { 1 }
+                      2.5681040371e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   76
+------------------------------
+Parameters for function evaluation 76:
+                      1.6646357812e-01 ALPHA
+                      4.1628291120e+01 BETA
+
+(run.pl in.76 out.76)
+running rate350:76  error : 5.797327010135e-02 
+running creep100:76  error : 1.607628765060e-02 
+running creep500:76  error : 8.840941392264e-03 
+
+Active response data for function evaluation 76:
+Active set vector = { 1 }
+                      2.5681030945e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   77
+------------------------------
+Parameters for function evaluation 77:
+                      1.6646324519e-01 ALPHA
+                      4.1628291120e+01 BETA
+
+(run.pl in.77 out.77)
+running rate350:77  error : 5.797285976646e-02 
+running creep100:77  error : 1.607786175137e-02 
+running creep500:77  error : 8.841266564733e-03 
+
+Active response data for function evaluation 77:
+Active set vector = { 1 }
+                      2.5681056738e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   78
+------------------------------
+Parameters for function evaluation 78:
+                      1.6646341165e-01 ALPHA
+                      4.1628332748e+01 BETA
+
+(run.pl in.78 out.78)
+running rate350:78  error : 5.797370548451e-02 
+running creep100:78  error : 1.607433938165e-02 
+running creep500:78  error : 8.840279825171e-03 
+
+Active response data for function evaluation 78:
+Active set vector = { 1 }
+                      2.5680944114e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   79
+------------------------------
+Parameters for function evaluation 79:
+                      1.6646341165e-01 ALPHA
+                      4.1628249491e+01 BETA
+
+(run.pl in.79 out.79)
+running rate350:79  error : 5.797244266577e-02 
+running creep100:79  error : 1.607981021308e-02 
+running creep500:79  error : 8.841823630479e-03 
+
+Active response data for function evaluation 79:
+Active set vector = { 1 }
+                      2.5681140451e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -7.7474586296e-01 -2.3582060723e-02 ] obj_fn gradient
+
+
+
+------------------------------
+Begin Function Evaluation   80
+------------------------------
+Parameters for function evaluation 80:
+                      1.0422661266e-01 ALPHA
+                      4.6235339253e+01 BETA
+
+(run.pl in.80 out.80)
+running rate350:80  error : 3.396325554709e-02 
+running creep100:80  error : 1.812724272383e-01 
+running creep500:80  error : 3.465347368574e-02 
+
+Active response data for function evaluation 80:
+Active set vector = { 1 }
+                      3.5177892311e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   81
+------------------------------
+Parameters for function evaluation 81:
+                      1.5436285525e-01 ALPHA
+                      4.2524028797e+01 BETA
+
+(run.pl in.81 out.81)
+running rate350:81  error : 5.618678651588e-02 
+running creep100:81  error : 2.935802502018e-02 
+running creep500:81  error : 9.008379354588e-03 
+
+Active response data for function evaluation 81:
+Active set vector = { 1 }
+                      2.6311355044e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   82
+------------------------------
+Parameters for function evaluation 82:
+                      1.6285051434e-01 ALPHA
+                      4.1895734049e+01 BETA
+
+(run.pl in.82 out.82)
+running rate350:82  error : 5.757088783296e-02 
+running creep100:82  error : 1.919510549291e-02 
+running creep500:82  error : 8.458897851691e-03 
+
+Active response data for function evaluation 82:
+Active set vector = { 1 }
+                      2.5793755468e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   83
+------------------------------
+Parameters for function evaluation 83:
+                      1.6526358700e-01 ALPHA
+                      4.1717107544e+01 BETA
+
+(run.pl in.83 out.83)
+running rate350:83  error : 5.785128255982e-02 
+running creep100:83  error : 1.703277992060e-02 
+running creep500:83  error : 8.642500033336e-03 
+
+Active response data for function evaluation 83:
+Active set vector = { 1 }
+                      2.5708041019e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   84
+------------------------------
+Parameters for function evaluation 84:
+                      1.6604017536e-01 ALPHA
+                      4.1659620976e+01 BETA
+
+(run.pl in.84 out.84)
+running rate350:84  error : 5.793142404300e-02 
+running creep100:84  error : 1.640524057134e-02 
+running creep500:84  error : 8.762041450141e-03 
+
+Active response data for function evaluation 84:
+Active set vector = { 1 }
+                      2.5689297819e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   85
+------------------------------
+Parameters for function evaluation 85:
+                      1.6631159496e-01 ALPHA
+                      4.1639529275e+01 BETA
+
+(run.pl in.85 out.85)
+running rate350:85  error : 5.795828916220e-02 
+running creep100:85  error : 1.619349751556e-02 
+running creep500:85  error : 8.811555699830e-03 
+
+Active response data for function evaluation 85:
+Active set vector = { 1 }
+                      2.5683820986e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   86
+------------------------------
+Parameters for function evaluation 86:
+                      1.6640850901e-01 ALPHA
+                      4.1632355261e+01 BETA
+
+(run.pl in.86 out.86)
+running rate350:86  error : 5.796773269493e-02 
+running creep100:86  error : 1.611911627567e-02 
+running creep500:86  error : 8.830286834080e-03 
+
+Active response data for function evaluation 86:
+Active set vector = { 1 }
+                      2.5682033389e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   87
+------------------------------
+Parameters for function evaluation 87:
+                      1.6644355261e-01 ALPHA
+                      4.1629761175e+01 BETA
+
+(run.pl in.87 out.87)
+running rate350:87  error : 5.797115582686e-02 
+running creep100:87  error : 1.609232944341e-02 
+running creep500:87  error : 8.837131806558e-03 
+
+Active response data for function evaluation 87:
+Active set vector = { 1 }
+                      2.5681408456e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   88
+------------------------------
+Parameters for function evaluation 88:
+                      1.6645626612e-01 ALPHA
+                      4.1628820064e+01 BETA
+
+(run.pl in.88 out.88)
+running rate350:88  error : 5.797237100137e-02 
+running creep100:88  error : 1.608255026191e-02 
+running creep500:88  error : 8.839608199327e-03 
+
+Active response data for function evaluation 88:
+Active set vector = { 1 }
+                      2.5681164247e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   89
+------------------------------
+Parameters for function evaluation 89:
+                      1.6646080228e-01 ALPHA
+                      4.1628484278e+01 BETA
+
+(run.pl in.89 out.89)
+running rate350:89  error : 5.797281004630e-02 
+running creep100:89  error : 1.607902738666e-02 
+running creep500:89  error : 8.840537588566e-03 
+
+Active response data for function evaluation 89:
+Active set vector = { 1 }
+                      2.5681080516e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   90
+------------------------------
+Parameters for function evaluation 90:
+                      1.6646244052e-01 ALPHA
+                      4.1628363007e+01 BETA
+
+(run.pl in.90 out.90)
+running rate350:90  error : 5.797296899683e-02 
+running creep100:90  error : 1.607785318427e-02 
+running creep500:90  error : 8.840883514323e-03 
+
+Active response data for function evaluation 90:
+Active set vector = { 1 }
+                      2.5681061269e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   91
+------------------------------
+Parameters for function evaluation 91:
+                      1.6646307619e-01 ALPHA
+                      4.1628315953e+01 BETA
+
+(run.pl in.91 out.91)
+running rate350:91  error : 5.797303516176e-02 
+running creep100:91  error : 1.607746179340e-02 
+running creep500:91  error : 8.841017738814e-03 
+
+Active response data for function evaluation 91:
+Active set vector = { 1 }
+                      2.5681062018e-01 obj_fn
+
+
+
+------------------------------
+Begin Function Evaluation   92
+------------------------------
+Parameters for function evaluation 92:
+                      1.6646333119e-01 ALPHA
+                      4.1628297076e+01 BETA
+
+(run.pl in.92 out.92)
+running rate350:92  error : 5.797305437849e-02 
+running creep100:92  error : 1.607707040750e-02 
+running creep500:92  error : 8.841065169946e-03 
+
+Active response data for function evaluation 92:
+Active set vector = { 1 }
+                      2.5681035309e-01 obj_fn
+
+
+
+------------------------------------------
+Begin Dakota derivative estimation routine
+------------------------------------------
+
+>>>>> Dakota finite difference gradient evaluation for x[1] + h:
+
+------------------------------
+Begin Function Evaluation   93
+------------------------------
+Parameters for function evaluation 93:
+                      1.6646349765e-01 ALPHA
+                      4.1628297076e+01 BETA
+
+(run.pl in.93 out.93)
+running rate350:93  error : 5.797327432602e-02 
+running creep100:93  error : 1.607628765060e-02 
+running creep500:93  error : 8.840863833527e-03 
+
+Active response data for function evaluation 93:
+Active set vector = { 1 }
+                      2.5681024879e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[1] - h:
+
+------------------------------
+Begin Function Evaluation   94
+------------------------------
+Parameters for function evaluation 94:
+                      1.6646316472e-01 ALPHA
+                      4.1628297076e+01 BETA
+
+(run.pl in.94 out.94)
+running rate350:94  error : 5.797285179678e-02 
+running creep100:94  error : 1.607807829233e-02 
+running creep500:94  error : 8.841266564733e-03 
+
+Active response data for function evaluation 94:
+Active set vector = { 1 }
+                      2.5681075204e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] + h:
+
+------------------------------
+Begin Function Evaluation   95
+------------------------------
+Parameters for function evaluation 95:
+                      1.6646333119e-01 ALPHA
+                      4.1628338705e+01 BETA
+
+(run.pl in.95 out.95)
+running rate350:95  error : 5.797366957652e-02 
+running creep100:95  error : 1.607433938165e-02 
+running creep500:95  error : 8.840279825171e-03 
+
+Active response data for function evaluation 95:
+Active set vector = { 1 }
+                      2.5680929751e-01 obj_fn
+
+
+>>>>> Dakota finite difference gradient evaluation for x[2] - h:
+
+------------------------------
+Begin Function Evaluation   96
+------------------------------
+Parameters for function evaluation 96:
+                      1.6646333119e-01 ALPHA
+                      4.1628255448e+01 BETA
+
+(run.pl in.96 out.96)
+running rate350:96  error : 5.797244266577e-02 
+running creep100:96  error : 1.607981021308e-02 
+running creep500:96  error : 8.841823630479e-03 
+
+Active response data for function evaluation 96:
+Active set vector = { 1 }
+                      2.5681140451e-01 obj_fn
+
+
+>>>>> Gradients returned to iterator:
+
+Active set vector = { 2 }
+ [ -1.5116121143e+00 -2.5307229528e-02 ] obj_fn gradient
+
+
+
+<<<<< Iterator optpp_q_newton completed.
+<<<<< Function evaluation summary: 96 total (96 new, 0 duplicate)
+         obj_fn: 96 val (96 n, 0 d), 0 grad (0 n, 0 d), 0 Hess (0 n, 0 d)
+<<<<< Best parameters          =
+                      1.6646333119e-01 ALPHA
+                      4.1628297076e+01 BETA
+<<<<< Best objective function  =
+                      2.5681035309e-01
+<<<<< Best data captured at function evaluation 92
+<<<<< Single Method Strategy completed.
+DAKOTA execution time in seconds:
+  Total CPU        =      0.05 [parent =  0.050992, child = -0.000992]
+  Total wall clock =   245.826

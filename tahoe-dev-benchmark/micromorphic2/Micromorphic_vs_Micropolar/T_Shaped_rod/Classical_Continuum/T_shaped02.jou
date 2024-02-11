@@ -1,0 +1,19 @@
+## /usr/local/regueiro/cubit/bin/clarox
+## Cubit Version 12.1
+## Cubit Build 43915
+## Revised 2010-07-27 08:03:22 -0600 (Tue, 27 Jul 2010)
+## Running 04/24/2015 11:13:23 AM
+## Command Options:
+## -warning = On
+## -information = On
+import mesh geometry "/home/students/fash5153/Debug/Proposal_Simulations/MicroPolar_Examples/T_shape/T_Shape.g" block all use nodeset sideset feature_angle 135 linear merge
+nodeset 7 node 44
+nodeset 8 node 43
+nodeset 9 node 41
+nodeset 10 node 42
+set large exodus file off
+export mesh "/home/students/fash5153/Debug/Proposal_Simulations/MicroPolar_Examples/T_shape/T_Shape.g" block 1 overwrite
+list surface 5 geometry
+reset
+import mesh geometry "/home/students/fash5153/Debug/Proposal_Simulations/MicroPolar_Examples/Beam/Beam_phi_11_22_33_13_31/Cantilevered_Beam.g" block all use nodeset sideset feature_angle 135 linear merge
+set mesh autodelete off

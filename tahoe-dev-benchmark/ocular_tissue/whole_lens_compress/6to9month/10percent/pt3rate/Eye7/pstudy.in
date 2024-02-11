@@ -1,0 +1,31 @@
+# DAKOTA INPUT FILE : pstudy.in
+
+
+strategy, \
+	single_method \
+	tabular_graphics_data \
+	#graphics
+
+method, \
+	multidim_parameter_study \
+	partitions =  2 2 2  \
+
+variables, \
+	continuous_design = 3 \
+	cdv_descriptor 'TAU' 'MUoo' 'MUi' \
+	cdv_lower_bounds 10  0.95  0.245  \
+	cdv_upper_bounds 20 1.05  0.265
+
+interface, \
+	system \
+	analysis_driver = './error_func.csh' \
+	parameters_file = 'error_func.in' \
+	results_file = 'error_func.out' \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+	no_gradients \
+	no_hessians
+

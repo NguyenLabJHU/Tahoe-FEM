@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="regueiro" echo_input="true"
+    geometry_file="./quarter_disc_nucleus_hex8.g" 
+    geometry_format="ExodusII" output_format="ExodusII"
+    title="Q8P8 mesh of disc" 
+    xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <graph_decomposition/>
+    <time max_step_cuts="2" num_steps="1000" output_inc="1" time_step="0.001">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0"/>
+                <OrderedPair x=".01" y="1"/>
+                <OrderedPair x=".02" y="0"/>
+                <OrderedPair x="1" y="0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displ" integrator="nonlinear_HHT">
+            <dof_labels>
+                <String value="d_x"/>
+                <String value="d_y"/>
+                <String value="d_z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="5" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="4" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="6" type="fixed"/>
+            <kinematic_BC dof="3" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="8" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="8" type="fixed"/>
+        </field>
+        <field field_name="press" integrator="nonlinear_HHT">
+            <dof_labels>
+                <String value="pore_press"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="1" type="fixed"/>
+        </field>
+    </nodes>
+    <element_list>
+        <total_lagrangian_solid_fluid_mix_q8p8 
+            field_name="displ" pore_pressure_field_name="press" 
+            GeometryCodeSurf_displ="1" GeometryCode_displ="3" 
+            NumIPSurf_displ="4" NumIP_displ="8"
+            n_en_displ="8" n_en_press="8"
+            Beta="-1" Phi=".35" Psi=".1745" 
+            R="10" alpha_k="100" kappa0="-2000"
+            c0="0" H_c="0"
+            lambda="3.1e6" mu="0.345e6"
+            local_tol_absolute="1e-8" local_tol_relative="1e-8" 
+            local_yield_tr_tol="1e-1" max_local_iterations="20"
+            constitutive_mod_type="1"
+            K="1.8e-15" Kf="2.2e9" 
+            phi_f0="0.83" phi_s0="0.17"
+            rho_fR0="1000" rho_sR0="1000" 
+            g="9.81" g1="0" g2="0" g3="0"
+            Alpha="1e-6"
+            initial_condition_1geostatic_2displ_vel_press="1"
+            type_of_analysis_0static_1consolidation_2dynamic="2">
+            <total_lagrangian_solid_fluid_mix_q8p8_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+            </total_lagrangian_solid_fluid_mix_q8p8_element_block>
+            <gravity_body_force gravity_schedule="1"/>
+            <total_lagrangian_solid_fluid_mix_q8p8_natural_bc
+                coordinate_system="global" schedule="1" side_set_ID="1">
+                <DoubleList name="traction">
+                    <Double name="t_x" value="0"/>
+                    <Double name="t_y" value="0"/>
+                    <Double name="t_z" value="-0.5e6"/>
+                </DoubleList>
+            </total_lagrangian_solid_fluid_mix_q8p8_natural_bc>
+        </total_lagrangian_solid_fluid_mix_q8p8>
+        <total_lagrangian_solid_fluid_mix_q8p8
+            field_name="displ" pore_pressure_field_name="press" 
+            GeometryCodeSurf_displ="1" GeometryCode_displ="3" 
+            NumIPSurf_displ="4" NumIP_displ="8"
+            n_en_displ="8" n_en_press="8"
+            Beta="-1" Phi=".35" Psi=".1745" 
+            R="10" alpha_k="100" kappa0="-2000"
+            c0="0" H_c="0"
+            lambda="3.6e6" mu="0.893e6"
+            local_tol_absolute="1e-8" local_tol_relative="1e-8" 
+            local_yield_tr_tol="1e-1" max_local_iterations="20"
+            constitutive_mod_type="1"
+            K="1.7e-15" Kf="2.2e9" 
+            phi_f0="0.78" phi_s0="0.22"
+            rho_fR0="1000" rho_sR0="1060" 
+            g="9.81" g1="0" g2="0" g3="0"
+            Alpha="1e-6"
+            initial_condition_1geostatic_2displ_vel_press="1"
+            type_of_analysis_0static_1consolidation_2dynamic="2">
+            <total_lagrangian_solid_fluid_mix_q8p8_element_block>
+                <block_ID_list>
+                    <String value="3"/>
+                </block_ID_list>
+            </total_lagrangian_solid_fluid_mix_q8p8_element_block>
+            <gravity_body_force gravity_schedule="1"/>
+            <total_lagrangian_solid_fluid_mix_q8p8_natural_bc
+                coordinate_system="global" schedule="1" side_set_ID="2">
+                <DoubleList name="traction">
+                    <Double name="t_x" value="0"/>
+                    <Double name="t_y" value="0"/>
+                    <Double name="t_z" value="-0.5e6"/>
+                </DoubleList>
+            </total_lagrangian_solid_fluid_mix_q8p8_natural_bc>
+        </total_lagrangian_solid_fluid_mix_q8p8>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-8"
+        divergence_tolerance="1.0e+2" max_iterations="20" rel_tolerance="1.0e-10">
+        <SPOOLES_matrix/>
+    </nonlinear_solver>
+</tahoe>

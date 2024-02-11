@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="bao" geometry_file="mesh.g" output_format="Tahoe"
+    title="slope stability" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="0" num_steps="1" output_inc="1" time_step="2.5e-3">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="2.5e-3" y="1.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="2"/>
+            <kinematic_BC dof="2" node_ID="2"/>
+            <kinematic_BC dof="1" node_ID="3"/>
+        </field>
+        <history_node_ID_list>
+            <String value="1"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <small_strain_enh_loc choose_element="0" choose_normal="0"
+            cohesion_softening_coefficient="1e1"
+            dilation_softening_coefficient="0" field_name="displacement"
+            friction_softening_coefficient="0" model_type="0"
+            peak_cohesion="0" peak_dilation_angle_rad="0"
+            peak_friction_angle_rad="0.2" residual_cohesion="0"
+            residual_friction_angle_rad="0" strain_displacement="B-bar">
+            <quadrilateral/>
+            <body_force schedule="1">
+                <Double value="0"/>
+                <Double value="-2e1"/>
+            </body_force>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <solid_element_element_output material_output="1"/>
+            <small_strain_enh_loc_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_2D>
+                    <small_strain_StVenant_DP_Loc_2D density="1.0">
+                        <E_and_nu Poisson_ratio=".4" Young_modulus="1e4"/>
+                        <DP_Loc_SS_linear_hardening H="0" dilation="0"
+                            fluidity_eta="0" friction=".3" kappa="40"/>
+                    </small_strain_StVenant_DP_Loc_2D>
+                </small_strain_material_2D>
+            </small_strain_enh_loc_element_block>
+        </small_strain_enh_loc>
+        <small_strain field_name="displacement">
+            <quadrilateral/>
+            <body_force schedule="1">
+                <Double value="0"/>
+                <Double value="-23.0"/>
+            </body_force>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <small_strain_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <small_strain_material_2D>
+                    <small_strain_StVenant_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.13" Young_modulus="1e7"/>
+                    </small_strain_StVenant_2D>
+                </small_strain_material_2D>
+            </small_strain_element_block>
+        </small_strain>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+03" max_iterations="10" rel_tolerance="1.0e-8">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

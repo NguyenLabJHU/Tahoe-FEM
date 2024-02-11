@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<history>
+    <xsd-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/tahoe.xsd">
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/flow3.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/flow4.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/flow2.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/flow.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/disk.1.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/mix.1a.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/mix.1.xml"/>
+        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/mixture/mix.0.xml"/>
+    </xsd-doc>
+</history>

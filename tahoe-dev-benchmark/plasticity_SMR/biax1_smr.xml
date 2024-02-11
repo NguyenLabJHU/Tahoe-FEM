@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="karma" geometry_file="biax1.geom" title="biaxial example" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="20" output_inc="1" time_step="1.">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"></OrderedPair>
+                <OrderedPair x="20.0" y="1.0"></OrderedPair>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"></String>
+                <String value="D_Y"></String>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1" type="fixed"></kinematic_BC>
+            <kinematic_BC dof="1" node_ID="2" type="fixed"></kinematic_BC>
+            <kinematic_BC dof="2" node_ID="2" type="fixed"></kinematic_BC>
+            <kinematic_BC dof="2" node_ID="3" schedule="1" type="u" value="-0.0003"></kinematic_BC>
+        </field>
+    </nodes>
+    <element_list>
+        <small_strain field_name="displacement">
+            <quadrilateral num_ip="4"></quadrilateral>
+            <solid_element_nodal_output displacements="1" stress="1"></solid_element_nodal_output>
+            <solid_element_element_output stress="1"></solid_element_element_output>
+            <small_strain_element_block>
+                <block_ID_list>
+                    <String value="1"></String>
+                </block_ID_list>
+                <small_strain_material_2D>
+                    <small_strain_StVenant_SMR_2D constraint_2D="plane_strain" density="1.0">
+                        <E_and_nu Poisson_ratio="0.3" Young_modulus="1.0e5"></E_and_nu>
+                        <SMR_SS_nonlinear_hardening Gf_II="1.0" Tol_1="1.0e-10" Tol_2="1.0e-10" alpha_phi="0.0" alpha_psi="0." c="14.85." phi_p="40.6" phi_r="35." psi_p="40.6"></SMR_SS_nonlinear_hardening>
+                    </small_strain_StVenant_SMR_2D>
+                </small_strain_material_2D>
+            </small_strain_element_block>
+        </small_strain>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+02" max_iterations="60" rel_tolerance="1.0e-12">
+        <profile_matrix></profile_matrix>
+    </nonlinear_solver>
+</tahoe>

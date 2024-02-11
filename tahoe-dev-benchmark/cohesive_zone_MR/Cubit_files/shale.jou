@@ -1,0 +1,71 @@
+reset
+create vertex 0 0 0 color 
+create vertex 9 0 0 color 
+create vertex 9 6 0 color 
+create vertex 0 6 0 color 
+create vertex 3.75 3.4 0 color 
+create vertex 3.75 3.0 0 color 
+create vertex 4.0 2.85 0 color 
+create vertex 4.1 2.4 0 color 
+create vertex 4.5 2.3 0 color 
+create vertex 4.7 2.5 0 color 
+create vertex 5.7 2.5 0 color 
+create vertex 6.4 3.8 0 color 
+create vertex 6.5 4.25 0 color 
+create vertex 5.6 4.6 0 color 
+create curve vertex 1 vertex 2 
+create curve vertex 2 vertex 3 
+create curve vertex 3 vertex 4 
+create curve vertex 4 vertex 1 
+create curve vertex 5 vertex 6 
+create curve vertex 6 vertex 7 
+create curve vertex 7 vertex 8 
+create curve vertex 8 vertex 9 
+create curve vertex 9 vertex 10 
+create curve vertex 10 vertex 11 
+create curve vertex 11 vertex 12 
+create curve vertex 12 vertex 13 
+create curve vertex 13 vertex 14 
+create curve vertex 14 vertex 5 
+create surface curve 1 2 3 4 5 6 7 8 9 10 11 12 13 14 
+create surface curve 5 6 7 8 9 10 11 12 13 14 
+merge vertex 5 with vertex 29 
+merge vertex 6 with vertex 30 
+merge vertex 7 with vertex 32 
+merge vertex 8 with vertex 34 
+merge vertex 9 with vertex 36 
+merge vertex 10 with vertex 38 
+merge vertex 11 with vertex 40 
+merge vertex 12 with vertex 42 
+merge vertex 13 with vertex 44 
+merge vertex 14 with vertex 46 
+merge curve 5 with curve 15 
+merge curve 6 with curve 16 
+merge curve 7 with curve 17 
+merge curve 8 with curve 18 
+merge curve 9 with curve 19 
+merge curve 10 with curve 20 
+merge curve 11 with curve 21 
+merge curve 12 with curve 22 
+merge curve 13 with curve 23 
+merge curve 14 with curve 24 
+merge surface 1  with surface 2  
+surface all size 1.0
+surface all scheme TriMesh
+surface all scheme TriMesh
+mesh surface all
+nodeset 1 curve 1  
+nodeset 2 curve 3  
+nodeset 3 vertex 1  
+nodeset 4 vertex 2
+nodeset 5 vertex 3  
+nodeset 6 vertex 4
+nodeset 7 curve 4
+nodeset 8 curve 2
+block 1 surface 1  
+block 2 surface 2  
+block 1 2 element type tri3
+Sideset 1 curve 1  
+Sideset 2 curve 2  
+Sideset 3 curve 3  
+Sideset 4 curve 4  

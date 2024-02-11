@@ -1,0 +1,78 @@
+## radii of fit
+# {Rnt = 15.66}
+# {Ris = 15.61}
+# {Rz  = 19.01}
+## thickness at apex
+# {Zapex = 1.15}
+## meridians
+# {Mnt = 25.3/2}
+# {Mis = 20.2/2}
+## edge of fixture
+# {Ant = Mnt}
+# {Ais = Mis}
+## transition
+# {rB = 0.9}
+# {Bnt = rB*Ant}
+# {Bis = rB*Ais}
+## inner/periphery boundary
+# {rC = 0.6666666}
+# {Cnt = rC*Mnt}
+# {Cis = rC*Mis}
+# {hsize = 2.0}
+graph mode wire
+
+create sphere radius 1
+volume {Id("volume")} scale X {Rnt} Y {Ris} Z {Rz}
+create sphere radius 1
+volume {Id("volume")} scale X {Rnt-Zapex} Y {Ris-Zapex} Z {Rz-Zapex}
+subtract volume 2 from volume 1
+section volume all with xplane
+section volume all with zplane
+section volume all with yplane
+volume all name "cornea"
+create cylinder height {3*Rz} major radius {Ant} minor radius {Ais}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+delete volume 6
+volume all name "cornea"
+create cylinder height {3*Rz} major radius {Bnt} minor radius {Bis}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+volume all name "cornea"
+create cylinder height {3*Rz} major radius {Cnt} minor radius {Cis}
+volume {Id("volume")} name "atool"
+chop volume cornea with volume atool
+move volume all z {-Rz}
+#pause
+
+imprint all
+merge all
+
+volume all interval size {hsize}
+curve 69 62 44 26 24 46 64 interval 3
+mesh volume all
+#body all scale 0.001 # convert to meters
+#pause
+
+# center & periphery
+block 1 volume 11
+block 2 volume 12 9
+# x
+nodeset 10 surface 49 54 40
+# y
+nodeset 20 surface 47 52 38
+# z
+nodeset 30 curve 25
+nodeset 31 surface 19 # modelled sclera top: 39
+# inner surface (by inner, outer block)
+sideset 41 surface 46
+sideset 42 surface 41 51
+# outer surface
+nodeset 60 surface 48 53
+sideset 60 surface 48 53
+
+export genesis "shell.exo" overwrite
+
+graph mode smoothshade
+
+exit

@@ -1,0 +1,47 @@
+!grep pressure: shell-pc.out > pv-pc.dat
+!grep pressure: shell-vc.out > pv-vc.dat
+
+set key bottom
+
+set xlabel "TIME (s)"
+#plot "pv-vc.dat" using 2:6 lw 2 w l, \
+#     "pv-pc.dat" using 2:6 lw 2 w l, \
+#     "pv-vc.dat" using 2:4 axes x1y2 lw 2 w l, \
+#     "pv-pc.dat"  using 2:4 axes x1y2 lw 2 w l
+#pause -1
+#set term post eps color
+#set output "PV-control.eps"
+#repl
+#set term png
+#set output "PV-control.png"
+#repl
+
+set term x11
+set output
+
+set ylabel "PRESSURE (kPa)"
+plot "pv-vc.dat" using 2:4 lw 2 t "VOLUME CONTROL" w l, \
+     "pv-pc.dat" using 2:4 lw 2 t "PRESSURE CONTROL" w l
+pause -1
+set term post eps color
+set output "PV-control_pressure.eps"
+repl
+set term png
+set output "PV-control_pressure.png"
+repl
+
+
+set term x11
+set output
+
+set ylabel "VOLUME (mm^3)"
+plot "pv-vc.dat" using 2:(4*($6)) lw 2 t "VOLUME CONTROL" w l, \
+     "pv-pc.dat" using 2:(4*($6)) lw 2 t "PRESSURE CONTROL" w l
+pause -1
+set term post eps color
+set output "PV-control_volume.eps"
+repl
+set term png
+set output "PV-control_volume.png"
+repl
+

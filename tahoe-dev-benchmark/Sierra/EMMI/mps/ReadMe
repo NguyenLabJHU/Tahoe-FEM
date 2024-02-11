@@ -1,0 +1,9 @@
+# $Id: ReadMe,v 1.1 2004-09-27 18:21:23 paklein Exp $
+This is a uniaxial deformation test of the approximate calculation of
+the velocity gradient. The script do_test.csh does the following:
+(1) runs tahoe
+(2) extracts the velocity gradient information from the .out file
+(3) plots the results using gnuplot
+
+To run the test, set the TAHOE variable in the .csh file to the path to
+the tahoe executable.

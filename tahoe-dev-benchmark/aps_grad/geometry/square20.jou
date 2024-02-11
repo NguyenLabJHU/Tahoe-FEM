@@ -1,0 +1,26 @@
+brick x 1e-3 y 1e-3 z 1e-3
+volume 1 move x 5e-4 y 5e-4 z 5e-4
+set geometry engine acis
+journal on
+graphics linewidth 1
+highlight linewidth 3
+graphics shrink 0
+graphics text size 1
+graphics node point size 1
+graphics vertex point size 1
+color background black
+create planar surface with plane surface 1  
+delete volume 1 
+nodeset 10 curve 16  
+nodeset 20 curve 13  
+nodeset 30 curve 14  
+nodeset 40 curve 15  
+Sideset 100 curve 16  
+Sideset 400 curve 15  
+Sideset 300 curve 14  
+Sideset 200 curve 13  
+block 1 surface 7  
+surface 7  interval 20
+surface 7  scheme Map
+mesh surface 7 
+block 1 element type quad8

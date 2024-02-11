@@ -1,0 +1,15 @@
+set xlabel "ALPHA"
+set ylabel "BETA"
+set zlabel "ERROR"
+set nokey
+set view 59,310
+set contour
+splot "pstudy.dat" using 2:3:4 w l
+pause -1
+set term post eps color
+set output "pstudy.eps"
+repl
+set term png color
+set output "pstudy.png"
+repl
+

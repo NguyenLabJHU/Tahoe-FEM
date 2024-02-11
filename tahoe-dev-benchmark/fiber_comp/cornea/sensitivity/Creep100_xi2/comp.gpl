@@ -1,0 +1,7 @@
+!cp creep100.defaults.uvst_Y creep100.best.uvst_Y
+!cp creep100.defaults.shift creep100.shift
+!echo "BEST defaults"
+
+set logscale x
+plot "creep100.best.uvst_Y" w lp, "creep100.shift" w lp, "creep100.dat" w lp
+pause -1

@@ -1,0 +1,38 @@
+#!python
+# {Lx = 10}
+# {Ly = 1}
+# {Lz = 1}
+# {hx = .5}
+# {hy = .125}
+# {hz = .125}
+# {xoffset = 0}
+# {yoffset = 0}
+# {zoffset = 0}
+brick x {Lx} y {Ly} z {Lz}
+volume 1 move x {xoffset} y {yoffset} z {zoffset}
+curve 4 6 2 8  size {hx}
+curve 4 6 2 8  scheme equal
+curve 3 7 5 1  size {hy}
+curve 3 7 5 1  scheme equal
+curve 9 11 12 10  size {hz}
+curve 9 11 12 10  scheme equal
+mesh volume 1
+
+block 1 volume 1
+block 1 element type hex8
+
+nodeset 1 surface 1
+nodeset 2 surface 2
+nodeset 3 surface 3
+nodeset 4 surface 4
+nodeset 5 surface 5
+nodeset 6 surface 6
+
+sideset 1 surface 1
+sideset 2 surface 2
+sideset 3 surface 3
+sideset 4 surface 4
+sideset 5 surface 5
+sideset 6 surface 6
+
+export Genesis "square_pipe.g"

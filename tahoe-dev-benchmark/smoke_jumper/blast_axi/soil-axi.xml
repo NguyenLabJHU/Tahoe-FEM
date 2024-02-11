@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="ghsutley" geometry_file="./soil-axi.g"
+    geometry_format="ExodusII" output_format="Tahoe"
+    title="Lin. Elast. Soil Dynamic Test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="10" num_steps="400" output_inc="1" time_step="0.0001">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="0.01" y="1.0"/>
+		<OrderedPair x="0.02" y="0.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="nonlinear_HHT">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1"/>
+            <kinematic_BC dof="1" node_ID="5"/>
+            <force_BC dof="2" node_ID="4" schedule="1" value="-4.3e-5"/>
+        </field>
+    </nodes>
+    <element_list>
+        <small_strain_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <small_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_3D>
+                    <small_strain_GeoModel
+                        cap_growth_parameter__D1__1_by_stress="3e-1"
+                        cap_growth_parameter__D2__1_by_stress_squared="0"
+                        cap_growth_parameter__W__dimensionless=".078"
+                        cap_ratio__R__dimensionless="10"
+                        density="0.0025"
+                        fluidity_parameter__eta__dimensionless="0"
+                        initial_cap_position__kappa_0__stress="-500"
+                        shear_surface_growth_factor__c_alpha__stress="1.5"
+                        shear_surface_offset__N__stress="0.2"
+                        shear_surface_parameter__A__stress="0.446"
+                        shear_surface_parameter__B__1_by_stress="0"
+                        shear_surface_parameter__C__stress="0"
+                        shear_surface_parameter__theta__radians="0.53e-4" triaxial_compression_to_extension_strength_ratio__psi__dimensionless="1">
+                        <bulk_and_shear bulk_modulus="7000" shear_modulus="140"/>
+                    </small_strain_GeoModel>
+                </small_strain_material_3D>
+            </small_strain_axi_element_block>
+        </small_strain_axi>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-7"
+        divergence_tolerance="1.0e+03" max_iterations="50" rel_tolerance="1.0e-8">
+        <full_matrix/>
+    </nonlinear_solver>
+</tahoe>

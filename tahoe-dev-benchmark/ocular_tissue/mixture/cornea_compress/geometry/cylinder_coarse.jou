@@ -1,0 +1,22 @@
+create cylinder height 4.1e-4 radius 5e-3
+create vertex 0 5e-3 2.05e-4 on curve 2  color 
+imprint volume 1  with vertex 3 keep
+delete volume 1 
+nodeset 10 surface 4  
+nodeset 20 surface 5  
+nodeset 30 surface 6  
+nodeset 40 vertex 5 
+nodeset 50 vertex 6 
+nodeset 60 volume 2 
+Sideset 1 surface 4  
+Sideset 2 surface 5  
+Sideset 3 surface 6  
+block 1 volume 2  
+surface 6  size auto factor 1
+surface 6  scheme circle 
+mesh surface 6 
+volume 2  interval 3
+volume 2  scheme Sweep  source surface 6  target surface 5  rotate off
+volume 2  sweep smooth Winslow
+mesh volume 2 
+

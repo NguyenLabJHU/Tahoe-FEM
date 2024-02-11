@@ -1,0 +1,62 @@
+brick x 5e-4 y 5e-4 z 5e-4
+create planar surface with plane surface 1  
+delete volume 1 
+surface 7  move x 2.5e-4 y 2.5e-4 z 0 
+surface 7  copy move x 5e-4 y 0 z 0 
+surface 7  copy move x 5e-4 y 5e-4 z 0 
+surface 7  copy move x 0 y 5e-4 z 0 
+create Cylinder height 5e-4 radius 5e-6
+volume 6  move x 5e-4 y 5e-4 
+subtract volume 6  from volume 2 3 4 5 
+brick x 5e-4 y 1e-5 z 5e-4
+volume 7  move x 7.5e-4 y 5e-4 
+subtract volume 7  from volume 3 4 
+block 1 surface 14  
+block 2 surface 24  
+block 3 surface 25  
+block 4 surface 17  
+merge curve 42  with curve 32 force 
+merge curve 33 with curve 35 force 
+merge curve 39 with curve 41 force 
+nodeset 10 curve 28 24 
+nodeset 20 curve 13 25 
+nodeset 30 curve 18 14 
+nodeset 40 curve 56 
+nodeset 50 curve 58 
+nodeset 60 curve 57
+nodeset 70 curve 40 31
+nodeset 80 curve 55
+Sideset 1 curve 14 
+Sideset 2 curve 18 
+Sideset 3 curve 56 
+Sideset 4 curve 55
+Sideset 5 curve 31
+Sideset 6 curve 40
+Sideset 7 curve 57
+Sideset 8 curve 58
+Sideset 9 curve 24
+Sideset 10 curve 28
+Sideset 11 curve 25
+Sideset 12 curve 13
+curve 40  interval 8
+curve 40  scheme equal
+curve 39  interval 25
+curve 39  scheme bias factor 0.85 
+curve 57  interval 25
+curve 57  scheme bias factor 1.176
+curve 55  interval 25
+curve 55  scheme bias factor 0.85 
+curve 33  interval 25
+curve 33  scheme bias factor 0.85 
+curve 31 interval 8
+curve 31 scheme equal
+curve 32  interval 25
+curve 32  scheme bias factor 1.176
+curve 25 28 13 14 18 56 24 58  interval 7
+curve 25 28 13 14 18 56 24 58  scheme equal
+surface 14 17 24 25  scheme pave
+mesh surface 14 17 24 25 
+block 1 2 3 4 element type quad8
+
+
+

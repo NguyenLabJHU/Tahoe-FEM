@@ -1,0 +1,20 @@
+%
+*TITLE
+Input file of shale case with CSE between elements 1 and 2 by using boundary method
+
+*BOUNDARY
+# [elem group ID_1] [elem group ID_2] [output elem group ID]
+1 2 3
+
+*RENUMBER 0
+
+*VERBOSE
+1	# write node set translation to log file
+
+*OUTPUT
+5	# output file format
+
+*INPUT
+5	../Geometry/shale.g
+
+*EOF

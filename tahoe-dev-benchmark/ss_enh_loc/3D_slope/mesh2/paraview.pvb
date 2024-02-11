@@ -1,0 +1,454 @@
+# ParaView Version 2.0
+
+
+#Initialization
+
+vtkSMObject foo
+set proxyManager [foo GetProxyManager]
+
+set smApplication [foo GetApplication]
+$smApplication ParseConfigurationFiles
+foo Delete
+
+vtkSMProperty foo
+foo SetCheckDomains 0
+foo Delete
+
+set Ren1 [$proxyManager NewProxy rendering DefaultDisplayWindow]
+  $proxyManager RegisterProxy rendering Ren1 $Ren1
+  $Ren1 UnRegister {}
+  [$Ren1 GetProperty BackgroundColor] SetElements3 1 1 1 
+  [$Ren1 GetProperty Size] SetElements2 869 458 
+  [$Ren1 GetProperty CameraPosition] SetElements3 12.6038 15.2712 5.80815 
+  [$Ren1 GetProperty CameraFocalPoint] SetElements3 -14.2155 -32.6745 -12.6505 
+  [$Ren1 GetProperty CameraViewUp] SetElements3 -0.247947 -0.224155 0.942484 
+  [$Ren1 GetProperty CameraViewAngle] SetElements1 30
+  [$Ren1 GetProperty CameraClippingRange] SetElements2 0.0385593 38.5593 
+  [$Ren1 GetProperty OffScreenRendering] SetElement 0 0
+
+set pvTemp1252 [$proxyManager NewProxy sources ExodusReader]
+  $proxyManager RegisterProxy sources pvTemp1252 $pvTemp1252
+  $pvTemp1252 UnRegister {}
+set pvTemp1252_files {"/walnut/scratch/regueiro/development_benchmark_XML/ss_enh_loc/3D_slope/mesh2/slope.io0.exo" "/walnut/scratch/regueiro/development_benchmark_XML/ss_enh_loc/3D_slope/mesh2/slope.io1.exo" "/walnut/scratch/regueiro/development_benchmark_XML/ss_enh_loc/3D_slope/mesh2/slope.io2.exo" }
+  [$pvTemp1252 GetProperty FileName] SetElement 0  [ lindex $pvTemp1252_files 0]
+  [$pvTemp1252 GetProperty FilePrefix] SetElement 0 {/walnut/scratch/regueiro/development_benchmark_XML/ss_enh_loc/3D_slope/mesh2/slope.io0.exo}
+  [$pvTemp1252 GetProperty FilePattern] SetElement 0 {%s}
+  [$pvTemp1252 GetProperty FileRange] SetElements2 0 0
+  [$pvTemp1252 GetProperty XMLFileName] SetElement 0 {}
+  [$pvTemp1252 GetProperty TimeStep] SetElement 0 10
+  $pvTemp1252 UpdateVTKObjects
+  $pvTemp1252 UpdateInformation
+  [$pvTemp1252 GetProperty CellArrayStatus] SetNumberOfElements 96
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 0 {ip1.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 1 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 2 {ip1.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 3 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 4 {ip1.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 5 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 6 {ip1.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 7 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 8 {ip1.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 9 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 10 {ip1.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 11 1
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 12 {ip2.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 13 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 14 {ip2.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 15 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 16 {ip2.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 17 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 18 {ip2.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 19 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 20 {ip2.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 21 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 22 {ip2.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 23 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 24 {ip3.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 25 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 26 {ip3.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 27 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 28 {ip3.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 29 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 30 {ip3.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 31 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 32 {ip3.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 33 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 34 {ip3.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 35 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 36 {ip4.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 37 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 38 {ip4.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 39 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 40 {ip4.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 41 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 42 {ip4.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 43 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 44 {ip4.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 45 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 46 {ip4.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 47 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 48 {ip5.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 49 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 50 {ip5.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 51 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 52 {ip5.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 53 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 54 {ip5.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 55 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 56 {ip5.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 57 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 58 {ip5.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 59 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 60 {ip6.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 61 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 62 {ip6.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 63 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 64 {ip6.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 65 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 66 {ip6.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 67 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 68 {ip6.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 69 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 70 {ip6.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 71 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 72 {ip7.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 73 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 74 {ip7.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 75 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 76 {ip7.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 77 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 78 {ip7.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 79 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 80 {ip7.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 81 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 82 {ip7.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 83 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 84 {ip8.kappa}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 85 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 86 {ip8.plstr}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 87 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 88 {ip8.VM}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 89 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 90 {ip8.press}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 91 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 92 {ip8.ip_loccheck}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 93 0
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 94 {ip8.el_locflag}
+  [$pvTemp1252 GetProperty CellArrayStatus] SetElement 95 0
+  $pvTemp1252 UpdateVTKObjects
+  $pvTemp1252 UpdateInformation
+  [$pvTemp1252 GetProperty PointArrayStatus] SetNumberOfElements 14
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 0 {D_}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 1 1
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 2 {kappa}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 3 1
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 4 {plstr}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 5 1
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 6 {VM}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 7 1
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 8 {press}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 9 1
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 10 {ip_loccheck}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 11 1
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 12 {el_locflag}
+  [$pvTemp1252 GetProperty PointArrayStatus] SetElement 13 1
+  $pvTemp1252 UpdateVTKObjects
+  $pvTemp1252 UpdateInformation
+  [$pvTemp1252 GetProperty BlockArrayStatus] SetNumberOfElements 2
+  [$pvTemp1252 GetProperty BlockArrayStatus] SetElement 0 {Block: 1 (HEX)}
+  [$pvTemp1252 GetProperty BlockArrayStatus] SetElement 1 1
+  [$pvTemp1252 GetProperty DisplayType] SetElement 0 1
+  [$pvTemp1252 GetProperty ApplyDisplacements] SetElement 0 1
+  [$pvTemp1252 GetProperty DisplacementMagnitude] SetElement 0 1
+  [$pvTemp1252 GetProperty GenerateBlockIdCellArray] SetElement 0 1
+  [$pvTemp1252 GetProperty GenerateGlobalNodeIdArray] SetElement 0 1
+  [$pvTemp1252 GetProperty GenerateGlobalElementIdArray] SetElement 0 0
+  [$pvTemp1252 GetProperty GenerateFileIdArray] SetElement 0 0
+  [$pvTemp1252 GetProperty ExodusModelMetadata] SetElement 0 0
+  $pvTemp1252 UpdateVTKObjects
+
+set pvTemp1391 [$proxyManager NewProxy filters WarpVector]
+  $proxyManager RegisterProxy filters pvTemp1391 $pvTemp1391
+  $pvTemp1391 UnRegister {}
+  [$pvTemp1391 GetProperty Input] AddProxy $pvTemp1252
+  [$pvTemp1391 GetProperty SelectInputVectors] SetElement 0 {D_}
+  [$pvTemp1391 GetProperty ScaleFactor] SetElement 0 10
+  $pvTemp1391 UpdateVTKObjects
+
+set pvTemp1444 [$proxyManager NewProxy filters Threshold]
+  $proxyManager RegisterProxy filters pvTemp1444 $pvTemp1444
+  $pvTemp1444 UnRegister {}
+  [$pvTemp1444 GetProperty Input] AddProxy $pvTemp1391
+  [$pvTemp1444 GetProperty AttributeMode] SetElements1 2
+  [$pvTemp1444 GetProperty SelectInputScalars] SetElement 0 {ip1.el_locflag}
+  [$pvTemp1444 GetProperty ThresholdBetween] SetElements2 1 2
+  [$pvTemp1444 GetProperty AllScalars] SetElement 0 1
+  $pvTemp1444 UpdateVTKObjects
+
+set pvTemp1380 [$proxyManager NewProxy lookup_tables LookupTable]
+  $proxyManager RegisterProxy lookup_tables pvTemp1380 $pvTemp1380
+  $pvTemp1380 UnRegister {}
+  [$pvTemp1380 GetProperty ArrayName] SetElement 0 {ip1.el_locflag}
+  [$pvTemp1380 GetProperty NumberOfTableValues] SetElements1 256
+  [$pvTemp1380 GetProperty HueRange] SetElements2 0.6667 0
+  [$pvTemp1380 GetProperty SaturationRange] SetElements2 1 1
+  [$pvTemp1380 GetProperty ValueRange] SetElements2 1 1
+  [$pvTemp1380 GetProperty ScalarRange] SetElements2 0 2
+  [$pvTemp1380 GetProperty VectorComponent] SetElements1 0
+  [$pvTemp1380 GetProperty VectorMode] SetElements1 1
+  $pvTemp1380 UpdateVTKObjects
+
+
+set pvTemp1382 [$proxyManager NewProxy scalarbar_widget ScalarBarWidget]
+  $proxyManager RegisterProxy scalarbar_widget pvTemp1382 $pvTemp1382
+  $pvTemp1382 UnRegister {}
+  [$Ren1 GetProperty Displayers] AddProxy $pvTemp1382
+  [$pvTemp1382 GetProperty Position1] SetElements2 0.0520276 0.289387
+  [$pvTemp1382 GetProperty Position2] SetElements2 0.13 0.5
+  [$pvTemp1382 GetProperty Orientation] SetElements1 1
+  [$pvTemp1382 GetProperty Title] SetElement 0 "ip1.el_locflag"
+  [$pvTemp1382 GetProperty LabelFormat] SetElement 0 "%-#6.3g"
+  [$pvTemp1382 GetProperty Visibility] SetElements1 1
+  [$pvTemp1382 GetProperty TitleFormatColor] SetElements3 0 0 0
+  [$pvTemp1382 GetProperty TitleFormatOpacity] SetElements1 1
+  [$pvTemp1382 GetProperty TitleFormatFont] SetElements1 0
+  [$pvTemp1382 GetProperty TitleFormatBold] SetElements1 1
+  [$pvTemp1382 GetProperty TitleFormatItalic] SetElements1 1
+  [$pvTemp1382 GetProperty TitleFormatShadow] SetElements1 1
+  [$pvTemp1382 GetProperty LabelFormatColor] SetElements3 0 0 0
+  [$pvTemp1382 GetProperty LabelFormatOpacity] SetElements1 1
+  [$pvTemp1382 GetProperty LabelFormatFont] SetElements1 0
+  [$pvTemp1382 GetProperty LabelFormatBold] SetElements1 1
+  [$pvTemp1382 GetProperty LabelFormatItalic] SetElements1 1
+  [$pvTemp1382 GetProperty LabelFormatShadow] SetElements1 1
+  [$pvTemp1382 GetProperty LookupTable] RemoveAllProxies
+  [$pvTemp1382 GetProperty LookupTable] AddProxy $pvTemp1380
+  $pvTemp1382 UpdateVTKObjects
+
+
+set pvTemp1461 [$proxyManager NewProxy rendering DefaultDisplayer]
+  $proxyManager RegisterProxy rendering pvTemp1461 $pvTemp1461
+  $pvTemp1461 UnRegister {}
+  [$pvTemp1461 GetProperty Input]  AddProxy $pvTemp1444
+  [$Ren1 GetProperty Displayers] AddProxy $pvTemp1461
+  [$pvTemp1461 GetProperty DisplayAsOutline] SetElements1 0
+  [$pvTemp1461 GetProperty ImmediateModeRendering] SetElements1 1
+  [$pvTemp1461 GetProperty ScalarVisibility] SetElements1 1
+  [$pvTemp1461 GetProperty ColorMode] SetElements1 0
+  [$pvTemp1461 GetProperty InterpolateColorsBeforeMapping] SetElements1 1
+  [$pvTemp1461 GetProperty Representation] SetElements1 2
+  [$pvTemp1461 GetProperty Interpolation] SetElements1 1
+  [$pvTemp1461 GetProperty LineWidth] SetElements1 1
+  [$pvTemp1461 GetProperty PointSize] SetElements1 1
+  [$pvTemp1461 GetProperty Position] SetElements3 0 0 0 
+  [$pvTemp1461 GetProperty Scale] SetElements3 1 1 1 
+  [$pvTemp1461 GetProperty Orientation] SetElements3 0 0 0 
+  [$pvTemp1461 GetProperty Origin] SetElements3 0 0 0 
+  [$pvTemp1461 GetProperty Opacity] SetElements1 1
+  [$pvTemp1461 GetProperty Color] SetElements3 1 1 1 
+  [$pvTemp1461 GetProperty LookupTable] AddProxy $pvTemp1380
+  [$pvTemp1461 GetProperty ScalarMode] SetElement 0 4
+  [$pvTemp1461 GetProperty ColorArray] SetElement 0 {ip1.el_locflag}
+  $pvTemp1461 UpdateVTKObjects
+
+set pvTemp1503 [$proxyManager NewProxy filters WarpVector]
+  $proxyManager RegisterProxy filters pvTemp1503 $pvTemp1503
+  $pvTemp1503 UnRegister {}
+  [$pvTemp1503 GetProperty Input] AddProxy $pvTemp1252
+  [$pvTemp1503 GetProperty SelectInputVectors] SetElement 0 {D_}
+  [$pvTemp1503 GetProperty ScaleFactor] SetElement 0 10
+  $pvTemp1503 UpdateVTKObjects
+
+set pvTemp1622 [$proxyManager NewProxy lookup_tables LookupTable]
+  $proxyManager RegisterProxy lookup_tables pvTemp1622 $pvTemp1622
+  $pvTemp1622 UnRegister {}
+  [$pvTemp1622 GetProperty ArrayName] SetElement 0 {D_}
+  [$pvTemp1622 GetProperty NumberOfTableValues] SetElements1 256
+  [$pvTemp1622 GetProperty HueRange] SetElements2 0.6667 0
+  [$pvTemp1622 GetProperty SaturationRange] SetElements2 1 1
+  [$pvTemp1622 GetProperty ValueRange] SetElements2 1 1
+  [$pvTemp1622 GetProperty ScalarRange] SetElements2 0 0.0757844
+  [$pvTemp1622 GetProperty VectorComponent] SetElements1 0
+  [$pvTemp1622 GetProperty VectorMode] SetElements1 0
+  $pvTemp1622 UpdateVTKObjects
+
+
+set pvTemp1624 [$proxyManager NewProxy scalarbar_widget ScalarBarWidget]
+  $proxyManager RegisterProxy scalarbar_widget pvTemp1624 $pvTemp1624
+  $pvTemp1624 UnRegister {}
+  [$Ren1 GetProperty Displayers] AddProxy $pvTemp1624
+  [$pvTemp1624 GetProperty Position1] SetElements2 0.844654 0.182166
+  [$pvTemp1624 GetProperty Position2] SetElements2 0.13 0.5
+  [$pvTemp1624 GetProperty Orientation] SetElements1 1
+  [$pvTemp1624 GetProperty Title] SetElement 0 "D_ Magnitude"
+  [$pvTemp1624 GetProperty LabelFormat] SetElement 0 "%-#6.3g"
+  [$pvTemp1624 GetProperty Visibility] SetElements1 1
+  [$pvTemp1624 GetProperty TitleFormatColor] SetElements3 0 0 0
+  [$pvTemp1624 GetProperty TitleFormatOpacity] SetElements1 1
+  [$pvTemp1624 GetProperty TitleFormatFont] SetElements1 0
+  [$pvTemp1624 GetProperty TitleFormatBold] SetElements1 1
+  [$pvTemp1624 GetProperty TitleFormatItalic] SetElements1 1
+  [$pvTemp1624 GetProperty TitleFormatShadow] SetElements1 1
+  [$pvTemp1624 GetProperty LabelFormatColor] SetElements3 0 0 0
+  [$pvTemp1624 GetProperty LabelFormatOpacity] SetElements1 1
+  [$pvTemp1624 GetProperty LabelFormatFont] SetElements1 0
+  [$pvTemp1624 GetProperty LabelFormatBold] SetElements1 1
+  [$pvTemp1624 GetProperty LabelFormatItalic] SetElements1 1
+  [$pvTemp1624 GetProperty LabelFormatShadow] SetElements1 1
+  [$pvTemp1624 GetProperty LookupTable] RemoveAllProxies
+  [$pvTemp1624 GetProperty LookupTable] AddProxy $pvTemp1622
+  $pvTemp1624 UpdateVTKObjects
+
+
+set pvTemp1520 [$proxyManager NewProxy rendering DefaultDisplayer]
+  $proxyManager RegisterProxy rendering pvTemp1520 $pvTemp1520
+  $pvTemp1520 UnRegister {}
+  [$pvTemp1520 GetProperty Input]  AddProxy $pvTemp1503
+  [$Ren1 GetProperty Displayers] AddProxy $pvTemp1520
+  [$pvTemp1520 GetProperty DisplayAsOutline] SetElements1 0
+  [$pvTemp1520 GetProperty ImmediateModeRendering] SetElements1 1
+  [$pvTemp1520 GetProperty ScalarVisibility] SetElements1 1
+  [$pvTemp1520 GetProperty ColorMode] SetElements1 0
+  [$pvTemp1520 GetProperty InterpolateColorsBeforeMapping] SetElements1 1
+  [$pvTemp1520 GetProperty Representation] SetElements1 1
+  [$pvTemp1520 GetProperty Interpolation] SetElements1 1
+  [$pvTemp1520 GetProperty LineWidth] SetElements1 1
+  [$pvTemp1520 GetProperty PointSize] SetElements1 2
+  [$pvTemp1520 GetProperty Position] SetElements3 0 0 0 
+  [$pvTemp1520 GetProperty Scale] SetElements3 1 1 1 
+  [$pvTemp1520 GetProperty Orientation] SetElements3 0 0 0 
+  [$pvTemp1520 GetProperty Origin] SetElements3 0 0 0 
+  [$pvTemp1520 GetProperty Opacity] SetElements1 1
+  [$pvTemp1520 GetProperty Color] SetElements3 1 1 1 
+  [$pvTemp1520 GetProperty LookupTable] AddProxy $pvTemp1622
+  [$pvTemp1520 GetProperty ScalarMode] SetElement 0 3
+  [$pvTemp1520 GetProperty ColorArray] SetElement 0 {D_}
+  $pvTemp1520 UpdateVTKObjects
+
+set pvTemp1003 [$proxyManager NewProxy sources ArrowSource]
+  $proxyManager RegisterProxy sources pvTemp1003 $pvTemp1003
+  $pvTemp1003 UnRegister {}
+  [$pvTemp1003 GetProperty TipResolution] SetElement 0 6
+  [$pvTemp1003 GetProperty TipRadius] SetElement 0 0.1
+  [$pvTemp1003 GetProperty TipLength] SetElement 0 0.35
+  [$pvTemp1003 GetProperty ShaftResolution] SetElement 0 6
+  [$pvTemp1003 GetProperty ShaftRadius] SetElement 0 0.03
+  $pvTemp1003 UpdateVTKObjects
+
+set pvTemp1560 [$proxyManager NewProxy filters Glyph]
+  $proxyManager RegisterProxy filters pvTemp1560 $pvTemp1560
+  $pvTemp1560 UnRegister {}
+  [$pvTemp1560 GetProperty Input] AddProxy $pvTemp1503
+  [$pvTemp1560 GetProperty Source] AddProxy $pvTemp1003
+  [$pvTemp1560 GetProperty SelectInputScalars] SetElement 0 {kappa}
+  [$pvTemp1560 GetProperty SelectInputVectors] SetElement 0 {D_}
+  [$pvTemp1560 GetProperty SetOrient] SetElement 0 1
+  [$pvTemp1560 GetProperty SetScaleMode] SetElement 0 1
+  [$pvTemp1560 GetProperty SetScaleFactor] SetElement 0 5
+  if { [[$pvTemp1560 GetProperty MaximumNumberOfPoints] GetClassName] == "vtkSMIntVectorProperty"} {
+    set value [expr round(5000)]
+  } else {
+    set value 5000
+  }
+  [$pvTemp1560 GetProperty MaximumNumberOfPoints] SetElement 0 $value
+  [$pvTemp1560 GetProperty UseMaskPoints] SetElement 0 1
+  [$pvTemp1560 GetProperty RandomMode] SetElement 0 1
+  $pvTemp1560 UpdateVTKObjects
+
+set pvTemp90 [$proxyManager NewProxy axes Axes]
+  $proxyManager RegisterProxy axes pvTemp90 $pvTemp90
+  $pvTemp90 UnRegister {}
+  [$Ren1 GetProperty Displayers] AddProxy $pvTemp90
+  [$pvTemp90 GetProperty Visibility] SetElements1 0
+  [$pvTemp90 GetProperty Position] SetElements3 9.9999 9.9999 0
+  [$pvTemp90 GetProperty Scale] SetElements3 4.99995 4.99995 2.5
+  $pvTemp90 UpdateVTKObjects
+
+set pvTemp93 [$proxyManager NewProxy animation AnimationScene]
+  $proxyManager RegisterProxy animation pvTemp93 $pvTemp93
+  $pvTemp93 UnRegister {}
+ [$pvTemp93 GetProperty TimeMode] SetElements1 1
+  [$pvTemp93 GetProperty StartTime] SetElements1 0
+  [$pvTemp93 GetProperty EndTime] SetElements1 10
+  [$pvTemp93 GetProperty AnimatedElement] SetElements1 0
+  $pvTemp93 UpdateVTKObjects
+
+  [$pvTemp93 GetProperty Loop] SetElements1 0
+  [$pvTemp93 GetProperty FrameRate] SetElements1 20
+  [$pvTemp93 GetProperty PlayMode] SetElements1 1
+  $pvTemp93 SetDisplayWindowProxy $Ren1
+  $pvTemp93 UpdateVTKObjects
+
+
+set pvTemp1373 [$proxyManager NewProxy animation AnimationCue]
+  $proxyManager RegisterProxy animation pvTemp1373 $pvTemp1373
+  $pvTemp1373 UnRegister {}
+ [$pvTemp1373 GetProperty TimeMode] SetElements1 0
+  [$pvTemp1373 GetProperty StartTime] SetElements1 0
+  [$pvTemp1373 GetProperty EndTime] SetElements1 1
+  [$pvTemp1373 GetProperty AnimatedProxy] RemoveAllProxies
+  [$pvTemp1373 GetProperty AnimatedProxy] AddProxy $pvTemp1252
+  [$pvTemp1373 GetProperty AnimatedPropertyName] SetElement 0 TimeStep
+  [$pvTemp1373 GetProperty AnimatedElement] SetElements1 0
+
+set pvTemp1374 [$proxyManager NewProxy animation_manipulators KeyFrameAnimationCueManipulator]
+  $proxyManager RegisterProxy animation_manipulators pvTemp1374 $pvTemp1374
+  $pvTemp1374 UnRegister {}
+  $pvTemp1374 UpdateVTKObjects
+
+set pvTemp1377 [$proxyManager NewProxy animation_keyframes RampKeyFrame]
+  $proxyManager RegisterProxy RampKeyFrame pvTemp1377 $pvTemp1377
+  $pvTemp1377 UnRegister {}
+  [$pvTemp1377 GetProperty KeyValue] SetElements1 0
+  [$pvTemp1377 GetProperty KeyTime] SetElements1 0
+  $pvTemp1377 UpdateVTKObjects
+  [$pvTemp1374 GetProperty KeyFrame] RemoveAllProxies
+  [$pvTemp1374 GetProperty KeyFrame] AddProxy $pvTemp1377
+  $pvTemp1374 UpdateVTKObjects
+
+set pvTemp1378 [$proxyManager NewProxy animation_keyframes RampKeyFrame]
+  $proxyManager RegisterProxy RampKeyFrame pvTemp1378 $pvTemp1378
+  $pvTemp1378 UnRegister {}
+  [$pvTemp1378 GetProperty KeyValue] SetElements1 10
+  [$pvTemp1378 GetProperty KeyTime] SetElements1 1
+  $pvTemp1378 UpdateVTKObjects
+  [$pvTemp1374 GetProperty KeyFrame] RemoveAllProxies
+  [$pvTemp1374 GetProperty KeyFrame] AddProxy $pvTemp1378
+  $pvTemp1374 UpdateVTKObjects
+  $pvTemp1373 SetManipulator $pvTemp1374
+  $pvTemp1373 UpdateVTKObjects
+
+  [$pvTemp93 GetProperty Cue] RemoveAllProxies
+  [$pvTemp93 GetProperty Cue] AddProxy $pvTemp1373
+  $pvTemp93 UpdateVTKObjects
+
+
+set saveState 0
+for {set i  0} {$i < [expr $argc - 1]} {incr i} {
+  if {[lindex $argv $i] == "-XML"} {
+    set saveState 1
+    set stateName [lindex $argv [expr $i + 1]]
+  }
+}
+if { $saveState } {
+   $Ren1 UpdateVTKObjects
+   $proxyManager SaveState $stateName
+} else {
+
+$Ren1 UpdateVTKObjects
+set inBatch 0
+for {set i  1} {$i < [expr $argc]} {incr i} {
+  if {[lindex $argv $i] == "-BV"} {
+    set inBatch 1
+  }
+}
+if { $inBatch } {
+  set xsize [[$Ren1 GetProperty Size] GetElement 0]
+  set ysize [[$Ren1 GetProperty Size] GetElement 1]
+  $Ren1 TileWindows [expr $xsize+30] [expr $ysize+30] 2
+}
+$Ren1 WriteImage {/walnut/scratch/regueiro/development_benchmark_XML/ss_enh_loc/3D_slope/mesh2/paraview.jpg} vtkJPEGWriter
+}
+
+$proxyManager UnRegisterProxies
+

@@ -1,0 +1,34 @@
+# initializing a new MathKernel to perform each function evaluation
+strategy, \
+	single_method \
+#        graphics \
+	tabular_graphics_data 
+
+variables, \
+	continuous_design = 8 \
+	cdv_initial_point   0.6    1.0    29      0.6         29      1        3 0.2 \
+	cdv_lower_bounds    0.1    1.0    10      0.1         10      0        0 0.01 \
+	cdv_upper_bounds   10.0  100.0  1000     10.0       1000      4        4 1.0 \
+	cdv_descriptor   'alpha' 'beta' 'mu'   'alphaneq' 'muneq' 'taulo' 'taudif' 'c'
+
+interface,							\
+	application system,					\
+	analysis_driver =    'math_handler' \
+	parameters_file =    'params.in' \
+	results_file =       'results.out' \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+	no_gradients \
+	no_hessians
+
+method, \
+        sgopt_pattern_search, \
+        initial_delta = 0.1 \
+        threshold_delta = 1.0e-8 \
+	convergence_tolerance = 1.0e-5 \
+	output verbose \
+#       pattern_basis coordinate \
+

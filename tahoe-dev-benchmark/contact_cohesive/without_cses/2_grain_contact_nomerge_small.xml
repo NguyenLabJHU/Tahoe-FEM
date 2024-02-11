@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="jwfoulk" echo_input="false"
+    geometry_file="2_grain_contact_nomerge_small.exo"
+    logging="verbose" output_format="ExodusII"
+    title="two blocks in contact with sidesets" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time num_steps="500" output_inc="1" time_step="0.0010">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="5.0"/>
+                <OrderedPair x="1.0" y="5.0"/>
+                <OrderedPair x="1.000001" y="0.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement" mass_type="lumped_mass">
+            <quadrilateral/>
+            <natural_bc coordinate_system="local" schedule="1" side_set_ID="4">
+                <DoubleList>
+                    <Double value="0.0"/>
+                    <Double value="-1.0"/>
+                </DoubleList>
+            </natural_bc>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <solid_element_element_output linear_momentum="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <Simo_isotropic_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </Simo_isotropic_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <contact_2D_penalty field_name="displacement" penalty_stiffness="1000.0">
+            <contact_surface>
+                <surface_side_set side_set_ID="2"/>
+            </contact_surface>
+            <contact_nodes>
+                <side_set_ID_list>
+                    <String value="1"/>
+                </side_set_ID_list>
+            </contact_nodes>
+        </contact_2D_penalty>
+    </element_list>
+    <linear_solver>
+        <diagonal_matrix/>
+    </linear_solver>
+</tahoe>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="tdnguye" geometry_file="geometry/cube_8.exo"
+    geometry_format="ExodusII" output_format="ExodusII"
+    title="fiber_comp_test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="4" num_steps="100" output_inc="1" time_step=".02">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="0.0"/>
+                <OrderedPair x="2.0" y="2.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="6" type="fixed"/>
+        </field>
+        <history_node_ID_list>
+            <String value="5"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <uplag_fiber_comp_planar field_name="displacement">
+            <hexahedron num_ip="8"/>
+            <natural_bc coordinate_system="global" schedule="1" side_set_ID="2">
+                <DoubleList>
+                    <Double value="0.0"/>
+                    <Double value="300"/>
+                    <Double value="0.0"/>
+                </DoubleList>
+            </natural_bc>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" material_output="1" stress="1"/>
+            <fiber_comp_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <fiber_comp_material>
+                    <aniso_cornea density="1.0" n_points="11">
+                        <matrix_material_params>
+                            <Neo-Hookean bulk_modulus="30" shear_modulus="10"/>
+                        </matrix_material_params>
+                        <fibril_potential>
+                            <fung_type alpha="1.2" beta="34.7"/>
+                        </fibril_potential>
+                        <fibril_distribution>
+                            <power_trig a="1.0" b="0" c="0.727" n="8" phi="0"/>
+                        </fibril_distribution>
+                    </aniso_cornea>
+                </fiber_comp_material>
+            </fiber_comp_element_block>
+           <fiber_orientations>
+                <side_set side_set_ID="1">
+                    <DoubleList name="NT">
+                        <Double value="0.0"/>
+                        <Double value="1.0"/>
+                        <Double value="0.0"/>
+                    </DoubleList>
+                    <DoubleList name="IS">
+                        <Double value="1.0"/>
+                        <Double value="0.0"/>
+                        <Double value="0.0"/>
+                    </DoubleList>
+                </side_set>
+            </fiber_orientations>
+        </uplag_fiber_comp_planar>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1e-8" divergence_tolerance="100"
+        max_iterations="10" rel_tolerance="1e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

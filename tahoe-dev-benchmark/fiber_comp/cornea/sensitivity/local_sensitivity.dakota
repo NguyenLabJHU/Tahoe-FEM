@@ -1,0 +1,31 @@
+strategy, \
+	single_method \
+	tabular_graphics_data \
+#	graphics
+
+method, \
+	vector_parameter_study \
+   final_point = 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 \
+   num_steps = 0 \
+
+variables, \
+	continuous_design = 10 \
+	cdv_descriptor     'ALPHA0' 'ALPHA1' 'ALPHA2' 'ALPHA3' 'BETA' 'XI1' 'XI2' 'XI3' 'TAU3' 'MU' \
+	cdv_initial_point 0.121 0.234 0.242 0.600 34.7 16.17 312.67 126000 450 10 
+
+interface, \
+	system \
+	analysis_driver = 'run.pl' \
+	parameters_file = 'in' \
+	results_file = 'out' \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+	numerical_gradients \
+  interval_type central \
+	fd_gradient_step_size = 0.0001 \
+	numerical_hessians \
+	fd_hessian_step_size = 0.0001
+

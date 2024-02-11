@@ -1,0 +1,31 @@
+# DAKOTA INPUT FILE : search.in
+
+strategy, \
+	single_method \
+	tabular_graphics_data \
+	#graphics
+
+method, \
+	list_parameter_study \
+	list_of_points \
+1.0e-5 0.9e-5 0.8e-5 0.7e-5 0.6e-5 0.5e-5 0.4e-5 0.3e-5 0.2e-5 0.1e-5
+
+variables, \
+	continuous_design = 1 \
+	cdv_descriptor 'C1' \
+	cdv_lower_bounds     0.000001  \
+	cdv_upper_bounds     0.0001
+
+interface, \
+	application system \
+	analysis_driver = 'error_func.csh' \
+	parameters_file = 'error_func.in' \
+	results_file = 'error_func.out' \
+	file_tag \
+	#file_save
+
+responses, \
+	num_objective_functions = 1 \
+	no_gradients \
+	no_hessians
+

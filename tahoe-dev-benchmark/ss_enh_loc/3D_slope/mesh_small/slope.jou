@@ -1,0 +1,28 @@
+set geometry engine acis
+set default element hex
+create pyramid height 10 sides 4 radius 28.284 top 14.142
+section volume 1 with xplane offset 0 normal
+section volume 1 with yplane offset 0 normal
+brick x 4 y 4 z 1
+move volume 2 midpoint location vertex 2 midpoint
+volume 2 move x -2 y -2 z 0.5
+imprint volume 2 with volume 1 keep
+delete volume 1
+create vertex 8 8 6
+merge all
+
+block 1 volume 3
+block 2 volume 2
+nodeset 2 surface 26
+nodeset 3 surface 27 
+nodeset 4 surface 24
+
+volume 2 size 2.0
+volume 3 size 2.0
+preview mesh volume 3
+volume 2 scheme map
+mesh volume 2
+volume 3 scheme auto
+mesh volume 3
+
+nodeset 1 node 9

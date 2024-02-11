@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="regueiro" echo_input="true"
+    geometry_file="mesh.eye03.g" geometry_format="ExodusII"
+    output_format="ExodusII" title="lens compression" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="2" num_steps="1800" output_inc="1" time_step=".1">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0" y="1.0"/>
+                <OrderedPair x="6.0" y="1.0"/>
+                <OrderedPair x="6.2" y="0"/>
+                <OrderedPair x="180" y="0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3"/>
+            <kinematic_BC dof="1" node_ID="2"/>
+            <kinematic_BC dof="2" node_ID="2"/>
+            <wall_penalty stiffness="1.5e4">
+                <bc_initial_position>
+                    <Vector_2 v_1="0.0" v_2="0.0"/>
+                </bc_initial_position>
+                <bc_velocity>
+                    <Vector_2 v_1="0" v_2="0"/>
+                </bc_velocity>
+                <velocity_constant/>
+                <node_ID_list>
+                    <String value="6"/>
+                </node_ID_list>
+                <wall_normal>
+                    <Vector_2 v_1="0.0" v_2="1"/>
+                </wall_normal>
+            </wall_penalty>
+            <wall_penalty stiffness="1.5e4">
+                <bc_initial_position>
+                    <Vector_2 v_1="0.0" v_2="8.984"/>
+                </bc_initial_position>
+                <bc_velocity>
+                    <Vector_2 v_1="0.0" v_2="-0.3"/>
+                </bc_velocity>
+                <velocity_schedule schedule="1"/>
+                <node_ID_list>
+                    <String value="7"/>
+                </node_ID_list>
+                <wall_normal>
+                    <Vector_2 v_1="0.0" v_2="-1"/>
+                </wall_normal>
+            </wall_penalty>
+        </field>
+        <history_node_ID_list>
+            <String value="6"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                    <String value="3"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <Reese-Govindjee_split density="1" eta_bulk="120.0"
+                        eta_shear="1.2" kappa_EQ="66.0"
+                        kappa_NEQ="12.0" mu_EQ="0.66" mu_NEQ="0.12"/>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+        </updated_lagrangian_axi>
+        <updated_lagrangian_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <Reese-Govindjee_split density="1" eta_bulk="0.12"
+                        eta_shear="1.2e-4" kappa_EQ="0.066"
+                        kappa_NEQ="0.012" mu_EQ="6.6e-5" mu_NEQ="1.2e-5"/>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+        </updated_lagrangian_axi>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+03" max_iterations="20" rel_tolerance="1.0e-12">
+        <profile_matrix/>
+    </nonlinear_solver>
+</tahoe>

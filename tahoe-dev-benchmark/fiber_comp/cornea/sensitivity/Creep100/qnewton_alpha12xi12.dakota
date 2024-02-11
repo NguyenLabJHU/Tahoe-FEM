@@ -1,0 +1,36 @@
+strategy, \
+	single_method, \
+	#graphics
+
+method, \
+	optpp_q_newton, \
+	convergence_tolerance = 1e-4 \
+	output verbose \
+
+variables, \
+  continuous_design = 5 \
+  cdv_scales          1.0      1.0     1.0       1.0    1.0\
+  cdv_descriptor     'ALPHA1' 'ALPHA2' 'ALPHA3' 'XI1'  'XI2' \
+  cdv_initial_point   0.234   0.242    0.929    16.17   312.7 \
+  cdv_lower_bounds    0.001   0.001    0.001     0.1      1.0 \
+  cdv_upper_bounds    2.0     2.0      2.0    1000.0  10000.0 
+
+interface, \
+	system \
+	analysis_driver = 'run.pl' \
+	parameters_file = 'in' \
+	results_file = 'out' \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+  num_nonlinear_equality_constraints = 1\
+    nonlinear_equality_targets 1.40\
+    nonlinear_equality_scales 1.0\
+	numerical_gradients \
+	  method_source dakota \
+	  interval_type central \
+	  fd_gradient_step_size = 1.0e-4 \
+	no_hessians
+

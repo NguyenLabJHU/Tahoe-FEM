@@ -1,0 +1,48 @@
+# DAKOTA INPUT FILE : search.in
+
+strategy, \
+	single_method, \
+	#graphics
+
+method, \
+	optpp_q_newton, \
+	convergence_tolerance = 1e-8 \
+	output verbose \
+
+#variables, \
+#        continuous_design = 2 \
+#        cdv_descriptor       'BETA' 'C1' \
+#        cdv_initial_point      1.0    1.0 \
+#        cdv_lower_bounds       0.1   0.1 \
+#        cdv_upper_bounds     10.0  10.0 \
+
+variables, \
+        continuous_design = 5 \
+        cdv_descriptor       'BETAi' 'C1i' 'BETAoo' 'C1oo' 'TAU' \
+        cdv_initial_point      1.0    1.0    1.0     1.0    1.0   \
+        cdv_lower_bounds       0.1   0.1   0.1    0.1   0.1  \
+        cdv_upper_bounds     10.0  10.0  10.0  10.0   10.0
+
+#variables, \
+#        continuous_design = 3 \
+#        cdv_descriptor       'BETAoo' 'C1oo' 'TAU' \
+#        cdv_initial_point     1.0     1.0    1.0   \
+#        cdv_lower_bounds      0.1    0.1   0.1  \
+#        cdv_upper_bounds     10.0  10.0   10.0
+
+interface, \
+	application system \
+	analysis_driver = 'error_func.csh' \
+	parameters_file = 'error_func.in' \
+	results_file = 'error_func.out' \
+	file_tag \
+	#file_save
+
+responses, \
+	num_objective_functions = 1 \
+	numerical_gradients \
+	method_source dakota \
+	interval_type central \
+	fd_gradient_step_size = 1.0e-4 \
+	no_hessians
+

@@ -1,0 +1,1186 @@
+
+ Tahoe 2.1
+
+ Copyright 2003, Sandia Corporation.
+ All rights reserved.
+
+ Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive
+ license for use of this work by or on behalf of the U.S. Government. Export
+ of this program may require a license from the United States Government.
+
+ build: 15:55:20, Dec 30 2011
+
+ Extended error checking is OFF
+ Turn on "extended error checking" to add.
+
+ RunJob_analysis, serial version: lens_compress_serial.xml
+
+ RGSpliT is no longer supported.  Use the more general implementation RGSplitT2
+ RGSpliT is no longer supported.  Use the more general implementation RGSplitT2
+ NodeManagerT::RenumberEquations: start
+ before:
+   bandwidth = 1486
+     profile = 247157
+
+      50     100      75
+      75     100      87
+      75      87      81
+      75      81      78
+      75      78      76
+      75      76      75
+      75      75      75
+
+ after: 7 iterations
+   bandwidth = 717
+     profile = 56872
+
+
+ NodeManagerT::RenumberEquations: done
+
+ FEManagerT::InitialCondition: computing initial conditions
+
+ Group : 1
+ Absolute error = 0.000000e+00
+ Relative error :
+
+       0	0.000000e+00
+
+ NLSolver::DoConverged: quick converged count: 1/3
+
+ FEManagerT::InitialCondition: computing initial conditions: DONE
+
+     Time: 1.000000e-01
+Step size: 1.000000e-01
+     Step: 1 of 1800
+
+
+ Group : 1
+ Absolute error = 1.700740e+02
+ Relative error :
+
+       0: Relative error =    1.171317e-05
+       1: Relative error =    7.994418e-06
+       2: Relative error =    1.971197e-09
+       3: Relative error =    1.995802e-13
+
+ NLSolver::DoConverged: quick converged count: 2/3
+
+     Time: 2.000000e-01
+Step size: 1.000000e-01
+     Step: 2 of 1800
+
+
+ Group : 1
+ Absolute error = 1.731604e+02
+ Relative error :
+
+       0: Relative error =    9.221882e-05
+       1: Relative error =    4.066130e-05
+       2: Relative error =    9.505540e-06
+       3: Relative error =    2.050510e-08
+       4: Relative error =    2.752414e-12
+       5: Relative error =    5.915590e-14
+
+ NLSolver::DoConverged: quick converged count: 3/3
+
+     Time: 3.000000e-01
+Step size: 1.000000e-01
+     Step: 3 of 1800
+
+
+ Group : 1
+ Absolute error = 1.769835e+02
+ Relative error :
+
+       0: Relative error =    7.933741e-05
+       1: Relative error =    3.554246e-05
+       2: Relative error =    7.567218e-06
+       3: Relative error =    1.326527e-08
+       4: Relative error =    1.206011e-12
+       5: Relative error =    6.187425e-15
+
+ NLSolver::DoConverged: quick converged count: 4/3
+
+     Time: 4.000000e-01
+Step size: 1.000000e-01
+     Step: 4 of 1800
+
+
+ Group : 1
+ Absolute error = 1.814649e+02
+ Relative error :
+
+       0: Relative error =    6.756501e-05
+       1: Relative error =    3.062408e-05
+       2: Relative error =    5.903767e-06
+       3: Relative error =    8.223947e-09
+       4: Relative error =    5.010512e-13
+
+ NLSolver::DoConverged: quick converged count: 5/3
+
+     Time: 5.000000e-01
+Step size: 1.000000e-01
+     Step: 5 of 1800
+
+
+ Group : 1
+ Absolute error = 1.865275e+02
+ Relative error :
+
+       0: Relative error =    5.694499e-05
+       1: Relative error =    2.598394e-05
+       2: Relative error =    4.500009e-06
+       3: Relative error =    4.855274e-09
+       4: Relative error =    1.918258e-13
+
+ NLSolver::DoConverged: quick converged count: 6/3
+
+     Time: 6.000000e-01
+Step size: 1.000000e-01
+     Step: 6 of 1800
+
+
+ Group : 1
+ Absolute error = 1.920971e+02
+ Relative error :
+
+       0: Relative error =    4.747478e-05
+       1: Relative error =    2.167943e-05
+       2: Relative error =    3.335767e-06
+       3: Relative error =    2.706194e-09
+       4: Relative error =    7.298392e-14
+
+ NLSolver::DoConverged: quick converged count: 7/3
+
+     Time: 7.000000e-01
+Step size: 1.000000e-01
+     Step: 7 of 1800
+
+
+ Group : 1
+ Absolute error = 1.981046e+02
+ Relative error :
+
+       0: Relative error =    3.911892e-05
+       1: Relative error =    1.774952e-05
+       2: Relative error =    2.388161e-06
+       3: Relative error =    1.406774e-09
+       4: Relative error =    4.535220e-14
+
+ NLSolver::DoConverged: quick converged count: 8/3
+
+     Time: 8.000000e-01
+Step size: 1.000000e-01
+     Step: 8 of 1800
+
+
+ Group : 1
+ Absolute error = 2.047453e+02
+ Relative error :
+
+       0: Relative error =    1.269969e-04
+       1: Relative error =    3.080598e-05
+       2: Relative error =    5.214524e-02
+       3: Relative error =    2.484689e-06
+       4: Relative error =    1.108639e-07
+       5: Relative error =    4.672077e-13
+
+ NLSolver::DoConverged: quick converged count: 9/3
+
+     Time: 9.000000e-01
+Step size: 1.000000e-01
+     Step: 9 of 1800
+
+
+ Group : 1
+ Absolute error = 2.143695e+02
+ Relative error :
+
+       0: Relative error =    5.055607e-03
+       1: Relative error =    2.516896e-05
+       2: Relative error =    1.647618e-02
+       3: Relative error =    8.584519e-07
+       4: Relative error =    1.319249e-10
+       5: Relative error =    7.709705e-15
+
+ NLSolver::DoConverged: quick converged count: 10/3
+
+     Time: 1.000000e+00
+Step size: 1.000000e-01
+     Step: 10 of 1800
+
+
+ Group : 1
+ Absolute error = 2.278306e+02
+ Relative error :
+
+       0: Relative error =    7.032989e-05
+       1: Relative error =    1.836315e-05
+       2: Relative error =    7.543723e-06
+       3: Relative error =    3.248556e-07
+       4: Relative error =    4.028948e-11
+       5: Relative error =    5.142988e-15
+
+ NLSolver::DoConverged: quick converged count: 11/3
+
+     Time: 1.100000e+00
+Step size: 1.000000e-01
+     Step: 11 of 1800
+
+
+ Group : 1
+ Absolute error = 2.433769e+02
+ Relative error :
+
+       0: Relative error =    4.958069e-05
+       1: Relative error =    1.329836e-05
+       2: Relative error =    1.295616e-03
+       3: Relative error =    4.300790e-08
+       4: Relative error =    9.564762e-13
+
+ NLSolver::DoConverged: quick converged count: 12/3
+
+     Time: 1.200000e+00
+Step size: 1.000000e-01
+     Step: 12 of 1800
+
+
+ Group : 1
+ Absolute error = 2.619621e+02
+ Relative error :
+
+       0: Relative error =    1.468144e-04
+       1: Relative error =    8.008146e-03
+       2: Relative error =    1.232477e-05
+       3: Relative error =    1.302535e-06
+       4: Relative error =    5.058438e-10
+       5: Relative error =    3.476593e-14
+
+ NLSolver::DoConverged: quick converged count: 13/3
+
+     Time: 1.300000e+00
+Step size: 1.000000e-01
+     Step: 13 of 1800
+
+
+ Group : 1
+ Absolute error = 2.825656e+02
+ Relative error :
+
+       0: Relative error =    1.022933e-04
+       1: Relative error =    6.399071e-02
+       2: Relative error =    1.826120e-06
+       3: Relative error =    2.057013e-07
+       4: Relative error =    3.906884e-10
+       5: Relative error =    3.009860e-14
+
+ NLSolver::DoConverged: quick converged count: 14/3
+
+     Time: 1.400000e+00
+Step size: 1.000000e-01
+     Step: 14 of 1800
+
+
+ Group : 1
+ Absolute error = 2.980449e+02
+ Relative error :
+
+       0: Relative error =    6.891106e-04
+       1: Relative error =    5.179703e-02
+       2: Relative error =    1.938028e-06
+       3: Relative error =    1.656769e-06
+       4: Relative error =    1.089789e-11
+       5: Relative error =    5.468312e-14
+
+ NLSolver::DoConverged: quick converged count: 15/3
+
+     Time: 1.500000e+00
+Step size: 1.000000e-01
+     Step: 15 of 1800
+
+
+ Group : 1
+ Absolute error = 3.115628e+02
+ Relative error :
+
+       0: Relative error =    3.928827e-03
+       1: Relative error =    5.423407e-05
+       2: Relative error =    4.160942e-02
+       3: Relative error =    1.147991e-06
+       4: Relative error =    2.769183e-07
+       5: Relative error =    8.607381e-13
+
+ NLSolver::DoConverged: quick converged count: 16/3
+
+     Time: 1.600000e+00
+Step size: 1.000000e-01
+     Step: 16 of 1800
+
+
+ Group : 1
+ Absolute error = 3.205046e+02
+ Relative error :
+
+       0: Relative error =    2.030349e-04
+       1: Relative error =    8.744068e-03
+       2: Relative error =    2.601394e-02
+       3: Relative error =    2.887960e-07
+       4: Relative error =    4.358436e-11
+       5: Relative error =    7.163161e-14
+
+ NLSolver::DoConverged: quick converged count: 17/3
+
+     Time: 1.700000e+00
+Step size: 1.000000e-01
+     Step: 17 of 1800
+
+
+ Group : 1
+ Absolute error = 3.303650e+02
+ Relative error :
+
+       0: Relative error =    1.536846e-04
+       1: Relative error =    4.412771e-05
+       2: Relative error =    1.168207e-02
+       3: Relative error =    6.850669e-08
+       4: Relative error =    1.785373e-10
+       5: Relative error =    9.529442e-14
+
+ NLSolver::DoConverged: quick converged count: 18/3
+
+     Time: 1.800000e+00
+Step size: 1.000000e-01
+     Step: 18 of 1800
+
+
+ Group : 1
+ Absolute error = 3.351548e+02
+ Relative error :
+
+       0: Relative error =    1.200918e-04
+       1: Relative error =    3.806364e-05
+       2: Relative error =    6.599541e-06
+       3: Relative error =    7.981945e-04
+       4: Relative error =    7.792200e-10
+       5: Relative error =    2.587935e-14
+
+ NLSolver::DoConverged: quick converged count: 19/3
+
+     Time: 1.900000e+00
+Step size: 1.000000e-01
+     Step: 19 of 1800
+
+
+ Group : 1
+ Absolute error = 3.402565e+02
+ Relative error :
+
+       0: Relative error =    9.196795e-05
+       1: Relative error =    3.352576e-05
+       2: Relative error =    2.388577e-06
+       3: Relative error =    1.470146e-08
+       4: Relative error =    5.233228e-13
+
+ NLSolver::DoConverged: quick converged count: 20/3
+
+     Time: 2.000000e+00
+Step size: 1.000000e-01
+     Step: 20 of 1800
+
+
+ Group : 1
+ Absolute error = 3.442846e+02
+ Relative error :
+
+       0: Relative error =    6.664873e-05
+       1: Relative error =    1.343192e-02
+       2: Relative error =    7.471347e-07
+       3: Relative error =    1.216141e-10
+       4: Relative error =    6.375379e-14
+
+ NLSolver::DoConverged: quick converged count: 21/3
+
+     Time: 2.100000e+00
+Step size: 1.000000e-01
+     Step: 21 of 1800
+
+
+ Group : 1
+ Absolute error = 3.495265e+02
+ Relative error :
+
+       0: Relative error =    3.293651e-04
+       1: Relative error =    1.023083e-02
+       2: Relative error =    2.843478e-02
+       3: Relative error =    1.027588e-06
+       4: Relative error =    2.509747e-07
+       5: Relative error =    2.181943e-13
+
+ NLSolver::DoConverged: quick converged count: 22/3
+
+     Time: 2.200000e+00
+Step size: 1.000000e-01
+     Step: 22 of 1800
+
+
+ Group : 1
+ Absolute error = 3.519151e+02
+ Relative error :
+
+       0: Relative error =    2.759856e-04
+       1: Relative error =    6.673416e-05
+       2: Relative error =    1.544913e-02
+       3: Relative error =    3.159710e-07
+       4: Relative error =    8.226618e-11
+       5: Relative error =    4.514378e-14
+
+ NLSolver::DoConverged: quick converged count: 23/3
+
+     Time: 2.300000e+00
+Step size: 1.000000e-01
+     Step: 23 of 1800
+
+
+ Group : 1
+ Absolute error = 3.548668e+02
+ Relative error :
+
+       0: Relative error =    2.275434e-04
+       1: Relative error =    6.174221e-05
+       2: Relative error =    4.903640e-03
+       3: Relative error =    1.269516e-07
+       4: Relative error =    1.832639e-10
+       5: Relative error =    5.343842e-14
+
+ NLSolver::DoConverged: quick converged count: 24/3
+
+     Time: 2.400000e+00
+Step size: 1.000000e-01
+     Step: 24 of 1800
+
+
+ Group : 1
+ Absolute error = 3.583595e+02
+ Relative error :
+
+       0: Relative error =    1.841403e-04
+       1: Relative error =    5.617429e-05
+       2: Relative error =    1.153389e-05
+       3: Relative error =    6.251378e-07
+       4: Relative error =    2.759926e-10
+       5: Relative error =    4.480897e-14
+
+ NLSolver::DoConverged: quick converged count: 25/3
+
+     Time: 2.500000e+00
+Step size: 1.000000e-01
+     Step: 25 of 1800
+
+
+ Group : 1
+ Absolute error = 3.611316e+02
+ Relative error :
+
+       0: Relative error =    1.468191e-04
+       1: Relative error =    5.328366e-05
+       2: Relative error =    9.908043e-04
+       3: Relative error =    4.263473e-08
+       4: Relative error =    4.583801e-12
+       5: Relative error =    1.150611e-14
+
+ NLSolver::DoConverged: quick converged count: 26/3
+
+     Time: 2.600000e+00
+Step size: 1.000000e-01
+     Step: 26 of 1800
+
+
+ Group : 1
+ Absolute error = 3.624119e+02
+ Relative error :
+
+       0: Relative error =    1.092811e-04
+       1: Relative error =    2.401163e-02
+       2: Relative error =    3.167457e-06
+       3: Relative error =    1.114243e-09
+       4: Relative error =    3.341020e-14
+
+ NLSolver::DoConverged: quick converged count: 27/3
+
+     Time: 2.700000e+00
+Step size: 1.000000e-01
+     Step: 27 of 1800
+
+
+ Group : 1
+ Absolute error = 3.645079e+02
+ Relative error :
+
+       0: Relative error =    7.793256e-05
+       1: Relative error =    3.601320e-05
+       2: Relative error =    3.958371e-07
+       3: Relative error =    9.646163e-10
+       4: Relative error =    4.146518e-14
+
+ NLSolver::DoConverged: quick converged count: 28/3
+
+     Time: 2.800000e+00
+Step size: 1.000000e-01
+     Step: 28 of 1800
+
+
+ Group : 1
+ Absolute error = 3.652542e+02
+ Relative error :
+
+       0: Relative error =    4.989983e-04
+       1: Relative error =    9.057270e-05
+       2: Relative error =    4.030383e-02
+       3: Relative error =    2.364430e-06
+       4: Relative error =    8.413962e-07
+       5: Relative error =    2.362248e-12
+       6: Relative error =    3.351656e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 2.900000e+00
+Step size: 1.000000e-01
+     Step: 29 of 1800
+
+
+ Group : 1
+ Absolute error = 3.663824e+02
+ Relative error :
+
+       0: Relative error =    4.306526e-04
+       1: Relative error =    8.797885e-05
+       2: Relative error =    2.450126e-02
+       3: Relative error =    2.176506e-06
+       4: Relative error =    9.651925e-07
+       5: Relative error =    3.925141e-12
+       6: Relative error =    4.453635e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 3.000000e+00
+Step size: 1.000000e-01
+     Step: 30 of 1800
+
+
+ Group : 1
+ Absolute error = 3.680430e+02
+ Relative error :
+
+       0: Relative error =    3.672219e-04
+       1: Relative error =    8.472002e-05
+       2: Relative error =    1.295422e-02
+       3: Relative error =    3.728896e-07
+       4: Relative error =    1.321070e-09
+       5: Relative error =    8.085501e-14
+
+ NLSolver::DoConverged: quick converged count: 1/3
+
+     Time: 3.100000e+00
+Step size: 1.000000e-01
+     Step: 31 of 1800
+
+
+ Group : 1
+ Absolute error = 3.702219e+02
+ Relative error :
+
+       0: Relative error =    3.089273e-04
+       1: Relative error =    8.076527e-05
+       2: Relative error =    1.515216e-03
+       3: Relative error =    1.859512e-06
+       4: Relative error =    4.048805e-09
+       5: Relative error =    5.959671e-14
+
+ NLSolver::DoConverged: quick converged count: 2/3
+
+     Time: 3.200000e+00
+Step size: 1.000000e-01
+     Step: 32 of 1800
+
+
+ Group : 1
+ Absolute error = 3.726226e+02
+ Relative error :
+
+       0: Relative error =    1.038057e-03
+       1: Relative error =    7.508883e-05
+       2: Relative error =    6.755221e-03
+       3: Relative error =    5.367134e-06
+       4: Relative error =    1.032818e-09
+       5: Relative error =    9.403315e-14
+
+ NLSolver::DoConverged: quick converged count: 3/3
+
+     Time: 3.300000e+00
+Step size: 1.000000e-01
+     Step: 33 of 1800
+
+
+ Group : 1
+ Absolute error = 3.730590e+02
+ Relative error :
+
+       0: Relative error =    2.032279e-04
+       1: Relative error =    7.015157e-05
+       2: Relative error =    4.131031e-06
+       3: Relative error =    3.562373e-07
+       4: Relative error =    1.648603e-11
+       5: Relative error =    4.815348e-14
+
+ NLSolver::DoConverged: quick converged count: 4/3
+
+     Time: 3.400000e+00
+Step size: 1.000000e-01
+     Step: 34 of 1800
+
+
+ Group : 1
+ Absolute error = 3.716013e+02
+ Relative error :
+
+       0: Relative error =    1.458797e-04
+       1: Relative error =    6.522772e-05
+       2: Relative error =    1.983874e-06
+       3: Relative error =    1.262743e-08
+       4: Relative error =    1.124011e-13
+
+ NLSolver::DoConverged: quick converged count: 5/3
+
+     Time: 3.500000e+00
+Step size: 1.000000e-01
+     Step: 35 of 1800
+
+
+ Group : 1
+ Absolute error = 3.716601e+02
+ Relative error :
+
+       0: Relative error =    1.170109e-04
+       1: Relative error =    5.606718e-05
+       2: Relative error =    1.127892e-06
+       3: Relative error =    5.492921e-09
+       4: Relative error =    2.373199e-14
+
+ NLSolver::DoConverged: quick converged count: 6/3
+
+     Time: 3.600000e+00
+Step size: 1.000000e-01
+     Step: 36 of 1800
+
+
+ Group : 1
+ Absolute error = 3.719467e+02
+ Relative error :
+
+       0: Relative error =    9.798196e-05
+       1: Relative error =    4.608771e-05
+       2: Relative error =    6.723078e-07
+       3: Relative error =    2.278092e-09
+       4: Relative error =    3.182603e-14
+
+ NLSolver::DoConverged: quick converged count: 7/3
+
+     Time: 3.700000e+00
+Step size: 1.000000e-01
+     Step: 37 of 1800
+
+
+ Group : 1
+ Absolute error = 3.723180e+02
+ Relative error :
+
+       0: Relative error =    8.074316e-05
+       1: Relative error =    3.666775e-05
+       2: Relative error =    3.745725e-07
+       3: Relative error =    8.206895e-10
+       4: Relative error =    3.104596e-14
+
+ NLSolver::DoConverged: quick converged count: 8/3
+
+     Time: 3.800000e+00
+Step size: 1.000000e-01
+     Step: 38 of 1800
+
+
+ Group : 1
+ Absolute error = 3.727726e+02
+ Relative error :
+
+       0: Relative error =    6.214121e-04
+       1: Relative error =    1.089771e-04
+       2: Relative error =    3.087866e-01
+       3: Relative error =    1.289230e-05
+       4: Relative error =    4.977184e-06
+       5: Relative error =    2.091433e-06
+       6: Relative error =    1.997264e-11
+       7: Relative error =    4.659165e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 3.900000e+00
+Step size: 1.000000e-01
+     Step: 39 of 1800
+
+
+ Group : 1
+ Absolute error = 3.735224e+02
+ Relative error :
+
+       0: Relative error =    5.418818e-04
+       1: Relative error =    1.076542e-04
+       2: Relative error =    1.785452e-01
+       3: Relative error =    4.987048e-06
+       4: Relative error =    5.068251e-06
+       5: Relative error =    2.326587e-06
+       6: Relative error =    2.404983e-11
+       7: Relative error =    2.183016e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 4.000000e+00
+Step size: 1.000000e-01
+     Step: 40 of 1800
+
+
+ Group : 1
+ Absolute error = 3.746273e+02
+ Relative error :
+
+       0: Relative error =    1.333731e-02
+       1: Relative error =    1.045734e-04
+       2: Relative error =    8.671267e-03
+       3: Relative error =    1.401738e-01
+       4: Relative error =    4.368044e-06
+       5: Relative error =    4.614724e-06
+       6: Relative error =    3.667857e-11
+       7: Relative error =    5.833867e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 4.100000e+00
+Step size: 1.000000e-01
+     Step: 41 of 1800
+
+
+ Group : 1
+ Absolute error = 3.765450e+02
+ Relative error :
+
+       0: Relative error =    3.908013e-04
+       1: Relative error =    2.741222e-02
+       2: Relative error =    1.448187e-05
+       3: Relative error =    2.458474e-02
+       4: Relative error =    2.218516e-07
+       5: Relative error =    4.673272e-11
+       6: Relative error =    4.178536e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 4.200000e+00
+Step size: 1.000000e-01
+     Step: 42 of 1800
+
+
+ Group : 1
+ Absolute error = 3.791452e+02
+ Relative error :
+
+       0: Relative error =    3.198670e-04
+       1: Relative error =    9.711301e-05
+       2: Relative error =    1.100736e-05
+       3: Relative error =    5.978624e-07
+       4: Relative error =    3.500037e-10
+       5: Relative error =    4.239138e-15
+
+ NLSolver::DoConverged: quick converged count: 1/3
+
+     Time: 4.300000e+00
+Step size: 1.000000e-01
+     Step: 43 of 1800
+
+
+ Group : 1
+ Absolute error = 3.432756e+02
+ Relative error :
+
+       0: Relative error =    2.443868e-04
+       1: Relative error =    1.085203e-04
+       2: Relative error =    6.067496e-06
+       3: Relative error =    6.399305e-08
+       4: Relative error =    3.254195e-12
+       5: Relative error =    5.803869e-14
+
+ NLSolver::DoConverged: quick converged count: 2/3
+
+     Time: 4.400000e+00
+Step size: 1.000000e-01
+     Step: 44 of 1800
+
+
+ Group : 1
+ Absolute error = 3.348998e+02
+ Relative error :
+
+       0: Relative error =    2.077903e-04
+       1: Relative error =    1.009040e-04
+       2: Relative error =    4.427809e-06
+       3: Relative error =    3.338110e-08
+       4: Relative error =    6.345584e-13
+
+ NLSolver::DoConverged: quick converged count: 3/3
+
+     Time: 4.500000e+00
+Step size: 1.000000e-01
+     Step: 45 of 1800
+
+
+ Group : 1
+ Absolute error = 3.328007e+02
+ Relative error :
+
+       0: Relative error =    1.807010e-04
+       1: Relative error =    8.879883e-05
+       2: Relative error =    3.798038e-06
+       3: Relative error =    1.623576e-08
+       4: Relative error =    1.723289e-13
+
+ NLSolver::DoConverged: quick converged count: 4/3
+
+     Time: 4.600000e+00
+Step size: 1.000000e-01
+     Step: 46 of 1800
+
+
+ Group : 1
+ Absolute error = 3.308759e+02
+ Relative error :
+
+       0: Relative error =    1.556095e-04
+       1: Relative error =    7.665158e-05
+       2: Relative error =    3.707062e-06
+       3: Relative error =    7.302545e-09
+       4: Relative error =    2.660326e-13
+
+ NLSolver::DoConverged: quick converged count: 5/3
+
+     Time: 4.700000e+00
+Step size: 1.000000e-01
+     Step: 47 of 1800
+
+
+ Group : 1
+ Absolute error = 3.291273e+02
+ Relative error :
+
+       0: Relative error =    1.326804e-04
+       1: Relative error =    6.471940e-05
+       2: Relative error =    3.945418e-06
+       3: Relative error =    4.495164e-09
+       4: Relative error =    4.485073e-13
+
+ NLSolver::DoConverged: quick converged count: 6/3
+
+     Time: 4.800000e+00
+Step size: 1.000000e-01
+     Step: 48 of 1800
+
+
+ Group : 1
+ Absolute error = 3.275564e+02
+ Relative error :
+
+       0: Relative error =    1.121209e-04
+       1: Relative error =    5.332103e-05
+       2: Relative error =    4.336948e-06
+       3: Relative error =    4.946686e-09
+       4: Relative error =    6.777379e-13
+
+ NLSolver::DoConverged: quick converged count: 7/3
+
+     Time: 4.900000e+00
+Step size: 1.000000e-01
+     Step: 49 of 1800
+
+
+ Group : 1
+ Absolute error = 3.262438e+02
+ Relative error :
+
+       0: Relative error =    4.465287e-03
+       1: Relative error =    4.000932e-05
+       2: Relative error =    4.840610e-06
+       3: Relative error =    6.231967e-09
+       4: Relative error =    1.074541e-12
+       5: Relative error =    1.751352e-14
+
+ NLSolver::DoConverged: quick converged count: 8/3
+
+     Time: 5.000000e+00
+Step size: 1.000000e-01
+     Step: 50 of 1800
+
+
+ Group : 1
+ Absolute error = 3.248175e+02
+ Relative error :
+
+       0: Relative error =    8.400431e-04
+       1: Relative error =    8.292175e-03
+       2: Relative error =    3.532192e-02
+       3: Relative error =    6.463583e-06
+       4: Relative error =    4.430379e-09
+       5: Relative error =    3.729459e-14
+
+ NLSolver::DoConverged: quick converged count: 9/3
+
+     Time: 5.100000e+00
+Step size: 1.000000e-01
+     Step: 51 of 1800
+
+
+ Group : 1
+ Absolute error = 3.238810e+02
+ Relative error :
+
+       0: Relative error =    7.243917e-04
+       1: Relative error =    1.614631e-04
+       2: Relative error =    3.486211e-03
+       3: Relative error =    1.923509e-06
+       4: Relative error =    3.003313e-08
+       5: Relative error =    1.847518e-13
+
+ NLSolver::DoConverged: quick converged count: 10/3
+
+     Time: 5.200000e+00
+Step size: 1.000000e-01
+     Step: 52 of 1800
+
+
+ Group : 1
+ Absolute error = 3.238231e+02
+ Relative error :
+
+       0: Relative error =    6.156047e-04
+       1: Relative error =    1.605811e-04
+       2: Relative error =    4.094347e-05
+       3: Relative error =    8.368671e-06
+       4: Relative error =    8.222165e-08
+       5: Relative error =    6.357099e-11
+       6: Relative error =    2.696104e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+
+     Time: 5.300000e+00
+Step size: 1.000000e-01
+     Step: 53 of 1800
+
+
+ Group : 1
+ Absolute error = 3.051218e+02
+ Relative error :
+
+       0: Relative error =    5.078896e-04
+       1: Relative error =    1.761604e-04
+       2: Relative error =    3.380302e-05
+       3: Relative error =    3.462554e-07
+       4: Relative error =    2.265392e-10
+       5: Relative error =    2.972922e-14
+
+ NLSolver::DoConverged: quick converged count: 1/3
+
+     Time: 5.400000e+00
+Step size: 1.000000e-01
+     Step: 54 of 1800
+
+
+ Group : 1
+ Absolute error = 2.884123e+02
+ Relative error :
+
+       0: Relative error =    4.074204e-04
+       1: Relative error =    1.910977e-04
+       2: Relative error =    3.242867e-05
+       3: Relative error =    2.091675e-07
+       4: Relative error =    2.306153e-10
+       5: Relative error =    3.483985e-14
+
+ NLSolver::DoConverged: quick converged count: 2/3
+
+     Time: 5.500000e+00
+Step size: 1.000000e-01
+     Step: 55 of 1800
+
+
+ Group : 1
+ Absolute error = 2.881845e+02
+ Relative error :
+
+       0: Relative error =    3.645453e-04
+       1: Relative error =    1.763813e-04
+       2: Relative error =    3.279300e-05
+       3: Relative error =    1.262743e-07
+       4: Relative error =    3.049022e-10
+       5: Relative error =    8.347773e-14
+
+ NLSolver::DoConverged: quick converged count: 3/3
+
+     Time: 5.600000e+00
+Step size: 1.000000e-01
+     Step: 56 of 1800
+
+
+ Group : 1
+ Absolute error = 2.881139e+02
+ Relative error :
+
+       0: Relative error =    3.247302e-04
+       1: Relative error =    1.610021e-04
+       2: Relative error =    3.379403e-05
+       3: Relative error =    8.099123e-08
+       4: Relative error =    3.863153e-10
+       5: Relative error =    6.034918e-14
+
+ NLSolver::DoConverged: quick converged count: 4/3
+
+     Time: 5.700000e+00
+Step size: 1.000000e-01
+     Step: 57 of 1800
+
+
+ Group : 1
+ Absolute error = 2.881984e+02
+ Relative error :
+
+       0: Relative error =    2.881870e-04
+       1: Relative error =    1.451049e-04
+       2: Relative error =    3.517505e-05
+       3: Relative error =    6.738262e-08
+       4: Relative error =    4.730105e-10
+       5: Relative error =    8.005517e-14
+
+ NLSolver::DoConverged: quick converged count: 5/3
+
+     Time: 5.800000e+00
+Step size: 1.000000e-01
+     Step: 58 of 1800
+
+
+ Group : 1
+ Absolute error = 2.884354e+02
+ Relative error :
+
+       0: Relative error =    2.551471e-04
+       1: Relative error =    1.288710e-04
+       2: Relative error =    3.676904e-05
+       3: Relative error =    6.936140e-08
+       4: Relative error =    5.637407e-10
+       5: Relative error =    4.204590e-14
+
+ NLSolver::DoConverged: quick converged count: 6/3
+
+     Time: 5.900000e+00
+Step size: 1.000000e-01
+     Step: 59 of 1800
+
+
+ Group : 1
+ Absolute error = 2.888221e+02
+ Relative error :
+
+       0: Relative error =    2.258605e-04
+       1: Relative error =    6.975382e-03
+       2: Relative error =    3.867637e-05
+       3: Relative error =    7.639866e-08
+       4: Relative error =    6.821560e-10
+       5: Relative error =    4.692974e-14
+
+ NLSolver::DoConverged: quick converged count: 7/3
+
+     Time: 6.000000e+00
+Step size: 1.000000e-01
+     Step: 60 of 1800
+
+
+ Group : 1
+ Absolute error = 2.893392e+02
+ Relative error :
+
+       0: Relative error =    1.998008e-04
+       1: Relative error =    8.845616e-05
+       2: Relative error =    4.108423e-05
+       3: Relative error =    8.077904e-08
+       4: Relative error =    8.021275e-10
+       5: Relative error =    2.547474e-14
+
+ NLSolver::DoConverged: quick converged count: 8/3
+
+     Time: 6.100000e+00
+Step size: 1.000000e-01
+     Step: 61 of 1800
+
+
+ Group : 1
+ Absolute error = 2.900233e+02
+ Relative error :
+
+       0: Relative error =    1.771105e-04
+       1: Relative error =    7.093532e-05
+       2: Relative error =    4.359468e-05
+       3: Relative error =    8.496367e-08
+       4: Relative error =    9.368731e-10
+       5: Relative error =    7.147428e-14
+
+ NLSolver::DoConverged: quick converged count: 9/3
+
+     Time: 6.200000e+00
+Step size: 1.000000e-01
+     Step: 62 of 1800
+
+
+ Group : 1
+ Absolute error = 2.909160e+02
+ Relative error :
+
+       0: Relative error =    1.494234e-04
+       1: Relative error =    5.246660e-05
+       2: Relative error =    1.017022e-05
+       3: Relative error =    4.500994e-05
+       4: Relative error =    9.289266e-09
+       5: Relative error =    8.250390e-11
+       6: Relative error =    4.622158e-14
+
+ NLSolver::DoConverged: reset quick converged: 0/3
+[ex_open] Error: failed to open lens_compress_serial.io0.exo write only
+    exerrval = -51
+
+ ExceptionT::Throw: Fri Jul 20 15:51:12 2012
+        code: 9
+   exception: database read failure
+      caller: ExodusOutputT::WriteOutput
+     message: could not open file "lens_compress_serial.io0.exo" for output ID 0 at time 6.2
+
+ ExceptionT::Throw: Fri Jul 20 15:51:12 2012
+        code: 9
+   exception: database read failure
+      caller: FEManagerT::WriteOutput
+
+ FEManagerT::CloseStep: caught exception: database read failure
+
+FEManagerT::Solve: no recovery for error: database read failure
+
+     Filename: lens_compress_serial.xml
+   Start time: Fri Jul 20 15:50:47 2012
+ Construction: 2.000000e-02 sec.
+     Solution: 2.480000e+01 sec.
+    Stop time: Fri Jul 20 15:51:12 2012
+
+ End Execution
+
+
+Exit.
+

@@ -1,0 +1,39 @@
+# DAKOTA INPUT FILE : search.in
+
+strategy, \
+	single_method, \
+	#graphics
+
+method, \
+	sgopt_pattern_search, \
+	initial_delta = 0.1 \
+	threshold_delta = 1e-4 \
+#	pattern_basis coordinate \
+
+#variables, \
+#	continuous_design = 2 \
+#	cdv_descriptor       'BETA' 'C1' \
+#	cdv_initial_point      1.0    1.0  \
+#	cdv_lower_bounds       0.0001   0.0001 \
+#	cdv_upper_bounds     10000.0  10000.0 \
+
+variables, \
+	continuous_design = 3 \
+	cdv_descriptor       'TAU' 'MUoo' 'MUi'  \
+	cdv_initial_point      178.5941 0.003184 0.001242  \
+	cdv_lower_bounds       86.727 0.001592 0.000626  \
+	cdv_upper_bounds       260.1823 0.004776 0.001879  
+
+interface, \
+	application system \
+	analysis_driver = 'error_func.csh' \
+	parameters_file = 'error_func.in' \
+	results_file = 'error_func.out' \
+	file_tag \
+	#file_save
+
+responses, \
+	num_objective_functions = 1 \
+	no_gradients \
+	no_hessians
+

@@ -1,0 +1,513 @@
+\documentclass[11pt,oneside]{elsart}
+\usepackage{amsmath,amsfonts,bm,graphicx,subfigure,color}
+%
+%
+\topmargin 0.0in
+\textheight 9.0in
+\textwidth 6.5in
+\oddsidemargin 0in
+\parindent 0pt
+\parskip \baselineskip
+%
+% explicitly defined commands
+\newcommand{\Mb}{\mathbf{M}}
+\newcommand{\figref}[1]{Figure \ref{#1}}
+\newcommand{\revise}[1]{\textcolor{red}{#1}}            % material to revise
+\newcommand{\strike}[1]{\textcolor{magenta}{\sout{#1}}} % material to omit
+\newcommand{\comment}[1]{\textcolor{blue}{[ \sc{#1} ]}} % comments
+\newcommand{\add}[1]{\textcolor{green}{{#1}}}         % recent adds/mods
+
+%bibliography style
+\usepackage[]{natbib}
+\bibpunct{(}{)}{,}{}{}{}
+
+\normalsize{}
+
+\begin{document}
+%
+\begin{frontmatter}
+\title{Comparison of Cornea Deformation Under Physiological Inflation Conditions}
+\author[au]{T. D. Nguyen,}
+\author[cau1]{R. E. Jones,\corauthref{cor1}} 
+\ead{rjones@sandia.gov}
+\corauth[cor1]{Corresponding author.}
+\author[cau2]{B. L. Boyce}
+
+\address[au]{Department of Mechanical Engineering, Johns Hopkins University, 125 Latrobe Hall, Baltimore, MD 21218, USA}
+\address[cau2]{Mechanics of Materials Department, Sandia National Laboratories, P.O. Box 0969, Livermore, CA 94551, USA}
+\address[cau1]{Microsystems Materials Department, Sandia National Laboratories,
+P.O. Box 5800, Albuquerque, NM 87123}
+
+\begin{abstract}
+
+\end{abstract}
+
+\begin{keyword}
+  cornea, viscoelasticity, creep, mechanical behavior, tissue mechanics
+\PACS
+\end{keyword}
+\end{frontmatter}
+
+
+
+
+\section{Introduction}
+\label{sec:bulge_background}
+
+talking points:
+\begin{enumerate}
+\item sources of discrepancy between tension and bulge, 
+e.g. matrix properties (shear), recruited fibril density, thickness.
+Compare experiments with tension parameter predictions and bulge fitted
+parameters.
+Note evolution during preconditioning is roughly 30\% versus 100\% for tension.
+
+Simulations: 
+compare apex displacement for cycle C for 3.6-8 kPa or 0-8 kPa or 0-32 kPa
+
+\item viscous effects : can they be predicted using refitted elastic parameters
+and tension-derived viscous parameters?
+
+\item weak periphery-strong center theory of cornea deformation.
+Does the holder obscure the validity of this observation with respect to
+{\it in vivo}?
+
+Simulations:
+show the effects of changing the assumed fibril distribution, 
+e.g. add more fibrils to the center
+
+Observations:
+with an in-plane isotropic distribution the displacements I get still 
+seem to be larger at the edge and flatter in the center. I think this is
+largely controlled by the matrix shear modulus i.e. the lamellae are being 
+sheared at the fixture and the distribution doesn't matter as much in 
+out-of-plane shear.
+
+
+\item anisotropy effects: due to symmetry of distribution, geometry, 
+loading, boundary conditions/fixture.
+
+Simulations:
+use a ``human''/circular cornea and compare : iso distribution with same
+fibril density, assumed distribution with fixed edges, assumed distribution
+with free radial expansion
+
+Observations:
+(a) with a free edge and without the sclera the limbus tends to contract 
+radially with applied pressure i.e. it is put into compression.
+(b) with an attached (pseudo)sclera/globe the limbus tends to expand radially 
+with applied pressure i.e. the reinforcing circumferential fibrils are
+loaded (in tension).
+(c) in both cases, and probably in general, the first principle stress (radial?)
+is approximately uniform across the cornea, the second has a gradient through
+the thickness and the third a gradient radially.
+ergo it seems like we cannot simultaneously isolate the cornea and load
+it physiologically without mimicking the expansion of the globe under pressure.
+
+\item clinical relevance/application : e.g. applanation in tonometry,
+relaxation during keratotomy surgery.
+Also, look at change in focal length and refractive power with excursions 
+from IOP.
+(Talk to S. McLeod.)
+\end{enumerate}
+
+to do:
+\begin{itemize}
+\item agree on one bovine and one human mesh (and check into repository)
+\item agree on a fibril distribution
+\end{itemize}
+
+% HACK
+\pagebreak
+%
+%
+\begin{figure}[hptb]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{./cornea_mesh.ps} 
+  \caption{Finite element mesh of the cornea, the red regions are held
+fixed, to approximate the permeation of the glue into the stiffer 
+schleral tissue, and the inner surface is pressurized}
+  \label{fig:cornea_mesh}
+\end{center}
+\end{figure}
+
+
+\section{Results}
+\label{sec:bulge_results}
+
+{\it The Pressure-Dependent Vertical Displacement Field.}
+The present section describes features found at maximum pressure when the total displacements are at or near their maximum.  More detail can be found regarding the pressure-dependent evolution of the displacement field as shown in \figref{fig:w_maps}.  At the minimum reference pressure of 0.1 $kPa$, the cornea is in its reference configuration and there is no U,V or W displacement.  At a pressure of 0.7 $kPa$, which is $<$10\% of the maximum pressure and $<$30\% of typical bovine IOP, the cornea appears to have a smoothly-graded nearly symmetric displacement field.  At this sub-IOP pressure, the cornea has already deformed quite substantially: the maximum W-displacement in the central cornea of $\approx 0.55 mm$ is more than half of the final deformation that will be achieved at a maximum pressure of 8 $kPa$.  By a pressure of 2.4 $kPa$, nearing typical bovine IOP, the shape of the deformation contours has transformed significantly with the deformation contours now more rectangular and stretched along the inferior-superior axis rather than the nasal-temporal axis found at 0.7 $kPa$.  The characteristic contour shapes that emerge at pressures near IOP persist to higher pressures and are still evident at 7.4 $kPa$.  At the pressure of 2.4 $kPa$, the cornea has already experienced $>$80\% of its total W-displacement.  The displacement profile at a pressure of 6.1 $kPa$ is nearly identical to that at 7.4 $kPa$. These observations highlight the well-known nonlinear elastic response of the cornea: it is much stiffer at pressures near IOP and above than it is in the fully relaxed state.  
+%
+
+{\it Statistically Averaged Displacement Response}.
+The displacement fields for individual cornea samples do not exhibit regular, symmetric contours indicative of a possible lack of isotropy and/or property homogeneity.  Since there was some variability from sample-to-sample, a composite average displacement field for all 9 tests under nominally identical conditions was constructed.
+\comment{REJ: describe Lagrange to Euler map used in the averaging.}
+The resulting initial configuration and displacement field is shown in \figref{fig:aveZ} and  \figref{fig:ave_displacements}, respectively.
+%
+\begin{figure}[hptb]
+\begin{center}
+\includegraphics[width=0.6\textwidth]{./Z_0.ps}
+\caption{Averaged configuration at $3.6 \, kPa$ and after preconditioning }
+  \label{fig:aveZ}
+\end{center}
+\end{figure}
+%
+\begin{figure}[hptb]
+\begin{center}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./dZ_1c.ps}}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./dZ_2c.ps}}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./dZ_3c.ps}}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./dZ_4c.ps}}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./dZ_5c.ps}}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./dZ_6c.ps}}
+
+\includegraphics[width=2in]{./dZ_colorbar.ps}
+
+\caption{ Cycle A : averaged displacements at
+t=
+(a) 11$s$, $5.07 \, kPa$; 
+(b) 22$s$, $6.53 \, kPa$; 
+(c) 33$s$, $8.00 \, kPa$; 
+(d) 44$s$, $6.53 \, kPa$; 
+(e) 55$s$, $5.07 \, kPa$; 
+(f) 66$s$, $3.60 \, kPa$; }
+  \label{fig:ave_displacements}
+\end{center}
+\end{figure}
+
+As another way to condense the rich dataset, a scalar W-displacement value was extracted at each timestep of the 9 identical tests.  The W-displacement values were taken from the central cornea at the highest point of the original reference configuration.  This provides an apex displacement value that can be readily examined as a function of time or pressure.  The averaged apex displacement for the 9 identical tests is shown in \figref{fig:statistical_cyclesABC}.  In this figure the three different pressurization rates, i.e. cycles A, B, and C, are compared directly corresponding to pressurization rates of 0.036, 0.0045, and 0.29 $kPa/s$, respectively.  It is interesting to note that there is significantly less sample-to-sample scatter in this inflation data than in preceding tensile experiments \cite{Boyce2006}.  At all pressure-rates the cornea displays viscoelastic hysteresis, but only a small degree of non-linearity compared to the tensile results.  This important feature will be analyzed in more detail in the Discussion section.  
+%
+\begin{figure}[hptb]
+\begin{center}
+  \resizebox{\textwidth}{!}
+{\includegraphics{./statistical_cycles_abc.eps}} 
+  \caption{The average apex displacement at a function of applied pressure during triangular loading cycles A, B, and C, corresponding to pressurization rates of 0.036, 0.0045, and 0.29 $kPa/s$, respectively.  Error bars indicate 1 standard deviation.}
+  \label{fig:statistical_cyclesABC}
+\end{center}
+\end{figure}
+
+Since cycles A and D are nominally identical, both at a ramp rate of 0.036 $kPa/s$, one can assess the repeatability of the tests.  Average apex displacement is plotted as a function of pressure for both of these cycles in \figref{fig:bulge_compare_cyclesAandD}.  As intended, the two cycles result in nearly identical behavior, well beyond statistical distinguishability.  
+\comment{REJ: add error bars?}
+This suggests that the cornea loading condition returns to a well-defined reference state for each of the cycles, and that any possible time-dependent or cycle-dependent evolution of the material does not affect the resulting mechanical response.
+%
+\begin{figure}[hptb]
+\begin{center}
+  \resizebox{0.6\textwidth}{!}
+{\includegraphics{./bulge_compare_cycles_a_and_d.eps}} 
+  \caption{A comparison of average apex displacement for two nominally identical cycles in the loading regimen.}
+  \label{fig:bulge_compare_cyclesAandD}
+\end{center}
+\end{figure}
+
+Apex displacement can also be examined as a function of time.  This is especially interesting for the constant-pressure creep and constant-volume relaxation cycles, E and F.  The average response for these two loading cycles are shown in \figref{fig:bulge_creep_relaxation}.    The creep behavior at a constant pressure of 8 $kPa$ quickly reaches a steady-state creep rate on the linear timescale.  The creep-rate does not diminish with increasing time.  
+\comment{REJ: do we show this?}
+On a logarithmic timescale, the cornea creep rate is growing exponentially, similar to the tensile creep curves for the higher tensile stresses of 350 and 500 $kPa$ shown in \figref{fig:creep_data}, which suggests activation of multiple creep elements at different timescales \cite{Nguyen2007}.  The pressure and apex displacement evolution at constant volume shows expected relaxation of the pressure.  Also, as expected, the apex displacement continues to creep since the pressure continues to be well above the rest-state, i.e. 3.6 $kPa$.         
+%
+\begin{figure}[hptb]
+\begin{center}
+  \resizebox{\textwidth}{!}
+{\includegraphics{./bulge_creep_relaxation.eps}}
+  \caption{Creep and relaxation during cycles E and F, respectively.}
+  \label{fig:bulge_creep_relaxation}
+\end{center}
+\end{figure}
+
+{\it Local Deformation: Central Cornea and Limbus}.
+The ability to extract local displacement vectors allows the evaluation of spatially disparate response.  To compare the deformation of the central cornea to deformation around the limbal periphery, displacement values were extracted from positions midway between the corneo-scleral junction and the apex of the cornea, along each of the four directions: nasal, temporal, inferior, and superior.  These mid-peripheral displacements were compared directly to the apex displacement for one specific loading cycle in \figref{fig:bulge_mid_periphery}.  While the pressure-displacement profile for a single specimen is not as smooth as the averaged response, nevertheless a specific trend is obvious:  The displacement values at the mid-periphery points account for $\approx 90 $\% of the displacement that occurs at the apex.  In other words, the central cornea largely retains its shape during deformation.  As a corollary, the pressure-driven deformation is largely accommodated in the limbus of the cornea.  
+\comment{REJ: we should collect all results for this conclusion here.}
+%
+\begin{figure}[hptb]
+\begin{center}
+  \resizebox{\textwidth}{!}
+{\includegraphics{./bulge_mid_periphery.eps}} 
+  \caption{Local mid-periphery displacement values compared to the apex displacement.}
+  \label{fig:bulge_mid_periphery}
+\end{center}
+\end{figure}
+
+{\it The Response of the Cornea over a Wider Pressure Range}.
+While the preceeding results correspond to pressures in the range of 3.6-8 $kPa$, i.e. within the range of physiologically plausible pressures experienced by the bovine species, inflation experiments were also performed over a much wider pressure range from 0.7-32 $kPa$.  From these results, a few key cycles were plotted in \figref{fig:superbulge}.  Cycles A and B exhibit a dramatically nonlinear or J-shaped pressure-displacement response.  It is interesting to note that the knee in the response is located in the vicinity of $\approx 2 kPa$, at the onset of typical intraocular pressures.  Also note, that this wide-range data supports the notion that the material response is approximately linear over the smaller physiologic range of 3.6-8 $kPa$, as was observed in the previously described experiments.  While this wider range is outside the realm of physiologically relevant pressures, it provides a connection to commonly observed J-shaped stress-strain curves found in the literature.  The creep response at a constant pressure of 32 $kPa$ showed a constant creep rate on a linear timescale, similar to that observed at a creep pressure of 8 $kPa$, here again suggesting the activation of multiple creep mechanisms and different timescales. 
+%
+\begin{figure}[hptb]
+\begin{center}
+  \resizebox{\textwidth}{!}
+{\includegraphics{./superbulge.eps}}
+  \caption{Response to pressures $0-32 \, kPa$.}
+  \label{fig:superbulge}
+\end{center}
+\end{figure}
+
+
+\section{Discussion}
+\label{sec:bulge_discussion}
+
+{\it Predictability of Inflation Experiments}.
+Using the finite element mesh constructed from DIC data and the 
+constitutive model described in \cite{Nguyen2007},
+the response of the cornea to the programmed pressure excursions was simulated. 
+\figref{fig:exp_apex_comp} shows how the response of the cornea 
+changes with increasing pressure. 
+Specifically, it clearly demonstrates large deformation and 
+subsequent rapid change in stiffness as the collagen fibrils go from 
+slack to taut. 
+It is also important to note that the higher stress behavior is 
+similar, i.e. after the weak low stress response is removed,
+in all three types of tests.
+\comment{REJ: show this more conclusively}
+Since the model described in \cite{Nguyen2007} was conditioned on tensile 
+data starting from the perceived knee in the response, the 
+parameters obtained from the tension fits should correlated well with
+the data in the 3.6-8.0 $kPa$ regimen. 
+However, referring to \figref{fig:apex_comp}, it is clear that the 
+apex displacement is overpredicted by roughly a factor of 6.
+There are a number of plausible sources for this error, including: 
+(a) the matrix bulk and shear moduli assumed in the tension work are
+not representative of the cornea (and the inflation response is relatively
+more sensitive to these parameters than the tension fit).
+(b) the intact fibril density was underestimated in the tension
+experiments due to loading only the unsevered fibrils,
+(c) the thickness of the cornea was underestimated by the direct measurements,
+\comment{REJ : include a table of thickness measurements?}
+which would effectively be an underestimation of both the matrix
+and fibril response. 
+Sensitivity studies show that the inflation response is much more 
+sensitive to the matrix parameters than the tension response. 
+However, the sensitivity to the fibril response in inflation is much greater
+than the matrix response at the fitted values, as expected. 
+\figref{fig:apex_comp} shows the response of the same model but 
+fortified with 4x the density of fibrils. 
+The response is quite comparable to the data, but it is hard to 
+attribute all of the error to this cause since it implies loading only 
+$1/4$ of the fibrils in the tension experiment.
+\comment{REJ: this is confounded by the fact that is hard to compare precisely
+the slack/no-slack points in the tension versus bulge experiments.}
+%
+\begin{figure}[hptb]
+\begin{center}
+{\includegraphics[width=0.6\textwidth]{./exp_apex_comp.ps}} 
+  \caption{Comparison of the apex displacement for the three regimens.}
+  \label{fig:exp_apex_comp}
+\end{center}
+\end{figure}
+%
+\begin{figure}[hptb]
+\begin{center}
+{\includegraphics[width=0.6\textwidth]{./apex_comp.ps}} 
+  \caption{Comparison of the experimental apex displacement to 
+the nominal model and one with increased fibril density.}
+  \label{fig:apex_comp}
+\end{center}
+\end{figure}
+
+The full field DIC displacement data also provided a means of comparing
+the effects of fibril density on deformation. 
+\figref{fig:cornea_fibril_distribution} shows the assumed fibril density
+across the cornea, and is adapted from the work \cite{Pinsky2005} on human 
+corneas
+\begin{equation}\label{eq:full_fibril_distribution}
+\begin{split}
+  \phi(r,\theta) &= 
+d_\text{central} 
+R(r,R_\text{NT-IS},R_\text{periphery}) 
+( \cos^8\theta + \sin^8\theta+0.451 ) 
+\\
+&+ 
+d_\text{periphery} 
+R(-r,R_\text{limbus},R_\text{periphery})
+( \sin^8\theta+0.720 ) 
+\end{split}
+\end{equation}
+where $(r,\theta)$ are polar coordinates in the NT-IS plane,
+$d_\text{central}$, $d_\text{central}$ are densities in the 
+central cornea and periphery, and
+$R(x,x_1,x_2)$ is ramp function that is zero for $x <x_1$, one for 
+$x > x_2$ and linear in between.
+It is clear from \figref{fig:strong_cornea} that the high density of fibrils
+in the center cornea provides the stiffness necessary to maintain its shape,
+while the largest deformations occur at the periphery, much like in
+\figref{fig:ave_displacements}c.
+However, there is no apparent effects of the anisotropy in fibril density
+in the central cornea, where most fibrils run in the NT and IS directions.
+An explanation of this observation is predicated on the fact that the cornea 
+under 
+inflation is nominally in an equibiaxial mode of deformation and, at
+least at small stretches, the corresponding tangent modulus of the fibril
+component of the model 
+\begin{equation}\label{eq:tangent_moduli}
+\mathbb{C} \ \approx \ \frac{1}{2\pi} \int_{-\pi}^{\pi}
+\left.
+\frac{\partial^2 w_{fibril}}{\partial (\lambda_\Mb^2)^2} \right|_{\lambda=1}
+\!\!\!\!\!\!\!
+\Mb \otimes \Mb \, \phi \, d\theta
+\end{equation}
+is approximately isotropic in plane since the fibril stiffness
+$\frac{\partial^2 w_{fibril}}{\partial (\lambda_\Mb^2)^2}$ is independent 
+of $\theta$ in the reference configuration.
+\comment{REJ : need more background here.}
+\figref{fig:diff_with_iso} illustrates this point for the deformation
+of the central cornea only.
+The deviations from isotropy are on the order of $1/100$th the mean
+displacements.
+%
+\begin{figure}[hptb]
+\begin{center}
+{\includegraphics[width=0.6\textwidth]{./cornea_fibril_distribution.ps}} 
+  \caption{Fibril density at selected points across the cornea}
+  \label{fig:cornea_fibril_distribution}
+\end{center}
+\end{figure}
+%
+\begin{figure}[hptb]
+\begin{center}
+{\includegraphics[width=0.6\textwidth]{./strong_cornea.ps}} 
+  \caption{Simulated vertical displacements showing strong center cornea and
+relatively weak periphery}
+  \label{fig:strong_cornea}
+\end{center}
+\end{figure}
+%
+\begin{figure}[hptb]
+\begin{center}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./NT_IS_full.ps}}
+\subfigure[]{\includegraphics[width=0.35\textwidth]{./diff_NT_ISO_full.ps}}
+
+\caption{ Displacements of the central region only: (a) total displacements
+for a primarily NT-IS oriented fibril density, and (b) the deviations
+of this deformation map with an isotropic (in-plane) arrangement of fibrils}
+  \label{fig:diff_with_iso}
+\end{center}
+\end{figure}
+
+{\it Application of the Model to Applanation of Cornea during Tonometry.}
+As an application of the geometric and constitutive model to a problem
+of clinical relevance, a simulation of glaucoma screening via tonometry was
+constructed. 
+In this common diagnostic test, a flat punch makes contact with the anterior surface
+of the cornea measuring the internal pressure of the eye indirectly through
+the cornea. 
+Given the apparent viscous effects that are intrinsic to the cornea, not
+to mention those associated with other tissues of the globe and
+the aqueous humor, the conjecture was that the rate of loading would affect
+the reaction force measured by the instrument. 
+Although the full globe is not modelled nor are the fluid effects, they
+are mimicked in part in the simulation by a constant volume constraint under the cornea. 
+A cylindrical flat-ended punch was made to approach the cornea at
+two different loading rates : $1.0 \, mm/s$ and $10.0 \, mm/s$.
+A typical displacement of anterior surface is shown in \figref{fig:applanation}
+and \figref{fig:applanation_reac} shows that the reaction force after $10s$ is different by
+$< 2$\%.
+This finding gives confidence to the accuracy of this common test.
+%
+\begin{figure}[hptb]
+\begin{center}
+{\includegraphics[width=0.6\textwidth]{./applanation.ps}} 
+  \caption{Applanation of a human cornea}
+  \label{fig:applanation}
+\end{center}
+\end{figure}
+%
+\begin{figure}[hptb]
+\begin{center}
+{\includegraphics[width=0.6\textwidth]{./applanation_reac.eps}} 
+  \caption{Applanation reaction force due to loading at $1.0 \, mm/s$ and $10.0 \, mm/s$.}
+  \label{fig:applanation_reac}
+\end{center}
+\end{figure}
+
+
+\section{Summary and Conclusions}
+\label{sec:bulge_conclusions}
+
+The present study employed a newly developed cornea inflation and deformation mapping scheme to examine the viscoelastic deformation of the cornea under conditions that closely match {\it in vivo} conditions.  This physiologically-inspired study revealed aspects of cornea deformation that can not be readily gleaned from most {\it ex situ} experiments.  It is clear from these experiments that the structure of the cornea is tailored to operate under positive pressures in the realm of intraocular pressures.  At pressures lower than the typical intraocular range, the response of the cornea is much less stiff, almost certainly due to slack collagen fibrils which are perhaps readily buckled in the relatively weak matrix.
+Another important observation from this study is that the central cornea deforms very little over a physiologic pressure range.  This feature is attributed to the circumferential alignment of limbal fibrils which are more compliant along the radial axis than the radially-aligned central cornea fibrils.  The result of this radially stiff central cornea is that the central cornea 
+retains its shape and optical power during pressure excursions.
+Another finding of clinical importance is the 
+cornea's response, over the physiological pressure range and
+the timescales considered,
+may be reasonably approximately as linear and relatively free of hysteresis.  While an original emphasis of this program was to examine the non-linear viscoelastic response of the cornea, which had been largely ignored in the literature, the inflation results suggest that linearity is a reasonable first-order approximation {\it under physiologic conditions}.
+In addition, the under physiologic conditions, the cornea appears to have multiple creep modes active, a phenomenon that was only evident in tensile results at high mean stress or long timescales.  
+
+While the present study has emphasized physiologic conditions, the timescale of these experiments was necessarily short, less than 1 hour.  The extrapolation of these results to longer term events such as glaucoma and other disease processes is questionable.   
+However, the findings of this work have significant relevance to shorter
+timescale processes such as corrective surgery and screening tests.  Future work to examine longer term physiologically-relevant mechanical evolution in cornea properties will almost certainly require {\it in vivo} experiments, such as by tonometry. 
+
+\section*{Acknowledgments}
+This work was funded by the Laboratory Directed Research and Development program at Sandia National Laboratories and its support is gratefully acknowledged. Sandia is a multiprogram laboratory operated by Sandia Corporation, a Lockheed Martin Company, for the United States Department of Energy under contract DE-ACO4-94AL85000.
+
+\bibliographystyle{elsart-harv}
+\bibliography{bio_cornea}
+
+
+\end{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   NOTES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+1) I really liked Fig. 5.8.  The North America shape is a bit wierd but the the
+"rectangular" shape of the W displacement contour suggests either anisotropy or
+inhomogeneity (as you mentioned).  However, Fig. 5.10. the avered displacement
+contours (W? or displacement magnitude?) was murky.  I'm not sure what it says.
+Perhaps you can elaborate.  The contour almost said that the cornea deforms
+uniformly which can't be.  Is D_Z the same as U?  
+
+> a couple things are going on here:
+(a) non-averaged displacements from zero pressure show trends,
+from IOP show much more noise due to being in the stiff portion of the
+response.
+(b) D_Z is not U, U is the vertical component of the displacement of a 
+Lagrangian description of the surface i.e. one that follows material point
+(the speckles) and D_Z is the vertical displacement of the surface using
+an Eulerian description (that was necessary for averaging) with coordinates
+x, y.
+
+
+2) The simulations results in Fig. 5.19 has a similar rectangular shape to the
+displacement contour in the peripheral region (consistent with experiments) but
+the central region is circular, which doesn't seem consistent with the
+experimental results of Fig. 5.8.  Is there a discrepancy or is the resolution
+too poor to conclusively say?  If there is a discrepancy then perhaps the
+fibril distribution for the bovine cornea is not as we thought.
+
+> The simulation used a very strong central circular region, I think the
+experiments show the influence of a strong central region plus some "buckling"
+from the odd shaped limbus fixture i.e. it is saddle shaped with NT being at
+different heights than IS.
+
+
+3) You mentioned that the creep response reaches a steady-state characterized
+by a constant creep rate. So you're entering secondary creep.  That indicates
+to me 1) fluid-like behavior, (2) irreversible deformations.  I remember there
+being an issue with irreversibility. Perhaps we should talk about this further
+in the paper.  In the tensile strip tests, the creep rate wasn't constant.  It
+continued to decay towards zero.
+
+> I think we need to plot the creep vs log-time ...
+
+
+4) I liked the hypothesis about the difference in the stiffness between the
+stress-strain response in the tensile strip tests and in the globe tests.   Is
+it feasible that only 25% of the lamellae were engaged in the tensile strip
+test?  Possibly.  For the tensile strip test, if one were to compare the stress
+strain response of the first preconditioning cycle to the last preconditional
+cycle, would one observe a difference in the stiffness in the stress-strain
+response?
+
+> this is a very good idea, but I don't think it characterizes all the missing
+fibrils. Another point is : the comparison is confounded by the fact that is
+hard to compare precisely the slack/no-slack points in the tension versus bulge 
+experiments.
+
+
+5) Reese, I liked the final FEM you designed for the cornea.  Would you be
+willing to share that with me?  I'd like to run some simulations on the cornea
+as prep for talking to some of the ophthalmologists here at the Wilmer Eye
+Institute.  If not, I can create a generic ellipsoidal model.  Thanks.
+
+> the model I used (geometry and BVP) are now in the fiber composite development 
+benchmarks
+
+
+
+

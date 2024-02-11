@@ -1,0 +1,12 @@
+set logscale xy
+set xrange [0.5:*]
+plot \
+"rate3_5.dat" w p,\
+"rate3_5.uvst_Y" w l,\
+pause -1
+set term png color
+set output "rate3_5.png"
+repl
+set term post eps color
+set output "rate3_5.eps"
+repl

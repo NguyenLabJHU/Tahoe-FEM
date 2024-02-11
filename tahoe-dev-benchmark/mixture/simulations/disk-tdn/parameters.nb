@@ -1,0 +1,378 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.0'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      8176,        273]*)
+(*NotebookOutlinePosition[      8817,        295]*)
+(*  CellTagsIndexPosition[      8773,        291]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+    \(DaveParams = {Mach \[Rule] 7.8\ 10^\(-4\), Reynolds \[Rule] 0.081, 
+        L \[Rule] 0.25}\)], "Input"],
+
+Cell[BoxData[
+    \({Mach \[Rule] 0.00078`, Reynolds \[Rule] 0.081`, 
+      L \[Rule] 0.25`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MyParams = {R \[Rule] 10, cd \[Rule] 1, rhos \[Rule] 1, 
+        rhof \[Rule] 1}\)], "Input"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(rhos\\)\\\" is similar to existing symbol \\\
+\"\\!\\(rho\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\
+\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(rhof\\)\\\" is similar to existing symbols \
+\\!\\({rho, rhos}\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    \({R \[Rule] 10, cd \[Rule] 1, rhos \[Rule] 1, 
+      rhof \[Rule] 1}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MachEq = Fdot\ R/cd\)], "Input"],
+
+Cell[BoxData[
+    \(\(Fdot\ R\)\/cd\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ReynoldsEq = Fdot\ R\ R\ rhof/mu\)], "Input"],
+
+Cell[BoxData[
+    \(\(Fdot\ R\^2\ rhof\)\/mu\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(phisEq = 2\ Pi\ \(\(\((df/2)\)^2/Sqrt[3]\)/L\)/L\)], "Input"],
+
+Cell[BoxData[
+    \(\(df\^2\ \[Pi]\)\/\(2\ \@3\ L\^2\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(csEq = phis\ rhos\)], "Input"],
+
+Cell[BoxData[
+    \(phis\ rhos\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(cfEq = \((1 - phis)\) rhof\)], "Input"],
+
+Cell[BoxData[
+    \(\((1 - phis)\)\ rhof\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(DqEq = cf^2/mu\ kappa\ df^2\)], "Input"],
+
+Cell[BoxData[
+    \(\(cf\^2\ df\^2\ kappa\)\/mu\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(equations = \({cfEq \[Equal] cf, csEq \[Equal] cs, 
+            MachEq \[Equal] Mach, ReynoldsEq \[Equal] Reynolds, 
+            phisEq \[Equal] phis, DqEq \[Equal] Dq} /. DaveParams\) /. 
+        MyParams\)], "Input"],
+
+Cell[BoxData[
+    \({1 - phis \[Equal] cf, phis \[Equal] cs, 
+      10\ Fdot \[Equal] 0.00078`, \(100\ Fdot\)\/mu \[Equal] 0.081`, 
+      14.510394913873744`\ df\^2 \[Equal] 
+        phis, \(cf\^2\ df\^2\ kappa\)\/mu \[Equal] Dq}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(permeabilityTable = ReadList[StringToStream["\<0.10000 0.31626
+0.20000 0.078100
+0.30000 0.027580
+0.40000 0.010870
+0.50000 0.0042500
+0.60000 0.0015150
+0.70000 0.00043100\>"], {Number, Number}]\)], "Input"],
+
+Cell[BoxData[
+    \({{0.1`, 0.31626`}, {0.2`, 0.0781`}, {0.3`, 0.02758`}, {0.4`, 
+        0.01087`}, {0.5`, 0.00425`}, {0.6`, 0.001515`}, {0.7`, 
+        0.000431`}}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(case1 = {phis \[Rule] permeabilityTable[\([3, 1]\)], 
+        kappa \[Rule] permeabilityTable[\([3, 2]\)]}\)], "Input"],
+
+Cell[BoxData[
+    \({phis \[Rule] 0.3`, kappa \[Rule] 0.02758`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(equations1 = equations /. case1\)], "Input"],
+
+Cell[BoxData[
+    \({0.7` \[Equal] cf, 0.3` \[Equal] cs, 
+      10\ Fdot \[Equal] 0.00078`, \(100\ Fdot\)\/mu \[Equal] 0.081`, 
+      14.510394913873744`\ df\^2 \[Equal] 
+        0.3`, \(0.02758`\ cf\^2\ df\^2\)\/mu \[Equal] Dq}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(params1 = Solve[equations1, {Fdot, mu, df, cs, cf, Dq}]\)], "Input"],
+
+Cell[BoxData[
+    \({{cs \[Rule] 0.3`, Fdot \[Rule] 0.000078`, 
+        Dq \[Rule] 0.0029015013732655946`, mu \[Rule] 0.0962962962962963`, 
+        cf \[Rule] 0.7`, 
+        df \[Rule] \(-0.1437874597394265`\)}, {cs \[Rule] 0.3`, 
+        Fdot \[Rule] 0.000078`, Dq \[Rule] 0.0029015013732655946`, 
+        mu \[Rule] 0.0962962962962963`, cf \[Rule] 0.7`, 
+        df \[Rule] 0.1437874597394265`}}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[Map[ScientificForm, Sort[params1[\([2]\)]]]]\)], "Input"],
+
+Cell[BoxData[
+    InterpretationBox[GridBox[{
+          {
+            TagBox[
+              RowBox[{"cf", "\[Rule]", 
+                InterpretationBox[\("7."\[Times]10\^"-1"\),
+                  0.69999999999999996,
+                  AutoDelete->True]}],
+              ScientificForm]},
+          {
+            TagBox[
+              RowBox[{"cs", "\[Rule]", 
+                InterpretationBox[\("3."\[Times]10\^"-1"\),
+                  0.29999999999999999,
+                  AutoDelete->True]}],
+              ScientificForm]},
+          {
+            TagBox[
+              RowBox[{"df", "\[Rule]", 
+                InterpretationBox[\("1.43787"\[Times]10\^"-1"\),
+                  0.1437874597394265,
+                  AutoDelete->True]}],
+              ScientificForm]},
+          {
+            TagBox[
+              RowBox[{"Dq", "\[Rule]", 
+                InterpretationBox[\("2.9015"\[Times]10\^"-3"\),
+                  0.0029015013732655946,
+                  AutoDelete->True]}],
+              ScientificForm]},
+          {
+            TagBox[
+              RowBox[{"Fdot", "\[Rule]", 
+                InterpretationBox[\("7.8"\[Times]10\^"-5"\),
+                  7.7999999999999999*^-05,
+                  AutoDelete->True]}],
+              ScientificForm]},
+          {
+            TagBox[
+              RowBox[{"mu", "\[Rule]", 
+                InterpretationBox[\("9.62963"\[Times]10\^"-2"\),
+                  0.096296296296296297,
+                  AutoDelete->True]}],
+              ScientificForm]}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      TableForm[ {
+        ScientificForm[ cf -> 0.69999999999999996], 
+        ScientificForm[ cs -> 0.29999999999999999], 
+        ScientificForm[ df -> 0.1437874597394265], 
+        ScientificForm[ Dq -> 0.0029015013732655946], 
+        ScientificForm[ Fdot -> 7.7999999999999999*^-05], 
+        ScientificForm[ mu -> 0.096296296296296297]}]]], "Output"]
+}, Open  ]]
+},
+FrontEndVersion->"5.0 for Macintosh",
+ScreenRectangle->{{51, 1920}, {0, 1178}},
+WindowSize->{996, 909},
+WindowMargins->{{301, Automatic}, {119, Automatic}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 124, 2, 27, "Input"],
+Cell[1903, 57, 106, 2, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2046, 64, 113, 2, 27, "Input"],
+Cell[2162, 68, 355, 5, 21, "Message"],
+Cell[2520, 75, 354, 5, 21, "Message"],
+Cell[2877, 82, 101, 2, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3015, 89, 52, 1, 27, "Input"],
+Cell[3070, 92, 49, 1, 42, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3156, 98, 65, 1, 27, "Input"],
+Cell[3224, 101, 58, 1, 45, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3319, 107, 81, 1, 27, "Input"],
+Cell[3403, 110, 68, 1, 49, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3508, 116, 50, 1, 27, "Input"],
+Cell[3561, 119, 44, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3642, 125, 59, 1, 27, "Input"],
+Cell[3704, 128, 54, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3795, 134, 60, 1, 27, "Input"],
+Cell[3858, 137, 61, 1, 45, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3956, 143, 238, 4, 43, "Input"],
+Cell[4197, 149, 243, 4, 45, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4477, 158, 224, 7, 123, "Input"],
+Cell[4704, 167, 179, 3, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4920, 175, 139, 2, 27, "Input"],
+Cell[5062, 179, 77, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5176, 185, 64, 1, 27, "Input"],
+Cell[5243, 188, 242, 4, 45, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5522, 197, 88, 1, 27, "Input"],
+Cell[5613, 200, 411, 7, 43, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6061, 212, 87, 1, 27, "Input"],
+Cell[6151, 215, 2009, 55, 135, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

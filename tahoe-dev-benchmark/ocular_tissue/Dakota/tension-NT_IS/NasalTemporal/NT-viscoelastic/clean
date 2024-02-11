@@ -1,0 +1,7 @@
+rm -f  dakota.rst  history.xml  runtime.properties  idr-parsed-input.txt  OPT_DEFAULT.out  vtk_console.log *FNT
+rm -f  error*.fvst* error*.norm error*.parameters
+rm -f *out
+rm -f cubit*.jou
+rm -f *.io*.exo
+rm -f *.valid.* *.echo.*
+rm -f error_func.in.*

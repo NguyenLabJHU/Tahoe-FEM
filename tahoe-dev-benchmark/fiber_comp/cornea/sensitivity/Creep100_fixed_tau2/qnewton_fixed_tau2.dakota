@@ -1,0 +1,37 @@
+strategy, \
+	single_method, \
+  tabular_graphics_data \
+	#graphics
+
+method, \
+	optpp_q_newton, \
+	convergence_tolerance = 1e-4 \
+  linear_equality_constraint_matrix = 0.6666666666 0.3333333333 \
+  linear_equality_targets = 0.20456 \
+  linear_equality_scales = 1.0 \
+	output verbose \
+
+variables, \
+  continuous_design = 2 \
+  cdv_scales          1.0      1.0        \
+  cdv_descriptor     'ALPHABAR' 'ALPHA2'  \
+  cdv_initial_point   0.20456   0.20456   \
+  cdv_lower_bounds    0.01    0.01        \
+  cdv_upper_bounds    0.6     0.6    
+
+interface, \
+	system \
+	analysis_driver = 'run.pl' \
+	parameters_file = 'in' \
+	results_file = 'out' \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+	numerical_gradients \
+	  method_source dakota \
+	  interval_type central \
+	  fd_gradient_step_size = 1.0e-2 \
+	no_hessians
+

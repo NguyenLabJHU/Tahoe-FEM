@@ -1,0 +1,21 @@
+set logscale x
+set xlabel "Time(s)"
+set ylabel "Engineering Strain (mm/mm)"
+set xrange [1.0:1200]
+set yrange [0.02:0.075]
+set grid
+set key left box
+plot \
+"creep100.dat" using 1:(($2)/2) t "Experiment 100 kPa" w p,\
+"creep100.uvst_Y" using 1:(($2)/2) t "Simulation 100 kPa" w l,\
+"creep350.dat" using 1:(($2)/2) t "Experiment 350 kPa" w p,\
+"creep350.uvst_Y" using 1:(($2)/2) t "Simulation 350 kPa" w l,\
+"creep500.dat" using 1:(($2)/2) t "Experiment 500 kPa" w p,\
+"creep500.uvst_Y" using 1:(($2)/2) t "Simulation 500 kPa" w l
+pause -1
+set term png color
+set output "creep.png"
+repl
+set term post eps color
+set output "creep.eps"
+repl

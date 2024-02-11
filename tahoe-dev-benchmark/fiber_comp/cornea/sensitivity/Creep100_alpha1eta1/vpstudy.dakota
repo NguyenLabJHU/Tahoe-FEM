@@ -1,0 +1,28 @@
+strategy, \
+	single_method \
+	tabular_graphics_data \
+#	graphics
+
+method, \
+	vector_parameter_study \
+   final_point = 20.0 \
+   num_steps = 10 \
+
+variables, \
+	continuous_design = 1 \
+	cdv_descriptor     'XI1' \
+	cdv_initial_point 0.1 \
+
+interface, \
+	system \
+	analysis_driver = 'run.pl' \
+	parameters_file = 'in' \
+	results_file = 'out' \
+	file_tag \
+	file_save
+
+responses, \
+	num_objective_functions = 1 \
+	no_gradients \
+	no_hessians 
+

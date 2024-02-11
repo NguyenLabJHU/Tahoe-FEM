@@ -1,0 +1,12 @@
+create vertex 0.0 0.0
+create vertex 2.000 0.0
+create vertex 3.540 0.250
+create vertex 4.425 0.885
+create vertex 4.720 1.475
+create vertex 4.720 3.245
+create vertex 4.130 4.425
+create vertex 2.360 5.900
+create vertex 1.125 6.400
+create vertex 0.600 6.550
+create vertex 0.0 6.641
+create curve vertex 1 vertex 11 vertex 2 vertex 3 vertex 4 vertex 5 vertex 6 vertex 7 vertex 8 vertex 9 vertex 10

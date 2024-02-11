@@ -1,0 +1,31 @@
+Brief ellip3d users guide
+by Tom Buzbee
+----------------------------
+
+Ellip3d is used for simulating compressions of discrete elements. It uses simple
+text files to store data. The parameters are not passed in on the command-line,
+they are unfortunately hardcoded and you must recompile every time you want to 
+change something.
+
+For visualization, you can use either the 'plot' program in the CVS repository,
+or you can use the ParaView plugin I wrote. I would recommend the latter, as the
+former takes quite a bit longer and can potentially take gigabytes of disk
+space. Before you even see your particles.
+
+Anyway, to configure ellip3d you essentially copy-and-paste one of the template
+function calls from the bottom of main.cpp into the top section, replacing
+whatever was in 'Part 2'. The string arguments give filenames to write data to.
+There are more parameters up at the top that you will also want to tweak. Once
+you have it set up, compile it and copy the executable to another directory.
+Place whatever input files it needs in the directory as well, and then run it
+from the command line. It should print the step number every ten steps.
+
+
+
+Some notes about the particle files:
+
+The first number is the number of particles. If you change this to lower, the rest will simply be ignored. This can be useful for testing if you don't want to use them all.
+
+To get Cartesian coordinates out of the axle vectors, just take the cosine of each
+
+The Axes must be specified in decreasing order, otherwise things don't work

@@ -1,0 +1,6 @@
+@
+# $Id: run.batch,v 1.1 2004-09-02 20:41:49 rdorgan Exp $
+-dtd
+-xsd
+10.length/run.batch
+100mm.length/run.batch

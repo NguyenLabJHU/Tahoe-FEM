@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe geometry_file="plug2D_2.exo" geometry_format="automatic"
+    output_format="ExodusII" restart_file="plug_comp.rs800of800"
+    restart_output_inc="300" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <graph_decomposition/>
+    <time max_step_cuts="13" num_steps="1200" output_inc="1" time_step="2">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="373"/>
+                <OrderedPair x="20.0" y="373"/>
+                <OrderedPair x="1220.0" y="273"/>
+            </piecewise_linear>
+        </schedule_function>
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="20" y="-2"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3" type="fixed"/>
+            <kinematic_BC dof="1" node_ID="5" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="2" type="fixed"/>
+            <kinematic_BC dof="2" node_ID="4" schedule="2" type="u" value="1"/>
+        </field>
+        <field field_name="temperature">
+            <dof_labels>
+                <String value="T"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="6" schedule="1" type="u" value="1"/>
+        </field>
+        <history_node_ID_list>
+            <String value="7"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_axi field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output coordinates="1"
+                displacements="1" material_output="1" stress="1"/>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <SMP_multi WLF_C1="13.76" WLF_C2="32.46"
+                        density="1." glass_trans_temp_Tg="309.13"
+                        glassy_CTE="0.00026706"
+                        initial_temperature_T0="373" rubbery_CTE="0.0007482">
+                        <smp_multi_eq_potential>
+                            <arruda-boyce kappa="1666.67"
+                                locking_stretch="4."
+                                network_stiffness="0.170974" reference_temperature="373"/>
+                        </smp_multi_eq_potential>
+                        <smp_multi_neq_potential>
+                            <neo-hookean kappa="0.0" mu="555.56"/>
+                        </smp_multi_neq_potential>
+                        <smp_multi_structural_spectrum user_input_file="dalpha_spectrum_cool.txt"/>
+                        <smp_multi_stress_spectrum
+                            activation_energy="80"
+                            characteristic_relaxation_time_tauYref="200000"
+                            init_yield_strength="1"
+                            sat_yield_strength=".5" user_input_file="dmu_spectrum_cool.txt"/>
+                    </SMP_multi>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <large_strain_StVenant CTE="0.00001" density="1">
+                        <E_and_nu Poisson_ratio="0.35" Young_modulus="1e+6"/>
+                    </large_strain_StVenant>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+        </updated_lagrangian_axi>
+        <contact_2D_penalty field_name="displacement" penalty_stiffness="1e+7">
+            <contact_surface>
+                <surface_side_set side_set_ID="1"/>
+            </contact_surface>
+            <contact_surface>
+                <surface_side_set side_set_ID="2"/>
+            </contact_surface>
+            <contact_nodes>
+                <node_ID_list>
+                    <String value="1"/>
+                </node_ID_list>
+            </contact_nodes>
+        </contact_2D_penalty>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-6"
+        divergence_tolerance="1.0e+02" max_iterations="6" rel_tolerance="1.0e-8">
+        <SPOOLES_matrix/>
+    </nonlinear_solver>
+</tahoe>

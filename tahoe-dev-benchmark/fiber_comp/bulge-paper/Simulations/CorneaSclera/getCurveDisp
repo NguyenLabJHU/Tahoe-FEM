@@ -1,0 +1,80 @@
+#!/usr/bin/perl -w
+$infile = $ARGV[0];
+$sort_coord = 0; # x by default
+if (defined($ARGV[1])) { $sort_coord = $ARGV[1] -1 ; }
+
+system("exotxt $infile $infile.txt > /dev/null");
+
+open(IN,"$infile.txt") || die "cannot open displacement for reading : $!";
+
+print "t X Y Z U V W\n";
+
+$nnodes = 0;
+$offset = 0;
+$tindex = 0;
+while (defined($line = <IN>) ) {
+  if ($line =~ /initial/)   {
+    $_ = <IN>;
+    $_ = <IN> ; chomp ; s/^\s+//; s/\s+$//; @list = split(/ +/);
+    $nnodes = $list[0];
+  }
+  if ($line =~ /Coordinates/)   {
+    for (my $i = 0; $i < $nnodes; $i++) {
+      $_ = <IN> ; chomp ; s/^\s+//; s/\s+$//; @list = split(/ +/);
+      $x = $list[0]; $y = $list[1]; $z = $list[2];
+      push (@xs,$x); push (@ys,$y); push (@zs,$z);
+      $xx = $list[$sort_coord]; push (@index, "$i $xx");
+    }
+    # get map of sorted coordinates
+    $sort_column = 1; # the coordinate
+    @sorted_index = sort by_col_numeric @index;
+    for (my $i = 0; $i < $nnodes; $i++) {
+      $_ = $sorted_index[$i]; chomp ; s/^\s+//; s/\s+$//; @list = split(/ +/);
+      $map[$i] = $list[0]; # the index
+      #print $map[$i], "\n";
+    }
+  }
+  if ($line =~ /Time/)   {
+    $_ = <IN> ; chomp ; s/^\s+//; s/\s+$//; @list = split(/ +/);
+    $time = $list[0]; 
+    #push (@ts,$time);
+  }
+  if ($line =~ /Nodal/) {
+    for (my $i = 0; $i < $nnodes; $i++) {
+      $_ = <IN> ; chomp ; s/^\s+//; s/\s+$//; @list = split(/ +/);
+      $_ = <IN>; # junk
+      $u = $list[0]; $v = $list[1]; $w = $list[2];
+      push (@us,$u); push (@vs,$v); push (@ws,$w);
+    }
+    open(OUT,">points.$tindex.dat");
+    for (my $j = 0; $j < $nnodes; $j++) {
+      $i = $map[$j]; $k = $i +$offset;
+      print $time, " ",$xs[$i]," ",$ys[$i]," ",$zs[$i],
+                   " ",$us[$k]," ",$vs[$k]," ",$ws[$k], "\n";
+      print OUT $xs[$i]+$us[$k]," ",$ys[$i]+$vs[$k]," ",$zs[$i]+$ws[$k], "\n";
+    }
+    close OUT; $tindex++;
+    $offset += $nnodes;
+    print "\n";
+  }
+}
+
+close(IN);
+
+# sort
+
+exit(0);
+
+sub by_col_numeric {
+  @a_cols = split(/ +/,$a);
+  @b_cols = split(/ +/,$b);
+  $aa = -1.e8;
+  $bb = -1.e8;
+  if (defined($a_cols[$sort_column]) && !($a =~ /#/) )
+    { $aa = $a_cols[$sort_column] ;}
+  if (defined($b_cols[$sort_column]) && !($b =~ /#/) )
+    { $bb = $b_cols[$sort_column] ;}
+  ($aa <=> $bb);
+  #($a <=> $b) || ($a cmp $b);
+}
+

@@ -1,0 +1,6 @@
+@
+# $Id: run.batch,v 1.1 2004-09-02 20:44:12 rdorgan Exp $
+-dtd
+-xsd
+pwlin/run.batch
+lin/run.batch

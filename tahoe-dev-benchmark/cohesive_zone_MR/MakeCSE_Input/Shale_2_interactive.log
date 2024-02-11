@@ -1,0 +1,138 @@
+
+ Welcome to: MakeCSE v5.1 (Oct 2002)
+
+ Build Date: Jun  9 2009 20:38:40
+
+ No input file, interactive session.
+
+ Input format. . . . . . . . . . . . . . . . . . = 5
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 13. Abaqus Input (.inp)
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = ../Geometry/shale.g
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 101
+ Number of nodal degrees of freedom. . . . . . . = 2
+
+
+ N o d e   S e t   D a t a :
+
+ Number of Node Sets . . . . . . . . . . . . . . = 8
+  Node Set . . . . . . . . . . . . . . . . . . . = 1
+   Number of Nodes in Set. . . . . . . . . . . . = 10
+  Node Set . . . . . . . . . . . . . . . . . . . = 2
+   Number of Nodes in Set. . . . . . . . . . . . = 10
+  Node Set . . . . . . . . . . . . . . . . . . . = 3
+   Number of Nodes in Set. . . . . . . . . . . . = 1
+  Node Set . . . . . . . . . . . . . . . . . . . = 4
+   Number of Nodes in Set. . . . . . . . . . . . = 1
+  Node Set . . . . . . . . . . . . . . . . . . . = 5
+   Number of Nodes in Set. . . . . . . . . . . . = 1
+  Node Set . . . . . . . . . . . . . . . . . . . = 6
+   Number of Nodes in Set. . . . . . . . . . . . = 1
+  Node Set . . . . . . . . . . . . . . . . . . . = 7
+   Number of Nodes in Set. . . . . . . . . . . . = 7
+  Node Set . . . . . . . . . . . . . . . . . . . = 8
+   Number of Nodes in Set. . . . . . . . . . . . = 7
+ Node Set Transfer Methods . . . . . . . . . . . = 8
+  Method  Set ID
+       3       1
+       3       2
+       3       3
+       3       4
+       3       5
+       3       6
+       3       7
+       3       8
+
+ E l e m e n t   D a t a :
+
+ Number of regular element groups. . . . . . . . = 2
+ 1 2
+ Number of CSE element group . . . . . . . . . . = 2
+ 3 4
+
+  Element Group ID . . . . . . . . . . . . . . . = 1
+   Number of Elements. . . . . . . . . . . . . . = 131
+   Number of Element Nodes . . . . . . . . . . . = 3
+   Geometry Code . . . . . . . . . . . . . . . . = 2
+   Number of Side Sets . . . . . . . . . . . . . = 0
+
+  Element Group ID . . . . . . . . . . . . . . . = 2
+   Number of Elements. . . . . . . . . . . . . . = 17
+   Number of Element Nodes . . . . . . . . . . . = 3
+   Geometry Code . . . . . . . . . . . . . . . . = 2
+   Number of Side Sets . . . . . . . . . . . . . = 0
+
+ M a k e   C S E   D a t a :
+
+ Element Group Zones . . . . . . . . . . . . . . = 2
+
+  Initializing CS Element Group ID . . . . . . . = 3
+   Number of Elements. . . . . . . . . . . . . . = 0
+   Number of Element Nodes . . . . . . . . . . . = 4
+   Geometry Code . . . . . . . . . . . . . . . . = 1
+
+
+  Initializing CS Element Group ID . . . . . . . = 4
+   Number of Elements. . . . . . . . . . . . . . = 0
+   Number of Element Nodes . . . . . . . . . . . = 4
+   Geometry Code . . . . . . . . . . . . . . . . = 1
+
+ Zone Edge Node Splitting Method . . . . . . . . = 2
+ Nodes on edge of zone, not to be split. . . . . = 0
+ Nodes specified by user not to be split . . . . = 0
+ CSE Block ID's to prep for contact surfaces . . = 0
+
+ Output format . . . . . . . . . . . . . . . . . = 5
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
+
+ Potential Split Nodes 98
+
+   Mapping Node Set 1 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 19
+
+   Mapping Node Set 2 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 18
+
+   Mapping Node Set 3 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 1
+
+   Mapping Node Set 4 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 1
+
+   Mapping Node Set 5 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 1
+
+   Mapping Node Set 6 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 0
+
+   Mapping Node Set 7 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 12
+
+   Mapping Node Set 8 by adding all split nodes.
+     Number of Nodes Added to Set. . . . . . . . = 11
+
+ Number of CSE's Created . . . . . . . . . . . . = 196
+ Number of Nodes Added . . . . . . . . . . . . . = 343
+ Total Number of Nodes . . . . . . . . . . . . . = 444
+
+ Done Creating CSE's 

@@ -1,0 +1,13 @@
+! getCurveDisp *.io3.exo 1 > u_nt.dat
+! getCurveDisp *.io4.exo 2 > u_is.dat
+
+set grid
+set xrange [0:*]
+set xlabel "(CUURENT) RADIAL COORDINATE (mm)"
+set ylabel "OUT-OF-PLANE DISPLACEMENT (mm)"
+plot "u_nt.dat" using (($2)+($5)):7 t "NT" w l, \
+     "u_is.dat" using (($3)+($6)):7 t "IS" w l 
+pause -1 "hit <CR> to continue"
+set term png
+set output "u.png"
+repl

@@ -1,0 +1,1648 @@
+# ParaView State Version 2.0
+
+set kw(vtkTemp5) [$Application GetMainWindow]
+set kw(vtkTemp23) [$kw(vtkTemp5) GetMainView]
+set kw(vtkTemp384) [$kw(vtkTemp5) GetAnimationInterface]
+set kw(vtkTemp661) [$kw(vtkTemp5) GetAnimationManager]
+[$kw(vtkTemp5) GetRotateCameraButton] SetState 1
+$kw(vtkTemp5) ChangeInteractorStyle 1
+set kw(vtkTemp662) [$kw(vtkTemp5) InitializeReadCustom "ExodusReader" "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io0.exo"]
+$kw(vtkTemp5) ReadFileInformation $kw(vtkTemp662) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io0.exo"
+$kw(vtkTemp5) FinalizeRead $kw(vtkTemp662) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io0.exo"
+set kw(vtkTemp766) [$kw(vtkTemp662) GetPVWidget {Filename}]
+$kw(vtkTemp766) SetValue "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io0.exo"
+set kw(vtkTemp663) [$kw(vtkTemp662) GetPVWidget {file_prefix}]
+$kw(vtkTemp663) SetValue {/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io0.exo}
+set kw(vtkTemp666) [$kw(vtkTemp662) GetPVWidget {file_pattern}]
+$kw(vtkTemp666) SetValue {%s}
+set kw(vtkTemp670) [$kw(vtkTemp662) GetPVWidget {FileRange}]
+$kw(vtkTemp670) SetMaxValue 0
+$kw(vtkTemp670) SetMinValue 0
+set kw(vtkTemp678) [$kw(vtkTemp662) GetPVWidget {xml_file}]
+$kw(vtkTemp678) SetValue {}
+set kw(vtkTemp682) [$kw(vtkTemp662) GetPVWidget {TimeStep}]
+$kw(vtkTemp682) SetValue 9999
+set kw(vtkTemp688) [$kw(vtkTemp662) GetPVWidget {cell_array_sel}]
+$kw(vtkTemp688) SetArrayStatus {ip1.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip1.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip2.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip3.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip4.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip5.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip6.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip7.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip8.gamma_dot_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.gamma_} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.gammap_curl} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.effstr} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.s_xz} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.s_yz} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.J2} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.xi_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.kappa_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.gamma_dot_1} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.xi_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.kappa_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.gamma_dot_2} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.xi_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.kappa_3} 0
+$kw(vtkTemp688) SetArrayStatus {ip9.gamma_dot_3} 0
+set kw(vtkTemp692) [$kw(vtkTemp662) GetPVWidget {point_array_sel}]
+$kw(vtkTemp692) SetArrayStatus {gammap_} 1
+$kw(vtkTemp692) SetArrayStatus {d} 1
+$kw(vtkTemp692) SetArrayStatus {gamma_} 1
+$kw(vtkTemp692) SetArrayStatus {gammap_curl} 1
+$kw(vtkTemp692) SetArrayStatus {effstr} 1
+$kw(vtkTemp692) SetArrayStatus {s_xz} 0
+$kw(vtkTemp692) SetArrayStatus {s_yz} 0
+$kw(vtkTemp692) SetArrayStatus {J2} 1
+$kw(vtkTemp692) SetArrayStatus {xi_1} 0
+$kw(vtkTemp692) SetArrayStatus {kappa_1} 0
+$kw(vtkTemp692) SetArrayStatus {gamma_dot_1} 0
+$kw(vtkTemp692) SetArrayStatus {xi_2} 0
+$kw(vtkTemp692) SetArrayStatus {kappa_2} 0
+$kw(vtkTemp692) SetArrayStatus {gamma_dot_2} 0
+$kw(vtkTemp692) SetArrayStatus {xi_3} 0
+$kw(vtkTemp692) SetArrayStatus {kappa_3} 0
+$kw(vtkTemp692) SetArrayStatus {gamma_dot_3} 0
+set kw(vtkTemp696) [$kw(vtkTemp662) GetPVWidget {side_set_sel}]
+set kw(vtkTemp700) [$kw(vtkTemp662) GetPVWidget {node_set_sel}]
+set kw(vtkTemp718) [$kw(vtkTemp662) GetPVWidget {DisplayType}]
+$kw(vtkTemp718) SetCurrentValue {Blocks}
+set kw(vtkTemp718) [$kw(vtkTemp662) GetPVWidget {DisplayType}]
+set kw(vtkTemp709) [$kw(vtkTemp718) GetPVWidget {Blocks}]
+$kw(vtkTemp709) SetArrayStatus {Block: 1 (QUAD)} 1
+set kw(vtkTemp719) [$kw(vtkTemp662) GetPVWidget {apply_displacements}]
+$kw(vtkTemp719) SetState 1
+set kw(vtkTemp722) [$kw(vtkTemp662) GetPVWidget {DisplacementMagnitude}]
+$kw(vtkTemp722) SetValue 1
+set kw(vtkTemp725) [$kw(vtkTemp662) GetPVWidget {block_ids}]
+$kw(vtkTemp725) SetState 1
+set kw(vtkTemp728) [$kw(vtkTemp662) GetPVWidget {global_node_ids}]
+$kw(vtkTemp728) SetState 1
+set kw(vtkTemp731) [$kw(vtkTemp662) GetPVWidget {global_element_ids}]
+$kw(vtkTemp731) SetState 0
+set kw(vtkTemp734) [$kw(vtkTemp662) GetPVWidget {global_file_ids}]
+$kw(vtkTemp734) SetState 0
+set kw(vtkTemp737) [$kw(vtkTemp662) GetPVWidget {metadata}]
+$kw(vtkTemp737) SetState 0
+set kw(vtkTemp746) [$kw(vtkTemp662) GetPVWidget {Apply basic time filtering}]
+$kw(vtkTemp746) ChangeDSPFilterMode smoothing
+$kw(vtkTemp746) ChangeCutoffFreq 5
+$kw(vtkTemp746) SetFilterLength 3
+$kw(vtkTemp662) AcceptCallback
+[$kw(vtkTemp662) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp662) [$kw(vtkTemp662) GetPartDisplay]
+$pvDisp(vtkTemp662) SetColor 1 1 1
+$pvDisp(vtkTemp662) SetRepresentation 2
+$pvDisp(vtkTemp662) SetUseImmediateMode 1
+$pvDisp(vtkTemp662) SetScalarVisibility 1
+$pvDisp(vtkTemp662) SetDirectColorFlag 1
+$pvDisp(vtkTemp662) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp662) SetInterpolation 1
+$pvDisp(vtkTemp662) SetLineWidth 1
+$pvDisp(vtkTemp662) SetPointSize 1
+$pvDisp(vtkTemp662) SetTranslate 0 0 0
+$pvDisp(vtkTemp662) SetScale 1 1 1
+$pvDisp(vtkTemp662) SetOrientation 0 0 0
+$pvDisp(vtkTemp662) SetOrigin 0 0 0
+$pvDisp(vtkTemp662) SetOpacity 1
+$kw(vtkTemp662) SetCubeAxesVisibility 0
+$kw(vtkTemp662) SetPointLabelVisibility 0
+[$kw(vtkTemp662) GetPVOutput] Update
+set kw(vtkTemp1103) [$kw(vtkTemp5) InitializeReadCustom "ExodusReader" "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io1.exo"]
+$kw(vtkTemp5) ReadFileInformation $kw(vtkTemp1103) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io1.exo"
+$kw(vtkTemp5) FinalizeRead $kw(vtkTemp1103) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io1.exo"
+set kw(vtkTemp1207) [$kw(vtkTemp1103) GetPVWidget {Filename}]
+$kw(vtkTemp1207) SetValue "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io1.exo"
+set kw(vtkTemp1104) [$kw(vtkTemp1103) GetPVWidget {file_prefix}]
+$kw(vtkTemp1104) SetValue {/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io1.exo}
+set kw(vtkTemp1107) [$kw(vtkTemp1103) GetPVWidget {file_pattern}]
+$kw(vtkTemp1107) SetValue {%s}
+set kw(vtkTemp1111) [$kw(vtkTemp1103) GetPVWidget {FileRange}]
+$kw(vtkTemp1111) SetMaxValue 0
+$kw(vtkTemp1111) SetMinValue 0
+set kw(vtkTemp1119) [$kw(vtkTemp1103) GetPVWidget {xml_file}]
+$kw(vtkTemp1119) SetValue {}
+set kw(vtkTemp1123) [$kw(vtkTemp1103) GetPVWidget {TimeStep}]
+$kw(vtkTemp1123) SetValue 9999
+set kw(vtkTemp1129) [$kw(vtkTemp1103) GetPVWidget {cell_array_sel}]
+$kw(vtkTemp1129) SetArrayStatus {ip1.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip1.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip2.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip3.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip4.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip5.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip6.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip7.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip8.gamma_dot_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.gamma_} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.gammap_curl} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.effstr} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.s_xz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.s_yz} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.J2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.xi_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.kappa_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.gamma_dot_1} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.xi_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.kappa_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.gamma_dot_2} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.xi_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.kappa_3} 0
+$kw(vtkTemp1129) SetArrayStatus {ip9.gamma_dot_3} 0
+set kw(vtkTemp1133) [$kw(vtkTemp1103) GetPVWidget {point_array_sel}]
+$kw(vtkTemp1133) SetArrayStatus {gammap_} 1
+$kw(vtkTemp1133) SetArrayStatus {d} 1
+$kw(vtkTemp1133) SetArrayStatus {gamma_} 1
+$kw(vtkTemp1133) SetArrayStatus {gammap_curl} 1
+$kw(vtkTemp1133) SetArrayStatus {effstr} 1
+$kw(vtkTemp1133) SetArrayStatus {s_xz} 0
+$kw(vtkTemp1133) SetArrayStatus {s_yz} 0
+$kw(vtkTemp1133) SetArrayStatus {J2} 1
+$kw(vtkTemp1133) SetArrayStatus {xi_1} 0
+$kw(vtkTemp1133) SetArrayStatus {kappa_1} 0
+$kw(vtkTemp1133) SetArrayStatus {gamma_dot_1} 0
+$kw(vtkTemp1133) SetArrayStatus {xi_2} 0
+$kw(vtkTemp1133) SetArrayStatus {kappa_2} 0
+$kw(vtkTemp1133) SetArrayStatus {gamma_dot_2} 0
+$kw(vtkTemp1133) SetArrayStatus {xi_3} 0
+$kw(vtkTemp1133) SetArrayStatus {kappa_3} 0
+$kw(vtkTemp1133) SetArrayStatus {gamma_dot_3} 0
+set kw(vtkTemp1137) [$kw(vtkTemp1103) GetPVWidget {side_set_sel}]
+set kw(vtkTemp1141) [$kw(vtkTemp1103) GetPVWidget {node_set_sel}]
+set kw(vtkTemp1159) [$kw(vtkTemp1103) GetPVWidget {DisplayType}]
+$kw(vtkTemp1159) SetCurrentValue {Blocks}
+set kw(vtkTemp1159) [$kw(vtkTemp1103) GetPVWidget {DisplayType}]
+set kw(vtkTemp1150) [$kw(vtkTemp1159) GetPVWidget {Blocks}]
+$kw(vtkTemp1150) SetArrayStatus {Block: 2 (QUAD)} 1
+set kw(vtkTemp1160) [$kw(vtkTemp1103) GetPVWidget {apply_displacements}]
+$kw(vtkTemp1160) SetState 1
+set kw(vtkTemp1163) [$kw(vtkTemp1103) GetPVWidget {DisplacementMagnitude}]
+$kw(vtkTemp1163) SetValue 1
+set kw(vtkTemp1166) [$kw(vtkTemp1103) GetPVWidget {block_ids}]
+$kw(vtkTemp1166) SetState 1
+set kw(vtkTemp1169) [$kw(vtkTemp1103) GetPVWidget {global_node_ids}]
+$kw(vtkTemp1169) SetState 1
+set kw(vtkTemp1172) [$kw(vtkTemp1103) GetPVWidget {global_element_ids}]
+$kw(vtkTemp1172) SetState 0
+set kw(vtkTemp1175) [$kw(vtkTemp1103) GetPVWidget {global_file_ids}]
+$kw(vtkTemp1175) SetState 0
+set kw(vtkTemp1178) [$kw(vtkTemp1103) GetPVWidget {metadata}]
+$kw(vtkTemp1178) SetState 0
+set kw(vtkTemp1187) [$kw(vtkTemp1103) GetPVWidget {Apply basic time filtering}]
+$kw(vtkTemp1187) ChangeDSPFilterMode smoothing
+$kw(vtkTemp1187) ChangeCutoffFreq 5
+$kw(vtkTemp1187) SetFilterLength 3
+$kw(vtkTemp1103) AcceptCallback
+[$kw(vtkTemp1103) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp1103) [$kw(vtkTemp1103) GetPartDisplay]
+$pvDisp(vtkTemp1103) SetColor 1 1 1
+$pvDisp(vtkTemp1103) SetRepresentation 2
+$pvDisp(vtkTemp1103) SetUseImmediateMode 1
+$pvDisp(vtkTemp1103) SetScalarVisibility 1
+$pvDisp(vtkTemp1103) SetDirectColorFlag 1
+$pvDisp(vtkTemp1103) SetInterpolateColorsFlag 1
+$pvDisp(vtkTemp1103) SetInterpolation 1
+$pvDisp(vtkTemp1103) SetLineWidth 1
+$pvDisp(vtkTemp1103) SetPointSize 1
+$pvDisp(vtkTemp1103) SetTranslate 0 0 0
+$pvDisp(vtkTemp1103) SetScale 1 1 1
+$pvDisp(vtkTemp1103) SetOrientation 0 0 0
+$pvDisp(vtkTemp1103) SetOrigin 0 0 0
+$pvDisp(vtkTemp1103) SetOpacity 1
+$kw(vtkTemp1103) SetCubeAxesVisibility 0
+$kw(vtkTemp1103) SetPointLabelVisibility 0
+[$kw(vtkTemp1103) GetPVOutput] Update
+set kw(vtkTemp1423) [$kw(vtkTemp5) InitializeReadCustom "ExodusReader" "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io2.exo"]
+$kw(vtkTemp5) ReadFileInformation $kw(vtkTemp1423) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io2.exo"
+$kw(vtkTemp5) FinalizeRead $kw(vtkTemp1423) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io2.exo"
+set kw(vtkTemp1527) [$kw(vtkTemp1423) GetPVWidget {Filename}]
+$kw(vtkTemp1527) SetValue "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io2.exo"
+set kw(vtkTemp1424) [$kw(vtkTemp1423) GetPVWidget {file_prefix}]
+$kw(vtkTemp1424) SetValue {/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io2.exo}
+set kw(vtkTemp1427) [$kw(vtkTemp1423) GetPVWidget {file_pattern}]
+$kw(vtkTemp1427) SetValue {%s}
+set kw(vtkTemp1431) [$kw(vtkTemp1423) GetPVWidget {FileRange}]
+$kw(vtkTemp1431) SetMaxValue 0
+$kw(vtkTemp1431) SetMinValue 0
+set kw(vtkTemp1439) [$kw(vtkTemp1423) GetPVWidget {xml_file}]
+$kw(vtkTemp1439) SetValue {}
+set kw(vtkTemp1443) [$kw(vtkTemp1423) GetPVWidget {TimeStep}]
+$kw(vtkTemp1443) SetValue 9999
+set kw(vtkTemp1449) [$kw(vtkTemp1423) GetPVWidget {cell_array_sel}]
+$kw(vtkTemp1449) SetArrayStatus {ip1.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip1.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip2.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip3.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip4.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip5.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip6.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip7.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip8.gamma_dot_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.gamma_} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.gammap_curl} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.effstr} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.s_xz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.s_yz} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.J2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.xi_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.kappa_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.gamma_dot_1} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.xi_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.kappa_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.gamma_dot_2} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.xi_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.kappa_3} 0
+$kw(vtkTemp1449) SetArrayStatus {ip9.gamma_dot_3} 0
+set kw(vtkTemp1453) [$kw(vtkTemp1423) GetPVWidget {point_array_sel}]
+$kw(vtkTemp1453) SetArrayStatus {gammap_} 1
+$kw(vtkTemp1453) SetArrayStatus {d} 1
+$kw(vtkTemp1453) SetArrayStatus {gamma_} 1
+$kw(vtkTemp1453) SetArrayStatus {gammap_curl} 1
+$kw(vtkTemp1453) SetArrayStatus {effstr} 1
+$kw(vtkTemp1453) SetArrayStatus {s_xz} 0
+$kw(vtkTemp1453) SetArrayStatus {s_yz} 0
+$kw(vtkTemp1453) SetArrayStatus {J2} 1
+$kw(vtkTemp1453) SetArrayStatus {xi_1} 0
+$kw(vtkTemp1453) SetArrayStatus {kappa_1} 0
+$kw(vtkTemp1453) SetArrayStatus {gamma_dot_1} 0
+$kw(vtkTemp1453) SetArrayStatus {xi_2} 0
+$kw(vtkTemp1453) SetArrayStatus {kappa_2} 0
+$kw(vtkTemp1453) SetArrayStatus {gamma_dot_2} 0
+$kw(vtkTemp1453) SetArrayStatus {xi_3} 0
+$kw(vtkTemp1453) SetArrayStatus {kappa_3} 0
+$kw(vtkTemp1453) SetArrayStatus {gamma_dot_3} 0
+set kw(vtkTemp1457) [$kw(vtkTemp1423) GetPVWidget {side_set_sel}]
+set kw(vtkTemp1461) [$kw(vtkTemp1423) GetPVWidget {node_set_sel}]
+set kw(vtkTemp1479) [$kw(vtkTemp1423) GetPVWidget {DisplayType}]
+$kw(vtkTemp1479) SetCurrentValue {Blocks}
+set kw(vtkTemp1479) [$kw(vtkTemp1423) GetPVWidget {DisplayType}]
+set kw(vtkTemp1470) [$kw(vtkTemp1479) GetPVWidget {Blocks}]
+$kw(vtkTemp1470) SetArrayStatus {Block: 3 (QUAD)} 1
+set kw(vtkTemp1480) [$kw(vtkTemp1423) GetPVWidget {apply_displacements}]
+$kw(vtkTemp1480) SetState 1
+set kw(vtkTemp1483) [$kw(vtkTemp1423) GetPVWidget {DisplacementMagnitude}]
+$kw(vtkTemp1483) SetValue 1
+set kw(vtkTemp1486) [$kw(vtkTemp1423) GetPVWidget {block_ids}]
+$kw(vtkTemp1486) SetState 1
+set kw(vtkTemp1489) [$kw(vtkTemp1423) GetPVWidget {global_node_ids}]
+$kw(vtkTemp1489) SetState 1
+set kw(vtkTemp1492) [$kw(vtkTemp1423) GetPVWidget {global_element_ids}]
+$kw(vtkTemp1492) SetState 0
+set kw(vtkTemp1495) [$kw(vtkTemp1423) GetPVWidget {global_file_ids}]
+$kw(vtkTemp1495) SetState 0
+set kw(vtkTemp1498) [$kw(vtkTemp1423) GetPVWidget {metadata}]
+$kw(vtkTemp1498) SetState 0
+set kw(vtkTemp1507) [$kw(vtkTemp1423) GetPVWidget {Apply basic time filtering}]
+$kw(vtkTemp1507) ChangeDSPFilterMode smoothing
+$kw(vtkTemp1507) ChangeCutoffFreq 5
+$kw(vtkTemp1507) SetFilterLength 3
+$kw(vtkTemp1423) AcceptCallback
+[$kw(vtkTemp1423) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp1423) [$kw(vtkTemp1423) GetPartDisplay]
+$pvDisp(vtkTemp1423) SetColor 1 1 1
+$pvDisp(vtkTemp1423) SetRepresentation 2
+$pvDisp(vtkTemp1423) SetUseImmediateMode 1
+$pvDisp(vtkTemp1423) SetScalarVisibility 1
+$pvDisp(vtkTemp1423) SetDirectColorFlag 1
+$pvDisp(vtkTemp1423) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp1423) SetInterpolation 1
+$pvDisp(vtkTemp1423) SetLineWidth 1
+$pvDisp(vtkTemp1423) SetPointSize 1
+$pvDisp(vtkTemp1423) SetTranslate 0 0 0
+$pvDisp(vtkTemp1423) SetScale 1 1 1
+$pvDisp(vtkTemp1423) SetOrientation 0 0 0
+$pvDisp(vtkTemp1423) SetOrigin 0 0 0
+$pvDisp(vtkTemp1423) SetOpacity 1
+$kw(vtkTemp1423) SetCubeAxesVisibility 0
+$kw(vtkTemp1423) SetPointLabelVisibility 0
+[$kw(vtkTemp1423) GetPVOutput] Update
+set kw(vtkTemp1751) [$kw(vtkTemp5) InitializeReadCustom "ExodusReader" "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io3.exo"]
+$kw(vtkTemp5) ReadFileInformation $kw(vtkTemp1751) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io3.exo"
+$kw(vtkTemp5) FinalizeRead $kw(vtkTemp1751) "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io3.exo"
+set kw(vtkTemp1855) [$kw(vtkTemp1751) GetPVWidget {Filename}]
+$kw(vtkTemp1855) SetValue "/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io3.exo"
+set kw(vtkTemp1752) [$kw(vtkTemp1751) GetPVWidget {file_prefix}]
+$kw(vtkTemp1752) SetValue {/Users/raregue/Code/Tahoe/development_benchmark_XML/aps_grad/crack_shear/sharp/mesh_reg/withcurl/test.io3.exo}
+set kw(vtkTemp1755) [$kw(vtkTemp1751) GetPVWidget {file_pattern}]
+$kw(vtkTemp1755) SetValue {%s}
+set kw(vtkTemp1759) [$kw(vtkTemp1751) GetPVWidget {FileRange}]
+$kw(vtkTemp1759) SetMaxValue 0
+$kw(vtkTemp1759) SetMinValue 0
+set kw(vtkTemp1767) [$kw(vtkTemp1751) GetPVWidget {xml_file}]
+$kw(vtkTemp1767) SetValue {}
+set kw(vtkTemp1771) [$kw(vtkTemp1751) GetPVWidget {TimeStep}]
+$kw(vtkTemp1771) SetValue 9999
+set kw(vtkTemp1777) [$kw(vtkTemp1751) GetPVWidget {cell_array_sel}]
+$kw(vtkTemp1777) SetArrayStatus {ip1.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip1.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip2.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip3.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip4.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip5.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip6.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip7.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip8.gamma_dot_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.gamma_} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.gammap_curl} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.effstr} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.s_xz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.s_yz} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.J2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.xi_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.kappa_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.gamma_dot_1} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.xi_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.kappa_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.gamma_dot_2} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.xi_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.kappa_3} 0
+$kw(vtkTemp1777) SetArrayStatus {ip9.gamma_dot_3} 0
+set kw(vtkTemp1781) [$kw(vtkTemp1751) GetPVWidget {point_array_sel}]
+$kw(vtkTemp1781) SetArrayStatus {gammap_} 1
+$kw(vtkTemp1781) SetArrayStatus {d} 1
+$kw(vtkTemp1781) SetArrayStatus {gamma_} 1
+$kw(vtkTemp1781) SetArrayStatus {gammap_curl} 1
+$kw(vtkTemp1781) SetArrayStatus {effstr} 1
+$kw(vtkTemp1781) SetArrayStatus {s_xz} 0
+$kw(vtkTemp1781) SetArrayStatus {s_yz} 0
+$kw(vtkTemp1781) SetArrayStatus {J2} 1
+$kw(vtkTemp1781) SetArrayStatus {xi_1} 0
+$kw(vtkTemp1781) SetArrayStatus {kappa_1} 0
+$kw(vtkTemp1781) SetArrayStatus {gamma_dot_1} 0
+$kw(vtkTemp1781) SetArrayStatus {xi_2} 0
+$kw(vtkTemp1781) SetArrayStatus {kappa_2} 0
+$kw(vtkTemp1781) SetArrayStatus {gamma_dot_2} 0
+$kw(vtkTemp1781) SetArrayStatus {xi_3} 0
+$kw(vtkTemp1781) SetArrayStatus {kappa_3} 0
+$kw(vtkTemp1781) SetArrayStatus {gamma_dot_3} 0
+set kw(vtkTemp1785) [$kw(vtkTemp1751) GetPVWidget {side_set_sel}]
+set kw(vtkTemp1789) [$kw(vtkTemp1751) GetPVWidget {node_set_sel}]
+set kw(vtkTemp1807) [$kw(vtkTemp1751) GetPVWidget {DisplayType}]
+$kw(vtkTemp1807) SetCurrentValue {Blocks}
+set kw(vtkTemp1807) [$kw(vtkTemp1751) GetPVWidget {DisplayType}]
+set kw(vtkTemp1798) [$kw(vtkTemp1807) GetPVWidget {Blocks}]
+$kw(vtkTemp1798) SetArrayStatus {Block: 4 (QUAD)} 1
+set kw(vtkTemp1808) [$kw(vtkTemp1751) GetPVWidget {apply_displacements}]
+$kw(vtkTemp1808) SetState 1
+set kw(vtkTemp1811) [$kw(vtkTemp1751) GetPVWidget {DisplacementMagnitude}]
+$kw(vtkTemp1811) SetValue 1
+set kw(vtkTemp1814) [$kw(vtkTemp1751) GetPVWidget {block_ids}]
+$kw(vtkTemp1814) SetState 1
+set kw(vtkTemp1817) [$kw(vtkTemp1751) GetPVWidget {global_node_ids}]
+$kw(vtkTemp1817) SetState 1
+set kw(vtkTemp1820) [$kw(vtkTemp1751) GetPVWidget {global_element_ids}]
+$kw(vtkTemp1820) SetState 0
+set kw(vtkTemp1823) [$kw(vtkTemp1751) GetPVWidget {global_file_ids}]
+$kw(vtkTemp1823) SetState 0
+set kw(vtkTemp1826) [$kw(vtkTemp1751) GetPVWidget {metadata}]
+$kw(vtkTemp1826) SetState 0
+set kw(vtkTemp1835) [$kw(vtkTemp1751) GetPVWidget {Apply basic time filtering}]
+$kw(vtkTemp1835) ChangeDSPFilterMode smoothing
+$kw(vtkTemp1835) ChangeCutoffFreq 5
+$kw(vtkTemp1835) SetFilterLength 3
+$kw(vtkTemp1751) AcceptCallback
+[$kw(vtkTemp1751) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp1751) [$kw(vtkTemp1751) GetPartDisplay]
+$pvDisp(vtkTemp1751) SetColor 1 1 1
+$pvDisp(vtkTemp1751) SetRepresentation 2
+$pvDisp(vtkTemp1751) SetUseImmediateMode 1
+$pvDisp(vtkTemp1751) SetScalarVisibility 1
+$pvDisp(vtkTemp1751) SetDirectColorFlag 1
+$pvDisp(vtkTemp1751) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp1751) SetInterpolation 1
+$pvDisp(vtkTemp1751) SetLineWidth 1
+$pvDisp(vtkTemp1751) SetPointSize 1
+$pvDisp(vtkTemp1751) SetTranslate 0 0 0
+$pvDisp(vtkTemp1751) SetScale 1 1 1
+$pvDisp(vtkTemp1751) SetOrientation 0 0 0
+$pvDisp(vtkTemp1751) SetOrigin 0 0 0
+$pvDisp(vtkTemp1751) SetOpacity 1
+$kw(vtkTemp1751) SetCubeAxesVisibility 0
+$kw(vtkTemp1751) SetPointLabelVisibility 0
+[$kw(vtkTemp1751) GetPVOutput] Update
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp1751)
+set kw(vtkTemp2087) [$kw(vtkTemp5) CreatePVSource Glyph]
+$kw(vtkTemp2087) SetLabel {Glyph0}
+set kw(vtkTemp2124) [$kw(vtkTemp2087) GetPVWidget {Input}]
+$kw(vtkTemp2124) SetCurrentValue $kw(vtkTemp1751)
+set kw(vtkTemp2125) [$kw(vtkTemp2087) GetPVWidget {Glyph}]
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp2125) SetCurrentValue $kw(vtkTemp533)
+set kw(vtkTemp2101) [$kw(vtkTemp2087) GetPVWidget {OrientScale}]
+$kw(vtkTemp2101) SetOrientMode {Vector}
+$kw(vtkTemp2101) SetScaleMode {Vector Magnitude}
+$kw(vtkTemp2101) SetScalars {d}
+$kw(vtkTemp2101) SetVectors {gammap_}
+$kw(vtkTemp2101) SetScaleFactor 3.3639e-05
+set kw(vtkTemp2105) [$kw(vtkTemp2087) GetPVWidget {Max Glyphs}]
+$kw(vtkTemp2105) SetValue 5000
+set kw(vtkTemp2110) [$kw(vtkTemp2087) GetPVWidget {MaskPoints}]
+$kw(vtkTemp2110) SetState 1
+set kw(vtkTemp2113) [$kw(vtkTemp2087) GetPVWidget {RandomMask}]
+$kw(vtkTemp2113) SetState 1
+$kw(vtkTemp2087) AcceptCallback
+[$kw(vtkTemp2087) GetPVOutput] ColorByPointField {gammap_} 3
+set pvDisp(vtkTemp2087) [$kw(vtkTemp2087) GetPartDisplay]
+$pvDisp(vtkTemp2087) SetColor 1 1 1
+$pvDisp(vtkTemp2087) SetRepresentation 2
+$pvDisp(vtkTemp2087) SetUseImmediateMode 1
+$pvDisp(vtkTemp2087) SetScalarVisibility 1
+$pvDisp(vtkTemp2087) SetDirectColorFlag 1
+$pvDisp(vtkTemp2087) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2087) SetInterpolation 1
+$pvDisp(vtkTemp2087) SetLineWidth 1
+$pvDisp(vtkTemp2087) SetPointSize 1
+$pvDisp(vtkTemp2087) SetTranslate 0 0 0
+$pvDisp(vtkTemp2087) SetScale 1 1 1
+$pvDisp(vtkTemp2087) SetOrientation 0 0 0
+$pvDisp(vtkTemp2087) SetOrigin 0 0 0
+$pvDisp(vtkTemp2087) SetOpacity 1
+$kw(vtkTemp2087) SetCubeAxesVisibility 0
+$kw(vtkTemp2087) SetPointLabelVisibility 0
+[$kw(vtkTemp2087) GetPVOutput] Update
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp1423)
+set kw(vtkTemp2300) [$kw(vtkTemp5) CreatePVSource Glyph]
+$kw(vtkTemp2300) SetLabel {Glyph1}
+set kw(vtkTemp2339) [$kw(vtkTemp2300) GetPVWidget {Input}]
+$kw(vtkTemp2339) SetCurrentValue $kw(vtkTemp1423)
+set kw(vtkTemp2340) [$kw(vtkTemp2300) GetPVWidget {Glyph}]
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp2340) SetCurrentValue $kw(vtkTemp533)
+set kw(vtkTemp2314) [$kw(vtkTemp2300) GetPVWidget {OrientScale}]
+$kw(vtkTemp2314) SetOrientMode {Vector}
+$kw(vtkTemp2314) SetScaleMode {Vector Magnitude}
+$kw(vtkTemp2314) SetScalars {d}
+$kw(vtkTemp2314) SetVectors {gammap_}
+$kw(vtkTemp2314) SetScaleFactor 3.6889e-05
+set kw(vtkTemp2318) [$kw(vtkTemp2300) GetPVWidget {Max Glyphs}]
+$kw(vtkTemp2318) SetValue 5000
+set kw(vtkTemp2323) [$kw(vtkTemp2300) GetPVWidget {MaskPoints}]
+$kw(vtkTemp2323) SetState 1
+set kw(vtkTemp2326) [$kw(vtkTemp2300) GetPVWidget {RandomMask}]
+$kw(vtkTemp2326) SetState 1
+$kw(vtkTemp2300) AcceptCallback
+[$kw(vtkTemp2300) GetPVOutput] ColorByPointField {gammap_} 3
+set pvDisp(vtkTemp2300) [$kw(vtkTemp2300) GetPartDisplay]
+$pvDisp(vtkTemp2300) SetColor 1 1 1
+$pvDisp(vtkTemp2300) SetRepresentation 2
+$pvDisp(vtkTemp2300) SetUseImmediateMode 1
+$pvDisp(vtkTemp2300) SetScalarVisibility 1
+$pvDisp(vtkTemp2300) SetDirectColorFlag 1
+$pvDisp(vtkTemp2300) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2300) SetInterpolation 1
+$pvDisp(vtkTemp2300) SetLineWidth 1
+$pvDisp(vtkTemp2300) SetPointSize 1
+$pvDisp(vtkTemp2300) SetTranslate 0 0 0
+$pvDisp(vtkTemp2300) SetScale 1 1 1
+$pvDisp(vtkTemp2300) SetOrientation 0 0 0
+$pvDisp(vtkTemp2300) SetOrigin 0 0 0
+$pvDisp(vtkTemp2300) SetOpacity 1
+$kw(vtkTemp2300) SetCubeAxesVisibility 0
+$kw(vtkTemp2300) SetPointLabelVisibility 0
+[$kw(vtkTemp2300) GetPVOutput] Update
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp1103)
+set kw(vtkTemp2384) [$kw(vtkTemp5) CreatePVSource Glyph]
+$kw(vtkTemp2384) SetLabel {Glyph2}
+set kw(vtkTemp2425) [$kw(vtkTemp2384) GetPVWidget {Input}]
+$kw(vtkTemp2425) SetCurrentValue $kw(vtkTemp1103)
+set kw(vtkTemp2426) [$kw(vtkTemp2384) GetPVWidget {Glyph}]
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp2426) SetCurrentValue $kw(vtkTemp533)
+set kw(vtkTemp2398) [$kw(vtkTemp2384) GetPVWidget {OrientScale}]
+$kw(vtkTemp2398) SetOrientMode {Vector}
+$kw(vtkTemp2398) SetScaleMode {Vector Magnitude}
+$kw(vtkTemp2398) SetScalars {d}
+$kw(vtkTemp2398) SetVectors {gammap_}
+$kw(vtkTemp2398) SetScaleFactor 3.7157e-05
+set kw(vtkTemp2402) [$kw(vtkTemp2384) GetPVWidget {Max Glyphs}]
+$kw(vtkTemp2402) SetValue 5000
+set kw(vtkTemp2407) [$kw(vtkTemp2384) GetPVWidget {MaskPoints}]
+$kw(vtkTemp2407) SetState 1
+set kw(vtkTemp2410) [$kw(vtkTemp2384) GetPVWidget {RandomMask}]
+$kw(vtkTemp2410) SetState 1
+$kw(vtkTemp2384) AcceptCallback
+[$kw(vtkTemp2384) GetPVOutput] ColorByPointField {gammap_} 3
+set pvDisp(vtkTemp2384) [$kw(vtkTemp2384) GetPartDisplay]
+$pvDisp(vtkTemp2384) SetColor 1 1 1
+$pvDisp(vtkTemp2384) SetRepresentation 2
+$pvDisp(vtkTemp2384) SetUseImmediateMode 1
+$pvDisp(vtkTemp2384) SetScalarVisibility 1
+$pvDisp(vtkTemp2384) SetDirectColorFlag 1
+$pvDisp(vtkTemp2384) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2384) SetInterpolation 1
+$pvDisp(vtkTemp2384) SetLineWidth 1
+$pvDisp(vtkTemp2384) SetPointSize 1
+$pvDisp(vtkTemp2384) SetTranslate 0 0 0
+$pvDisp(vtkTemp2384) SetScale 1 1 1
+$pvDisp(vtkTemp2384) SetOrientation 0 0 0
+$pvDisp(vtkTemp2384) SetOrigin 0 0 0
+$pvDisp(vtkTemp2384) SetOpacity 1
+$kw(vtkTemp2384) SetCubeAxesVisibility 0
+$kw(vtkTemp2384) SetPointLabelVisibility 0
+[$kw(vtkTemp2384) GetPVOutput] Update
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp662)
+set kw(vtkTemp2474) [$kw(vtkTemp5) CreatePVSource Glyph]
+$kw(vtkTemp2474) SetLabel {Glyph3}
+set kw(vtkTemp2517) [$kw(vtkTemp2474) GetPVWidget {Input}]
+$kw(vtkTemp2517) SetCurrentValue $kw(vtkTemp662)
+set kw(vtkTemp2518) [$kw(vtkTemp2474) GetPVWidget {Glyph}]
+set kw(vtkTemp533) [$kw(vtkTemp5) GetPVSource GlyphSources Arrow0]
+$kw(vtkTemp2518) SetCurrentValue $kw(vtkTemp533)
+set kw(vtkTemp2488) [$kw(vtkTemp2474) GetPVWidget {OrientScale}]
+$kw(vtkTemp2488) SetOrientMode {Vector}
+$kw(vtkTemp2488) SetScaleMode {Vector Magnitude}
+$kw(vtkTemp2488) SetScalars {d}
+$kw(vtkTemp2488) SetVectors {gammap_}
+$kw(vtkTemp2488) SetScaleFactor 3.3957e-05
+set kw(vtkTemp2492) [$kw(vtkTemp2474) GetPVWidget {Max Glyphs}]
+$kw(vtkTemp2492) SetValue 5000
+set kw(vtkTemp2497) [$kw(vtkTemp2474) GetPVWidget {MaskPoints}]
+$kw(vtkTemp2497) SetState 1
+set kw(vtkTemp2500) [$kw(vtkTemp2474) GetPVWidget {RandomMask}]
+$kw(vtkTemp2500) SetState 1
+$kw(vtkTemp2474) AcceptCallback
+[$kw(vtkTemp2474) GetPVOutput] ColorByPointField {gammap_} 3
+set pvDisp(vtkTemp2474) [$kw(vtkTemp2474) GetPartDisplay]
+$pvDisp(vtkTemp2474) SetColor 1 1 1
+$pvDisp(vtkTemp2474) SetRepresentation 2
+$pvDisp(vtkTemp2474) SetUseImmediateMode 1
+$pvDisp(vtkTemp2474) SetScalarVisibility 1
+$pvDisp(vtkTemp2474) SetDirectColorFlag 1
+$pvDisp(vtkTemp2474) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2474) SetInterpolation 1
+$pvDisp(vtkTemp2474) SetLineWidth 1
+$pvDisp(vtkTemp2474) SetPointSize 1
+$pvDisp(vtkTemp2474) SetTranslate 0 0 0
+$pvDisp(vtkTemp2474) SetScale 1 1 1
+$pvDisp(vtkTemp2474) SetOrientation 0 0 0
+$pvDisp(vtkTemp2474) SetOrigin 0 0 0
+$pvDisp(vtkTemp2474) SetOpacity 1
+$kw(vtkTemp2474) SetCubeAxesVisibility 0
+$kw(vtkTemp2474) SetPointLabelVisibility 0
+[$kw(vtkTemp2474) GetPVOutput] Update
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp1751)
+set kw(vtkTemp2570) [$kw(vtkTemp5) CreatePVSource WarpScalar]
+$kw(vtkTemp2570) SetLabel {WarpS2}
+set kw(vtkTemp2605) [$kw(vtkTemp2570) GetPVWidget {Input}]
+$kw(vtkTemp2605) SetCurrentValue $kw(vtkTemp1751)
+set kw(vtkTemp2606) [$kw(vtkTemp2570) GetPVWidget {Scalars}]
+$kw(vtkTemp2606) SetValue {d}
+set kw(vtkTemp2575) [$kw(vtkTemp2570) GetPVWidget {ScaleFactor}]
+$kw(vtkTemp2575) SetValue 1
+set kw(vtkTemp2578) [$kw(vtkTemp2570) GetPVWidget {Normal}]
+$kw(vtkTemp2578) SetValue 0 0 1
+set kw(vtkTemp2583) [$kw(vtkTemp2570) GetPVWidget {UseNormal}]
+$kw(vtkTemp2583) SetState 0
+set kw(vtkTemp2586) [$kw(vtkTemp2570) GetPVWidget {XYPlane}]
+$kw(vtkTemp2586) SetState 0
+$kw(vtkTemp2570) AcceptCallback
+[$kw(vtkTemp2570) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp2570) [$kw(vtkTemp2570) GetPartDisplay]
+$pvDisp(vtkTemp2570) SetColor 1 1 1
+$pvDisp(vtkTemp2570) SetRepresentation 2
+$pvDisp(vtkTemp2570) SetUseImmediateMode 1
+$pvDisp(vtkTemp2570) SetScalarVisibility 1
+$pvDisp(vtkTemp2570) SetDirectColorFlag 1
+$pvDisp(vtkTemp2570) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2570) SetInterpolation 1
+$pvDisp(vtkTemp2570) SetLineWidth 1
+$pvDisp(vtkTemp2570) SetPointSize 1
+$pvDisp(vtkTemp2570) SetTranslate 0 0 0
+$pvDisp(vtkTemp2570) SetScale 1 1 1
+$pvDisp(vtkTemp2570) SetOrientation 0 0 0
+$pvDisp(vtkTemp2570) SetOrigin 0 0 0
+$pvDisp(vtkTemp2570) SetOpacity 1
+$kw(vtkTemp2570) SetCubeAxesVisibility 0
+$kw(vtkTemp2570) SetPointLabelVisibility 0
+[$kw(vtkTemp2570) GetPVOutput] Update
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp1423)
+set kw(vtkTemp2678) [$kw(vtkTemp5) CreatePVSource WarpScalar]
+$kw(vtkTemp2678) SetLabel {WarpS3}
+set kw(vtkTemp2715) [$kw(vtkTemp2678) GetPVWidget {Input}]
+$kw(vtkTemp2715) SetCurrentValue $kw(vtkTemp1423)
+set kw(vtkTemp2716) [$kw(vtkTemp2678) GetPVWidget {Scalars}]
+$kw(vtkTemp2716) SetValue {d}
+set kw(vtkTemp2683) [$kw(vtkTemp2678) GetPVWidget {ScaleFactor}]
+$kw(vtkTemp2683) SetValue 1
+set kw(vtkTemp2686) [$kw(vtkTemp2678) GetPVWidget {Normal}]
+$kw(vtkTemp2686) SetValue 0 0 1
+set kw(vtkTemp2691) [$kw(vtkTemp2678) GetPVWidget {UseNormal}]
+$kw(vtkTemp2691) SetState 0
+set kw(vtkTemp2694) [$kw(vtkTemp2678) GetPVWidget {XYPlane}]
+$kw(vtkTemp2694) SetState 0
+$kw(vtkTemp2678) AcceptCallback
+[$kw(vtkTemp2678) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp2678) [$kw(vtkTemp2678) GetPartDisplay]
+$pvDisp(vtkTemp2678) SetColor 1 1 1
+$pvDisp(vtkTemp2678) SetRepresentation 2
+$pvDisp(vtkTemp2678) SetUseImmediateMode 1
+$pvDisp(vtkTemp2678) SetScalarVisibility 1
+$pvDisp(vtkTemp2678) SetDirectColorFlag 1
+$pvDisp(vtkTemp2678) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2678) SetInterpolation 1
+$pvDisp(vtkTemp2678) SetLineWidth 1
+$pvDisp(vtkTemp2678) SetPointSize 1
+$pvDisp(vtkTemp2678) SetTranslate 0 0 0
+$pvDisp(vtkTemp2678) SetScale 1 1 1
+$pvDisp(vtkTemp2678) SetOrientation 0 0 0
+$pvDisp(vtkTemp2678) SetOrigin 0 0 0
+$pvDisp(vtkTemp2678) SetOpacity 1
+$kw(vtkTemp2678) SetCubeAxesVisibility 0
+$kw(vtkTemp2678) SetPointLabelVisibility 0
+[$kw(vtkTemp2678) GetPVOutput] Update
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp1103)
+set kw(vtkTemp2794) [$kw(vtkTemp5) CreatePVSource WarpScalar]
+$kw(vtkTemp2794) SetLabel {WarpS4}
+set kw(vtkTemp2833) [$kw(vtkTemp2794) GetPVWidget {Input}]
+$kw(vtkTemp2833) SetCurrentValue $kw(vtkTemp1103)
+set kw(vtkTemp2834) [$kw(vtkTemp2794) GetPVWidget {Scalars}]
+$kw(vtkTemp2834) SetValue {d}
+set kw(vtkTemp2799) [$kw(vtkTemp2794) GetPVWidget {ScaleFactor}]
+$kw(vtkTemp2799) SetValue 1
+set kw(vtkTemp2802) [$kw(vtkTemp2794) GetPVWidget {Normal}]
+$kw(vtkTemp2802) SetValue 0 0 1
+set kw(vtkTemp2807) [$kw(vtkTemp2794) GetPVWidget {UseNormal}]
+$kw(vtkTemp2807) SetState 0
+set kw(vtkTemp2810) [$kw(vtkTemp2794) GetPVWidget {XYPlane}]
+$kw(vtkTemp2810) SetState 0
+$kw(vtkTemp2794) AcceptCallback
+[$kw(vtkTemp2794) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp2794) [$kw(vtkTemp2794) GetPartDisplay]
+$pvDisp(vtkTemp2794) SetColor 1 1 1
+$pvDisp(vtkTemp2794) SetRepresentation 2
+$pvDisp(vtkTemp2794) SetUseImmediateMode 1
+$pvDisp(vtkTemp2794) SetScalarVisibility 1
+$pvDisp(vtkTemp2794) SetDirectColorFlag 1
+$pvDisp(vtkTemp2794) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2794) SetInterpolation 1
+$pvDisp(vtkTemp2794) SetLineWidth 1
+$pvDisp(vtkTemp2794) SetPointSize 1
+$pvDisp(vtkTemp2794) SetTranslate 0 0 0
+$pvDisp(vtkTemp2794) SetScale 1 1 1
+$pvDisp(vtkTemp2794) SetOrientation 0 0 0
+$pvDisp(vtkTemp2794) SetOrigin 0 0 0
+$pvDisp(vtkTemp2794) SetOpacity 1
+$kw(vtkTemp2794) SetCubeAxesVisibility 0
+$kw(vtkTemp2794) SetPointLabelVisibility 0
+[$kw(vtkTemp2794) GetPVOutput] Update
+$kw(vtkTemp5) SetCurrentPVSourceCallback $kw(vtkTemp662)
+set kw(vtkTemp2918) [$kw(vtkTemp5) CreatePVSource WarpScalar]
+$kw(vtkTemp2918) SetLabel {WarpS6}
+set kw(vtkTemp2959) [$kw(vtkTemp2918) GetPVWidget {Input}]
+$kw(vtkTemp2959) SetCurrentValue $kw(vtkTemp662)
+set kw(vtkTemp2960) [$kw(vtkTemp2918) GetPVWidget {Scalars}]
+$kw(vtkTemp2960) SetValue {d}
+set kw(vtkTemp2923) [$kw(vtkTemp2918) GetPVWidget {ScaleFactor}]
+$kw(vtkTemp2923) SetValue 1
+set kw(vtkTemp2926) [$kw(vtkTemp2918) GetPVWidget {Normal}]
+$kw(vtkTemp2926) SetValue 0 0 1
+set kw(vtkTemp2931) [$kw(vtkTemp2918) GetPVWidget {UseNormal}]
+$kw(vtkTemp2931) SetState 0
+set kw(vtkTemp2934) [$kw(vtkTemp2918) GetPVWidget {XYPlane}]
+$kw(vtkTemp2934) SetState 0
+$kw(vtkTemp2918) AcceptCallback
+[$kw(vtkTemp2918) GetPVOutput] ColorByPointField {gammap_curl} 1
+set pvDisp(vtkTemp2918) [$kw(vtkTemp2918) GetPartDisplay]
+$pvDisp(vtkTemp2918) SetColor 1 1 1
+$pvDisp(vtkTemp2918) SetRepresentation 2
+$pvDisp(vtkTemp2918) SetUseImmediateMode 1
+$pvDisp(vtkTemp2918) SetScalarVisibility 1
+$pvDisp(vtkTemp2918) SetDirectColorFlag 1
+$pvDisp(vtkTemp2918) SetInterpolateColorsFlag 0
+$pvDisp(vtkTemp2918) SetInterpolation 1
+$pvDisp(vtkTemp2918) SetLineWidth 1
+$pvDisp(vtkTemp2918) SetPointSize 1
+$pvDisp(vtkTemp2918) SetTranslate 0 0 0
+$pvDisp(vtkTemp2918) SetScale 1 1 1
+$pvDisp(vtkTemp2918) SetOrientation 0 0 0
+$pvDisp(vtkTemp2918) SetOrigin 0 0 0
+$pvDisp(vtkTemp2918) SetOpacity 1
+$kw(vtkTemp2918) SetCubeAxesVisibility 0
+$kw(vtkTemp2918) SetPointLabelVisibility 0
+[$kw(vtkTemp2918) GetPVOutput] Update
+$kw(vtkTemp662) SetVisibility 0
+$kw(vtkTemp1103) SetVisibility 0
+$kw(vtkTemp1423) SetVisibility 0
+$kw(vtkTemp1751) SetVisibility 0
+$kw(vtkTemp2087) SetVisibility 1
+$kw(vtkTemp2300) SetVisibility 1
+$kw(vtkTemp2384) SetVisibility 1
+$kw(vtkTemp2474) SetVisibility 1
+$kw(vtkTemp2570) SetVisibility 1
+$kw(vtkTemp2678) SetVisibility 1
+$kw(vtkTemp2794) SetVisibility 1
+$kw(vtkTemp2918) SetVisibility 1
+set kw(vtkTemp928) [$kw(vtkTemp5) GetPVColorMap {BlockId} 1]
+$kw(vtkTemp928) SetScalarBarTitle {BlockId}
+$kw(vtkTemp928) SetScalarBarVectorTitle {Magnitude}
+$kw(vtkTemp928) SetScalarBarLabelFormat {%-#6.3g}
+$kw(vtkTemp928) SetStartHSV 0.6667 1 1
+$kw(vtkTemp928) SetEndHSV 0 1 1
+$kw(vtkTemp928) SetNumberOfColors 256
+$kw(vtkTemp928) SetScalarRange 0 4
+$kw(vtkTemp928) SetScalarRangeLock 0
+$kw(vtkTemp928) SetScalarBarVisibility 0
+$kw(vtkTemp928) SetScalarBarPosition1 0.87 0.25
+$kw(vtkTemp928) SetScalarBarPosition2 0.13 0.5
+$kw(vtkTemp928) SetScalarBarOrientation 1
+set kw(vtkTemp1042) [$kw(vtkTemp5) GetPVColorMap {gammap_curl} 1]
+$kw(vtkTemp1042) SetScalarBarTitle {gammap_curl}
+$kw(vtkTemp1042) SetScalarBarVectorTitle {Magnitude}
+$kw(vtkTemp1042) SetScalarBarLabelFormat {%-#6.3g}
+$kw(vtkTemp1042) SetStartHSV 0.6667 1 1
+$kw(vtkTemp1042) SetEndHSV 0 1 1
+$kw(vtkTemp1042) SetNumberOfColors 256
+$kw(vtkTemp1042) SetScalarRange -2631.08 1983.08
+$kw(vtkTemp1042) SetScalarRangeLock 1
+$kw(vtkTemp1042) SetScalarBarVisibility 1
+$kw(vtkTemp1042) SetScalarBarPosition1 0.719057 0.387856
+$kw(vtkTemp1042) SetScalarBarPosition2 0.215954 0.5
+$kw(vtkTemp1042) SetScalarBarOrientation 1
+set kw(vtkTemp2130) [$kw(vtkTemp5) GetPVColorMap {d} 1]
+$kw(vtkTemp2130) SetScalarBarTitle {d}
+$kw(vtkTemp2130) SetScalarBarVectorTitle {Magnitude}
+$kw(vtkTemp2130) SetScalarBarLabelFormat {%-#6.3g}
+$kw(vtkTemp2130) SetStartHSV 0.6667 1 1
+$kw(vtkTemp2130) SetEndHSV 0 1 1
+$kw(vtkTemp2130) SetNumberOfColors 256
+$kw(vtkTemp2130) SetScalarRange 0 0.00100129
+$kw(vtkTemp2130) SetScalarRangeLock 0
+$kw(vtkTemp2130) SetScalarBarVisibility 0
+$kw(vtkTemp2130) SetScalarBarPosition1 0.87 0.25
+$kw(vtkTemp2130) SetScalarBarPosition2 0.13 0.5
+$kw(vtkTemp2130) SetScalarBarOrientation 1
+set kw(vtkTemp2232) [$kw(vtkTemp5) GetPVColorMap {gammap_} 3]
+$kw(vtkTemp2232) SetScalarBarTitle {gammap_}
+$kw(vtkTemp2232) SetScalarBarVectorTitle {Magnitude}
+$kw(vtkTemp2232) SetScalarBarLabelFormat {%-#6.3g}
+$kw(vtkTemp2232) SetStartHSV 0.6667 1 1
+$kw(vtkTemp2232) SetEndHSV 0 1 1
+$kw(vtkTemp2232) SetNumberOfColors 256
+$kw(vtkTemp2232) VectorModeMagnitudeCallback
+$kw(vtkTemp2232) SetScalarRange 0 1.47246
+$kw(vtkTemp2232) SetScalarRangeLock 1
+$kw(vtkTemp2232) SetScalarBarVisibility 0
+$kw(vtkTemp2232) SetScalarBarPosition1 0.729539 0.136214
+$kw(vtkTemp2232) SetScalarBarPosition2 0.211761 0.5
+$kw(vtkTemp2232) SetScalarBarOrientation 1
+set kw(vtkTemp3054) [$kw(vtkTemp5) GetPVColorMap {J2} 1]
+$kw(vtkTemp3054) SetScalarBarTitle {J2}
+$kw(vtkTemp3054) SetScalarBarVectorTitle {Magnitude}
+$kw(vtkTemp3054) SetScalarBarLabelFormat {%-#6.3g}
+$kw(vtkTemp3054) SetStartHSV 0.6667 1 1
+$kw(vtkTemp3054) SetEndHSV 0 1 1
+$kw(vtkTemp3054) SetNumberOfColors 256
+$kw(vtkTemp3054) SetScalarRange 3.99515e+08 3.99515e+08
+$kw(vtkTemp3054) SetScalarRangeLock 1
+$kw(vtkTemp3054) SetScalarBarVisibility 1
+$kw(vtkTemp3054) SetScalarBarPosition1 0.700189 0.473195
+$kw(vtkTemp3054) SetScalarBarPosition2 0.222243 0.5
+$kw(vtkTemp3054) SetScalarBarOrientation 1
+set kw(vtkTemp3118) [$kw(vtkTemp5) GetPVColorMap {effstr} 1]
+$kw(vtkTemp3118) SetScalarBarTitle {effstr}
+$kw(vtkTemp3118) SetScalarBarVectorTitle {Magnitude}
+$kw(vtkTemp3118) SetScalarBarLabelFormat {%-#6.3g}
+$kw(vtkTemp3118) SetStartHSV 0.6667 1 1
+$kw(vtkTemp3118) SetEndHSV 0 1 1
+$kw(vtkTemp3118) SetNumberOfColors 256
+$kw(vtkTemp3118) SetScalarRange -0.0388167 1.76521
+$kw(vtkTemp3118) SetScalarRangeLock 0
+$kw(vtkTemp3118) SetScalarBarVisibility 0
+$kw(vtkTemp3118) SetScalarBarPosition1 0.87 0.25
+$kw(vtkTemp3118) SetScalarBarPosition2 0.13 0.5
+$kw(vtkTemp3118) SetScalarBarOrientation 1
+$kw(vtkTemp23) SetRendererBackgroundColor 1 1 1
+$kw(vtkTemp23) ParallelProjectionOff
+$kw(vtkTemp23) SetCameraState 0.000269144 -0.00188185 0.00326961 0.000460702 -0.00103991 0.00221109 0.303316 0.718251 0.62619
+$kw(vtkTemp23) SetUseTriangleStrips 0
+$kw(vtkTemp23) SetUseImmediateMode 1
+set kw(vtkTemp284) [$kw(vtkTemp23) GetRenderModuleUI]
+catch {$kw(vtkTemp284) SetLODThreshold 5}
+catch {$kw(vtkTemp284) SetLODResolution 50}
+catch {$kw(vtkTemp284) SetOutlineThreshold 5e+06}
+catch {$kw(vtkTemp284) SetRenderInterruptsEnabled 1}
+set kw(vtkTemp231) [$kw(vtkTemp23) GetCornerAnnotation]
+$kw(vtkTemp231) SetVisibility 1
+$kw(vtkTemp231) SetCornerText {} 0
+$kw(vtkTemp231) SetCornerText {Time = [smGet Sources ExodusReader9 TimestepValues [smGet Sources ExodusReader9 TimeStep] 13.5f]} 1
+$kw(vtkTemp231) SetCornerText {} 2
+$kw(vtkTemp231) SetCornerText {} 3
+$kw(vtkTemp231) SetMaximumLineHeight 0.07
+set kw(vtkTemp251) [$kw(vtkTemp231) GetTextPropertyWidget]
+$kw(vtkTemp251) SetColor 1 1 1
+$kw(vtkTemp251) SetFontFamily 0
+$kw(vtkTemp251) SetBold 0
+$kw(vtkTemp251) SetItalic 0
+$kw(vtkTemp251) SetShadow 0
+$kw(vtkTemp251) SetOpacity 1
+$kw(vtkTemp23) SetOrientationAxesVisibility 1
+$kw(vtkTemp23) SetOrientationAxesInteractivity 0
+$kw(vtkTemp23) SetOrientationAxesOutlineColor 0 0 0
+$kw(vtkTemp23) SetOrientationAxesTextColor 0 0 0
+set kw(vtkTemp527) [$kw(vtkTemp23) GetManipulatorControl2D]
+$kw(vtkTemp527) SetCurrentManipulator 0 1 {Roll}
+$kw(vtkTemp527) SetCurrentManipulator 0 0 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 1 0 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 1 1 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 2 1 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 0 2 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 1 2 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 2 2 {Pan}
+$kw(vtkTemp527) SetCurrentManipulator 2 0 {Zoom}
+set kw(vtkTemp526) [$kw(vtkTemp23) GetManipulatorControl3D]
+$kw(vtkTemp526) SetCurrentManipulator 0 2 {FlyIn}
+$kw(vtkTemp526) SetCurrentManipulator 2 2 {FlyOut}
+$kw(vtkTemp526) SetCurrentManipulator 0 0 {Rotate}
+$kw(vtkTemp526) SetCurrentManipulator 1 1 {Rotate}
+$kw(vtkTemp526) SetCurrentManipulator 1 2 {Rotate}
+$kw(vtkTemp526) SetCurrentManipulator 0 1 {Roll}
+$kw(vtkTemp526) SetCurrentManipulator 1 0 {Pan}
+$kw(vtkTemp526) SetCurrentManipulator 2 1 {Pan}
+$kw(vtkTemp526) SetCurrentManipulator 2 0 {Zoom}
+$kw(vtkTemp384) SetNumberOfFrames 100
+$kw(vtkTemp384) SetCurrentTime 0
+$kw(vtkTemp384) SetCacheGeometry 1
+set kw(vtkTemp483) [$kw(vtkTemp661) GetAnimationScene]
+set kw(vtkTemp458) [$kw(vtkTemp661) GetVAnimationInterface]
+set kw(vtkTemp447) [$kw(vtkTemp661) GetHAnimationInterface]
+
+set kw(vtkTemp450) [$kw(vtkTemp447) GetParentTree]
+$kw(vtkTemp450) SetExpanded 1
+set kw(vtkTemp989) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp662) GetName]"]
+$kw(vtkTemp989) SetExpanded 0
+set kw(vtkTemp991) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].ApplyDisplacements.0"]
+$kw(vtkTemp991) RemoveAllKeyFrames
+set kw(vtkTemp993) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].DisplacementMagnitude.0"]
+$kw(vtkTemp993) RemoveAllKeyFrames
+set kw(vtkTemp995) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].ExodusModelMetadata.0"]
+$kw(vtkTemp995) RemoveAllKeyFrames
+set kw(vtkTemp997) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].FileName.0"]
+$kw(vtkTemp997) RemoveAllKeyFrames
+set kw(vtkTemp999) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].FilePattern.0"]
+$kw(vtkTemp999) RemoveAllKeyFrames
+set kw(vtkTemp1001) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].FilePrefix.0"]
+$kw(vtkTemp1001) RemoveAllKeyFrames
+set kw(vtkTemp1003) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].FileRange"]
+$kw(vtkTemp1003) SetExpanded 0
+set kw(vtkTemp1005) [$kw(vtkTemp1003) GetChild "Sources.[$kw(vtkTemp662) GetName].FileRange.FileRange.0"]
+$kw(vtkTemp1005) RemoveAllKeyFrames
+set kw(vtkTemp1007) [$kw(vtkTemp1003) GetChild "Sources.[$kw(vtkTemp662) GetName].FileRange.FileRange.1"]
+$kw(vtkTemp1007) RemoveAllKeyFrames
+set kw(vtkTemp1009) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].GenerateBlockIdCellArray.0"]
+$kw(vtkTemp1009) RemoveAllKeyFrames
+set kw(vtkTemp1011) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].GenerateFileIdArray.0"]
+$kw(vtkTemp1011) RemoveAllKeyFrames
+set kw(vtkTemp1013) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].GenerateGlobalElementIdArray.0"]
+$kw(vtkTemp1013) RemoveAllKeyFrames
+set kw(vtkTemp1015) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].GenerateGlobalNodeIdArray.0"]
+$kw(vtkTemp1015) RemoveAllKeyFrames
+set kw(vtkTemp1017) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].TimeStep.0"]
+$kw(vtkTemp1017) RemoveAllKeyFrames
+
+set tempid [$kw(vtkTemp1017) CreateAndAddKeyFrame 0 0]
+set kw(vtkTemp3179) [$kw(vtkTemp1017) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3179) SetKeyValue 0
+$kw(vtkTemp3179) SetKeyTime 0
+
+set tempid [$kw(vtkTemp1017) CreateAndAddKeyFrame 1 0]
+set kw(vtkTemp3184) [$kw(vtkTemp1017) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3184) SetKeyValue 9999
+$kw(vtkTemp3184) SetKeyTime 1
+set kw(vtkTemp1019) [$kw(vtkTemp989) GetChild "Sources.[$kw(vtkTemp662) GetName].XMLFileName.0"]
+$kw(vtkTemp1019) RemoveAllKeyFrames
+set kw(vtkTemp1372) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp1103) GetName]"]
+$kw(vtkTemp1372) SetExpanded 0
+set kw(vtkTemp1374) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].ApplyDisplacements.0"]
+$kw(vtkTemp1374) RemoveAllKeyFrames
+set kw(vtkTemp1376) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].DisplacementMagnitude.0"]
+$kw(vtkTemp1376) RemoveAllKeyFrames
+set kw(vtkTemp1378) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].ExodusModelMetadata.0"]
+$kw(vtkTemp1378) RemoveAllKeyFrames
+set kw(vtkTemp1380) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].FileName.0"]
+$kw(vtkTemp1380) RemoveAllKeyFrames
+set kw(vtkTemp1382) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].FilePattern.0"]
+$kw(vtkTemp1382) RemoveAllKeyFrames
+set kw(vtkTemp1384) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].FilePrefix.0"]
+$kw(vtkTemp1384) RemoveAllKeyFrames
+set kw(vtkTemp1386) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].FileRange"]
+$kw(vtkTemp1386) SetExpanded 0
+set kw(vtkTemp1388) [$kw(vtkTemp1386) GetChild "Sources.[$kw(vtkTemp1103) GetName].FileRange.FileRange.0"]
+$kw(vtkTemp1388) RemoveAllKeyFrames
+set kw(vtkTemp1390) [$kw(vtkTemp1386) GetChild "Sources.[$kw(vtkTemp1103) GetName].FileRange.FileRange.1"]
+$kw(vtkTemp1390) RemoveAllKeyFrames
+set kw(vtkTemp1392) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].GenerateBlockIdCellArray.0"]
+$kw(vtkTemp1392) RemoveAllKeyFrames
+set kw(vtkTemp1394) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].GenerateFileIdArray.0"]
+$kw(vtkTemp1394) RemoveAllKeyFrames
+set kw(vtkTemp1396) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].GenerateGlobalElementIdArray.0"]
+$kw(vtkTemp1396) RemoveAllKeyFrames
+set kw(vtkTemp1398) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].GenerateGlobalNodeIdArray.0"]
+$kw(vtkTemp1398) RemoveAllKeyFrames
+set kw(vtkTemp1400) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].TimeStep.0"]
+$kw(vtkTemp1400) RemoveAllKeyFrames
+
+set tempid [$kw(vtkTemp1400) CreateAndAddKeyFrame 0 0]
+set kw(vtkTemp3189) [$kw(vtkTemp1400) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3189) SetKeyValue 0
+$kw(vtkTemp3189) SetKeyTime 0
+
+set tempid [$kw(vtkTemp1400) CreateAndAddKeyFrame 1 0]
+set kw(vtkTemp3194) [$kw(vtkTemp1400) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3194) SetKeyValue 9999
+$kw(vtkTemp3194) SetKeyTime 1
+set kw(vtkTemp1402) [$kw(vtkTemp1372) GetChild "Sources.[$kw(vtkTemp1103) GetName].XMLFileName.0"]
+$kw(vtkTemp1402) RemoveAllKeyFrames
+set kw(vtkTemp1698) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp1423) GetName]"]
+$kw(vtkTemp1698) SetExpanded 0
+set kw(vtkTemp1700) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].ApplyDisplacements.0"]
+$kw(vtkTemp1700) RemoveAllKeyFrames
+set kw(vtkTemp1702) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].DisplacementMagnitude.0"]
+$kw(vtkTemp1702) RemoveAllKeyFrames
+set kw(vtkTemp1704) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].ExodusModelMetadata.0"]
+$kw(vtkTemp1704) RemoveAllKeyFrames
+set kw(vtkTemp1706) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].FileName.0"]
+$kw(vtkTemp1706) RemoveAllKeyFrames
+set kw(vtkTemp1708) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].FilePattern.0"]
+$kw(vtkTemp1708) RemoveAllKeyFrames
+set kw(vtkTemp1710) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].FilePrefix.0"]
+$kw(vtkTemp1710) RemoveAllKeyFrames
+set kw(vtkTemp1712) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].FileRange"]
+$kw(vtkTemp1712) SetExpanded 0
+set kw(vtkTemp1714) [$kw(vtkTemp1712) GetChild "Sources.[$kw(vtkTemp1423) GetName].FileRange.FileRange.0"]
+$kw(vtkTemp1714) RemoveAllKeyFrames
+set kw(vtkTemp1716) [$kw(vtkTemp1712) GetChild "Sources.[$kw(vtkTemp1423) GetName].FileRange.FileRange.1"]
+$kw(vtkTemp1716) RemoveAllKeyFrames
+set kw(vtkTemp1718) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].GenerateBlockIdCellArray.0"]
+$kw(vtkTemp1718) RemoveAllKeyFrames
+set kw(vtkTemp1720) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].GenerateFileIdArray.0"]
+$kw(vtkTemp1720) RemoveAllKeyFrames
+set kw(vtkTemp1722) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].GenerateGlobalElementIdArray.0"]
+$kw(vtkTemp1722) RemoveAllKeyFrames
+set kw(vtkTemp1724) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].GenerateGlobalNodeIdArray.0"]
+$kw(vtkTemp1724) RemoveAllKeyFrames
+set kw(vtkTemp1726) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].TimeStep.0"]
+$kw(vtkTemp1726) RemoveAllKeyFrames
+
+set tempid [$kw(vtkTemp1726) CreateAndAddKeyFrame 0 0]
+set kw(vtkTemp3199) [$kw(vtkTemp1726) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3199) SetKeyValue 0
+$kw(vtkTemp3199) SetKeyTime 0
+
+set tempid [$kw(vtkTemp1726) CreateAndAddKeyFrame 1 0]
+set kw(vtkTemp3204) [$kw(vtkTemp1726) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3204) SetKeyValue 9999
+$kw(vtkTemp3204) SetKeyTime 1
+set kw(vtkTemp1728) [$kw(vtkTemp1698) GetChild "Sources.[$kw(vtkTemp1423) GetName].XMLFileName.0"]
+$kw(vtkTemp1728) RemoveAllKeyFrames
+set kw(vtkTemp2032) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp1751) GetName]"]
+$kw(vtkTemp2032) SetExpanded 0
+set kw(vtkTemp2034) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].ApplyDisplacements.0"]
+$kw(vtkTemp2034) RemoveAllKeyFrames
+set kw(vtkTemp2036) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].DisplacementMagnitude.0"]
+$kw(vtkTemp2036) RemoveAllKeyFrames
+set kw(vtkTemp2038) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].ExodusModelMetadata.0"]
+$kw(vtkTemp2038) RemoveAllKeyFrames
+set kw(vtkTemp2040) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].FileName.0"]
+$kw(vtkTemp2040) RemoveAllKeyFrames
+set kw(vtkTemp2042) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].FilePattern.0"]
+$kw(vtkTemp2042) RemoveAllKeyFrames
+set kw(vtkTemp2044) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].FilePrefix.0"]
+$kw(vtkTemp2044) RemoveAllKeyFrames
+set kw(vtkTemp2046) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].FileRange"]
+$kw(vtkTemp2046) SetExpanded 0
+set kw(vtkTemp2048) [$kw(vtkTemp2046) GetChild "Sources.[$kw(vtkTemp1751) GetName].FileRange.FileRange.0"]
+$kw(vtkTemp2048) RemoveAllKeyFrames
+set kw(vtkTemp2050) [$kw(vtkTemp2046) GetChild "Sources.[$kw(vtkTemp1751) GetName].FileRange.FileRange.1"]
+$kw(vtkTemp2050) RemoveAllKeyFrames
+set kw(vtkTemp2052) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].GenerateBlockIdCellArray.0"]
+$kw(vtkTemp2052) RemoveAllKeyFrames
+set kw(vtkTemp2054) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].GenerateFileIdArray.0"]
+$kw(vtkTemp2054) RemoveAllKeyFrames
+set kw(vtkTemp2056) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].GenerateGlobalElementIdArray.0"]
+$kw(vtkTemp2056) RemoveAllKeyFrames
+set kw(vtkTemp2058) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].GenerateGlobalNodeIdArray.0"]
+$kw(vtkTemp2058) RemoveAllKeyFrames
+set kw(vtkTemp2060) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].TimeStep.0"]
+$kw(vtkTemp2060) RemoveAllKeyFrames
+
+set tempid [$kw(vtkTemp2060) CreateAndAddKeyFrame 0 0]
+set kw(vtkTemp3209) [$kw(vtkTemp2060) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3209) SetKeyValue 0
+$kw(vtkTemp3209) SetKeyTime 0
+
+set tempid [$kw(vtkTemp2060) CreateAndAddKeyFrame 1 0]
+set kw(vtkTemp3214) [$kw(vtkTemp2060) GetKeyFrame $tempid ]
+#State of a Key Frame 
+$kw(vtkTemp3214) SetKeyValue 9999
+$kw(vtkTemp3214) SetKeyTime 1
+set kw(vtkTemp2062) [$kw(vtkTemp2032) GetChild "Sources.[$kw(vtkTemp1751) GetName].XMLFileName.0"]
+$kw(vtkTemp2062) RemoveAllKeyFrames
+set kw(vtkTemp2199) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2087) GetName]"]
+$kw(vtkTemp2199) SetExpanded 0
+set kw(vtkTemp2201) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].MaximumNumberOfPoints.0"]
+$kw(vtkTemp2201) RemoveAllKeyFrames
+set kw(vtkTemp2203) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].RandomMode.0"]
+$kw(vtkTemp2203) RemoveAllKeyFrames
+set kw(vtkTemp2205) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2205) RemoveAllKeyFrames
+set kw(vtkTemp2207) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].SelectInputVectors.0"]
+$kw(vtkTemp2207) RemoveAllKeyFrames
+set kw(vtkTemp2209) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].SetOrient.0"]
+$kw(vtkTemp2209) RemoveAllKeyFrames
+set kw(vtkTemp2211) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].SetScaleFactor.0"]
+$kw(vtkTemp2211) RemoveAllKeyFrames
+set kw(vtkTemp2213) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].SetScaleMode.0"]
+$kw(vtkTemp2213) RemoveAllKeyFrames
+set kw(vtkTemp2215) [$kw(vtkTemp2199) GetChild "Sources.[$kw(vtkTemp2087) GetName].UseMaskPoints.0"]
+$kw(vtkTemp2215) RemoveAllKeyFrames
+set kw(vtkTemp2352) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2300) GetName]"]
+$kw(vtkTemp2352) SetExpanded 0
+set kw(vtkTemp2354) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].MaximumNumberOfPoints.0"]
+$kw(vtkTemp2354) RemoveAllKeyFrames
+set kw(vtkTemp2356) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].RandomMode.0"]
+$kw(vtkTemp2356) RemoveAllKeyFrames
+set kw(vtkTemp2358) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2358) RemoveAllKeyFrames
+set kw(vtkTemp2360) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].SelectInputVectors.0"]
+$kw(vtkTemp2360) RemoveAllKeyFrames
+set kw(vtkTemp2362) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].SetOrient.0"]
+$kw(vtkTemp2362) RemoveAllKeyFrames
+set kw(vtkTemp2364) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].SetScaleFactor.0"]
+$kw(vtkTemp2364) RemoveAllKeyFrames
+set kw(vtkTemp2366) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].SetScaleMode.0"]
+$kw(vtkTemp2366) RemoveAllKeyFrames
+set kw(vtkTemp2368) [$kw(vtkTemp2352) GetChild "Sources.[$kw(vtkTemp2300) GetName].UseMaskPoints.0"]
+$kw(vtkTemp2368) RemoveAllKeyFrames
+set kw(vtkTemp2440) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2384) GetName]"]
+$kw(vtkTemp2440) SetExpanded 0
+set kw(vtkTemp2442) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].MaximumNumberOfPoints.0"]
+$kw(vtkTemp2442) RemoveAllKeyFrames
+set kw(vtkTemp2444) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].RandomMode.0"]
+$kw(vtkTemp2444) RemoveAllKeyFrames
+set kw(vtkTemp2446) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2446) RemoveAllKeyFrames
+set kw(vtkTemp2448) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].SelectInputVectors.0"]
+$kw(vtkTemp2448) RemoveAllKeyFrames
+set kw(vtkTemp2450) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].SetOrient.0"]
+$kw(vtkTemp2450) RemoveAllKeyFrames
+set kw(vtkTemp2452) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].SetScaleFactor.0"]
+$kw(vtkTemp2452) RemoveAllKeyFrames
+set kw(vtkTemp2454) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].SetScaleMode.0"]
+$kw(vtkTemp2454) RemoveAllKeyFrames
+set kw(vtkTemp2456) [$kw(vtkTemp2440) GetChild "Sources.[$kw(vtkTemp2384) GetName].UseMaskPoints.0"]
+$kw(vtkTemp2456) RemoveAllKeyFrames
+set kw(vtkTemp2534) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2474) GetName]"]
+$kw(vtkTemp2534) SetExpanded 0
+set kw(vtkTemp2536) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].MaximumNumberOfPoints.0"]
+$kw(vtkTemp2536) RemoveAllKeyFrames
+set kw(vtkTemp2538) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].RandomMode.0"]
+$kw(vtkTemp2538) RemoveAllKeyFrames
+set kw(vtkTemp2540) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2540) RemoveAllKeyFrames
+set kw(vtkTemp2542) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].SelectInputVectors.0"]
+$kw(vtkTemp2542) RemoveAllKeyFrames
+set kw(vtkTemp2544) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].SetOrient.0"]
+$kw(vtkTemp2544) RemoveAllKeyFrames
+set kw(vtkTemp2546) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].SetScaleFactor.0"]
+$kw(vtkTemp2546) RemoveAllKeyFrames
+set kw(vtkTemp2548) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].SetScaleMode.0"]
+$kw(vtkTemp2548) RemoveAllKeyFrames
+set kw(vtkTemp2550) [$kw(vtkTemp2534) GetChild "Sources.[$kw(vtkTemp2474) GetName].UseMaskPoints.0"]
+$kw(vtkTemp2550) RemoveAllKeyFrames
+set kw(vtkTemp2624) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2570) GetName]"]
+$kw(vtkTemp2624) SetExpanded 0
+set kw(vtkTemp2626) [$kw(vtkTemp2624) GetChild "Sources.[$kw(vtkTemp2570) GetName].Normal"]
+$kw(vtkTemp2626) SetExpanded 0
+set kw(vtkTemp2628) [$kw(vtkTemp2626) GetChild "Sources.[$kw(vtkTemp2570) GetName].Normal.Normal.0"]
+$kw(vtkTemp2628) RemoveAllKeyFrames
+set kw(vtkTemp2630) [$kw(vtkTemp2626) GetChild "Sources.[$kw(vtkTemp2570) GetName].Normal.Normal.1"]
+$kw(vtkTemp2630) RemoveAllKeyFrames
+set kw(vtkTemp2632) [$kw(vtkTemp2626) GetChild "Sources.[$kw(vtkTemp2570) GetName].Normal.Normal.2"]
+$kw(vtkTemp2632) RemoveAllKeyFrames
+set kw(vtkTemp2634) [$kw(vtkTemp2624) GetChild "Sources.[$kw(vtkTemp2570) GetName].ScaleFactor.0"]
+$kw(vtkTemp2634) RemoveAllKeyFrames
+set kw(vtkTemp2636) [$kw(vtkTemp2624) GetChild "Sources.[$kw(vtkTemp2570) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2636) RemoveAllKeyFrames
+set kw(vtkTemp2638) [$kw(vtkTemp2624) GetChild "Sources.[$kw(vtkTemp2570) GetName].UseNormal.0"]
+$kw(vtkTemp2638) RemoveAllKeyFrames
+set kw(vtkTemp2640) [$kw(vtkTemp2624) GetChild "Sources.[$kw(vtkTemp2570) GetName].XYPlane.0"]
+$kw(vtkTemp2640) RemoveAllKeyFrames
+set kw(vtkTemp2736) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2678) GetName]"]
+$kw(vtkTemp2736) SetExpanded 0
+set kw(vtkTemp2738) [$kw(vtkTemp2736) GetChild "Sources.[$kw(vtkTemp2678) GetName].Normal"]
+$kw(vtkTemp2738) SetExpanded 0
+set kw(vtkTemp2740) [$kw(vtkTemp2738) GetChild "Sources.[$kw(vtkTemp2678) GetName].Normal.Normal.0"]
+$kw(vtkTemp2740) RemoveAllKeyFrames
+set kw(vtkTemp2742) [$kw(vtkTemp2738) GetChild "Sources.[$kw(vtkTemp2678) GetName].Normal.Normal.1"]
+$kw(vtkTemp2742) RemoveAllKeyFrames
+set kw(vtkTemp2744) [$kw(vtkTemp2738) GetChild "Sources.[$kw(vtkTemp2678) GetName].Normal.Normal.2"]
+$kw(vtkTemp2744) RemoveAllKeyFrames
+set kw(vtkTemp2746) [$kw(vtkTemp2736) GetChild "Sources.[$kw(vtkTemp2678) GetName].ScaleFactor.0"]
+$kw(vtkTemp2746) RemoveAllKeyFrames
+set kw(vtkTemp2748) [$kw(vtkTemp2736) GetChild "Sources.[$kw(vtkTemp2678) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2748) RemoveAllKeyFrames
+set kw(vtkTemp2750) [$kw(vtkTemp2736) GetChild "Sources.[$kw(vtkTemp2678) GetName].UseNormal.0"]
+$kw(vtkTemp2750) RemoveAllKeyFrames
+set kw(vtkTemp2752) [$kw(vtkTemp2736) GetChild "Sources.[$kw(vtkTemp2678) GetName].XYPlane.0"]
+$kw(vtkTemp2752) RemoveAllKeyFrames
+set kw(vtkTemp2856) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2794) GetName]"]
+$kw(vtkTemp2856) SetExpanded 0
+set kw(vtkTemp2858) [$kw(vtkTemp2856) GetChild "Sources.[$kw(vtkTemp2794) GetName].Normal"]
+$kw(vtkTemp2858) SetExpanded 0
+set kw(vtkTemp2860) [$kw(vtkTemp2858) GetChild "Sources.[$kw(vtkTemp2794) GetName].Normal.Normal.0"]
+$kw(vtkTemp2860) RemoveAllKeyFrames
+set kw(vtkTemp2862) [$kw(vtkTemp2858) GetChild "Sources.[$kw(vtkTemp2794) GetName].Normal.Normal.1"]
+$kw(vtkTemp2862) RemoveAllKeyFrames
+set kw(vtkTemp2864) [$kw(vtkTemp2858) GetChild "Sources.[$kw(vtkTemp2794) GetName].Normal.Normal.2"]
+$kw(vtkTemp2864) RemoveAllKeyFrames
+set kw(vtkTemp2866) [$kw(vtkTemp2856) GetChild "Sources.[$kw(vtkTemp2794) GetName].ScaleFactor.0"]
+$kw(vtkTemp2866) RemoveAllKeyFrames
+set kw(vtkTemp2868) [$kw(vtkTemp2856) GetChild "Sources.[$kw(vtkTemp2794) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2868) RemoveAllKeyFrames
+set kw(vtkTemp2870) [$kw(vtkTemp2856) GetChild "Sources.[$kw(vtkTemp2794) GetName].UseNormal.0"]
+$kw(vtkTemp2870) RemoveAllKeyFrames
+set kw(vtkTemp2872) [$kw(vtkTemp2856) GetChild "Sources.[$kw(vtkTemp2794) GetName].XYPlane.0"]
+$kw(vtkTemp2872) RemoveAllKeyFrames
+set kw(vtkTemp2984) [$kw(vtkTemp450) GetChild "Sources.[$kw(vtkTemp2918) GetName]"]
+$kw(vtkTemp2984) SetExpanded 0
+set kw(vtkTemp2986) [$kw(vtkTemp2984) GetChild "Sources.[$kw(vtkTemp2918) GetName].Normal"]
+$kw(vtkTemp2986) SetExpanded 0
+set kw(vtkTemp2988) [$kw(vtkTemp2986) GetChild "Sources.[$kw(vtkTemp2918) GetName].Normal.Normal.0"]
+$kw(vtkTemp2988) RemoveAllKeyFrames
+set kw(vtkTemp2990) [$kw(vtkTemp2986) GetChild "Sources.[$kw(vtkTemp2918) GetName].Normal.Normal.1"]
+$kw(vtkTemp2990) RemoveAllKeyFrames
+set kw(vtkTemp2992) [$kw(vtkTemp2986) GetChild "Sources.[$kw(vtkTemp2918) GetName].Normal.Normal.2"]
+$kw(vtkTemp2992) RemoveAllKeyFrames
+set kw(vtkTemp2994) [$kw(vtkTemp2984) GetChild "Sources.[$kw(vtkTemp2918) GetName].ScaleFactor.0"]
+$kw(vtkTemp2994) RemoveAllKeyFrames
+set kw(vtkTemp2996) [$kw(vtkTemp2984) GetChild "Sources.[$kw(vtkTemp2918) GetName].SelectInputScalars.0"]
+$kw(vtkTemp2996) RemoveAllKeyFrames
+set kw(vtkTemp2998) [$kw(vtkTemp2984) GetChild "Sources.[$kw(vtkTemp2918) GetName].UseNormal.0"]
+$kw(vtkTemp2998) RemoveAllKeyFrames
+set kw(vtkTemp3000) [$kw(vtkTemp2984) GetChild "Sources.[$kw(vtkTemp2918) GetName].XYPlane.0"]
+$kw(vtkTemp3000) RemoveAllKeyFrames
+
+# State for vtkPVAnimationScene
+$kw(vtkTemp483) SetDuration 10
+$kw(vtkTemp483) SetPlayMode 1
+$kw(vtkTemp483) SetFrameRate 15
+$kw(vtkTemp483) SetLoop 0
+$kw(vtkTemp483) SetCurrentTime 10
+$kw(vtkTemp5) SetCenterOfRotation 0.00025 0.00025 0

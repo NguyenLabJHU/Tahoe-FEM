@@ -1,0 +1,35 @@
+strategy, \
+  single_method \
+  tabular_graphics_data \
+#  graphics \
+
+method, \
+  nond_sampling \
+  samples = 100 seed = 17 \
+  response_levels = 100.0 \
+  sample_type lhs
+
+variables, \
+  loguniform_uncertain = 10 \
+  luuv_lower_bounds   0.01 0.01 0.01 0.01   1.0   1   10   10000   10   1\
+  luuv_upper_bounds   1.00 1.00 1.00 1.00 100.0 100 1000 1000000 1000 100\
+  luuv_descriptor     'ALPHA0' 'ALPHA1' 'ALPHA2' 'ALPHA3' 'BETA' 'XI1' 'XI2' 'XI3' 'TAU3' 'MU'
+
+#variables, \
+#  continuous_design = 10 \
+#  cdv_descriptor     'ALPHA0' 'ALPHA1' 'ALPHA2' 'ALPHA3' 'BETA' 'XI1' 'XI2' 'XI3' 'TAU3' 'MU' \
+#  cdv_initial_point 0.121 0.234 0.242 0.600 34.7 16.17 312.67 126000 450 10
+
+
+interface,                                              \
+        system async evaluation_concurrency = 1                              \
+          analysis_driver =    'run.pl'   \
+          parameters_file = 'in'                 \
+          results_file =    'out'               \
+          file_tag                                      \
+          file_save                                     \
+
+responses, \
+  num_response_functions = 1 \
+  no_gradients \
+  no_hessians  

@@ -1,0 +1,65 @@
+reset
+create vertex 0.0065868 0.0098802 -0.0059880 color
+create vertex 0.0101796 0.0062874 -0.0059880 color
+create vertex 0.0119761 0.0098802 -0.0059880 color
+create vertex 0.0098802 0.0116767 -0.0059880 color
+create vertex 0.0068862 0.0098503 -0.0029940 color
+create vertex 0.0101198 0.0066168 -0.0029940 color
+create vertex 0.0117365 0.0098503 -0.0029940 color
+create vertex 0.0098503 0.0114671 -0.0029940 color
+
+create vertex 0.0000000 0.0000000 0.0134731 color
+create vertex 0.0269461 0.0000000 0.0134731 color
+create vertex 0.0269461 0.0179641 0.0134731 color
+create vertex 0.0000000 0.0179641 0.0134731 color
+create vertex 0.0000000 0.0000000 -0.0134731 color
+create vertex 0.0269461 0.0000000 -0.0134731 color
+create vertex 0.0269461 0.0179641 -0.0134731 color
+create vertex 0.0000000 0.0179641 -0.0134731 color
+
+create curve vertex 1 vertex 2 
+create curve vertex 2 vertex 3 
+create curve vertex 3 vertex 4 
+create curve vertex 4 vertex 1 
+create curve vertex 5 vertex 6 
+create curve vertex 6 vertex 7 
+create curve vertex 7 vertex 8 
+create curve vertex 8 vertex 5 
+create curve vertex 1 vertex 5 
+create curve vertex 2 vertex 6
+create curve vertex 3 vertex 7 
+create curve vertex 4 vertex 8
+
+create curve vertex 9 vertex 10
+create curve vertex 10 vertex 11
+create curve vertex 11 vertex 12
+create curve vertex 12 vertex 9
+create curve vertex 13 vertex 14
+create curve vertex 14 vertex 15
+create curve vertex 15 vertex 16
+create curve vertex 16 vertex 13
+create curve vertex 9 vertex 13
+create curve vertex 10 vertex 14
+create curve vertex 11 vertex 15
+create curve vertex 12 vertex 16
+
+create surface curve 1 2 3 4
+create surface curve 5 6 7 8
+create surface curve 9 1 10 5
+create surface curve 10 2 11 6
+create surface curve 11 3 12 7
+create surface curve 12 4 9 8
+
+create surface curve 17 18 19 20
+create surface curve 13 14 15 16
+create surface curve 21 17 22 13
+create surface curve 22 18 23 14
+create surface curve 23 19 24 15
+create surface curve 24 20 21 16
+
+create volume surface 1 2 3 4 5 6 7 8 9 10 11 12
+
+volume all size auto factor 5
+volume all scheme Polyhedron
+volume all scheme Polyhedron
+mesh volume all
