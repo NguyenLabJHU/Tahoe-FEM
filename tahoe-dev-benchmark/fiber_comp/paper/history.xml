@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<history>
-    <xsd-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/fiber_comp/paper/tahoe.xsd">
-        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/fiber_comp/paper/test.xml"/>
-        <xml-doc file="/Users/tdnguye/Tahoe/tahoe-install/development_benchmark_XML/fiber_comp/paper/ortho_tension_I5_02.xml"/>
-    </xsd-doc>
-</history>

@@ -1,9 +1,0 @@
-This folder is the input files and results for the cavity expansion with granular stress and strain calculation based on RVE domain, which is used in the paper.
-Note that the cavity simulation is the same as the one without RVE stress and strain calculation.
-During this simulation, the ellip3d will re-generate tessellation using Qhull at every 1000 time steps.
-
-To run this simulation, you type:
-ellip3d 4 > exp_out &
-
-or janus-long:
-qsub -q janus-long run.sh

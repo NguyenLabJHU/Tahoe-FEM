@@ -1,7 +1,0 @@
-This example is the simulation of gravity deposition of soil sample with different minerals. 
-That is to say individual particles in this sample can have different Young's modulus and Poisson's ratio.
-How to run:
-(1) copy this main.cpp into "tahoe/development/src/elements/DEM_ellip3d/ellip3d-2.0_mineral_distribution"
-(2) type "make clean" in the terminal and then "make"
-(3) copy the generated "ellip3d" into this directory with the input files
-(4) type "qsub run.sh" in the terminal

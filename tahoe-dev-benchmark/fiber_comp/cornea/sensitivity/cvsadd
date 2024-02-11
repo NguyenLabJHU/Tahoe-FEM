@@ -1,4 +1,0 @@
-cvs add pstudy.pl run.pl
-cvs add *.tmpl parameter.defaults
-cvs add *.dakota
-cvs add comp.gpl

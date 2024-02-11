@@ -1,5 +1,0 @@
-plot "test.in.fvst_X" t "simulated" w l, "tension-reaction.dat" t "smoothed-experimental" w l
-pause -1
-set term post eps
-set output "comparison.eps"
-repl

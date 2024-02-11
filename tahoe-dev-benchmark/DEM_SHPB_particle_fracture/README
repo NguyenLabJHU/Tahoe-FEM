@@ -1,5 +1,0 @@
-This is the Split Hopkinson Pressure Bar simulation for the randomly distributed sample with different sized particles.
-To run the code,
-(1) Copy the main.cpp into the "poly-ellip3d_particle_fracture" in development/
-(2) In terminal type: "make clean", and then "make". Then copy this generated excutable file named "ellip3d" to this folder
-(3) then submit the run.sh

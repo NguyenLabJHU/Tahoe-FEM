@@ -1,8 +1,0 @@
-1) edit compare.nb for your specific model and output as  Mathematica v2
-2) edit the M v2 file to get rid of "font" and enclosing comments and rename
-  file as "compare.m" (see example)
-3) compile "math_handler.c" 
-  mcc math_handler.c -o math_handler
-4) run dakota after editing "compare.dakota" for ranges
-  dakota -i compare.dakota
-

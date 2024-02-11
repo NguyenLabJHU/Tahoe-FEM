@@ -1,8 +1,0 @@
-        <schedule_function>
-            <piecewise_linear>
-                <OrderedPair x="0" y="0"/>
-                <OrderedPair x="1e-3" y="1"/>
-                <OrderedPair x="5e-3" y="0"/>
-                <OrderedPair x=".1" y="0"/>
-            </piecewise_linear>
-        </schedule_function>

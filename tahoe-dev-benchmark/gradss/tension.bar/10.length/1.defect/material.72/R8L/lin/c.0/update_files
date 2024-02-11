@@ -1,4 +1,0 @@
-vi mat.72.010el.xml;
-cp mat.72.010el.xml mat.72.020el.xml;
-cp mat.72.010el.xml mat.72.080el.xml;
-vi mat.72.020el.xml mat.72.080el.xml
