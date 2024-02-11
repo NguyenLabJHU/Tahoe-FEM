@@ -7,7 +7,7 @@ This is a custom fork of Tahoe which was originally hosted on [SourceForge](http
 
 ## Notes for Developers
 
-If you are a developer who is interested in contributing to the Tahoe project, then fork this repository and create a development branch for yourself. Perform all the developments in that branch and once you are sure about making the changes available, commit your changes, and send a pull request. We will merge your request to the main branch after review. Learn more about the [GitHub flow process](https://docs.github.com/en/get-started/using-github/github-flow)
+If you are a developer who is interested in contributing to the Tahoe project, then fork this repository and create a development branch for yourself. Perform all the developments in that branch and once you are sure about making the changes available, commit your changes, and send a pull request. We will merge your request to the main branch after review. Learn more about the [GitHub flow process](https://docs.github.com/en/get-started/using-github/github-flow).
 
 
 ## Installing Tahoe
