@@ -1,0 +1,4 @@
+g++ -c Vec.cpp
+g++ -c plot_bdry_contact.cpp
+g++ -o plot_bdry_contact *.o
+

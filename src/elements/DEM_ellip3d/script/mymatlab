@@ -1,0 +1,1 @@
+matlab -nodisplay -nodesktop -nosplash -noFigureWindows -r "addpath /home/yanb/matlab"

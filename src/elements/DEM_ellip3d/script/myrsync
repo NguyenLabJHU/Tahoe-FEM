@@ -1,0 +1,1 @@
+rsync -avz --exclude 'dep*' --exclude 'fl*' --exclude 'tr*' --exclude '*.plt' --exclude 'run.o*' --exclude '*.png' --exclude '*.mpg' $1 $2

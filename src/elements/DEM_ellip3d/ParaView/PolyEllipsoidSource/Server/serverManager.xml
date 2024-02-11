@@ -1,0 +1,59 @@
+<ServerManagerConfiguration>
+   <ProxyGroup name="sources">
+
+      <SourceProxy name="PolyEllipsoidSource" class="vtkPolyEllipsoidSource"
+                 label="Poly-Ellipsoid Source">
+   
+         <DoubleVectorProperty
+            name="RadiusXPlus"
+            command="SetRadiusXPlus"
+            number_of_elements="1"
+            default_values="1">
+         </DoubleVectorProperty>
+   
+         <DoubleVectorProperty
+            name="RadiusXMinus"
+            command="SetRadiusXMinus"
+            number_of_elements="1"
+            default_values="1.0">
+         </DoubleVectorProperty>
+   
+         <DoubleVectorProperty
+            name="RadiusYPlus"
+            command="SetRadiusYPlus"
+            number_of_elements="1"
+            default_values="1.0">
+         </DoubleVectorProperty>
+   
+         <DoubleVectorProperty
+            name="RadiusYMinus"
+            command="SetRadiusYMinus"
+            number_of_elements="1"
+            default_values="1.0">
+         </DoubleVectorProperty>
+   
+         <DoubleVectorProperty
+            name="RadiusZPlus"
+            command="SetRadiusZPlus"
+            number_of_elements="1"
+            default_values="1.0">
+         </DoubleVectorProperty>
+   
+         <DoubleVectorProperty
+            name="RadiusZMinus"
+            command="SetRadiusZMinus"
+            number_of_elements="1"
+            default_values="1.0">
+         </DoubleVectorProperty>
+
+<!--         <IntVectorProperty
+            name="Resolution"
+            command="SetResolution"
+            number_of_elements="1"
+            default_values="16">
+         </IntVectorProperty>
+-->
+      </SourceProxy>
+
+   </ProxyGroup>
+</ServerManagerConfiguration>

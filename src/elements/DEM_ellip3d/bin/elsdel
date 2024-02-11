@@ -1,0 +1,5 @@
+for file in `ls *.els`
+do
+  newfile=` echo $file | sed 's/\.els//' `
+  mv $file $newfile
+done

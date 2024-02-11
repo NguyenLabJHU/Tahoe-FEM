@@ -1,0 +1,16 @@
+if (($# != 4)); then
+echo "purpose: convert zones (snapshots) to transient format within Tecplot .dat files"
+echo "  usage: mytransient prefix start_snap end_snap increment"
+echo "example: mytransient deposit_stress_plot 1 100 5"
+exit
+fi
+
+prefix=$1
+
+for suffix in `printf "%03d\n" $(seq $2 $4 $3)`
+do
+
+  echo $suffix
+  sed -i '/ZONE/s/$/, STRANDID=1, SOLUTIONTIME='"$suffix"'/' $prefix"_"$suffix".dat"
+
+done

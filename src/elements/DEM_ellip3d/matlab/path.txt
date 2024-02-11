@@ -1,0 +1,14 @@
+startup folder (change in matlabroot/toolbox/local/startup.m):
+addpath /home/username/mytools
+cd /home/username/mytools
+
+current folder, may not be in search path
+
+search path (also called path): = matlabroot/toolbox + userpath + folers explicitly added in file>set path
+addpath d:/muri/benchmark/cfd
+
+userpath: userpath is added to search path
+userpath('d:/muri/benchmark/cfd')
+userpath('reset')
+userpath('clear')
+
