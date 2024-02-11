@@ -1,0 +1,6 @@
+This Paraview plugin is built the same way as Ellip3dReader. Consult its
+readme for building instructions.
+
+This just adds a simple poly-ellipsoid source to Paraview. You can access it
+from the 'Sources' menu, and adjust parameters in the lower left like any other
+source.

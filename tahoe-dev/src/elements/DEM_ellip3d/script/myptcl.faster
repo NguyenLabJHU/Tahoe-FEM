@@ -1,0 +1,25 @@
+if (($# != 4)); then
+echo "purpose: convert ellipsoid to Tecplot format"
+echo "  usage: myptcl prefix start_snap end_snap increment"
+echo "example: myptcl deposit 1 100 5"
+exit
+fi
+
+prefix=$1
+ptcl=$1"_particle"
+grid=$1"_gridplot"
+bdry=$1"_bdryplot"
+
+for suffix in `printf "%03d\n" $(seq $2 $4 $3)`
+do
+  plot3 $ptcl"_"$suffix"
+
+  echo " cat "$grid"_"$suffix".dat" " >> " $ptcl"_"$suffix".dat "
+  cat $grid"_"$suffix".dat" >> $ptcl"_"$suffix".dat"
+
+  echo " cat "$bdry"_"$suffix".dat" " >> " $ptcl"_"$suffix".dat "
+  cat $bdry"_"$suffix".dat" >> $ptcl"_"$suffix".dat"
+
+  preplot $ptcl"_"$suffix".dat"
+  rm $ptcl"_"$suffix".dat"
+done

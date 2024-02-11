@@ -1,0 +1,3 @@
+cp -p ~/development/src/elements/DEM_ellip3d/macro/ptcl_grid_bdry.mcr .
+cp -p ~/development/src/elements/DEM_ellip3d/macro/ptclmesh_grid_bdry.mcr .
+cp -p ~/development/src/elements/DEM_ellip3d/macro/makeMovie*.mcr .

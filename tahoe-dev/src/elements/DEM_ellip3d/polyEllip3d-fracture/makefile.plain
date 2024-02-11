@@ -1,0 +1,67 @@
+# 1. You can turn on/off openmp
+
+# C++ compiler
+CXX = g++
+
+# optimization
+OPTIMIZE = -O3 -DNDEBUG
+
+# debugging options
+DEBUG = -Wall -g
+
+# OpenMP (macro OPENMP is defined in source code )
+OPENMP = -DOPENMP -fopenmp
+
+# CXXFLAGS
+ CXXFLAGS = $(OPTIMIZE) $(OPENMP)
+#CXXFLAGS = $(DEBUG) $(OPENMP)
+
+ellip3d: main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o timefunc.o
+	$(CXX) $(CXXFLAGS) -o ellip3d main.o assembly.o cylinder.o rectangle.o particle.o root6.o ran.o balanc.o zrhqr.o hqr.o vec.o nrutil.o parameter.o timefunc.o
+
+main.o: parameter.h gradation.h rectangle.h assembly.h main.cpp
+	$(CXX) -c $(CXXFLAGS) -o main.o main.cpp
+
+assembly.o: assembly.h parameter.h timefunc.h vec.h gradation.h particle.h contact.h boundary.h rectangle.h cylinder.h assembly.cpp
+	$(CXX) -c $(CXXFLAGS) assembly.cpp
+
+particle.o: particle.h parameter.h ran.h root6.h vec.h gradation.h contact.h boundary.h rectangle.h cylinder.h boundarytgt.h particle.cpp
+	$(CXX) -c $(CXXFLAGS) particle.cpp
+
+cylinder.o: cylinder.h parameter.h ran.h vec.h shape.h cylinder.cpp
+	$(CXX) -c $(CXXFLAGS) cylinder.cpp
+
+rectangle.o: rectangle.h parameter.h ran.h vec.h shape.h rectangle.cpp
+	$(CXX) -c $(CXXFLAGS) rectangle.cpp
+
+ran.o: ran.h ran.cpp
+	$(CXX) -c $(CXXFLAGS) ran.cpp
+
+root6.o: root6.h parameter.h nr.h vec.h root6.cpp
+	$(CXX) -c $(CXXFLAGS) root6.cpp
+
+zrhqr.o: nrutil.h zrhqr.cpp
+	$(CXX) -c $(CXXFLAGS) zrhqr.cpp 
+
+hqr.o: nrutil.h hqr.cpp
+	$(CXX) -c $(CXXFLAGS) hqr.cpp
+
+balanc.o: balanc.cpp
+	$(CXX) -c $(CXXFLAGS) balanc.cpp
+
+nrutil.o: nrutil.cpp
+	$(CXX) -c $(CXXFLAGS) nrutil.cpp
+
+timefunc.o: timefunc.cpp
+	$(CXX) -c $(CXXFLAGS) timefunc.cpp
+
+vec.o:  vec.h parameter.h vec.cpp
+	$(CXX) -c $(CXXFLAGS) vec.cpp
+
+parameter.o: parameter.h parameter.cpp
+	$(CXX) -c $(CXXFLAGS) parameter.cpp
+
+clean:
+	rm -f *.o
+	rm -f *~
+	rm -f ellip3d

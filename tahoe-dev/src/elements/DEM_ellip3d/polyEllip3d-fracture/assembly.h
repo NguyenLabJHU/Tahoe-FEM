@@ -1,0 +1,968 @@
+#ifndef ASSEMBLY_H
+#define ASSEMBLY_H
+
+#include "realtypes.h"
+#include "vec.h"
+#include "gradation.h"
+#include "particle.h"
+#include "contact.h"
+#include "boundary.h"
+#include "rectangle.h"
+#include "cylinder.h"
+#include "spring.h"
+#include "matrix.h"
+#include "cell.h"
+#include "edge.h"
+#include "fracpair.h"	
+#include <map>
+#include <vector>
+#include <fstream>
+#include <list>
+
+namespace dem {
+
+class assembly{
+  typedef contact<particle>  CONTACT;
+  typedef rgd_bdry<particle> RGDBDRY;
+  typedef flb_bdry<particle> FLBBDRY;
+  
+ public:
+  assembly(){
+    TotalNum = 0;
+    trimHistoryNum = 0;
+    Volume = 0;
+    BulkDensity = 0;
+    PossCntctNum = 0;
+    ActualCntctNum = 0;
+    RgdBdryNum = 0;
+    FlbBdryNum = 0;
+    NumErasedFrac = 0;
+  }
+  
+  ~assembly(){
+    std::vector<particle*>::iterator pt;
+    std::vector<RGDBDRY*>::iterator  rt;
+    std::vector<FLBBDRY*>::iterator  ft;
+    std::vector<spring*>::iterator st;
+    std::vector<cell*>::iterator ct;	// October 18, 2013
+    // it is important to release memory pointed to by pointers in the container,
+    // otherwise memory leaking occurs
+    for(pt = ParticleVec.begin(); pt != ParticleVec.end(); ++pt)
+      delete (*pt);
+    for(rt = RBVec.begin(); rt != RBVec.end(); ++rt)
+      delete (*rt);
+    for(ft = FBVec.begin(); ft!=FBVec.end(); ++ft)
+      delete (*ft);
+    for(st = SpringVec.begin(); st != SpringVec.end(); ++st)
+      delete (*st);
+    for(ct = cellVec.begin(); ct != cellVec.end(); ++ct)	// October 18, 2013
+      delete (*ct);
+    for(ct = cellVec_init.begin(); ct != cellVec_init.end(); ++ct)	// October 18, 2013
+      delete (*ct);
+    
+    // in case of consecutive simulations
+    ParticleVec.clear();
+    RBVec.clear();
+    FBVec.clear();
+    SpringVec.clear();
+    cellVec.clear();	// October 18, 2013
+    cellVec_init.clear();	// October 18, 2013
+  }
+ 
+  void setContainer(rectangle &cont) {container = cont;} 
+  void setGradation(gradation &grad) {gradInfo = grad;}
+  void setCavity(rectangle &cavi) {cavity = cavi;}
+  void readSample(const char* str);           // create a sample with particles from an existing file. August 19, 2013
+  void readSampleRandom(const char* str);     // read particles with generation of random oritentations of particles
+  void readRigidBoundary(std::ifstream &ifs); // create rigid boundaries from an existing file
+  void readFlexiBoundary(std::ifstream &ifs); // create flxible boundaries from an existing file
+  void readBoundary(const char* str);         // create either rigid or flexible boundaries from an existing file
+  void trimCavity(bool toRebuild, const char* particlefile, const char* cavparticle);	// August 28, 2013
+  void readCavityBoundary(const char* boundaryfile);
+  void buildCavityBoundary(int existMaxId, const char* boundaryfile);
+  void findContact();                           // detect and resolve contact between particles. August 21, 2013
+  void findParticleOnBoundary();                // find particles on boundaries
+  void findParticleOnCavity();                  // find particle on cavity boundaries
+  void findParticleOnLine();                    // find particles on lines
+  void createFlbNet();
+  
+  void clearForce();                            // clear forces and moments for all particles
+  void clearStress();				// clear average stress for all particles, April 23, 2014
+  void flexiBoundaryForceZero();
+  void initFBForce();
+  void internalForce(REAL& avgnm, REAL& avgsh); // calculate inter-particle forces
+  void springForce();
+  void rigidBoundaryForce();                    // calcualte forces between rigid boundaries and particles
+  void rigidBoundaryForce(REAL penetr[],int cntnum[]);
+  void flexiBoundaryForce();
+  void cavityBoundaryForce();
+  void updateParticle();                        // update motion of particles
+  
+  void addFractureForce(REAL &);	// add bonded force between each fracture pair. October 18, 2013
+  void eraseFracturePair();	// delete the fracture pair that has no non-broken springs. October 18, 2013
+  void subDivision();		// sub-divide particles based on their areage stress
+  void calculateInitialCohesiveForce();	// calculate but not apply initial cohesive force to springs
+  void calcNumSprings();	// calcualte the number of springs in this assembly
+  void testTransition();
+  void particleShapeTransition();	// shapeTransition for each particle
+  void testBreakPlaneRotation();	// test the slight random rotation of break plane
+
+  REAL ellipPileForce();                        // for force pile only
+  void ellipPileUpdate();                       // for force pile only
+  
+  vec  ellipPileDimn();	// August 19, 2013
+  REAL ellipPileTipZ();	// August 19, 2013
+  REAL ellipPilePeneVol();
+  
+  // if bn[i]=2, the 2nd rigid boundary should be updated according to rbctl[i],
+  // totally num rigid boundaries must be updated
+  void updateRB(int bn[], UPDATECTL rbctl[], int num);
+  void updateRB6();
+  void rotateBoundaryY(REAL angle, REAL, REAL, REAL);	// rotate y+ and y- boundaries by angle with respect to the original y+ and y- boundaries
+  void updateRectPile();
+  
+  // if bn[i]=2, the 2nd flxible boundary should be updated according to fbctl[bn[i]*2-2] and fbctl[bn[i]*2-1], 
+  // totally num flxible boundaries must be updated, the size of fbctl is 2 times large as size of bn
+  void updateFB(int bn[], UPDATECTL fbctl[], int num);
+  
+  REAL getDensity() const; 
+  int  getPossCntctNum() const {return  PossCntctNum;};
+  int  getActualCntctNum() const {return ActualCntctNum;}
+  REAL getAveragePenetration() const;
+  REAL getVibraTimeStep() const;
+  REAL getImpactTimeStep() const;
+  REAL getAverageVelocity() const;
+  REAL getAverageForce() const;
+  REAL getAverageOmga() const;
+  REAL getAverageMoment() const;
+  REAL getParticleVolume() const;
+  vec  getTopFreeParticlePosition() const;	
+  REAL getTransEnergy() const;
+  REAL getRotatEnergy() const;
+  REAL getKinetEnergy() const;
+  REAL getPotenEnergy(REAL ref) const;
+  REAL getMaxDiameter() const;	// for grain size distribution calculation
+  REAL getMinDiameter() const;
+  
+  matrix getGranularStress() const;	// calculate the granular stress, written on Feb 13, 2013, return a 3x3 matrix. August 19, 2013
+  matrix getGranularStress(vec posi, REAL dim) const;	// calculate granular stress within this small RVE
+  matrix getFabric() const;	// calculate the fabric tensor, written on March 8, 2013, return a 3x3 matrix. unit is m^2
+  // for granular strain calculation, written on Feb 18, 2013
+  void callQhull() const;	// based on input_for_Qhull that is from createInputForQhull() to tessellate and output "tess_info"
+  void resetStartCenterMass();	// reset the initial position of each particle. For granular strain March 18, 2013. August 19, 2013
+  void setThreshold(REAL threshold) { strainThreshold = threshold;}
+  matrix getum(int ID, int type) const;	// calculate the displacement vector of particle ID, retur a 3x1 matrix. August 19, 2013
+  matrix getb(cell, int ID) const;	// calculate the b vector of a cell, return a 3x1 matrix. August 19, 2013
+  matrix getdmn(edge, std::vector<cell>) const;	// calculate the complementary area vector of edge
+  matrix getGranularStrain();	// calculate granular strain, not just granular e
+  void createInputForQhull() const;	// create input file for Qhull. March 18, 2013. August 19, 2013
+  void readTesse(const char* str);	// create tessellation information from Qhull output files, finally it will not be used siince we need to call Qhull within the ellip3d code
+  // for finite granular strain calculation, March 26, 2013
+  void readTesse_finite(const char* str);	// create cell information into std::vector<cell> cellVec from Qhull out put files
+  void setNumberingOrder();	// ensure that the numbering of each tetrahedron in std::vector<cell> cellVec is couter-clockwise
+  matrix getBigB(const cell&) const;	// August 19, 2013
+  matrix getdudx(const cell&) const;	// calculate the matrix dudx, which is for F=dudx+I
+  matrix getdudx_curr(const cell&) const;	// calculate the matrix dudx with respect to current configuration
+  REAL getCellVolume(const cell&) const;	// calculate the volume of cell. August 19, 2013
+  matrix getFiniteStrain();	// calculate finite granular strain using FEM-similar way
+  matrix getHigherStrain() const;	// calculate 1/(2V)*sum(dudx'*dudx*vL), for mixed finite strain
+  matrix getEulerianStrain();	// calculate Eulerian finite strain
+  matrix getEuler_HOT()	const;
+  matrix getdvdx_curr(const cell&) const;	// calculate spatial velocity gradient tensor for each tet, June 24, 2013
+  matrix getAverage_dvdx() const;	// calculate average spatial velocity gradient tensor, June 24, 2013
+
+  vec  getNormalForce(int bdry) const;       // get normal force acting on the bdry_th rigid boundary
+  vec  getShearForce(int bdry) const;        // get shear force acting on the bdry_th rigid boundary
+  REAL getAvgNormal(int bdry) const;
+  vec  getApt(int bdry) const;               // get a point on bdry_th rigid boundary
+  vec  getDirc(int bdry) const;              // get the dirc of bdry_th rigid boundry
+  REAL getArea(int bdry) const;
+  REAL getAverageRigidPressure() const;
+  void setArea(int bdry,REAL a);             // set the area of the bdry-th rigid boundary be a
+  void setTrimHistoryNum(int n) {trimHistoryNum = n;}
+  void printParticle(const char* str) const; // print particles info into a disk file. August 19, 2013
+  void printParticle(const char* str, REAL angle) const; // print particles info into a disk file. August 19, 2013
+  void printMemParticle(const char* str) const; // print membrane particles info into a disk file. August 19, 2013
+  void plotSpring(const char *str) const;    // print springs in Tecplot format
+  void plotBoundary(const char *str) const;
+  void plotCavity(const char *str) const;
+  void checkMembrane(std::vector<REAL> &vx ) const;
+  void printContact(const char* str) const;  // print contacts information
+  void printBoundary(const char* str) const; // print rigid boundaries info to a disk file
+  void printRectPile(const char* str);       // append rectangular pile info into a disk file
+  void printCavityBoundary(const char* str) const; // print cavity boundaries
+  void printCavityParticle(int total, const char* str) const;	// August 19, 2013
+  void openDEMTecplot(std::ofstream &ofs, const char *str);
+  void printDEMTecplot(std::ofstream &ofs, int iframe);
+  void removeOutsideParticles(int startNum, int endNum, const char* inputfile, const char* outputfile);
+  void removeOutsideParticles();
+  void convertToPolyEllipsoid(const char*, const char*);
+//  void MonteCarloPackingGeneration(int, int, int);
+//  void pakcingVibration();
+//  void generateRandomParticle(const char* genParticle, const char* initBoundaryFile);
+
+  void expandCavityParticles(bool toRebuild,
+			     REAL percent,
+			     const char* cavityptclfile,
+			     const char* particlefile,
+			     const char* newptclfile);
+
+  // create a specimen by depositing particles into rigid boundaries
+  void deposit_RgdBdry(int   freetype,
+		       int   total_steps,  
+		       int   snapshots,
+		       int   interval,
+		       REAL  rFloHeight,
+//		       REAL sampleVolumeRatio,   // Modified by Boning Zhang
+		       const char* iniptclfile,   
+		       const char* inibdryfile,
+		       const char* particlefile, 
+		       const char* contactfile,
+		       const char* progressfile, 
+		       const char* creparticle,
+		       const char* creboundary,
+		       const char* debugfile);
+  
+  // continue to deposit after a cavity is created inside the particle assemblage
+  void depositAfterCavity(int   total_steps,  
+			  int   snapshots,
+			  int   interval,
+			  const char* iniptclfile,   
+			  const char* inibdryfile,
+			  const char* inicavefile,
+			  const char* particlefile, 
+			  const char* contactfile,
+			  const char* progressfile, 
+			  const char* debugfile);
+
+  // create a specimen by depositing particles into particle boundaries
+  void deposit_PtclBdry(gradation& grad,
+			int   freetype,
+			REAL rsize,
+			int   total_steps,  
+			int   snapshots,
+			int   interval,
+			const char* iniptclfile,   
+			const char* particlefile, 
+			const char* contactfile,
+			const char* progressfile, 
+			const char* debugfile);
+  
+  // scale the assembly with particle boundaries from deposited state until it reaches steady state
+  void scale_PtclBdry(int         total_steps  =50000,             // total_steps
+		      int         snapshots    =100,               // number of snapshots   
+		      int         interval     =10,                // print interval
+		      REAL        dimn         =0.05,              // dimension of particle-composed-boundary
+		      REAL        rsize        =1.0,               // relative container size
+		      const char* iniptclfile  ="dep_particle_end",// input file, initial particles
+		      const char* particlefile ="scl_particle",    // output file, resulted particles, including snapshots 
+		      const char* contactfile  ="scl_contact",     // output file, resulted contacts, including snapshots
+		      const char* progressfile ="scl_progress",    // output file, statistical info
+		      const char* debugfile    ="scl_debug");      // output file, debug info
+  
+  // generate particles in space for rigid boundaries
+  void generate(const char* str,	// August 19, 2013
+		int freetype,
+		REAL ht);
+  // generate spherical particles in space for rigid boundaries
+  void generateCubicPacking(const char* str,	// August 19, 2013
+		int numX,
+		int numY,
+		int numZ,
+		REAL radius);
+  // generate spherical particles in space for rigid boundaries
+  void generateHexPacking(const char* str,	// August 19, 2013
+		int numX,
+		int numY,
+		int numZ,
+		REAL radius);
+//     void generate(const char* str,
+// 		int freetype,
+//  		REAL vr);         // Modified
+
+  
+  // generate particles in space for particle boundaries
+  void generate_p(gradation& grad,
+		  const char* str,
+		  int freetype,
+		  REAL rsize,
+		  REAL ht);
+  
+  // actual deposit function for rigid boundaries
+  void deposit(int         total_steps  =100000,              // total_steps
+	       int         snapshots    =100,                 // number of snapshots   
+	       int         interval     =10,                  // print interval 
+	       const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
+	       const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
+	       const char* particlefile ="dep_particle",      // output file, resulted particles, including snapshots 
+	       const char* contactfile  ="dep_contact",       // output file, resulted contacts, including snapshots
+	       const char* progressfile ="dep_progress",      // output file, statistical info
+	       const char* debugfile    ="dep_debug");        // output file, debug info
+  
+  void deGravitation(int   total_steps,  
+		     int   snapshots,
+		     int   interval,
+		     bool  toRebuild,
+		     const char* iniptclfile,   
+		     const char* particlefile, 
+		     const char* contactfile,
+		     const char* progressfile, 
+		     const char* debugfile);
+  
+  // actual deposit function for particle boundaries
+  void deposit_p(int         total_steps  =50000,             // total_steps
+		 int         snapshots    =100,               // number of snapshots   
+		 int         interval     =10,                // print interval 
+		 REAL dimn   =0.05,                           // dimension of particle-composed-boundary
+		 REAL rsize  =1.0,                            // relative container size
+		 const char* iniptclfile  ="flo_particle_end",// input file, initial particles
+		 const char* particlefile ="dep_particle",    // output file, resulted particles, including snapshots 
+		 const char* contactfile  ="dep_contact",     // output file, resulted contacts, including snapshots
+		 const char* progressfile ="dep_progress",    // output file, statistical info
+		 const char* debugfile    ="dep_debug");      // output file, debug info
+  
+  //squeeze paticles inside a container by moving the boundaries
+  void squeeze(int         total_steps  =20000,               // total_steps
+	       int         init_steps   =5000,                // initial_steps to reach equilibrium
+	       int         snapshots    =100,                 // number of snapshots   
+	       int         interval     =10,                  // print interval 
+	       int         flag         =-1,                  // -1 squeeze; +1 loosen
+	       const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
+	       const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
+	       const char* particlefile ="dep_particle",      // output file, resulted particles, including snapshots 
+	       const char* boundaryfile ="dep_boundary",      // output file, resulted boundaries
+	       const char* contactfile  ="dep_contact",       // output file, resulted contacts, including snapshots
+	       const char* progressfile ="dep_progress",      // output file, statistical info
+	       const char* debugfile    ="dep_debug");        // output file, debug info
+  
+  void deposit_repose(int   interval,
+		      const char* inibdryfile,
+		      const char* particlefile, 
+		      const char* contactfile,
+		      const char* progressfile, 
+		      const char* debugfile);
+  
+  void angleOfRepose(int   interval,	// August 28, 2013
+		     const char* inibdryfile,
+		     const char* particlefile, 
+		     const char* contactfile,
+		     const char* progressfile, 
+		     const char* debugfile);
+  
+  REAL getMaxCenterHeight() const;	
+  
+  void collapse(int   total_steps,  
+		int   snapshots,
+		int   interval,
+		const char* iniptclfile,
+		const char* initboundary,
+		const char* particlefile,
+		const char* contactfile,
+		const char* progressfile,
+		const char* debugfile);
+  
+  void buildBoundary(int bdrynum, const char* boundaryfile);
+  
+  void buildBoundary(const char* boundaryfile);
+  
+  void trim(bool  toRebuild,	// August 28, 2013
+	    const char* particlefile,
+	    const char* trmparticle);
+  
+  void createMemParticle(REAL rRadius,	// August 28, 2013
+			 bool toRebuild,
+			 const char* particlefile,
+			 const char* allparticle);
+  
+  void iso_MemBdry(int   total_steps,  	// August 28, 2013
+		   int   snapshots, 
+		   int   interval,
+		   REAL  sigma3,
+		   REAL  rRadius,
+		   bool  toRebuild,
+		   const char* iniptclfile, 
+		   const char* particlefile,
+		   const char* contactfile, 
+		   const char* progressfile,
+		   const char* debugfile);
+  
+  void TrimPtclBdryByHeight(REAL height,
+			    const char* iniptclfile,
+			    const char* particlefile);
+  
+  void applyParticleBoundary(int          total_steps  =100000,
+			     int          snapshots    =100,
+			     int          nterval      =10,
+			     REAL         sigma        =1.0e+4,
+			     const char*  iniptclfile  ="cre_particle",
+			     const char*  inibdryfile  ="cre_bounary",
+			     const char*  particlefile ="iso_particle",
+			     const char*  boundaryfile ="iso_boundary",
+			     const char*  contactfile  ="iso_contact",
+			     const char*  progressfile ="iso_progress",
+			     const char*  balancedfile ="iso_balanced",
+			     const char*  debugfile    ="iso_debug");
+  
+  // Isotropically compress floating particles to a specific confining pressure, which is usually a low
+  // value in order to create an intial status. Force boundaries are used. This process may be not 
+  // physically true.
+  void isotropic(int          total_steps  =100000,	// August 19, 2013
+		 int          snapshots    =100,
+		 int          interval     =10,
+		 REAL         sigma        =1.0e+4,
+		 const char*  iniptclfile  ="flo_particle_end",
+		 const char*  inibdryfile  ="iso_inbdry",
+		 const char*  particlefile ="iso_particle",
+		 const char*  boundaryfile ="iso_boundary",
+		 const char*  contactfile  ="iso_contact",
+		 const char*  progressfile ="iso_progress",
+		 const char*  balancedfile ="iso_balanced",
+		 const char*  debugfile    ="iso_debug");
+  
+  void anisotropicYZ(int          total_steps  =100000,	// August 19, 2013
+		 int          snapshots    =100,
+		 int          interval     =10,
+		 REAL         sigmaz       =1.0e+4,
+		 REAL	      sigmay       =1.0e+4,
+		 const char*  iniptclfile  ="flo_particle_end",
+		 const char*  inibdryfile  ="iso_inbdry",
+		 const char*  particlefile ="iso_particle",
+		 const char*  boundaryfile ="iso_boundary",
+		 const char*  contactfile  ="iso_contact",
+		 const char*  progressfile ="iso_progress",
+		 const char*  balancedfile ="iso_balanced",
+		 const char*  debugfile    ="iso_debug");
+
+  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
+  // increases confining pressure step by step to sigma_b, making it possible to find equilibrium 
+  // state where particle pressure equals confining pressure. Force boundaries are used.
+  void isotropic(int          total_steps   =100000,	// August 19, 2013
+		 int          snapshots     =100,
+		 int          interval      =10, 
+		 REAL  sigma_a       =1.0e+4,
+		 REAL  sigma_b       =1.0e+5,	
+		 int    sigma_division      =100,	  
+		 const char*  iniptclfile   ="iso_particle_10k",
+		 const char*  inibdryfile   ="iso_boundary_10k",
+		 const char*  particlefile  ="iso_particle", 
+		 const char*  boundaryfile  ="iso_boundary", 
+		 const char*  contactfile   ="iso_contact",
+		 const char*  progressfile  ="iso_progress",
+		 const char*  balancedfile  ="iso_balanced", 
+		 const char*  debugfile     ="iso_debug");
+  
+  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
+  // follows an unloading-reloading stress path. Force boundaries are used.
+  void isotropic(int          total_steps,
+		 int          snapshots,
+		 int          interval,
+		 int          sigma_points,			  
+		 REAL  sigma_values[],
+		 int          sigma_division=100,
+		 const char*  iniptclfile   ="iso_particle_10k",
+		 const char*  inibdryfile   ="iso_boundary_10k",
+		 const char*  particlefile  ="iso_particle", 
+		 const char*  boundaryfile  ="iso_boundary", 
+		 const char*  contactfile   ="iso_contact",
+		 const char*  progressfile  ="iso_progress",
+		 const char*  balancedfile  ="iso_balanced", 
+		 const char*  debugfile     ="iso_debug");
+  
+  // The specimen has been isotropically compressed to confining pressure sigma_3. This function
+  // increases confining pressure step by step to sigma_1, thus making it possible to find out
+  // balanced status where top & bottom particle pressure equals major principle stress. 
+  // Side boundaries are fixed, top and bottom plates are force-controlled.
+  void odometer(int          total_steps    =100000,
+		int          snapshots      =100,
+		int          interval       =10,
+		REAL  sigma_3        =1.0e+4,
+		REAL  sigma_1        =1.0e+5,
+		int          sigma_division =100,		  
+		const char*  iniptclfile    ="iso_particle_10k",
+		const char*  inibdryfile    ="iso_boundary_10k",
+		const char*  particlefile   ="odo_particle", 
+		const char*  boundaryfile   ="odo_boundary", 
+		const char*  contactfile    ="odo_contact",
+		const char*  progressfile   ="odo_progress",
+		const char*  balancedfile   ="odo_balanced", 
+		const char*  debugfile      ="odo_debug");
+  
+  // The specimen has been isotropically compressed to confining pressure sigma_3. This function
+  // increases confining pressure step by step to sigma_1, thus making it possible to find out
+  // balanced status where top & bottom particle pressure equals major principle stress. 
+  // Side boundaries are fixed, top and bottom plates are force-controlled. Unloading is applied.
+  void odometer(int          total_steps,
+		int          snapshots,
+		int          interval,
+		int          sigma_points,			  
+		REAL  sigma_values[],
+		int          sigma_division=100,		  
+		const char*  iniptclfile   ="iso_particle_10k",
+		const char*  inibdryfile   ="iso_boundary_10k",
+		const char*  particlefile  ="odo_particle", 
+		const char*  boundaryfile  ="odo_boundary", 
+		const char*  contactfile   ="odo_contact",
+		const char*  progressfile  ="odo_progress",
+		const char*  balancedfile  ="odo_balanced", 
+		const char*  debugfile     ="odo_debug");
+  
+  // The confining pressure is 500kPa. This function initializes triaxial compression test.
+  void triaxialPtclBdryIni(int          total_steps  =10000,
+			   int          snapshots    =100,
+			   int          interval     =10,
+			   REAL         sigma        =5.0e+5,
+			   const char*  iniptclfile  ="ini_particle_ini",
+			   const char*  inibdryfile  ="ini_boundary_ini",
+			   const char*  particlefile ="ini_particle", 
+			   const char*  boundaryfile ="ini_boundary", 
+			   const char*  contactfile  ="ini_contact",
+			   const char*  progressfile ="ini_progress",
+			   const char*  debugfile    ="ini_debug");
+  
+  // The confining pressure is 500kPa. This function performs triaxial compression test.
+  // Displacement boundaries are used in axial direction.
+  void triaxialPtclBdry(int          total_steps  =100000,
+			int          snapshots    =100,
+			int          interval     =10,
+			const char*  iniptclfile  ="iso_particle_100k",
+			const char*  inibdryfile  ="iso_boundary_100k",
+			const char*  particlefile ="tri_particle", 
+			const char*  boundaryfile ="tri_boundary", 
+			const char*  contactfile  ="tri_contact",
+			const char*  progressfile ="tri_progress",
+			const char*  balancedfile ="tri_balanced", 
+			const char*  debugfile    ="tri_debug");
+  
+  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
+  // performs triaxial compression test. Displacement boundaries are used in axial direction.
+  void triaxial(int          total_steps  =100000,
+		int          snapshots    =100,
+		int          interval     =10,
+		REAL  sigma_a      =1.0e+5,
+		const char*  iniptclfile  ="iso_particle_100k",
+		const char*  inibdryfile  ="iso_boundary_100k",
+		const char*  particlefile ="tri_particle", 
+		const char*  boundaryfile ="tri_boundary", 
+		const char*  contactfile  ="tri_contact",
+		const char*  progressfile ="tri_progress",
+		const char*  balancedfile ="tri_balanced", 
+		const char*  debugfile    ="tri_debug");
+  
+  // The specimen has been isotropically compressed to confining pressure sigma_a. This function
+  // performs triaxial compression test with unloading. Displacement boundaries are used in 
+  // axial direction.
+  void triaxial(int          total_steps  =200000,
+		int          unload_step  =100000,
+		int          snapshots    =100,
+		int          interval     =10,
+		REAL  sigma_a      =3.0e+5,
+		const char*  iniptclfile  ="iso_particle_300k",
+		const char*  inibdryfile  ="iso_boundary_300k",
+		const char*  particlefile ="tri_particle", 
+		const char*  boundaryfile ="tri_boundary", 
+		const char*  contactfile  ="tri_contact",
+		const char*  progressfile ="tri_progress",
+		const char*  balancedfile ="tri_balanced", 
+		const char*  debugfile    ="tri_debug");
+  
+  // The specimen has been deposited with gravitation within boundaries composed of particles.
+  // A rectangular pile is then drived into the particles using displacement control.
+  void rectPile_Disp(int          total_steps  =50000,
+		     int          snapshots    =100,
+		     int          interval     =10,
+		     const char*  iniptclfile  ="pile_particle_ini",
+		     const char*  inibdryfile  ="pile_boundary_ini",
+		     const char*  particlefile ="pile_particle", 
+		     const char*  boundaryfile ="pile_boundary", 
+		     const char*  contactfile  ="pile_contact",
+		     const char*  progressfile ="pile_progress",
+		     const char*  debugfile    ="pile_debug");
+  
+  // The specimen has been deposited with gravitation within boundaries composed of particles.
+  // An ellipsoidal pile is then drived into the particles using displacement control.
+  void ellipPile_Disp(int         total_steps  =50000,  	// August 19, 2013
+		      int         snapshots    =100, 
+		      int          interval     =10,
+		      REAL dimn         =0.05,
+		      REAL rsize        =1.0,
+		      const char* iniptclfile  ="pile_particle_ini",
+		      const char* particlefile ="pile_particle", 
+		      const char* contactfile  ="pile_contact",  
+		      const char* progressfile ="pile_progress",
+		      const char* debugfile    ="pile_debug");
+  
+  // The specimen has been deposited with gravitation within rigid boundaries.
+  // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
+  void ellipPile_Impact(int         total_steps  =50000,  
+			int         snapshots    =100, 
+			int         interval     =10,
+			const char* iniptclfile  ="ipt_particle_ini",
+			const char* inibdryfile  ="dep_boundary_ini",
+			const char* particlefile ="ipt_particle", 
+			const char* contactfile  ="ipt_contact",  
+			const char* progressfile ="ipt_progress",
+			const char* debugfile    ="ipt_debug");
+  
+  // The specimen has been deposited with gravitation within particle boundaries.
+  // An ellipsoidal penetrator is then impacted into the particles with initial velocity.
+  void ellipPile_Impact_p(int         total_steps  =50000,  
+			  int         snapshots    =100, 
+			  int         interval     =10,
+			  REAL dimn         =0.05,
+			  const char* iniptclfile  ="ipt_particle_ini",
+			  const char* particlefile ="ipt_particle", 
+			  const char* contactfile  ="ipt_contact",  
+			  const char* progressfile ="ipt_progress",
+			  const char* debugfile    ="ipt_debug");
+  
+  // The specimen has been deposited with gravitation within boundaries composed of particles.
+  // An ellipsoidal pile is then drived into the particles using force control.
+  void ellipPile_Force(int         total_steps  =50000,  
+		       int         snapshots    =100, 
+		       int         interval     =10,
+		       REAL dimn         =0.05,
+		       REAL force        =1.0e+4,
+		       int   division           =100,
+		       const char* iniptclfile  ="pile_particle_ini",
+		       const char* particlefile ="pile_particle", 
+		       const char* contactfile  ="pile_contact",  
+		       const char* progressfile ="pile_progress",
+		       const char* balancedfile ="pile_balanced",
+		       const char* debugfile    ="pile_debug");
+
+  void truetriaxial(int          total_steps   =1000000,
+		    int          snapshots     =100,
+		    int          interval      =10,
+		    REAL  sigma_a       =1.0e+4,
+		    REAL  sigma_w       =1.0e+5,
+		    REAL  sigma_l       =1.0e+5,	
+		    REAL  sigma_h       =1.0e+5,	
+		    int          sigma_division=100,			  
+		    const char*  iniptclfile   ="iso_particle_10k",
+		    const char*  inibdryfile   ="iso_boundary_10k",
+		    const char*  particlefile  ="tru_particle", 
+		    const char*  boundaryfile  ="tru_boundary", 
+		    const char*  contactfile   ="tru_contact",
+		    const char*  progressfile  ="tru_progress",
+		    const char*  balancedfile  ="tru_balanced", 
+		    const char*  debugfile     ="tru_debug");
+  
+  void unconfined(int          total_steps  =100000,
+		  int          snapshots    =100,
+		  int          interval     =10, 
+		  const char*  iniptclfile  ="flo_particle_end",
+		  const char*  inibdryfile  ="unc_inbdry",
+		  const char*  particlefile ="unc_particle", 
+		  const char*  contactfile  ="unc_contact",
+		  const char*  progressfile ="unc_progress",
+		  const char*  debugfile    ="unc_debug");
+  
+  void soft_tric(REAL _sigma3, REAL _b,
+		 const char* iniptclfile ="isotropic",
+		 const char* boundaryfile="isobdry",
+		       const char* responsefile="sftc",
+		 const char* resultfile  ="sftcompressed",
+		 const char* trackfile   ="tracksft");
+  
+  void earthPressure(REAL pressure, bool IsPassive,
+		     const char* iniptclfile ="isotropic",
+		     const char* boundaryfile="isobdry",
+		     const char* responsefile="ssvpp",
+		     const char* resultfile  ="pp",
+		     const char* trackfile   ="pptrack");
+
+  void shallowFoundation(const char* iniptclfile ="isotropic",
+			 const char* boundaryfile="isobdry",
+			 const char* responsefile="ssvsf",
+			 const char* resultfile  ="shallowcompressed",
+			 const char* trackfile   ="shallowtrack");
+  
+  void simpleShear(REAL normal_pressure,REAL _b,
+		   const char* iniptclfile ="isotropic",
+		   const char* boundaryfile="isobdry",
+		   const char* responsefile="simpleshear",
+		   const char* resultfile  ="simplesheared",
+		   const char* trackfile   ="tracksimple");
+  
+  void dircShear(REAL rate, REAL roterate, REAL stress,
+		 const char* iniptclfile ="deposit",
+		 const char* boundaryfile="rgdcube.data",
+		 const char* responsefile="ssvds",
+		 const char* resultfile  ="dircshear",
+		 const char* trackfile   ="trackds");
+
+// calculate granular stress for assembly from input files, such as the assembly after deposition.
+// writtend on Feb 16, 2013
+  void calculateStress(REAL   relativeHeight,	// ratio of height of each subdomain to boundary height (assume they are equal)
+		       	       REAL   relativeWidth,	// ratio of width of each subdomain to boundary width
+			       REAL   relativeLength,	// ratio of length of each subdomain to boundary length
+			       std::vector<REAL> &relBaseH,	// ratio of the base height of each subdomain above the assembly boundary base
+			       const char* inptclfile,	// particle file, can use trm_particle_end for deposited assembly
+			       const char* resultfile);	// August 19, 2013
+
+  void trimByHeight(REAL Height,
+			const char* inptclefile,	// initial particle file
+			const char* inbdryfile,		// initial boundary file
+			const char* resultptcle,
+			const char* resultbdry);	// result particle file
+  
+  // this will just calculate the stress at the middle height of the assembly, and the will calculate formula stress based on the relBaseH vector. March 4, 2013
+  void calculateMiddleStress(int subNum,
+			       const char* inptclfile,	// particle file, can use trm_particle_end for deposited assembly
+			       const char* inbdryfile,
+			       const char* resultfile);	// August 19, 2013
+// calculate the fabric tensor of an assembly based on input particle file, and then output each element of the fabric tensor and its three invariants. March 8, 2013
+  void calculateFabric(const char* inptclfile,
+		       const REAL boxL,	// length, width and height of box, used for porosity
+                       const REAL boxW,	// unit is mm
+		       const REAL boxH,
+		       const char* resultfile);
+
+// reset coordinates of particles which are contacting with boundaries. And then call Qhull to tessellate. This function is written for Nonlinear FEM term project -- a 3D tet poromechanics Matlab code.
+  void resetCoord_FEM(const char* inptclfile,
+		      const char* inbdryfile);
+
+// rotate the boundary walls along different axis. Test finite granular strain. May 21, 2013
+  void rotateXYZ(REAL angle,	// angle that you want to roate
+	       vec axis_flag,	// represent axis you want to roate: 0 means not to this axis, 1 means along this axis. If axis_num is 1 1 1, then it means rotate along x,y,z
+	       int          snapshots    =100,
+	       int          interval     =10,
+	       const char*  iniptclfile  ="flo_particle_end",
+	       const char*  inibdryfile  ="iso_inbdry",
+	       const char*  particlefile ="rotate_particle",
+	       const char*  boundaryfile ="rotate_boundary",
+	       const char*  contactfile  ="rotate_contact",
+	       const char*  progressfile ="rotate_progress",
+	       const char*  balancedfile ="rotate_balanced",
+	       const char*  debugfile    ="rotate_debug");	// August 19, 2013
+
+
+// apply the same rotation tensor to each particle directly such that we can make sure that the rotations of all particles are the same pure rotation. Test finite granular strain. June 10, 2013
+  void rotateXYZ_dir(REAL angle,	// angle that you want to roate
+	       vec axis_flag,	// represent axis you want to roate: 0 means not to this axis, 1 means along this axis. If axis_num is 1 1 1, then it means rotate along x,y,z
+	       int          snapshots    =100,
+	       int          interval     =10,
+	       const char*  iniptclfile  ="flo_particle_end",
+	       const char*  inibdryfile  ="iso_inbdry",
+	       const char*  particlefile ="rotate_particle",
+	       const char*  boundaryfile ="rotate_boundary",
+	       const char*  contactfile  ="rotate_contact",
+	       const char*  progressfile ="rotate_progress",
+	       const char*  balancedfile ="rotate_balanced",
+	       const char*  debugfile    ="rotate_debug");	// August 19, 2013
+
+
+
+  // this is actually a deposit process, but since we cannot calculate granular stress and strain during normal deposition, however in cavity expansion we need to calculate granular stress and strain. Then we write a new function cavityExpand to do cavity expansion and in this function, we will calculate granular stress and strain. June 17, 2013
+  void cavityExpand(int         total_steps  =100000,              // total_steps
+	       int         snapshots    =100,                 // number of snapshots   
+	       int         interval     =10,                  // print interval 
+	       const char* iniptclfile  ="flo_particle_end",  // input file, initial particles
+	       const char* inibdryfile  ="dep_boundary_ini",  // input file, initial boundaries
+	       const char* particlefile ="exp_particle",      // output file, resulted particles, including snapshots 
+	       const char* contactfile  ="exp_contact",       // output file, resulted contacts, including snapshots
+	       const char* progressfile ="exp_progress",      // output file, statistical info
+	       const char* debugfile    ="exp_debug");        // output file, debug info	August 19, 2013
+
+  // this is used to calculate volume of the assembly based on particle input file, July 14, 2013
+  void calculateVolume(const char* iniptclefile);
+
+  // this is used to compress single particle to make it broken, refer to Andrew's experiment, move upward bottom boundary
+  // and fix the top boundary. October 30, 2014
+  void compress(int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			const char* iniptclfile, 
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+  // this is used to compress 3 particles to make it broken, push downward top boundary and fix bottom boundary. 
+  // The side boundaries are fixed, and the oritentations of the particles are randomly distributed
+  // can choose with/out rotation of the orietation of the spherical particles
+  void compressRandomParticles(int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			const char* iniptclfile, 
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+
+  // this is used to compress spheres in cubic packing to make it broken, push downward top boundary and fix bottom boundary. 
+  // The side boundaries are fixed, and the oritentations of the particles are randomly distributed
+  // can choose with/out rotation of the orietation of the spherical particles
+  void compressRandomCubicPacking(int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			int num_x,	// number of particles in x direction 
+			int num_y,	// number of particles in y direction
+			int num_z,	// number of particles in z direction
+			REAL radius,	// radius of particles
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+  // this is used to compress spheres in hexagonal close packing to make it broken, push downward top boundary and fix bottom boundary. 
+  // The side boundaries are fixed, and the oritentations of the particles are randomly distributed
+  // can choose with/out rotation of the orietation of the spherical particles
+  void compressRandomHexPacking(int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			int num_x,	// number of particles in x direction 
+			int num_y,	// number of particles in y direction
+			int num_z,	// number of particles in z direction
+			REAL radius,	// radius of particles
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+
+  // this is used to compress spheres in cubic packing to make it broken, push downward top boundary and fix bottom boundary. 
+  // The side boundaries are fixed, and the oritentations of the particles are randomly distributed
+  // can choose with/out rotation of the orietation of the spherical particles
+  void compressParticlePacking(int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			const char* iniptclfile,
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+  // this is used to compress spheres in cubic packing to make it broken, push downward top boundary and fix bottom boundary. 
+  // The side boundaries are fixed, and the oritentations of the particles are randomly distributed
+  // can choose with/out rotation of the orietation of the spherical particles
+  // this is to compress in z direction, but also expand in positive y direction, to keep constant volume
+  void compressParticlePackingConstantVolume(int   total_steps,  
+					     int   snapshots, 
+					     int   interval,  
+					     const char* iniptclfile,
+					     const char* inibdryfile,
+					     const char* particlefile,
+					     const char* boundaryfile,
+					     const char* contactfile, 
+					     const char* progressfile,
+					     const char* balancedfile,
+					     const char* debugfile);
+
+
+  // this is to rotate the y+ and y- boundaries by a constant anglular velocity
+  void rotateParticlePacking(REAL angulerVelocity,	// in rad/s, 6e4
+			int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			const char* iniptclfile,
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+
+  // this is used to shake the initial sample to get specific density value
+  void shakeSample(int   total_steps,  
+			int   snapshots, 
+			int   interval, 	
+			int   rest_steps,	// the time step when the sample begin to rest 
+			const char* iniptclfile,
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+
+  // this is used to simulate the SHPB experiments that Professor Lu's group did.
+  // The simulation is driven by the displacements of boundary, i.e. top boundary
+  void SHPB(int   total_steps,  
+			int   snapshots, 
+			int   interval,  
+			const char* iniptclfile, 
+			const char* inibdryfile,
+			const char* particlefile,
+			const char* boundaryfile,
+			const char* contactfile, 
+			const char* progressfile,
+			const char* balancedfile,
+			const char* debugfile);
+
+
+  // convert the sample prepared by Eric
+  void convertEricSample(const char* iniptclfile,
+			 const char* particlefile);	
+
+  void GrainSizeDistribution(int sieve_num, const char* inptclfile, const char* resultfile);
+
+
+ private:
+  // particles property
+  int  TotalNum;                      // total number of particles
+  int  trimHistoryNum;                // record history maximum numbering before trimming
+  int  PossCntctNum;                  // possible contact number based on spherical distances
+  int  ActualCntctNum;                // actual contact number based on solution of 6th order equations
+  std::vector<particle*> ParticleVec; // a vector of pointers, each pointing to a particle
+  std::vector<CONTACT>   ContactVec;  // a vector of contacts
+  std::vector<cnttgt>    CntTgtVec;   // a vector to store tangential contact force and displacement
+  std::vector< std::vector< std::vector<particle*>  >  >   MemBoundary;  // a vector to store six boundaries
+  std::vector<spring*>   SpringVec;   // a vector to store springs;
+  gradation              gradInfo;    // particles gradation
+  std::list<fracpair> fracPairList;  // for fracture model, store fracture pair. October 18, 2013
+
+  // container property
+  rectangle container;
+  rectangle cavity;
+  REAL Volume;      // volume of the specimen
+  REAL initVolume;  // initial volume of the specimen
+  REAL BulkDensity; // bulk density of specimen
+  
+  REAL strainThreshold;	// for granular strain calculation, used to control tessellate.
+  // boundary property
+  int  BdryType;               // 0 - rigid boundaries; 1 - flxible boundaries
+  int  RgdBdryNum;             // rigid boundary number
+  int  FlbBdryNum;             // flxible boundary number
+  std::vector<RGDBDRY*> RBVec; // a vector of pointers, each pointing to a rigid boundary surface
+  std::vector<RGDBDRY*> CavityRBVec; // a vector of pointers, each pointing to a rigid cavity surface
+  std::vector<FLBBDRY*> FBVec; // a vector of pointers, each pointing to a flexible boundary surface
+  std::map<int,std::vector<boundarytgt>  > BdryTgtMap; // a map to store particle-boundary contacts' tangential info
+  std::map<edge, std::vector<cell> > edge_map;	// used to store the edge set from tessellation, for granular strain calculation
+  std::vector<cell*> cellVec;	// used to store cell info, for finite granular strain calculation, March 26, 2013
+  std::vector<cell*> cellVec_init;	// the initial cell vector, for lagrangian finite strain
+
+  matrix average_dudx_Bagi;	// used to test quadratic terms (dudx)^T*dudx, April 22, 2013
+  matrix average_dudx_Lagrangian;
+  matrix average_dudx_Eulerian;
+
+  int NumSprings;	// number of springs in fracPair
+  int NumBroken;	// number of springs broken 
+  int NumErasedFrac;	// the numbers of erased fracpairs
+
+//  // fracture model
+//  REAL shift_ratio = 0.1;	// 1/ratio = 1/8
+//  REAL left_ratio = 0.9;	// (ratio-1)/ratio = 7/8
+};
+ 
+} // namespace dem
+
+#endif
