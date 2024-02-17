@@ -21,10 +21,8 @@ Tahoe is available for installation on macOS and Linux but not natively on Windo
 >  This installation guide is created based on the old documentation. GitHub-based installation and building of Tahoe have not been tested yet. Soon it will be tested and updated. Experienced users can still use the guide.
 
 ### To-do list
-- [ ] Need more clarification on using compilers available via Clang vs. Homebrew.
 - [ ] Updating the makefile.template to install the parallel version of Tahoe. The following line needs to be changed from
      `"AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf"` to `"AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf -lhdf5"`.
-- [ ] Addressing the issue with `libf2c_.a` file
 
 
 ### Obtaining prerequisites on macOS
@@ -57,44 +55,14 @@ brew install automake
 brew install open-mpi
 ```
 homebrew will install the compilers in `/opt/homebrew/bin/` directory. Check the installed version of the compilers by navigating to the directory and using `ls` command before you do the next step 
-- Create symlinks of the installed compilers (gcc, g++, and gfortran). At this time, the stable versions of the installed compilers are 13.
+- Create symlinks of the installed compilers (gcc, g++, and gfortran). At this time, the stable versions of the installed GNU compilers are 13. Following commands will the gcc and g++ from clang and gfortran from homebrew installation.
 ```bash
 ln -s gcc-13 gcc
 ln -s g++-13 g++
 ln -s gfortran-13 gfortran
 ```
 - Log out of the Zsh terminal (close) to activate these and log back in (reopen).
-- Create a dedicated directory for Tahoe in your home directory.
-```bash
-cd && mkdir tahoe-install && cd tahoe-install
-```
-- Clone and install SEACAS with the third-party libraries (TPL). Check the [SEACAS GitHub page](https://github.com/sandialabs/seacas) for updated instructions. However, please use `cmake-exodus` instead of `cmake-config` for the exodus file format to be used in `Tahoe`.
-```bash
-git clone https://github.com/sandialabs/seacas.git
-cd seacas
-./install-tpl.sh
-mkdir build && cd build
-../cmake-exodus
-make && make install
-```
-- Add the following directories as system paths to your zsh profile.
-```bash
-TAHOE_MAIN=$PWD
-echo export TAHOE_MAIN=$TAHOE_MAIN >> ~/.zshrc
-echo export ACCESS=$TAHOE_MAIN/seacas >> ~/.zshrc
-echo export LD_LIBRARY_PATH=$ACCESS/lib >> ~/.zshrc
-echo export CVS_RSH=ssh >> ~/.zshrc
-source ~/.zshrc
-```
-- Create symlinks for the following libraries (only for the first-time installation of SEACAS)
-```bash
-cd $ACCESS
-ln -s include/ inc
-cd lib
-ln -s libexodus.dylib libexoIIv2c.dylib
-$ ln -s libexodus.a libexoIIv2c.a
-```
-- Log out of your zsh terminal to activate the changes and log back in (close and reopen).
+
 
 
 
@@ -106,25 +74,60 @@ Download and run the bash script `install_pre_ubuntu.sh` included in the Tahoe r
 ./install_pre_ubuntu.sh
 ```
 
-Alternatively, you can copy and paste those commands inside the script one by one to do the installation of the necessary packages on Linux.
+Alternatively, you can copy and paste those commands inside the script one by one to install the necessary packages on Linux.
 
 
 
-### Downloading and building Tahoe (macOS and Ubuntu)
+### Downloading and building Tahoe (macOS and Ubuntu) with necessary modules
 
 - Clone Tahoe from this repository using
 ```bash
-git clone https://github.com/NguyenLabJHU/Tahoe.git
+git clone https://github.com/NguyenLabJHU/Tahoe-FEM.git
 ```
-- Navigate to the cloned directory and convert `tahoe-manager` to an executable.
+- Now navigate to `Tahoe-FEM` directory using `cd` command
 ```bash
-cd tahoe && sudo chmod 755 ./tahoe-manager
+cd Tahoe-FEM
+```
+- Now clone and install the SEACAS package with the third-party libraries (TPL).
+> [!WARNING]
+> Make sure to check the [SEACAS GitHub page](https://github.com/sandialabs/seacas) for updated instructions for building SEACAS library
+-  At the time of writing this instruction for Tahoe, the following commands are needed. Use `cmake-exodus` instead of `cmake-config` for the exodus file format to be used in `Tahoe` when building SEACAS. 
+```bash
+git clone https://github.com/sandialabs/seacas.git
+cd seacas
+./install-tpl.sh
+mkdir build && cd build
+../cmake-exodus
+make && make install
+```
+- Go back to the main `Tahoe-FEM` directory and add the following directories as system paths to your zsh profile.
+```bash
+TAHOE_MAIN=$PWD
+echo export TAHOE_MAIN=$TAHOE_MAIN >> ~/.zshrc
+echo export ACCESS=$TAHOE_MAIN/seacas >> ~/.zshrc
+echo export LD_LIBRARY_PATH=$ACCESS/lib >> ~/.zshrc
+source ~/.zshrc
+```
+- Create symlinks for the following libraries (only for the first-time installation of SEACAS)
+```bash
+cd $ACCESS
+ln -s include/ inc
+cd lib
+ln -s libexodus.dylib libexoIIv2c.dylib
+$ ln -s libexodus.a libexoIIv2c.a
+```
+- Log out of your zsh terminal to activate the changes and log back in (close and reopen). Navigate to `Tahoe-FEM` directory.
+- Convert the `tahoe-manager` to an executable.
+```bash
+sudo chmod 755 ./tahoe-manager
 ```
 - Now run `tahoe-manager` to build Tahoe
 ```bash
-./tahoe-manager build
+./tahoe-manager init build
 ```
-Select GNU-GCC-MPI-9.3 (for parallel installation) or GNU-GCC9.3 (for serial installation) as architecture when asked. Additionally, for optional modules, select 0 (CBLAS), 6 (ACCESS), 8 (benchmark_XML), 10 (contrib), 11 (development), 12 (development_benchmark_xml), 13 (f2c), 14 (metis), 15 (spooles), 16 (spoolesMPI). For the first time, it will take 20-30 minutes to build Tahoe executable. Subsequent building will be faster. 
+Select GNU-GCC-13 (for serial installation) as architecture when asked. Confirm the choice of all the main modules shown on the screen. Additionally, for optional modules, select 6 (ACCESS), 8 (benchmark_XML), 10 (contrib), 11 (development), 15 (spooles). For the first time, it will take 10-15 minutes to build all the packages including the Tahoe executable. Subsequent building will be faster. 
+> [!NOTE]
+> For parallel installation, select  GNU-GCC-MPI-13 as the architecture and add metis and spoolesMPI as the optional modules.
 - Add the following directories as your system path.
 ```bash
 echo export TAHOE_MOD=$TAHOE_MAIN/tahoe >> ~/.zshrc
@@ -132,14 +135,9 @@ echo export TAHOE_DIR=$TAHOE_MOD/tahoe >> ~/.zshrc
 echo export PATH=$PATH:$TAHOE_MOD/bin >> ~/.zshrc
 source ~/.zshrc 
 ```
-- On macOS with Apple Silicon processors, then you may have to add the following to your .zshrc file. We have not found a workaround for it yet. Make sure to choose your `user-name`.
+ > [!NOTE]
+ > On macOS with Apple Silicon processors, you may have to add the following to your .zshrc file. We have not found a workaround for it yet. Make sure to use the right path including `user-name` appearing in the following command
 ```bash
-install_name_tool -add_rpath “$ACCESS/lib” /Users/user-name/tahoe-install/tahoe/tahoe/tahoe
+install_name_tool -add_rpath “$ACCESS/lib” /Users/user-name/Tahoe-FEM/tahoe/tahoe
 ```
-
-## Executing Tahoe
-
-### Serial executation
-
-### Parallel execution
 
