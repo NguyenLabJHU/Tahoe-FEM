@@ -1,0 +1,25 @@
+# TAHOE_SF_LOGIN
+user_name
+
+# CONNECTION
+svn
+
+# PROXY
+NONE
+
+# ARCHITECTURE
+GNU-GCC9.3
+
+# USE_DEFAULT
+true
+
+# MODULES
+macros expat toolbox tahoe access benchmark_XML contrib development spooles
+
+# VERBOSE
+false
+
+# TAHOE_HOME
+/Users/usr/installaion_directory_here
+
+# EOF
