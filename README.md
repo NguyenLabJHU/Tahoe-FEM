@@ -114,7 +114,7 @@ cd $ACCESS
 ln -s include/ inc
 cd lib
 ln -s libexodus.dylib libexoIIv2c.dylib
-$ ln -s libexodus.a libexoIIv2c.a
+ln -s libexodus.a libexoIIv2c.a
 ```
 - Log out of your zsh terminal to activate the changes and log back in (close and reopen). Navigate to `Tahoe-FEM` directory.
 - Convert the `tahoe-manager` to an executable.
